@@ -1,7 +1,7 @@
 # Morphogenesis
 Cellular Potts Model for the evolution of morphogenesis
 
-Requires Qt libraries.
+Requires Qt libraries. The source code uses the "Tissue Simulation Toolkit" as a base. 
 
 To compile:
 Qmake -> Make -> executable
