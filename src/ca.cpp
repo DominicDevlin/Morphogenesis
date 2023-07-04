@@ -2555,12 +2555,32 @@ int CellularPotts::get_ntypes()
 int CellularPotts::hamming_distance(vector<bool> &str1, vector<bool> &str2)
 {
   int dist=0;
-  for (int i=0; i < par.n_lockandkey + par.n_length_genes + par.n_mediums; ++i)
+  
+  if (str1.size() != str2.size())
+  {
+    return -1;
+  }
+
+  int length = str1.size();
+
+  for (int i=0; i < length; ++i)
   {
     dist += (str1[i] != str2[i]);
   }
   return dist;
 }
+
+
+
+
+void CellularPotts::CellHammingDifferences()
+{
+  
+} 
+
+
+
+
 
 
 
