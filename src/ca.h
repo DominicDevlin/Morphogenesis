@@ -118,6 +118,10 @@ public:
 
   int hamming_distance(vector<bool> &str1, vector<bool> &str2);
 
+  void CellHammingDifferences();
+
+
+
   // fitness methods. 
   void som_fitness(void);
   void update_fitness(void);
