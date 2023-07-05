@@ -125,6 +125,9 @@ class Parameter {
   int s_shrink;
   
 
+  string data_file;
+
+
   bool scramble;
 
   int max_on; //max number of proteins on before a cell can't divide.

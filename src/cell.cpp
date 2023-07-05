@@ -323,13 +323,34 @@ bool Cell::checkforcycles(int max)
 void Cell::Phenotype()
 {
   int pcode{};
-  for (int i=0;i<17;++i)
+  for (int i=0;i<par.n_functional;++i)
   {
     int x = par.n_functional - 1 - i;
     pcode += full_set[i] * pow(2,x);
   }
   phenotype = pcode;
 }
+
+
+int Cell::RegPhenotype()
+{
+
+  int code{};
+  for (int i=0;i<par.n_activators;++i)
+  {
+    bool val;
+    if (genes[i] > 0.5)
+      val = 1;
+    else
+      val = 0;
+    int x = par.n_activators - 1 - i;
+    code += val * pow(2,x);
+  }
+  return code;
+}
+
+
+
 
 void Cell::RecordLongSwitch(array<bool, 17> &v1, uint64_t rndm)
 {

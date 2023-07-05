@@ -120,6 +120,7 @@ public:
 
   void CellHammingDifferences();
 
+  void set_datafile(string file);
 
 
   // fitness methods. 
@@ -574,6 +575,7 @@ private:
 
   bool early_contig;
 
+  string data_file;
 
 
 };

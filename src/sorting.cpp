@@ -57,6 +57,7 @@ INIT
   try 
   {
     CPM->set_seed();
+    CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
     CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
     CPM->ConstructInitCells(*this);
@@ -212,6 +213,11 @@ TIMESTEP {
     dish->CPM->AmoebaeMove(t);
     if (t == par.mcs-1 && par.gene_output)
     {
+
+      if (mkdir(par.data_file.c_str(), 0777) == -1)
+        cerr << "Error : " << strerror(errno) << endl;
+      else
+        cout << "Directory created." << endl;  
       dish->CPM->print_cell_GRN();
     }
 
@@ -247,10 +253,7 @@ TIMESTEP {
 
 
 
-      if (mkdir("org-data", 0777) == -1)
-        cerr << "Error : " << strerror(errno) << endl;
-      else
-        cout << "Directory created." << endl;   
+ 
 
       
       map<pair<int,int>,int> edge_tally{};
@@ -286,7 +289,7 @@ TIMESTEP {
         if (par.gene_output)
         {
           ofstream outfile;
-          string switch_out = "org-data/potency.dat";
+          string switch_out = par.data_file + "/potency.dat";
           outfile.open(switch_out, ios::app);
           
           for (auto kv : subcomps)
@@ -315,7 +318,7 @@ TIMESTEP {
       if (par.gene_output)
       {
         ofstream outnet;
-        string netw = "org-data/network.txt";
+        string netw = par.data_file + "/network.txt";
         outnet.open(netw, ios::app);
         for (int i=0;i<par.n_genes;++i)
         {
