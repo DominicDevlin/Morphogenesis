@@ -15,8 +15,7 @@ Many organisms are simulated simultaneously.
 
 Parameters are changed in "parameter.cpp".
 
-**Beware!** 
-There are about 100 parameters, many of which covary. 
+
 
 
 
