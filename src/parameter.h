@@ -127,6 +127,7 @@ class Parameter {
 
   string data_file;
 
+  bool stem_counts;
 
   bool scramble;
 

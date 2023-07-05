@@ -81,7 +81,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
   // run organisms in parallel. 
-  omp_set_num_threads(par.n_orgs);
+  omp_set_num_threads(16);
   #pragma omp parallel for 
   for (int i=0; i < par.n_orgs; ++i)  
   {
@@ -212,24 +212,19 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   }
 
 
-  int count=0;
-
+  int count = 0;
   for (int i=0; i < par.n_orgs; ++i)  
   {
-    cout << endl;
 
     ++count;
-
-    string wtf = "org" + count;
-
-    cout << "FNAME IS  " << wtf << " " << count << endl;
+    string fname = "org" + to_string(i);
 
 
-    dishes[i].CPM->set_datafile(wtf);
+    dishes[i].CPM->set_datafile(fname);
 
     // string command = "mkdir " + fname;
     // system(command.c_str());
-    if (mkdir(wtf.c_str(), 0777) == -1)
+    if (mkdir(fname.c_str(), 0777) == -1)
       cerr << "Error : " << strerror(errno) << endl;
     else
       cout << "Directory created." << endl;   
@@ -384,6 +379,7 @@ int main(int argc, char *argv[]) {
     polarities.push_back(start_p);
 
   }
+  par.n_orgs = genomes.size();
   process_population(genomes, polarities);
 
 

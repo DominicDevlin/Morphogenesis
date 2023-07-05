@@ -3694,44 +3694,47 @@ void CellularPotts::SetColours()
     outfile.close();
 
 
-
-    var_name = data_file + "/stem-counts.dat";
-    outfile.open(var_name, ios::app);
-
-
-    // now do it just stem and differentiated
-    map<int,int> stemtypes{};
-    
-    for (auto i : TypeCounts)
+    if (par.stem_counts)
     {
-      for (auto j : i)
+      var_name = data_file + "/stem-counts.dat";
+      outfile.open(var_name, ios::app);
+
+
+      // now do it just stem and differentiated
+      map<int,int> stemtypes{};
+      
+      for (auto i : TypeCounts)
       {
-        stemtypes[j.first] += j.second;
-        // if (find(ordered_types.begin(), ordered_types.end(), j.first) == ordered_types.end())
-        // {
-        //   ordered_types[]
-        // }
+        for (auto j : i)
+        {
+          stemtypes[j.first] += j.second;
+          // if (find(ordered_types.begin(), ordered_types.end(), j.first) == ordered_types.end())
+          // {
+          //   ordered_types[]
+          // }
+        }
       }
-    }
 
 
-    for (auto time : TypeCounts)
-    {
-      int stem{};
-      int diff{};
-
-      for (auto type : stemtypes)
+      for (auto time : TypeCounts)
       {
-        if (type.first > 20000)
-          stem += time[type.first];
-        else
-          diff += time[type.first];
+        int stem{};
+        int diff{};
 
+        for (auto type : stemtypes)
+        {
+          if (type.first > 20000)
+            stem += time[type.first];
+          else
+            diff += time[type.first];
+
+        }
+        outfile << stem << '\t' << diff << endl;
       }
-      outfile << stem << '\t' << diff << endl;
-    }
 
     outfile.close();
+    }
+
 
 
 

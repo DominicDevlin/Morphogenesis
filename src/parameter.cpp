@@ -37,7 +37,7 @@
     //basic grid parameters. 
     sizex = 250;
     sizey = 250;
-    mcs = 3100;
+    mcs = 12100;
 
     // show on screen
     graphics = false;
@@ -139,6 +139,9 @@
 
     //name of data file
     data_file = "org-data";
+
+    //count stem and differentiated cells
+    stem_counts = false;
 
 
     // when to collect fitness
