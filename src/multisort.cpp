@@ -81,7 +81,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
   // run organisms in parallel. 
-  omp_set_num_threads(16);
+  omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for 
   for (int i=0; i < par.n_orgs; ++i)  
   {
@@ -217,7 +217,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   {
 
     ++count;
-    string fname = "org" + to_string(i);
+
+    string fname = "org" + to_string(count);
 
 
     dishes[i].CPM->set_datafile(fname);
@@ -233,74 +234,70 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     dishes[i].CPM->print_cell_GRN();
 
 
-
     // dishes[i].CPM->TypeFitness2();
-
-
     // dishes[i].CPM->get_fitness();
 
-    // map<int, int> phens = dishes[i].CPM->get_phenotype_time();
-    // map<int, int> types = dishes[i].CPM->get_AdultTypes();  
-
+    map<int, int> phens = dishes[i].CPM->get_phenotype_time();
+    map<int, int> types = dishes[i].CPM->get_AdultTypes();  
     
-    // map<pair<int,int>,int> edge_tally{};
+    map<pair<int,int>,int> edge_tally{};
     
-    // // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)
-    // bool cycling = dishes[i].CPM->CycleCheck();
-    // if (cycling)
-    // {
-    //   cout << "There is cycling!!" << endl;
-    //   dishes[i].CPM->set_long_switches(edge_tally);
-    // }
-    // else
-    // {
-    //   dishes[i].CPM->set_switches(edge_tally);
-    // }
+    // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)
+    bool cycling = dishes[i].CPM->CycleCheck();
+    if (cycling)
+    {
+      cout << "There is cycling!!" << endl;
+      dishes[i].CPM->set_long_switches(edge_tally);
+    }
+    else
+    {
+      dishes[i].CPM->set_switches(edge_tally);
+    }
 
-    // if (par.potency_edges)
-    // {
-    //   // entire program is run from ungraph now
-    //   map<int,int>subcomps{};
-    //   if (cycling)
-    //   {
-    //     Graph ungraph(phens.size());
-    //     subcomps = ungraph.CreateUnGraph(phens, phens, edge_tally, 1, true);          
-    //   }
-    //   else
-    //   {
-    //     Graph ungraph(types.size());
-    //     subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-    //   }
+    if (par.potency_edges)
+    {
+      // entire program is run from ungraph now
+      map<int,int>subcomps{};
+      if (cycling)
+      {
+        Graph ungraph(phens.size());
+        subcomps = ungraph.CreateUnGraph(phens, phens, edge_tally, 1, true);          
+      }
+      else
+      {
+        Graph ungraph(types.size());
+        subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+      }
 
 
-    //   if (par.gene_output)
-    //   {
-    //     ofstream outfile;
-    //     string switch_out = par.data_file + "/potency.dat";
-    //     outfile.open(switch_out, ios::app);
+      if (par.gene_output)
+      {
+        ofstream outfile;
+        string switch_out = fname + "/potency.dat";
+        outfile.open(switch_out, ios::app);
         
-    //     for (auto kv : subcomps)
-    //     {
-    //       outfile << "Component number: " << kv.first;
-    //       if (kv.second > 1)
-    //         outfile << " is weakly connected." << endl;
-    //       else
-    //         outfile << " is strongly connected." << endl;
-    //     }
-    //     outfile.close();
-    //   }
+        for (auto kv : subcomps)
+        {
+          outfile << "Component number: " << kv.first;
+          if (kv.second > 1)
+            outfile << " is weakly connected." << endl;
+          else
+            outfile << " is strongly connected." << endl;
+        }
+        outfile.close();
+      }
       
-    // }
-    // else
-    // {
+    }
+    else
+    {
 
-    //   // Graph newgraph(phens.size());
-    //   // newgraph.CreateDiGraph(phens, types, edge_start, edge_end);
+      // Graph newgraph(phens.size());
+      // newgraph.CreateDiGraph(phens, types, edge_start, edge_end);
 
-    //   // cout << "Having a look at the undirected graph...." << endl;
-    //   Graph ungraph(phens.size());
-    //   map<int,int> subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-    // }
+      // cout << "Having a look at the undirected graph...." << endl;
+      Graph ungraph(phens.size());
+      map<int,int> subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+    }
 
 
   }
