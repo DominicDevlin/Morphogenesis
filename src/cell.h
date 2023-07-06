@@ -782,6 +782,9 @@ private:
 
   void Phenotype();
 
+  int RegPhenotype();
+
+
   inline int GetPhenotype()
   {
     return phenotype;

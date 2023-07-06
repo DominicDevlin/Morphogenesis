@@ -2573,9 +2573,153 @@ int CellularPotts::hamming_distance(vector<bool> &str1, vector<bool> &str2)
 
 
 
+int hamming(int t1, int t2)
+{
+  string bin1 = "";
+  string bin2 = ""; 
+
+  int count = 0;
+  while (count < par.n_lockandkey + par.n_mediums + par.n_length_genes)
+  {
+    bin1 = to_string(t1 % 2) + bin1;
+    t1 = t1 / 2;
+
+    bin2 = to_string(t2 % 2) + bin2;
+    t2 = t2 / 2;
+
+
+    ++count;
+  }
+
+  int distance = 0;
+  for (int i = 0; i < bin1.length(); i++) {
+      if (bin1[i] != bin2[i]) {
+          distance++;
+      }
+  }
+  return distance;
+
+
+
+}
+
+
+
 void CellularPotts::CellHammingDifferences()
 {
+
+  // Need to get the cell phenotype.
+  unordered_map<int, int> phenotypes{};
+
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      c->Phenotype();
+      int p = c->GetPhenotype();
+      phenotypes[p] += 1;
+
+    }
+  }
   
+  ofstream outfile;
+  string out = data_file + "/hammings.dat";
+  outfile.open(out, ios::app);
+
+
+  vector<int> types;
+
+  for (auto type : phenotypes)
+  {
+    if (type.second > 4)
+      types.push_back(type.first);
+
+  }
+
+  int max_hamming_phenotype = 0;
+  // compare hamming distance for all types
+  for (int i=0;i<types.size();++i)
+  {
+    for (int j = i + 1; j < types.size(); ++j)
+    {
+      int t1 = types[i];
+      int t2 = types[j];
+      int distance = hamming(t1, t2);
+      outfile << t1 << " " << t2 << " " << distance << endl;
+      if (distance > max_hamming_phenotype)
+        max_hamming_phenotype = distance;
+
+    }
+  }
+  outfile.close();
+
+  // now do it for regulation:
+
+  unordered_map<int, int> reg_types{};
+
+
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      int p = c->RegPhenotype();
+      reg_types[p] += 1;
+
+    }
+  }
+  
+  out = data_file + "/regulatory-hammings.dat";
+  outfile.open(out, ios::app);
+
+
+  vector<int> regs{};
+
+  for (auto type : reg_types)
+  {
+    if (type.second > 4)
+      regs.push_back(type.first);
+
+  }  
+
+  int max_hamming_reg=0;
+  // compare hamming distance for all types
+  for (int i=0;i<regs.size();++i)
+  {
+    for (int j = i + 1; j < regs.size(); ++j)
+    {
+      int t1 = regs[i];
+      int t2 = regs[j];
+      int distance = hamming(t1, t2);
+      outfile << t1 << " " << t2 << " " << distance << endl;
+      if (distance > max_hamming_reg)
+        max_hamming_reg = distance;
+    }
+  }
+  outfile.close();
+
+
+  // data to central file. I want: number of regulatory states, number of phenotype states, max hamming distance for both regulatory and phenotype
+  // only need to do it at final time point. 
+
+
+
+  out = "hamming_data.dat";
+  outfile.open(out, ios::app);
+
+
+  outfile << phenotypes.size() << "\t" << max_hamming_phenotype << "\t" << regs.size() << "\t" << max_hamming_reg << endl;
+
+  outfile.close();
+
+
+
+
+
+
+
+
+
 } 
 
 
@@ -2875,6 +3019,10 @@ void CellularPotts::set_seed()
     cout << "Seed is: " << s_val[0] << endl;
 }
 
+void CellularPotts::set_datafile(string file)
+{
+  data_file = file;
+}
 
 
 
@@ -2962,13 +3110,13 @@ unordered_map<string, int> CellularPotts::transitions(bool cycling)
 
   if (par.gene_output)
   {
-    if (mkdir("org-data", 0777) == -1)
+    if (mkdir(data_file.c_str(), 0777) == -1)
       cerr << "Error : " << strerror(errno) << endl;
     else
       cout << "Directory created." << endl;
 
     ofstream outfile;
-    string switch_out = "org-data/differentiation_tally.dat";
+    string switch_out = data_file + "/differentiation_tally.dat";
     outfile.open(switch_out, ios::app);
     for (auto i : switch_tally)
     {
@@ -3074,12 +3222,14 @@ void CellularPotts::set_long_switches(map<pair<int,int>,int>& tally)
 
 void CellularPotts::cell_concentrations()
 {
-  if (mkdir("org-data", 0777) == -1)
+  string fnamen = data_file + "/conc";
+
+  if (mkdir(fnamen.c_str(), 0777) == -1)
     cerr << "Error : " << strerror(errno) << endl;
   else
     cout << "Directory created." << endl;  
 
-  if (mkdir("org-data/conc", 0777) == -1)
+  if (mkdir(data_file.c_str(), 0777) == -1)
     cerr << "Error : " << strerror(errno) << endl;
   else
     cout << "Directory created." << endl;
@@ -3089,7 +3239,7 @@ void CellularPotts::cell_concentrations()
   {
     if (c->AliveP())
     {
-      string var_name = "org-data/conc/cell_conc_" + to_string(c->Sigma()) + ".dat";
+      string var_name = data_file + "/conc/cell_conc_" + to_string(c->Sigma()) + ".dat";
       ofstream outfile;
       outfile.open(var_name, ios::app);
       
@@ -3130,14 +3280,14 @@ void CellularPotts::phenotype_time()
 
   if (par.gene_output)
   {
-    if (mkdir("org-data", 0777) == -1)
+    if (mkdir(data_file.c_str(), 0777) == -1)
       cerr << "Error : " << strerror(errno) << endl;
     else
       cout << "Directory created." << endl;
 
 
     ofstream outfile;
-    string fname = "org-data/phenotype_time.dat";
+    string fname = data_file + "/phenotype_time.dat";
     outfile.open(fname, ios::app);
     for (auto m : phenotype_time)
     {
@@ -3197,8 +3347,8 @@ map<int, int> CellularPotts::get_AdultTypes()
 
 void CellularPotts::cell_divisions()
 {
-
-  if (mkdir("org-data/types", 0777) == -1)
+  string fnamen = data_file + "/types";
+  if (mkdir(fnamen.c_str(), 0777) == -1)
     cerr << "Error : " << strerror(errno) << endl;
   else
     cout << "Directory created." << endl;
@@ -3243,7 +3393,7 @@ void CellularPotts::cell_divisions()
 
     }
   }
-  string fname = "org-data/divisions.dat";
+  string fname = data_file + "/divisions.dat";
   ofstream outfile;
   outfile.open(fname, ios::app);
   for (pair<int,int> &i : divisions)
@@ -3253,7 +3403,7 @@ void CellularPotts::cell_divisions()
   }
   outfile.close();
 
-  string dpt = "org-data/div_phen_tally.dat";
+  string dpt = data_file + "/div_phen_tally.dat";
   outfile.open(dpt, ios::app);
   auto it = divphentally.begin();
   for (; it != divphentally.end();++it)
@@ -3266,7 +3416,7 @@ void CellularPotts::cell_divisions()
   {
     if (c->AliveP())
     {
-      string var_name = "org-data/types/cell_types_" + to_string(c->Sigma()) + ".dat";
+      string var_name = data_file + "/types/cell_types_" + to_string(c->Sigma()) + ".dat";
       outfile.open(var_name, ios::app);
       
       vector<int>& hist = c->TypeHistory();
@@ -3305,12 +3455,13 @@ void CellularPotts::print_cell_GRN()
 {
   #ifdef FILESYSTEM
   // need to add  -lstdc++fs -std=c++17 to CXXFLAGS in makefile in order for filesystem to compile.
-  std::uintmax_t n = std::filesystem::remove_all("org-data");
+  std::uintmax_t n = std::filesystem::remove_all(data_file);
   if (n)
     cout << "Removed " << n << " folders!!" << endl;
   #endif
 
   cell_concentrations();
+
 
   cell_divisions();
 
@@ -3319,6 +3470,8 @@ void CellularPotts::print_cell_GRN()
   transitions(false);
 
   PrintTypesTime(true);
+
+  CellHammingDifferences();
 
 }
 
@@ -3513,7 +3666,7 @@ void CellularPotts::SetColours()
 
     // now print - convert typecounts to timestate
     
-    string var_name = "org-data/type-counts.dat";
+    string var_name = data_file + "/type-counts.dat";
     ofstream outfile;
     outfile.open(var_name, ios::app);
 
@@ -3541,44 +3694,47 @@ void CellularPotts::SetColours()
     outfile.close();
 
 
-
-    var_name = "org-data/stem-counts.dat";
-    outfile.open(var_name, ios::app);
-
-
-    // now do it just stem and differentiated
-    map<int,int> stemtypes{};
-    
-    for (auto i : TypeCounts)
+    if (par.stem_counts)
     {
-      for (auto j : i)
+      var_name = data_file + "/stem-counts.dat";
+      outfile.open(var_name, ios::app);
+
+
+      // now do it just stem and differentiated
+      map<int,int> stemtypes{};
+      
+      for (auto i : TypeCounts)
       {
-        stemtypes[j.first] += j.second;
-        // if (find(ordered_types.begin(), ordered_types.end(), j.first) == ordered_types.end())
-        // {
-        //   ordered_types[]
-        // }
+        for (auto j : i)
+        {
+          stemtypes[j.first] += j.second;
+          // if (find(ordered_types.begin(), ordered_types.end(), j.first) == ordered_types.end())
+          // {
+          //   ordered_types[]
+          // }
+        }
       }
-    }
 
 
-    for (auto time : TypeCounts)
-    {
-      int stem{};
-      int diff{};
-
-      for (auto type : stemtypes)
+      for (auto time : TypeCounts)
       {
-        if (type.first > 20000)
-          stem += time[type.first];
-        else
-          diff += time[type.first];
+        int stem{};
+        int diff{};
 
+        for (auto type : stemtypes)
+        {
+          if (type.first > 20000)
+            stem += time[type.first];
+          else
+            diff += time[type.first];
+
+        }
+        outfile << stem << '\t' << diff << endl;
       }
-      outfile << stem << '\t' << diff << endl;
-    }
 
     outfile.close();
+    }
+
 
 
 

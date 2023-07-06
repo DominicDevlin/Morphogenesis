@@ -64,10 +64,10 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 1, 0, 0, 2, 1, -2, 1, -2 }, { 0, 0, -2, 2, 0, -1, 1, 0, -2 }, { 0, 1, -1, 0, 0, 0, 0, -1, 1 }, { 1, -1, -2, 1, 0, 0, 1, 0, -1 }, { 1, 0, 2, 0, -1, 1, 1, -1, 1 }, { -2, -2, 1, 2, 2, 0, 0, 2, 1 }, { 0, -1, 0, 0, 0, 0, -1, 1, -1 }, { 1, -1, -1, 0, 1, 0, 1, 0, -1 }, { 1, -1, 1, -1, 0, 1, 0, 0, 0 }, { 1, 0, 0, 2, 0, 0, 2, -1, 0 }, { 0, 0, -1, 0, 1, -1, -1, 0, 1 }, { -1, 1, -1, 2, 0, -1, 0, 0, 1 }, { -2, 0, 0, 0, 0, 0, -2, 0, 2 }, { -2, 0, 0, 0, 0, -2, 1, 0, -1 }, { -1, 0, 2, 0, 1, -1, 0, 0, 2 }, { 0, 0, 0, 0, 2, 0, 0, 0, 0 }, { 2, 0, -2, 0, -1, 0, -1, -1, 0 }, { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 1, 1, -1, 0, 1 }, { 1, 0, -1, 1, -2, 0, 1, 0, 0 }, { 1, 2, 0, 1, -1, -2, 1, -1, -1 }, { 0, 0, -2, 1, -1, 1, 0, -1, 0 }, { 0, -2, 2, 1, 0, -2, -2, 0, 0 }, { 0, 1, -2, 0, -1, 0, 1, 0, 1 }, { 0, 1, -1, 0, -1, 1, 1, -1, 0 }, { 1, 0, -2, 0, -1, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0, -2, -1, 1, 0 }, };
+    start_matrix = { { 0, 0, 0, 2, 0, 0, 0, 0, 0 }, { 0, 0, 0, -2, -2, -1, 0, -1, -1 }, { 1, 0, 0, 0, -1, 1, 0, 0, 0 }, { 0, 0, 0, 1, 0, -1, 1, 0, 1 }, { 0, 0, 0, 0, 2, 0, 0, 0, 1 }, { 1, 0, 0, 0, -1, 1, 0, 0, 0 }, { 1, 0, -1, 1, -1, 0, 1, 0, 0 }, { 0, 0, 0, -1, -1, 0, 1, 0, -1 }, { -1, 0, -1, -1, 0, 1, 0, 0, 0 }, { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, { 1, 0, 0, 1, 0, 0, 0, 2, 1 }, { -1, 0, 0, 1, 0, -2, 1, 1, 0 }, { 1, 1, 0, 0, 1, 1, 0, 0, 0 }, { 0, -1, -1, 0, 0, -1, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, -2, -1, 0, 0 }, { 1, 2, -1, 0, 1, -2, 0, 0, 0 }, { 0, 0, -2, 0, 0, 0, 0, -1, 0 }, { 0, 0, 1, 0, 0, 0, 1, 0, 0 }, { 0, -1, -2, 1, 0, 0, 0, 0, 1 }, { -2, 0, 0, 1, 0, 0, 1, 0, 0 }, { 1, 0, 2, -1, 0, -1, 0, -1, 1 }, { -1, 0, -1, 0, 0, 0, 1, 0, 0 }, { -1, -2, -1, 0, 0, 0, 1, 0, 0 }, { -1, 0, -1, 2, -1, -1, 0, 0, 0 }, { 0, 0, 0, 0, 0, 1, 0, 0, 2 }, { 0, 0, 0, 0, 0, 0, 0, 0, -1 }, };
 
 
-    n_orgs = 60; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TESTn_orgs = 16; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TEST
+    n_orgs = 2; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TESTn_orgs = 16; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TEST
     n_replicates = 2;
     // edges and nodes only at end of simulation.
     potency_edges = true;
@@ -136,6 +136,12 @@
     // DEPRACATED: let all cells be capable of cell division. MUST BE FALSE FOR stem cell evolution testing. False promotes stem cell evolution?
     all_divide = true;
 
+
+    //name of data file
+    data_file = "org-data";
+
+    //count stem and differentiated cells
+    stem_counts = false;
 
 
     // when to collect fitness
@@ -372,19 +378,21 @@
     FILE *fp=OpenReadFile(filename);
 
 
-    T = fgetpar(fp, "T", 50., true);
-    target_area = igetpar(fp, "target_area", 100, true);
-    target_length = igetpar(fp, "target_length", 60, true);
-    lambda = fgetpar(fp, "lambda", 50, true);
-    lambda2 = fgetpar(fp, "lambda2", 5.0, true);
-    Jtable = sgetpar(fp, "Jtable", "J.dat", true);
-    conn_diss = igetpar(fp, "conn_diss", 2000, true);
-    vecadherinknockout = bgetpar(fp, "vecadherinknockout", false, true);
-    extensiononly = bgetpar(fp, "extensiononly", false, true);
-    chemotaxis = igetpar(fp, "chemotaxis", 1000, true);
-    border_energy = igetpar(fp, "border_energy", 100, true);
-    neighbours = igetpar(fp, "neighbours", 2, true);
-    periodic_boundaries = bgetpar(fp, "periodic_boundaries", false, true);
+
+
+    // T = fgetpar(fp, "T", 50., true);
+    // target_area = igetpar(fp, "target_area", 100, true);
+    // target_length = igetpar(fp, "target_length", 60, true);
+    // lambda = fgetpar(fp, "lambda", 50, true);
+    // lambda2 = fgetpar(fp, "lambda2", 5.0, true);
+    // Jtable = sgetpar(fp, "Jtable", "J.dat", true);
+    // conn_diss = igetpar(fp, "conn_diss", 2000, true);
+    // vecadherinknockout = bgetpar(fp, "vecadherinknockout", false, true);
+    // extensiononly = bgetpar(fp, "extensiononly", false, true);
+    // chemotaxis = igetpar(fp, "chemotaxis", 1000, true);
+    // border_energy = igetpar(fp, "border_energy", 100, true);
+    // neighbours = igetpar(fp, "neighbours", 2, true);
+    // periodic_boundaries = bgetpar(fp, "periodic_boundaries", false, true);
     // n_chem = igetpar(fp, "n_chem", 1, true);
     // diff_coeff = dgetparlist(fp, "diff_coeff", n_chem, true);
     // decay_rate = dgetparlist(fp, "decay_rate", n_chem, true);
@@ -393,19 +401,19 @@
     // dt = fgetpar(fp, "dt", 2.0, true);
     // dx = fgetpar(fp, "dx", 2.0e-6, true);
     // pde_its = igetpar(fp, "pde_its", 15, true);
-    n_init_cells = igetpar(fp, "n_init_cells", 100, true);
-    size_init_cells = igetpar(fp, "size_init_cells", 10, true);
-    sizex = igetpar(fp, "sizex", 200, true);
-    sizey = igetpar(fp, "sizey", 200, true);
-    divisions = igetpar(fp, "divisions", 0, true);
-    mcs = igetpar(fp, "mcs", 10000, true);
-    rseed = igetpar(fp, "rseed", -1, true);
-    subfield = fgetpar(fp, "subfield", 1.0, true);
-    relaxation = igetpar(fp, "relaxation", 0, true);
-    storage_stride = igetpar(fp, "storage_stride", 10, true);
-    graphics = bgetpar(fp, "graphics", true, true);
-    store = bgetpar(fp, "store", false, true);
-    datadir = sgetpar(fp, "datadir", "data_film", true);
+    // n_init_cells = igetpar(fp, "n_init_cells", 100, true);
+    // size_init_cells = igetpar(fp, "size_init_cells", 10, true);
+    // sizex = igetpar(fp, "sizex", 200, true);
+    // sizey = igetpar(fp, "sizey", 200, true);
+    // divisions = igetpar(fp, "divisions", 0, true);
+    // mcs = igetpar(fp, "mcs", 10000, true);
+    // rseed = igetpar(fp, "rseed", -1, true);
+    // subfield = fgetpar(fp, "subfield", 1.0, true);
+    // relaxation = igetpar(fp, "relaxation", 0, true);
+    // storage_stride = igetpar(fp, "storage_stride", 10, true);
+    // graphics = bgetpar(fp, "graphics", true, true);
+    // store = bgetpar(fp, "store", false, true);
+    // datadir = sgetpar(fp, "datadir", "data_film", true);
 
   }
 
