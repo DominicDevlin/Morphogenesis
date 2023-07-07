@@ -3473,6 +3473,8 @@ void CellularPotts::print_cell_GRN()
 
   CellHammingDifferences();
 
+  BindingBetweenCells();
+
 }
 
 
@@ -5657,6 +5659,92 @@ double CellularPotts::TraverseFitness()
   return total_movement;
 
 }
+
+// higher J means less binding with medium
+int MedBinding(vector<bool>& med)
+{
+  int Jval = 0;
+  for (int i = 0; i < par.n_mediums; ++i)
+  {
+    
+    Jval += med[i]*par.med_table[i]; // medp_bool[i]*4;
+  }
+  Jval += 6; //  += 6 offset so interaction with medium is not 0     
+  return Jval;
+}
+
+
+int LKScore(vector<bool>& l1, vector<bool>& k1, vector<bool>& l2, vector<bool>& k2)
+{
+  int score{};
+  for (int i =0; i < par.n_locks; ++i)
+  {
+    score += ( k1[i] != l1[i] )?1:0; // (( keys_bool[i] == lock2[i] )?1:0) * par.med_table[i];
+    score += ( k2[i] != l2[i] )?1:0; // (( key2[i] == locks_bool[i] )?1:0) * par.med_table[i];
+  }
+  return score;
+}
+
+
+void CellularPotts::BindingBetweenCells()
+{
+  vector<int> phenotypes{};
+  map<int, vector<bool>> keys{};
+  map<int, vector<bool>> locks{};
+  map<int, vector<bool>> meds{};
+
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      c->Phenotype();
+      int p = c->GetPhenotype();
+      if (find(phenotypes.begin(), phenotypes.end(), p) == phenotypes.end())
+      {
+        phenotypes.push_back(p);
+        vector<bool> lock = c->get_locks_bool();
+        vector<bool> key = c->get_keys_bool();
+        vector<bool> med = c->get_medp_bool();
+        keys[p] = key;
+        locks[p] = lock;
+        meds[p] = med;
+      }
+    }
+  }
+
+  ofstream outfile;
+  string out = data_file + "/cell-bindings.dat";
+  outfile.open(out, ios::app);
+
+  int sizeL = phenotypes.size();
+  for (int i = 0; i < sizeL; ++i)
+  {
+    for (int j = i+1; j < sizeL; ++j)
+    {
+      //compare the two with binding function
+      int pi = phenotypes[i];
+      int pj = phenotypes[j];
+      int score = LKScore(locks[pi], keys[pi], locks[pj], keys[pj]);
+
+      // higher score = higher binding = lower J
+      outfile << pi << '\t' << pj << '\t' << score << endl;
+    }
+  }
+
+  // should output mediums as well
+  outfile << endl;
+  for (int i = 0; i < sizeL; ++i)
+  {
+    int p = phenotypes[i];
+    int binding = MedBinding(meds[p]);
+    outfile << p << '\t' << binding << endl;
+  }
+
+
+
+}
+
 
 
 

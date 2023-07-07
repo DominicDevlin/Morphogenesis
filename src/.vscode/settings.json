@@ -15,6 +15,7 @@
     "ostream": "cpp",
     "iterator": "cpp",
     "iosfwd": "cpp",
-    "fstream": "cpp"
+    "fstream": "cpp",
+    "cstdlib": "cpp"
   }
 }

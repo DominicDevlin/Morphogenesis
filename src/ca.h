@@ -272,6 +272,8 @@ public:
 
   double AverageBinding();
 
+  void BindingBetweenCells();
+
   double AvgMedsOn();
 
   void DeviationCheck();

@@ -274,7 +274,7 @@ int Cell::CalculateJfromMed(vector<bool>& medp2)
   return Jval;
 }
 
-// maybe try changing what proteins are used for medium adhesion around a bit. 
+// higher J means less binding with medium
 int Cell::CalculateJwithMed()
 {
   int Jval = 0;
@@ -292,7 +292,7 @@ int Cell::CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 )
 {
   int score=0;
 
-  for (int i =0; i < par.n_locks; ++i)
+  for (int i=0; i < par.n_locks; ++i)
   {
     score += ( keys_bool[i] != lock2[i] )?1:0; // (( keys_bool[i] == lock2[i] )?1:0) * par.med_table[i];
     score += ( key2[i] != locks_bool[i] )?1:0; // (( key2[i] == locks_bool[i] )?1:0) * par.med_table[i];
@@ -446,8 +446,6 @@ int Cell::LocksKeysScore(vector<bool>& locks, vector<bool>& keys)
     score += ( keys_bool[i] != locks[i] )?1:0; // (( keys_bool[i] == lock2[i] )?1:0) * par.med_table[i];
     score += ( keys[i] != locks_bool[i] )?1:0; // (( key2[i] == locks_bool[i] )?1:0) * par.med_table[i];
   }
-
-
   return score;
 }
 
