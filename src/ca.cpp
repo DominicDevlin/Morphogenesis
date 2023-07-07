@@ -5720,7 +5720,7 @@ void CellularPotts::BindingBetweenCells()
   int sizeL = phenotypes.size();
   for (int i = 0; i < sizeL; ++i)
   {
-    for (int j = i+1; j < sizeL; ++j)
+    for (int j = i; j < sizeL; ++j)
     {
       //compare the two with binding function
       int pi = phenotypes[i];
