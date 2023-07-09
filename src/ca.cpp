@@ -5682,7 +5682,11 @@ int LKScore(vector<bool>& l1, vector<bool>& k1, vector<bool>& l2, vector<bool>& 
     score += ( k1[i] != l1[i] )?1:0; // (( keys_bool[i] == lock2[i] )?1:0) * par.med_table[i];
     score += ( k2[i] != l2[i] )?1:0; // (( key2[i] == locks_bool[i] )?1:0) * par.med_table[i];
   }
-  return score;
+
+  // perfect score is 10 (all locks and keys match). 
+  int J = 4 + (int)( 20. - 20 * ((double)score) / (par.n_lockandkey)); //4 10 10     20-16 
+
+  return J; 
 }
 
 
