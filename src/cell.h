@@ -116,6 +116,12 @@ public:
     switches = src.switches;
     long_switches = src.switches;
 
+    xcen = src.xcen;
+    ycen = src.ycen;
+
+    xcens = src.xcens;
+    ycens = src.ycens;
+
 
     diffs = new double[par.n_diffusers];
 
@@ -199,6 +205,11 @@ public:
     stemness = src.stemness;
     shrinker = src.shrinker;
 
+    xcen = src.xcen;
+    ycen = src.ycen;
+    xcens = src.xcens;
+    ycens = src.ycens;
+
     diffs = new double[par.n_diffusers];
 
     for (int i=0;i<par.n_diffusers;i++)
@@ -261,7 +272,6 @@ public:
   {
     c_type = col;
   }
-
 
 
   /* \brief Returns the energy between this cell and cell2. 
@@ -759,6 +769,22 @@ private:
     ycen = y;
   }
 
+  inline void RecordMass()
+  {
+    xcens.push_back(xcen);
+    ycens.push_back(ycen);
+  }
+
+  vector<double>& get_xcens()
+  {
+    return xcens;
+  }
+
+  vector<double>& get_ycens()
+  {
+    return ycens;
+  }
+
   inline void cellmed()
   {
     ++medium_contact;
@@ -988,6 +1014,8 @@ protected:
 
   bool death_tag=false;
 
+  vector<double> xcens;
+  vector<double> ycens;
 
 
   vector<tuple<int,int, uint64_t>> switches;

@@ -160,7 +160,12 @@ TIMESTEP {
         dish->AverageChemCell(); 
         
         if (par.gene_output)
-          dish->CPM->record_GRN();    
+          dish->CPM->record_GRN();   
+
+        if (par.velocities)
+        {
+          dish->CPM->RecordMasses();
+        } 
 
         // speed up initial PDE diffusion
         for (int r=0;r<par.program_its;r++) 
@@ -182,6 +187,11 @@ TIMESTEP {
           dish->CPM->record_GRN();
           dish->CPM->CountTypesTime();
         }
+
+        if (par.velocities)
+        {
+          dish->CPM->RecordMasses();
+        } 
 
       }
 
@@ -231,6 +241,8 @@ TIMESTEP {
 
     if (t == par.mcs - 1)
     {
+      if (par.velocities)
+        dish->CPM->CellVelocities();
 
       // dish->CPM->TypeFitness2();
 
@@ -388,8 +400,6 @@ TIMESTEP {
       // dish->CPM->DestroyCellsByRadius(34.);
       // dish->CPM->DestroyCellsByPhenotype(111104, false);
 
-
-
       // dish->CPM->DestroyCellsByPhenotype(51699, true, 51331, 51339);
       // dish->CPM->DestroyCellsByPhenotype(103234, true, 103235, 103171);
       // dish->CPM->DestroyCellsByMorphogen(1, 0.15);
@@ -429,7 +439,6 @@ TIMESTEP {
       //   // dish->CPM->DrawListofCAC(this, perim);
       //   // dish->CPM->DrawPerimeter(this, pcells);
       // }
-
 
       static bool c1 = false;
       static bool c2 = false;

@@ -114,6 +114,11 @@ void Cell::CellBirth(Cell &mother_cell) {
   switches = mother_cell.switches;
   long_switches = mother_cell.long_switches;
 
+  xcen = mother_cell.xcen;
+  ycen = mother_cell.ycen;
+  xcens = mother_cell.xcens;
+  ycens = mother_cell.ycens;
+
 
   for (int i=0;i<par.n_diffusers;i++)
   {

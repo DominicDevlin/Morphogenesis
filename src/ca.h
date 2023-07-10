@@ -288,6 +288,12 @@ public:
 
   void PrintTypesTime(bool prune=false);
 
+  void RecordMasses();
+
+  void CellVelocities();
+
+
+
 
 
   // personal random numbers for xoshiro RNG (each grid has its own state)

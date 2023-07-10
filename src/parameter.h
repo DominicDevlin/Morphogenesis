@@ -131,6 +131,8 @@ class Parameter {
 
   bool scramble;
 
+  bool velocities;
+
   int max_on; //max number of proteins on before a cell can't divide.
   int max_cells; //max cells as a cap (slows down sims, dont expect to reach this number)
 

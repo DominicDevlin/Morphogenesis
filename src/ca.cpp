@@ -1087,6 +1087,28 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
       }
   }  
 
+  // if (par.velocities)
+  // {
+  //   vector<Cell>::iterator c;
+  //   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  //   {
+  //     if (which_cells[c->Sigma()])
+  //     {
+  //       vector<double>& xcens = c->get_xcens();
+  //       vector<double>& ycens = c->get_ycens();
+
+  //       int len = xcens.size();
+
+        
+
+
+
+  //     }
+  //   }
+  // }
+
+
+
   if (celldir) 
     delete[] (celldir);
   
@@ -3550,7 +3572,7 @@ void CellularPotts::SetColours()
   // map<int,int> colours = {{119675, 45}, {110595, 143},{115579, 84},{45059, 71}, {127867, 88}}; // this is for shield
 
 
-  map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}}; // this is for mushroom
+  map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
 
   // map<int,int> colours = {{129287, 49}, {129295, 102}, {129293, 81}, {129039, 160}, 
   // {64771, 53}, {93951, 22}, {60547, 91}, {92927, 47}, {27779, 73}}; // this is for patterns
@@ -4261,7 +4283,85 @@ void CellularPotts::SetCellCenters()
     (*cell)[iter->first].set_ycen(iter->second);
     //cout << iter->first << " : " << iter->second << endl;
   }
+
 }
+
+void CellularPotts::RecordMasses()
+{
+  SetCellCenters();
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      c->RecordMass();
+    }
+  }
+}
+
+void CellularPotts::CellVelocities()
+{
+  // find the difference between every recording. 
+  // need to do simple vector length calculation.
+
+
+  string fnamen = data_file + "/velocities";
+
+  if (mkdir(fnamen.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;  
+
+  if (mkdir(data_file.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;
+
+
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      string var_name = data_file + "/velocities/cell_" + to_string(c->Sigma()) + ".dat";
+      ofstream outfile;
+      outfile.open(var_name, ios::app);
+
+
+      vector<double>& xm = c->get_xcens();
+      vector<double>& ym = c->get_ycens();
+      int s = xm.size();
+
+      for (int i = 10; i < s; ++i)
+      {
+        // we want displacement from a while ago to account for back and forth motion
+        double x = xm[i-10];
+        double y = ym[i-10];
+        double x1 = xm[i];
+        double y1 = ym[i];
+
+        double len = sqrt(pow(x1-x,2) + pow(y1-y,2));
+
+        cout << "length is: " << len << endl;
+        outfile << len << endl;
+
+      }
+
+      outfile.close();
+
+
+    }
+  }
+}
+
+
+
+
+
+
+
+
 
 
 
