@@ -264,6 +264,7 @@ int main(int argc, char *argv[])
   par.randomise = false;
   par.gene_record = true;
   par.gene_output = false;
+  par.velocities = false;
   Parameter();
   par.n_orgs = 10;
   par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10 * par.n_orgs);

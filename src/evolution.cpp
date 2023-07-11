@@ -500,6 +500,7 @@ int main(int argc, char *argv[]) {
   par.gene_output=false;
   par.gene_record = false;
   par.store = false;
+  par.velocities=false;
   par.pickseed = 0;
   par.mcs = 12100;
   Parameter();

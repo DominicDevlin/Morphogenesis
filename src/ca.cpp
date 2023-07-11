@@ -3036,9 +3036,16 @@ void CellularPotts::set_seed()
   if (par.pickseed)
     s_val[0] = par.pickseed;
   else
+  {
     s_val[0] = Seed(org_num);
-  if (par.print_fitness) 
+    par.pickseed = s_val[0];
+  }
+  if (par.print_fitness)
+  {
     cout << "Seed is: " << s_val[0] << endl;
+  } 
+
+  
 }
 
 void CellularPotts::set_datafile(string file)
@@ -4343,7 +4350,7 @@ void CellularPotts::CellVelocities()
 
         double len = sqrt(pow(x1-x,2) + pow(y1-y,2));
 
-        cout << "length is: " << len << endl;
+        // cout << "length is: " << len << endl;
         outfile << len << endl;
 
       }

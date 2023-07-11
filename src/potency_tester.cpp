@@ -407,6 +407,7 @@ int main(int argc, char *argv[]) {
   par.gene_record=true;
   par.gene_output=false;
   par.potency_edges=true;
+  par.velocities = false;
   Parameter();
 
   par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10 * par.n_replicates);

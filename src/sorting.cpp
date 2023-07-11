@@ -347,7 +347,9 @@ TIMESTEP {
           }
           if (i == par.n_genes -1)
             outnet << "}" << endl;
-        }        
+        }
+
+        outnet << endl << "Seed is: " << endl << par.pickseed;
         outnet.close();
       }
 
