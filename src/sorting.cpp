@@ -388,11 +388,11 @@ TIMESTEP {
 
 
     // for spawning a lot of morphogen at a specific point, or changing cell types + morphogen
-    if (t == 5478)
+    if (t == 6998)
     {
       // dish->CPM->ConvertToStem(125,95,40,11907, dish->PDEfield, true, 45);
 
-      // dish->CPM->ConvertToStem(140,125,25,123107, dish->PDEfield, true); - did 6998 for fungi to create figure
+      dish->CPM->ConvertToStem(140,125,25,123107, dish->PDEfield, true); // - did 6998 for fungi to create figure
       // dish->IntroduceMorphogen(1, 120, 90);
     }
 
