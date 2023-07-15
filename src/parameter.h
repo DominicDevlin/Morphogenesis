@@ -70,6 +70,7 @@ class Parameter {
   bool graphics;
   bool contours;
   bool screen_freq;
+  bool n_screen_freq;
   bool store;
   char * datadir;
   double tlength1;

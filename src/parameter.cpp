@@ -40,12 +40,14 @@
     mcs = 12100;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
 
     // Generate a random genome
     randomise = false;
+
+    // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
     // output data for analysis (connectivity, gene expression, state transitions)
     gene_output = true;
     // gene record needs to always be on to test network connectivity. 
@@ -60,7 +62,7 @@
     //set specific colours (SHOULD ALWAYS BE FALSE UNLESS NEEDED)
     set_colours = true;
     // Start from specific seed. USE 0 for random seed. (SHOULD ALWAYS be 0 unless need specific seed.)
-    pickseed=0;
+    pickseed=3703310349023613582;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -68,8 +70,9 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, 1, -1, 0, 0, 1, 0, 0 }, { 0, -2, 0, 0, 1, 0, -1, 0, 2 }, { 1, 0, 0, 1, 0, 0, -1, 0, 0 }, { 1, -2, 1, 1, 1, 0, -1, -2, 0 }, { 0, -1, 0, 0, 0, 0, 0, 0, 0 }, { 0, -1, 0, 1, -1, 0, 0, -1, 2 }, { 1, 0, 0, 0, 1, 0, 0, 0, 0 }, { 0, -1, 0, 0, 0, 0, 0, 1, 0 }, { -1, 0, -2, 1, -1, -1, 0, 0, 1 }, { 0, 0, -1, -1, 0, 1, 0, 1, 0 }, { 1, 0, 0, 0, -1, -1, 2, 1, 0 }, { 0, 0, 1, 0, 0, -1, 0, 0, 0 }, { 0, 0, 0, 0, 1, 2, -1, 0, -1 }, { 0, 0, 2, 0, 1, -1, -1, 2, 0 }, { 0, 0, 0, -1, 2, 0, 0, -2, -1 }, { 0, -1, 0, 0, 0, -1, -1, -1, 0 }, { 0, 0, 0, 0, 1, 0, 1, -1, 0 }, { -1, -2, -1, -2, -1, 2, 1, 0, -2 }, { 1, 0, -2, 2, 1, -1, 0, 0, 1 }, { 1, 0, 0, -1, -2, 0, 0, 1, -1 }, { 0, 1, 2, 1, 1, 1, 0, 1, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 2, 0, 0, 0, 0, 1, 0, 1 }, { 0, -1, 0, 1, 1, 0, 0, -1, 0 }, { 2, 2, 0, 0, 1, 0, -1, 0, 0 }, { 1, 1, -1, 0, 0, 1, 0, -1, 0 }, { 0, 1, 0, 0, 1, 0, 0, 0, -2 }, };
-    
+    start_matrix = { { 0, 1, 0, 0, 2, 1, -2, 1, -2 }, { 0, 0, -2, 2, 0, -1, 1, 0, -2 }, { 0, 1, -1, 0, 0, 0, 0, -1, 1 }, { 1, -1, -2, 1, 0, 0, 1, 0, -1 }, { 1, 0, 2, 0, -1, 1, 1, -1, 1 }, { -2, -2, 1, 2, 2, 0, 0, 2, 1 }, { 0, -1, 0, 0, 0, 0, -1, 1, -1 }, { 1, -1, -1, 0, 1, 0, 1, 0, -1 }, { 1, -1, 1, -1, 0, 1, 0, 0, 0 }, { 1, 0, 0, 2, 0, 0, 2, -1, 0 }, { 0, 0, -1, 0, 1, -1, -1, 0, 1 }, { -1, 1, -1, 2, 0, -1, 0, 0, 1 }, { -2, 0, 0, 0, 0, 0, -2, 0, 2 }, { -2, 0, 0, 0, 0, -2, 1, 0, -1 }, { -1, 0, 2, 0, 1, -1, 0, 0, 2 }, { 0, 0, 0, 0, 2, 0, 0, 0, 0 }, { 2, 0, -2, 0, -1, 0, -1, -1, 0 }, { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 1, 1, -1, 0, 1 }, { 1, 0, -1, 1, -2, 0, 1, 0, 0 }, { 1, 2, 0, 1, -1, -2, 1, -1, -1 }, { 0, 0, -2, 1, -1, 1, 0, -1, 0 }, { 0, -2, 2, 1, 0, -2, -2, 0, 0 }, { 0, 1, -2, 0, -1, 0, 1, 0, 1 }, { 0, 1, -1, 0, -1, 1, 1, -1, 0 }, { 1, 0, -2, 0, -1, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0, -2, -1, 1, 0 }, };
+
+
 
 
 
@@ -318,11 +321,11 @@
 
     // morphogen wave at the end of programmed division. 
     // The morphogen occupies a hidden spot at the back of the cell "genes" vector. This allows it to decay but not be increased.
-    // no longer in use
+    // Depracated
     morphogen = false;
 
 
-    // polarity matrix. Used for transcription factors being at one side of the cell upon reproduction. 
+    // polarity matrix. Used for transcription factors being at one side of the cell upon reproduction. Depracated 
     start_polarity = { 0, 0, 0, 0 };
     polarity_on = false;
 
@@ -345,7 +348,12 @@
 
     // storing images.
     storage_stride = 500;
-    screen_freq = 1000;
+    // for some reason this isn't working.
+    screen_freq = 200;
+    // using a new one until I figure out why
+    n_screen_freq = 10;
+
+
     datadir = strdup("data_film");
   }
 

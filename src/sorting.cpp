@@ -417,7 +417,7 @@ TIMESTEP {
 
   
     //cerr << "Done\n";
-    if (par.graphics && !(t%par.screen_freq)) 
+    if (par.graphics && t%par.n_screen_freq==0)// !(t%par.screen_freq)) 
     {
       
       BeginScene();
