@@ -476,6 +476,8 @@ TIMESTEP {
 
         // this function plots a shade for the PDE field and is very computationally costly. Isn't needed. 
         // dish->PDEfield->Plot(this,0);
+        // dish->PDEfield->Plot(this,1);
+        // dish->PDEfield->Plot(this,2);
       }
 
 
