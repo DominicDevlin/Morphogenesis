@@ -37,6 +37,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include "sqr.h"
 #include "storage.h"
 #include "connections.h"
+#include "fft.h"
 
 #ifdef QTGRAPHICS
 #include "qtgraph.h"
@@ -358,9 +359,13 @@ TIMESTEP {
     }
 
 
-    if (t == 12000)
+    if (t == 3000)
     {
-      
+      fft test;
+      test.AllocateGrid(250, 250);
+      test.ImportGrid(dish->CPM->ReturnGrid());
+      test.PolarTransform();
+      test.PolarToOutput();
     }
 
 

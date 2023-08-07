@@ -36,6 +36,7 @@ HEADERS += ca.h \
        	   crash.h \
 	   warning.h \ 
 	   storage.h \
+	   fft.h \
       connections.h
 
         
@@ -54,6 +55,7 @@ SOURCES += ca.cpp \
            crash.cpp \
            warning.cpp \
            storage.cpp \
+	   fft.cpp \	
            connections.cpp
 
 SOURCES += $$MAINFILE

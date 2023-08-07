@@ -151,7 +151,7 @@ void QtGraphics::ReadColorTable(QPen *pens)
     fscanf(fpc,"%d %d %d\n",&r,&g,&b);
     QPen p(QColor(r,g,b));
     pens[i]=p;
-    cout << i << " " << r << " " << g << " " << b << endl;
+    // cout << i << " " << r << " " << g << " " << b << endl;
 
   }
    

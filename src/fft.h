@@ -15,7 +15,7 @@ using namespace std;
 
 class fft
 {
-
+public:
 	void AllocateGrid(int sizex, int sizey);
 
 	void ImportGrid(int **sigma);
