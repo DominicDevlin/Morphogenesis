@@ -358,6 +358,13 @@ TIMESTEP {
     }
 
 
+    if (t == 12000)
+    {
+      
+    }
+
+
+
     if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
       dish->CPM->swap_cells();
 
@@ -530,6 +537,8 @@ TIMESTEP {
     std::cerr << error << "\n";
     exit(1);
   }
+
+
 }
 
 
