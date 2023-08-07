@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "crash.h"
-#include "qtgraph.h"
+#include "x11graph.h"
 
 
 extern Parameter par;
@@ -131,16 +131,38 @@ void fft::PolarToOutput()
 	}
 
 
-	QApplication pic(argc, argv);
+  X11Graphics g(par.sizex*2,par.sizey*2);
 
-	QtGraphics g(par.sizex*2,par.sizey*2);
-	//a.setMainWidget( &g );
-	a.connect(&g, SIGNAL(SimulationDone(void)), SLOT(quit(void)) );
 
-	if (par.graphics)
-		g.show();
-	
-	a.exec();
+	char fname[200];
+	sprintf(fname,"polar.png",par.datadir);
+
+	g.BeginScene();
+	g.ClearImage();    
+
+
+  for (int i = 0; i < rho-1; i++ )
+    for (int j = 0; j < sizex-1; j++ ) 
+		{
+      
+
+      int colour;
+      if (polar[i][j]<=0) 
+			{
+				colour=0;
+      } 
+			else 
+			{
+				colour = 10;
+      }
+      
+      if (polar[i][j]>0)  /* if draw */ 
+        g.Point( colour, 2*i, 2*j);
+		}
+
+	g.EndScene();
+
+	g.Write(fname);
 
 
 

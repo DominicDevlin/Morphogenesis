@@ -553,7 +553,9 @@ storage.o: storage.cpp storage.h \
 
 fft.o: fft.cpp fft.h \
 		parameter.h \
-		crash.h
+		crash.h \
+		x11graph.h \
+		graph.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o fft.o fft.cpp
 
 connections.o: connections.cpp connections.h \

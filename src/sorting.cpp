@@ -359,7 +359,7 @@ TIMESTEP {
     }
 
 
-    if (t == 3000)
+    if (t == 12000)
     {
       fft test;
       test.AllocateGrid(250, 250);
