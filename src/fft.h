@@ -22,9 +22,18 @@ public:
 
 	void PolarTransform();
 
-	void PolarToOutput();
+	void PolarToOutput(string name="polar.png");
 
+	void PolarComparison(int** polar2);
 
+	void FFTransform();
+
+	void ShiftGrid(int **toshift, int n=1);
+
+	inline int** GetPolar()
+	{
+		return polar;
+	}
 
 
 
@@ -32,7 +41,7 @@ private:
 	int **grid;
 	int **polar;
 
-	int rho = 180;
+	int rho = 360;
 
 	int sizex;
 	int sizey;

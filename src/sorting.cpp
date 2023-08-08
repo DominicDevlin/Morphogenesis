@@ -359,13 +359,18 @@ TIMESTEP {
     }
 
 
-    if (t == 12000)
+    if (t == 3000)
     {
       fft test;
       test.AllocateGrid(250, 250);
       test.ImportGrid(dish->CPM->ReturnGrid());
       test.PolarTransform();
       test.PolarToOutput();
+
+      test.ShiftGrid(test.GetPolar(), 180);
+
+      test.PolarToOutput("polar2.png");
+
     }
 
 

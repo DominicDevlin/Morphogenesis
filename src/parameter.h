@@ -77,6 +77,9 @@ class Parameter {
   double tlength2;
 
 
+  bool file_genomes;
+
+
   int n_orgs;
   int n_replicates;
 

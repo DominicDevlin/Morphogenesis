@@ -5943,7 +5943,7 @@ double CellularPotts::CompareGrid(int **grid2)
       ++outer;
     }
   }
-  cout << "OVERLAP: " << overlap << "   OUTER: " << outer << endl;
+  // cout << "OVERLAP: " << overlap << "   OUTER: " << outer << endl;
   proportion = (double)overlap / (double)(overlap + outer);
   return proportion;
 }

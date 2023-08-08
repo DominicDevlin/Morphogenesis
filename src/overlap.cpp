@@ -18,6 +18,7 @@
 #include <random>
 #include <sstream>
 #include <sys/stat.h>
+#include "fft.h"
 
 
 #ifdef QTGRAPHICS
@@ -218,6 +219,36 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   outfile << avgp << '\t' << variance << endl;
   outfile.close();
 
+
+
+
+  // Now we are going to add rotationally invariant version.
+
+  for (int i = 0;i<par.n_orgs;i++)
+  {
+    fft org1;
+    org1.AllocateGrid(par.sizex, par.sizey);
+    org1.ImportGrid(dishes[i].CPM->ReturnGrid());
+    org1.PolarTransform();
+    string name = "replicate" + to_string(i) + ".png";
+    org1.PolarToOutput(name);
+
+
+    for (int j = i+1; j < par.n_orgs;j++)
+    {
+      fft org2;
+      org2.AllocateGrid(par.sizex, par.sizey);
+      org2.ImportGrid(dishes[j].CPM->ReturnGrid());
+      org2.PolarTransform();
+
+
+      org1.PolarComparison(org2.GetPolar());
+
+
+    }
+  }
+
+
   delete[] dishes;
   // do sorting algorithm and return fitness
 
@@ -238,7 +269,7 @@ int main(int argc, char *argv[]) {
   par.gene_record=false;
   
   Parameter();
-  par.n_orgs = 60;
+  par.n_orgs = 10;
 
   ifstream file("genomes.txt");
   vector<vector<vector<int>>> genomes;
@@ -285,20 +316,37 @@ int main(int argc, char *argv[]) {
 
   file.close();
 
-  for (vector<vector<int>> i : genomes)
+  if (par.file_genomes)
   {
-
-    // This is currently depracated. 
-    vector<bool> start_p = { 0, 0, 0, 0 };
-    vector<vector<vector<int>>> networks{};
-    vector<vector<bool>> polarities{};
-    for (int j=0;j<par.n_orgs;++j)
+    for (vector<vector<int>> i : genomes)
     {
-        networks.push_back(i);
-        polarities.push_back(start_p);
+
+      // This is currently depracated. 
+      vector<bool> start_p = { 0, 0, 0, 0 };
+      vector<vector<vector<int>>> networks{};
+      vector<vector<bool>> polarities{};
+      for (int j=0;j<par.n_orgs;++j)
+      {
+          networks.push_back(i);
+          polarities.push_back(start_p);
+      }
+      process_population(networks, polarities);
     }
-    process_population(networks, polarities);
   }
+  else
+  {
+      // This is currently depracated. 
+      vector<bool> start_p = { 0, 0, 0, 0 };
+      vector<vector<vector<int>>> networks{};
+      vector<vector<bool>> polarities{};
+      for (int j=0;j<par.n_orgs;++j)
+      {
+          networks.push_back(par.start_matrix);
+          polarities.push_back(start_p);
+      }
+      process_population(networks, polarities);  
+  }
+
 
 
 
