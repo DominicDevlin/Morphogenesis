@@ -11,7 +11,7 @@
 #include "x11graph.h"
 #endif
 
-#include <fftw3.h>
+// #include <fftw3.h>
 
 
 extern Parameter par;
@@ -19,7 +19,21 @@ extern Parameter par;
 using namespace std;
 
 
+// destructor (virtual)
+fft::~fft(void) {
+  if (grid) {
+    free(grid[0]);
+    free(grid);
+    polar=0;
+  }
 
+  if (polar)
+  {
+    free(polar[0]);
+    free(polar);
+    polar=0;
+  }
+}
 
 
 void fft::AllocateGrid(int sx, int sy)
@@ -106,6 +120,9 @@ void fft::PolarTransform()
 	// going to make the grid 360 x 250, although we dont need 250 pixels. 
 
 
+	// WE ARE GOING TO USE THE ORIGIN INSTEAD OF CENTER OF MASS FOR NOW!!! Replace par.sizex with center[0] and center[1] for com.
+
+
 	for (int q = 0; q < rho; ++q)
 	{
 		for (int r=0; r < sizex;++r)
@@ -113,8 +130,8 @@ void fft::PolarTransform()
 			// need to turn q into radians
 			double qn = q * M_PI / 180.;
 
-			int x = center[0] + round(r*cos(qn));
-			int y = center[1] + round(r*sin(qn));
+			int x = round(par.sizex/2) + round(r*cos(qn));
+			int y = round(par.sizey/2) + round(r*sin(qn));
 
 
 			if (x >= sizex -1 || x <= 0 || y >= sizex-1 || y <= 0)
@@ -223,7 +240,7 @@ void fft::ShiftGrid(int **toshift, int n)
 
 
 // we dont need to be efficient so can just compare grids with changing rho
-void fft::PolarComparison(int** polar2)
+double fft::PolarComparison(int** polar2)
 {
 
 	vector<int> overlaps;
@@ -270,7 +287,9 @@ void fft::PolarComparison(int** polar2)
 		if (proportion > max_overlap)
 			max_overlap = proportion;
 	}
-	cout << "max overlap:  " << max_overlap << endl;
+	// cout << "max overlap:  " << max_overlap << endl;
+
+	return max_overlap;
 
 
 }

@@ -2726,7 +2726,7 @@ void CellularPotts::CellHammingDifferences()
 
 
 
-  out = "hamming_data.dat";
+  out = data_file + "/hamming_data.dat";
   outfile.open(out, ios::app);
 
 
@@ -3038,12 +3038,13 @@ void CellularPotts::set_seed()
   else
   {
     s_val[0] = Seed(org_num);
-    par.pickseed = s_val[0];
+    if (par.gene_output && par.gene_record)
+      par.pickseed = s_val[0];
   }
   if (par.print_fitness)
   {
     cout << "Seed is: " << s_val[0] << endl;
-  } 
+  }
 
   
 }
@@ -5921,7 +5922,7 @@ double CellularPotts::AvgMedsOn()
 
 
 
-// This is going to be part of the mother of all alogithms. 
+//Essentially the Dice coefficient when comparing two grids
 double CellularPotts::CompareGrid(int **grid2)
 {
   int overlap{};

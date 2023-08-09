@@ -78,15 +78,19 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   // create memory for dishes. 
   Dish* dishes = new Dish[par.n_orgs];
 
-  // run organisms in parallel. 
-  omp_set_num_threads(par.n_orgs);
-  #pragma omp parallel for 
   for (int i=0; i < par.n_orgs; ++i)  
   {
     dishes[i].CPM->set_num(i+1);
     // does init block above.
     dishes[i].Init();
+  }
 
+
+  // run organisms in parallel. 
+  omp_set_num_threads(par.n_orgs);
+  #pragma omp parallel for 
+  for (int i=0; i < par.n_orgs; ++i)  
+  {
     int t;
 
     dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
@@ -172,7 +176,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     }
         
     if (i == 1)
-      cout << "Sim #1 complete. The number of cells is: " << dishes[i].CPM->CountCells() << endl;
+      cout << "Sim complete. The number of cells is: " << dishes[i].CPM->CountCells() << endl;
 
   }
 
@@ -193,7 +197,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   
   double avgp{};
   double variance{};
-  double sample = par.n_orgs;
 
   for (double i : proportions)
   {
@@ -221,8 +224,9 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
 
-
   // Now we are going to add rotationally invariant version.
+
+  vector<double> invariant_p{};
 
   for (int i = 0;i<par.n_orgs;i++)
   {
@@ -230,8 +234,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     org1.AllocateGrid(par.sizex, par.sizey);
     org1.ImportGrid(dishes[i].CPM->ReturnGrid());
     org1.PolarTransform();
-    string name = "replicate" + to_string(i) + ".png";
-    org1.PolarToOutput(name);
+    // string name = "replicate" + to_string(i) + ".png";
+    // org1.PolarToOutput(name);
 
 
     for (int j = i+1; j < par.n_orgs;j++)
@@ -240,18 +244,41 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       org2.AllocateGrid(par.sizex, par.sizey);
       org2.ImportGrid(dishes[j].CPM->ReturnGrid());
       org2.PolarTransform();
-
-
-      org1.PolarComparison(org2.GetPolar());
-
-
+      // do comparison
+      double inp = org1.PolarComparison(org2.GetPolar());
+      invariant_p.push_back(inp);
     }
   }
 
+  double inp_avg{};
+  double inp_var{};
+
+  for (double i : invariant_p)
+  {
+    inp_avg += i;
+  }
+
+  inp_avg = inp_avg / invariant_p.size();
+
+  for (double i : invariant_p)
+  {
+    double val = pow(i - inp_avg, 2);
+    inp_var += val;
+  }
+  inp_var = inp_var / proportions.size();
+
+
+  var_name = "overlap_invariant.txt";
+  outfile.open(var_name, ios::app);
+
+  outfile << inp_avg << '\t' << inp_var << endl;
+  outfile.close();
+
+
+
+
 
   delete[] dishes;
-  // do sorting algorithm and return fitness
-
 
   return inter_org_fitness;
 }
@@ -270,54 +297,53 @@ int main(int argc, char *argv[]) {
   
   Parameter();
   par.n_orgs = 10;
-
-  ifstream file("genomes.txt");
-  vector<vector<vector<int>>> genomes;
-  string line;
-  while (getline(file, line)) 
-  {
-    vector<vector<int>> genome;
-
-    vector<int> row{};
-    stringstream ss(line);
-    string value;
-    while (ss >> value)
-    {
-
-
-      for (int i=0;i < value.size();++i)
-      {
-        if (value[i] == '-')
-        {
-
-          string ns{value[i]};
-          string ns2{value[i+1]};
-          string nsn = ns + ns2;
-          row.push_back(stoi(nsn));
-          break;
-        }
-        else if (isdigit(value[i]))
-        {
-          row.push_back(value[i] - '0');
-        }
-
-      }      
-
-      if (row.size() == 9)
-      {
-        genome.push_back(row);
-        row.clear();
-      }          
-
-    }
-    genomes.push_back(genome);
-
-  }
-
-  file.close();
-
   if (par.file_genomes)
   {
+    ifstream file("genomes.txt");
+    vector<vector<vector<int>>> genomes;
+    string line;
+    while (getline(file, line)) 
+    {
+      vector<vector<int>> genome;
+
+      vector<int> row{};
+      stringstream ss(line);
+      string value;
+      while (ss >> value)
+      {
+
+
+        for (int i=0;i < value.size();++i)
+        {
+          if (value[i] == '-')
+          {
+
+            string ns{value[i]};
+            string ns2{value[i+1]};
+            string nsn = ns + ns2;
+            row.push_back(stoi(nsn));
+            break;
+          }
+          else if (isdigit(value[i]))
+          {
+            row.push_back(value[i] - '0');
+          }
+
+        }      
+
+        if (row.size() == 9)
+        {
+          genome.push_back(row);
+          row.clear();
+        }          
+
+      }
+      genomes.push_back(genome);
+
+    }
+
+    file.close();
+
     for (vector<vector<int>> i : genomes)
     {
 
@@ -333,7 +359,7 @@ int main(int argc, char *argv[]) {
       process_population(networks, polarities);
     }
   }
-  else
+  else // just use start matrix in parameter.cpp
   {
       // This is currently depracated. 
       vector<bool> start_p = { 0, 0, 0, 0 };

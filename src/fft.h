@@ -24,7 +24,7 @@ public:
 
 	void PolarToOutput(string name="polar.png");
 
-	void PolarComparison(int** polar2);
+	double PolarComparison(int** polar2);
 
 	void FFTransform();
 
@@ -34,6 +34,8 @@ public:
 	{
 		return polar;
 	}
+
+	~fft(void);
 
 
 
