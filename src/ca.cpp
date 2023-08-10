@@ -3633,6 +3633,14 @@ void CellularPotts::SetColours()
 }
 
 
+int CellularPotts::SiteColour(int x, int y)
+{
+  return (*cell)[sigma[x][y]].Colour();
+}
+
+
+
+
 
 
   void CellularPotts::CountTypesTime(void)

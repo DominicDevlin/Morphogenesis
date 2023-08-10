@@ -363,13 +363,17 @@ TIMESTEP {
     {
       fft test;
       test.AllocateGrid(250, 250);
-      test.ImportGrid(dish->CPM->ReturnGrid());
+      test.ImportGrid(dish->CPM->ReturnGrid());//, dish->CPM);
       test.PolarTransform();
       test.PolarToOutput();
 
       test.ShiftGrid(test.GetPolar(), 180);
 
       test.PolarToOutput("polar2.png");
+
+      test.ReflectGrid(test.GetPolar());
+
+      test.PolarToOutput("polar3.png");
 
     }
 

@@ -294,9 +294,10 @@ int main(int argc, char *argv[]) {
   par.randomise=false;
   par.gene_output=false;
   par.gene_record=false;
+  par.velocities=false;
   
   Parameter();
-  par.n_orgs = 10;
+  par.n_orgs = 4;
   if (par.file_genomes)
   {
     ifstream file("genomes.txt");

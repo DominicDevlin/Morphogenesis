@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "crash.h"
 #include "string.h"
+#include "ca.h"
 
 #ifdef QTGRAPHICS
 #include "qtgraph.h"
@@ -74,6 +75,24 @@ void fft::AllocateGrid(int sx, int sy)
    {for (int i=0;i<rho*sizex;i++) 
      polar[0][i]=0; }
 
+
+  tmp_polar=(int **)malloc(rho*sizeof(int *));
+  if (tmp_polar==NULL)
+    MemoryWarning();
+  
+  tmp_polar[0]=(int *)malloc(rho*sizex*sizeof(int));
+  if (tmp_polar[0]==NULL)  
+    MemoryWarning();
+  
+  
+  {for (int i=1;i<rho;i++) 
+    tmp_polar[i]=tmp_polar[i-1]+sizex;}
+  
+  /* Clear grid */
+   {for (int i=0;i<rho*sizex;i++) 
+     tmp_polar[0][i]=0; }
+
+
 }
 
 
@@ -86,16 +105,29 @@ void fft::ImportGrid(int **sigma)
 			grid[x][y] = sigma[x][y];
 		}
 	}
-
 }
+
+// value of grid corresponds to cell type
+void fft::ImportGrid(int **sigma, CellularPotts *cpm)
+{
+	for (int x=0; x < sizex;++x)
+	{
+		for (int y = 0; y < sizey;++y)
+		{
+
+			grid[x][y] = cpm->SiteColour(x, y);
+		}
+	}
+}
+
 
 
 
 
 void fft::PolarTransform()
 {
-	// find c.o.m
-	int center[] = {0,0};
+  // find c.o.m
+  int center[] = {0,0};
   int xtotal{};
   int ytotal{};
   int mass{};
@@ -216,7 +248,6 @@ void fft::ShiftGrid(int **toshift, int n)
 	//store 0th array
 	for (int i=0;i<n;++i)
 	{
-		cout << n << endl;
 		int tmp[sizex];
 		for (int l=0;l<sizex;++l)
 		{
@@ -228,27 +259,53 @@ void fft::ShiftGrid(int **toshift, int n)
 		{
 			toshift[0][l]=toshift[0][l+sizex];
 		}
-
+		
+		//replace final line
 		for (int l=0;l<sizex;++l)
 		{
 			toshift[rho-1][l] = tmp[l];
-		}	
+		}
 	}
 
 }
 
+// reflect across midline
+void fft::ReflectGrid(int **toshift)
+{
+
+	int tmp[rho][sizex];
+	for (int i=0;i<rho*sizex;++i)
+	{
+		tmp[0][i] = toshift[0][i];
+	}
+
+	
+	for (int i=0;i<rho;++i)
+	{
+		int swap = rho - i - 1;
+		
+		
+		for (int j=0;j<sizex;++j)
+		{
+			toshift[i][j]=tmp[swap][j];
+		}
+	}
+}
 
 
-// we dont need to be efficient so can just compare grids with changing rho
+// we dont need to be efficient so can just compare grids with changing rho using dice coefficient
 double fft::PolarComparison(int** polar2)
 {
 
 	vector<int> overlaps;
 	double max_overlap=0.;
+	double min_overlap=1.;
+
+	//initialise tmp polar to polar
+	for (int i=0;i<rho*sizex;++i)
+		tmp_polar[0][i]=polar[0][i];
 	
-	//we will rotate polar, and keep polar2 constant
-	int tmp_polar[rho][sizex];
-	
+	//we will rotate and reflect polar, and keep polar2 constant
 
 	for (int i = 0; i < rho; ++i)
 	{
@@ -257,27 +314,29 @@ double fft::PolarComparison(int** polar2)
 		int outer{};
 		double proportion{};
 
-		int tmp_polar[rho][sizex];
-		for (int x = 0;x<rho*sizex;++x)
-		{
-			tmp_polar[0][x] = polar[0][x];
-		}
+		// shift grid one degree over
+		ShiftGrid(tmp_polar);
 
-
-		for (int x = 0; x<rho*sizex;++x)
+		// polar method over compensates for things close to center, so we are going to remove that by starting
+		// at a higher radius, especially because we want to capture morphology
+		for (int x = 0; x<rho;++x)
 		{
-			if (!tmp_polar[0][x] && !polar2[0][x])
+			for (int r=par.size_init_cells/2;r<sizex;++r)
 			{
-				continue;
+				if (!tmp_polar[x][r] && !polar2[x][r])
+				{
+					continue;
+				}
+				else if (tmp_polar[x][r] > 0 && polar2[x][r] > 0)
+				{
+					++overlap;
+				}
+				else if (tmp_polar[x][r] != -1)
+				{
+					++outer;
+				}
 			}
-			else if (tmp_polar[0][x] > 0 && polar2[0][x] > 0)
-			{
-				++overlap;
-			}
-			else if (tmp_polar[0][x] != -1)
-			{
-				++outer;
-			}
+
 		}
 
 
@@ -287,7 +346,56 @@ double fft::PolarComparison(int** polar2)
 		if (proportion > max_overlap)
 			max_overlap = proportion;
 	}
-	// cout << "max overlap:  " << max_overlap << endl;
+
+	// we need to now flip the grid to make sure it is reflection invariant as well. 
+	ReflectGrid(tmp_polar);
+
+	// repeat process
+	for (int i = 0; i < rho; ++i)
+	{
+
+		int overlap{};
+		int outer{};
+		double proportion{};
+
+		// shift grid one degree over
+		ShiftGrid(tmp_polar);
+
+
+		for (int x = 0; x<rho;++x)
+		{
+			for (int r=par.size_init_cells/2;r<sizex;++r)
+			{
+				if (!tmp_polar[0][x] && !polar2[0][x])
+				{
+					continue;
+				}
+				else if (tmp_polar[0][x] > 0 && polar2[0][x] > 0)
+				{
+					++overlap;
+				}
+				else if (tmp_polar[0][x] != -1)
+				{
+					++outer;
+				}
+			}
+
+		}
+
+
+		proportion = (double)overlap / (double)(overlap + outer);
+		overlaps.push_back(proportion);
+		// cout << "Overlap is: " << overlap << endl;
+		if (proportion > max_overlap)
+			max_overlap = proportion;
+		
+		if (proportion < min_overlap)
+			min_overlap = proportion;
+		
+	}
+	cout << "max overlap:  " << max_overlap << endl;
+	cout << "min overlap:  " << min_overlap << endl;
+
 
 	return max_overlap;
 

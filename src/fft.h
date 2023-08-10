@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include "ca.h"
 
 
 using namespace std;
@@ -20,6 +21,8 @@ public:
 
 	void ImportGrid(int **sigma);
 
+	void ImportGrid(int **sigma, CellularPotts *cpm);
+
 	void PolarTransform();
 
 	void PolarToOutput(string name="polar.png");
@@ -29,6 +32,8 @@ public:
 	void FFTransform();
 
 	void ShiftGrid(int **toshift, int n=1);
+
+	void ReflectGrid(int **toshift);
 
 	inline int** GetPolar()
 	{
@@ -42,6 +47,7 @@ public:
 private:
 	int **grid;
 	int **polar;
+	int **tmp_polar;
 
 	int rho = 360;
 

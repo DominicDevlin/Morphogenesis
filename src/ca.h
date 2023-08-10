@@ -292,6 +292,9 @@ public:
 
   void CellVelocities();
 
+  // returns colour at this site
+  int SiteColour(int x, int y);
+
 
 
 
