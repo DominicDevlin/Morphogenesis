@@ -143,6 +143,10 @@ class Parameter {
   vector<vector<int>> start_matrix; 
   vector<bool> start_polarity;
   bool polarity_on;
+
+  bool noise;
+  int noise_start;
+  double noise_dose;
   
   int n_genes; // number of genes. not all genes interact with gene network (EXCLUDES LOCKS AND KEYS)
   int n_activators; //number of genes that can activate network (<= n_genes)

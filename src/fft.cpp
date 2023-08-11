@@ -25,7 +25,7 @@ fft::~fft(void) {
   if (grid) {
     free(grid[0]);
     free(grid);
-    polar=0;
+    grid=0;
   }
 
   if (polar)
@@ -34,6 +34,14 @@ fft::~fft(void) {
     free(polar);
     polar=0;
   }
+
+	if (tmp_polar)
+	{
+		free(tmp_polar[0]);
+		free(tmp_polar);
+		tmp_polar=0;
+
+	}
 }
 
 
@@ -114,7 +122,6 @@ void fft::ImportGrid(int **sigma, CellularPotts *cpm)
 	{
 		for (int y = 0; y < sizey;++y)
 		{
-
 			grid[x][y] = cpm->SiteColour(x, y);
 		}
 	}
@@ -345,6 +352,12 @@ double fft::PolarComparison(int** polar2)
 		// cout << "Overlap is: " << overlap << endl;
 		if (proportion > max_overlap)
 			max_overlap = proportion;
+
+		if (proportion < min_overlap)
+			min_overlap = proportion;
+
+
+		// cout << "Pre-reflect, i is: " << i << " Overlap is: " << overlap << "  Outer is: " << outer << endl;
 	}
 
 	// we need to now flip the grid to make sure it is reflection invariant as well. 
@@ -361,20 +374,21 @@ double fft::PolarComparison(int** polar2)
 		// shift grid one degree over
 		ShiftGrid(tmp_polar);
 
-
+		// polar method over compensates for things close to center, so we are going to remove that by starting
+		// at a higher radius, especially because we want to capture morphology
 		for (int x = 0; x<rho;++x)
 		{
 			for (int r=par.size_init_cells/2;r<sizex;++r)
 			{
-				if (!tmp_polar[0][x] && !polar2[0][x])
+				if (!tmp_polar[x][r] && !polar2[x][r])
 				{
 					continue;
 				}
-				else if (tmp_polar[0][x] > 0 && polar2[0][x] > 0)
+				else if (tmp_polar[x][r] > 0 && polar2[x][r] > 0)
 				{
 					++overlap;
 				}
-				else if (tmp_polar[0][x] != -1)
+				else if (tmp_polar[x][r] != -1)
 				{
 					++outer;
 				}
@@ -383,9 +397,12 @@ double fft::PolarComparison(int** polar2)
 		}
 
 
+
 		proportion = (double)overlap / (double)(overlap + outer);
 		overlaps.push_back(proportion);
-		// cout << "Overlap is: " << overlap << endl;
+
+		// cout << "Post-reflect, i is: " << i << " Overlap is: " << overlap << "  Outer is: " << outer << endl;
+
 		if (proportion > max_overlap)
 			max_overlap = proportion;
 		
@@ -393,8 +410,8 @@ double fft::PolarComparison(int** polar2)
 			min_overlap = proportion;
 		
 	}
-	cout << "max overlap:  " << max_overlap << endl;
-	cout << "min overlap:  " << min_overlap << endl;
+	// cout << "max overlap:  " << max_overlap << endl;
+	// cout << "min overlap:  " << min_overlap << endl;
 
 
 	return max_overlap;

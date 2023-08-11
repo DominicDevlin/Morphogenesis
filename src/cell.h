@@ -121,6 +121,7 @@ public:
 
     xcens = src.xcens;
     ycens = src.ycens;
+    vel_phens = src.vel_phens;
 
 
     diffs = new double[par.n_diffusers];
@@ -209,6 +210,7 @@ public:
     ycen = src.ycen;
     xcens = src.xcens;
     ycens = src.ycens;
+    vel_phens = src.vel_phens;
 
     diffs = new double[par.n_diffusers];
 
@@ -773,16 +775,22 @@ private:
   {
     xcens.push_back(xcen);
     ycens.push_back(ycen);
+    vel_phens.push_back(phenotype);
   }
 
-  vector<double>& get_xcens()
+  inline vector<double>& get_xcens()
   {
     return xcens;
   }
 
-  vector<double>& get_ycens()
+  inline vector<double>& get_ycens()
   {
     return ycens;
+  }
+
+  inline vector<int>& get_velphens()
+  {
+    return vel_phens;
   }
 
   inline void cellmed()
@@ -1016,6 +1024,7 @@ protected:
 
   vector<double> xcens;
   vector<double> ycens;
+  vector<int> vel_phens;
 
 
   vector<tuple<int,int, uint64_t>> switches;

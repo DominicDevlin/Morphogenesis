@@ -97,7 +97,11 @@ public:
 
   void update_network(int tsteps);
 
-  double discrete_decay(vector<double>& gene_list, double conc, int gene_n);
+  double discrete_decay(vector<double>& gene_list, double conc, int gene_n, int tsteps);
+
+  void add_noise();
+
+  void noise_term(double &x);
 
   void randomise_network(void);
 

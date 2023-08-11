@@ -163,10 +163,11 @@ TIMESTEP {
         if (par.gene_output)
           dish->CPM->record_GRN();   
 
-        if (par.velocities)
-        {
-          dish->CPM->RecordMasses();
-        } 
+        // nop point recording velocities here?
+        // if (par.velocities)
+        // {
+        //   dish->CPM->RecordMasses();
+        // } 
 
         // speed up initial PDE diffusion
         for (int r=0;r<par.program_its;r++) 
@@ -182,6 +183,9 @@ TIMESTEP {
       if (t % par.update_freq == 0)
       {
         dish->CPM->update_network(t);
+        if (par.noise && t > par.noise_start)
+          dish->CPM->add_noise();
+          
         dish->AverageChemCell(); 
         if (par.gene_output)
         {
@@ -189,13 +193,14 @@ TIMESTEP {
           dish->CPM->CountTypesTime();
         }
 
-        if (par.velocities)
-        {
-          dish->CPM->RecordMasses();
-        } 
+ 
 
       }
-
+      
+      if (par.velocities)
+      {
+        dish->CPM->RecordMasses();
+      }
 
       // if (par.gene_record)
       // {

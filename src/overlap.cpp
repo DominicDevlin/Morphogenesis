@@ -227,7 +227,10 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   // Now we are going to add rotationally invariant version.
 
   vector<double> invariant_p{};
+  invariant_p.resize(((par.n_orgs-1)*par.n_orgs)/2);
 
+  omp_set_num_threads(par.n_orgs);
+  #pragma omp parallel for 
   for (int i = 0;i<par.n_orgs;i++)
   {
     fft org1;
@@ -237,7 +240,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     // string name = "replicate" + to_string(i) + ".png";
     // org1.PolarToOutput(name);
 
-
     for (int j = i+1; j < par.n_orgs;j++)
     {
       fft org2;
@@ -246,7 +248,15 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       org2.PolarTransform();
       // do comparison
       double inp = org1.PolarComparison(org2.GetPolar());
-      invariant_p.push_back(inp);
+
+      // get the index
+      int num{};
+      for (int z=1;z<=i;++z)
+        num += par.n_orgs - 1 - z;
+      num+=j-1;
+
+      // cout << "before check - " << i << " " << j << "  " << num << "  " << inp << endl;
+      invariant_p.at(num)=inp;
     }
   }
 
@@ -297,7 +307,7 @@ int main(int argc, char *argv[]) {
   par.velocities=false;
   
   Parameter();
-  par.n_orgs = 4;
+  par.n_orgs = 60;
   if (par.file_genomes)
   {
     ifstream file("genomes.txt");

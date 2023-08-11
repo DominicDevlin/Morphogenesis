@@ -118,7 +118,7 @@ void Cell::CellBirth(Cell &mother_cell) {
   ycen = mother_cell.ycen;
   xcens = mother_cell.xcens;
   ycens = mother_cell.ycens;
-
+  vel_phens = mother_cell.vel_phens;
 
   for (int i=0;i<par.n_diffusers;i++)
   {

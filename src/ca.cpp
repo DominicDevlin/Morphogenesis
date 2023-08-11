@@ -1087,28 +1087,7 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
       }
   }  
 
-  // if (par.velocities)
-  // {
-  //   vector<Cell>::iterator c;
-  //   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
-  //   {
-  //     if (which_cells[c->Sigma()])
-  //     {
-  //       vector<double>& xcens = c->get_xcens();
-  //       vector<double>& ycens = c->get_ycens();
-
-  //       int len = xcens.size();
-
-        
-
-
-
-  //     }
-  //   }
-  // }
-
-
-
+ 
   if (celldir) 
     delete[] (celldir);
   
@@ -2179,7 +2158,7 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
 }
 
 
-double CellularPotts::discrete_decay(vector<double>& gene_list, double conc, int gene_n)
+double CellularPotts::discrete_decay(vector<double>& gene_list, double conc, int gene_n, int tsteps)
 {
 
   double x_1 = 0;
@@ -2208,11 +2187,79 @@ double CellularPotts::discrete_decay(vector<double>& gene_list, double conc, int
 
   x_1 = (1 / (1 + exp(-20 * x_1))) * 0.25 + conc * par.d_rate;
     
+
   return x_1;
 
   // }
 }
 
+
+  void CellularPotts::noise_term(double &x)
+  {
+    double rand = RANDOM(s_val) * par.noise_dose;
+    // need to choose whether to add or subtract
+    bool choose = round(RANDOM(s_val));
+    if (choose)
+    {
+      x += rand;
+      if (x > 1)
+        x = 1;
+    }
+    else
+    {
+      x -= rand;
+      if (x < 0)
+        x = 0;
+    }
+  }
+
+
+
+
+void CellularPotts::add_noise()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {    
+      vector<double>& genes = c->get_genes();
+      vector<double>& diffusers = c->get_diffusers(); 
+      vector<double>& locks = c->get_locks();
+      vector<double>& keys = c->get_keys();
+      vector<double>& meds = c->get_medp();
+
+      int j=0;
+      int k=0;
+      int m=0;
+      for (int i = 0; i < par.n_genes; ++i)
+      {
+        if (i < par.n_diffusers)
+          noise_term(diffusers[i]);
+        else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
+          noise_term(genes[i]);
+        else if (i < par.n_genes - par.n_locks - par.n_mediums)
+        {
+          noise_term(locks[j]);
+          ++j;
+        }
+        else if (i < par.n_genes - par.n_mediums)
+        {
+          noise_term(keys[k]);
+          ++k;
+        }
+        else 
+        {
+          noise_term(meds[m]);
+          ++m;
+        }
+      }
+
+
+    }
+  }
+
+}
 
 
 void CellularPotts::update_network(int tsteps)
@@ -2244,22 +2291,22 @@ void CellularPotts::update_network(int tsteps)
       for (int i = 0; i < par.n_genes; ++i)
       {
         if (i < par.n_diffusers)
-          diffusers[i] = discrete_decay(gene_copy, diffusers[i], i);
+          diffusers[i] = discrete_decay(gene_copy, diffusers[i], i, tsteps);
         else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
-          genes[i] = discrete_decay(gene_copy, genes[i], i);
+          genes[i] = discrete_decay(gene_copy, genes[i], i, tsteps);
         else if (i < par.n_genes - par.n_locks - par.n_mediums)
         {
-          locks[j] = discrete_decay(gene_copy, locks[j], i);
+          locks[j] = discrete_decay(gene_copy, locks[j], i, tsteps);
           ++j;
         }
         else if (i < par.n_genes - par.n_mediums)
         {
-          keys[k] = discrete_decay(gene_copy, keys[k], i);
+          keys[k] = discrete_decay(gene_copy, keys[k], i, tsteps);
           ++k;
         }
         else 
         {
-          meds[m] = discrete_decay(gene_copy, meds[m], i);
+          meds[m] = discrete_decay(gene_copy, meds[m], i, tsteps);
           ++m;
         }
       }
@@ -3575,7 +3622,7 @@ void CellularPotts::SetColours()
 
   // map<int,int> colours = {{93571, 81}, {23919, 6}, {23811, 73}, {19843, 102}, {19911, 4}}; // this is for megamind
 
-  map<int,int> colours = {{102403, 27}, {111357, 106}, {110595, 91}, {111105, 6}, {111107, 107}}; // this is for star??
+  // map<int,int> colours = {{102403, 27}, {111357, 106}, {110595, 91}, {111105, 6}, {111107, 107}}; // this is for star??
 
   // map<int,int> colours = {{119675, 45}, {110595, 143},{115579, 84},{45059, 71}, {127867, 88}}; // this is for shield
 
@@ -3583,8 +3630,8 @@ void CellularPotts::SetColours()
   // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
   // {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
 
-  // map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
-  // {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
+  map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
+  {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
   
   // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom-old
 
@@ -4345,6 +4392,10 @@ void CellularPotts::CellVelocities()
 
 
 
+  map<int,int> velphentally{};
+  map<int,double> veltally{};
+
+
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
   {
@@ -4357,13 +4408,15 @@ void CellularPotts::CellVelocities()
 
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
+      vector<int>& velp = c->get_velphens();
+
       int s = xm.size();
 
-      for (int i = 10; i < s; ++i)
+      for (int i = 500; i < s; ++i)
       {
         // we want displacement from a while ago to account for back and forth motion
-        double x = xm[i-10];
-        double y = ym[i-10];
+        double x = xm[i-500];
+        double y = ym[i-500];
         double x1 = xm[i];
         double y1 = ym[i];
 
@@ -4372,6 +4425,12 @@ void CellularPotts::CellVelocities()
         // cout << "length is: " << len << endl;
         outfile << len << endl;
 
+
+        // lets take the type in the middle as the relevant type
+        int t = velp[i-250];
+        velphentally[t] +=1;
+        veltally[t] += len;
+
       }
 
       outfile.close();
@@ -4379,13 +4438,24 @@ void CellularPotts::CellVelocities()
 
     }
   }
+
+  // now do averaging across cell type.
+  for (auto &t : velphentally)
+  {
+    veltally[t.first] = veltally[t.first] / t.second;
+  }
+
+  
+  string var_name = data_file + "/type-velocities.dat"; 
+  ofstream outfile;
+  outfile.open(var_name, ios::app);  
+  for (auto &t : veltally)
+  {
+    outfile << t.first << "\t" << t.second << "\t" << velphentally[t.first] << endl;
+  }
+  outfile.close();
+
 }
-
-
-
-
-
-
 
 
 
