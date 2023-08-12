@@ -4394,7 +4394,7 @@ void CellularPotts::CellVelocities()
 
   map<int,int> velphentally{};
   map<int,double> veltally{};
-
+  map<int,double> varveltally{};
 
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
@@ -4430,6 +4430,7 @@ void CellularPotts::CellVelocities()
         int t = velp[i-250];
         velphentally[t] +=1;
         veltally[t] += len;
+        varveltally[t] += pow(len,2);
 
       }
 
@@ -4439,11 +4440,24 @@ void CellularPotts::CellVelocities()
     }
   }
 
-  // now do averaging across cell type.
+  // now do averaging across cell type. 
   for (auto &t : velphentally)
   {
+
+    // we now compute variance by (E(x^2)-E(x)^2)/N . Need to do variance before dividing out N
+     double meansq = pow(veltally[t.first],2) / t.second;
+     cout << t.first << "\t" << t.second << "\t" << meansq << "\t" << varveltally[t.first] << endl;
+     double var = (varveltally[t.first] - meansq) / t.second;
+     varveltally[t.first] = var;
+
+    //calculate averages
     veltally[t.first] = veltally[t.first] / t.second;
+
+
   }
+  
+  
+
 
   
   string var_name = data_file + "/type-velocities.dat"; 
@@ -4451,7 +4465,8 @@ void CellularPotts::CellVelocities()
   outfile.open(var_name, ios::app);  
   for (auto &t : veltally)
   {
-    outfile << t.first << "\t" << t.second << "\t" << velphentally[t.first] << endl;
+    // need to output time spent in each state for averaging across different states
+    outfile << t.first << "\t" << t.second << "\t" << varveltally[t.first] << "\t" << velphentally[t.first] << endl;
   }
   outfile.close();
 

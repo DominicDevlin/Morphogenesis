@@ -54,7 +54,7 @@
     gene_record = true;
 
     // record velocities for all cells
-    velocities = false;
+    velocities = true;
 
 
     // read genomes from file
