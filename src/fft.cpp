@@ -346,7 +346,7 @@ double fft::PolarComparison(int** polar2)
 		// we can also scale 
 		for (int x = 0; x<rho;++x)
 		{
-			for (int r=par.size_init_cells/2;r<sizer;++r)
+			for (int r=0;r<sizer;++r)
 			{
 				if (!tmp_polar[x][r] && !polar2[x][r])
 				{
@@ -395,7 +395,7 @@ double fft::PolarComparison(int** polar2)
 		// at a higher radius, especially because we want to capture morphology
 		for (int x = 0; x<rho;++x)
 		{
-			for (int r=par.size_init_cells/2;r<sizer;++r)
+			for (int r=0;r<sizer;++r)
 			{
 				if (!tmp_polar[x][r] && !polar2[x][r])
 				{

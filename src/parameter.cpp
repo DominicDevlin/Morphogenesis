@@ -37,7 +37,7 @@
     //basic grid parameters. 
     sizex = 250;
     sizey = 250;
-    mcs = 2100;
+    mcs = 12100;
 
     // show on screen
     graphics = false;
@@ -58,7 +58,7 @@
 
 
     // read genomes from file
-    file_genomes = false;
+    file_genomes = true;
 
 
     //for storing images
