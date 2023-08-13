@@ -49,9 +49,9 @@ void fft::AllocateGrid(int sx, int sy)
 {
 	sizex = sx;
 	sizey = sy;
-  grid=(int **)malloc(sizex*sizeof(int *));
-  if (grid==NULL)
-    MemoryWarning();
+	grid=(int **)malloc(sizex*sizeof(int *));
+	if (grid==NULL)
+		MemoryWarning();
   
   grid[0]=(int *)malloc(sizex*sizey*sizeof(int));
   if (grid[0]==NULL)  
@@ -62,7 +62,7 @@ void fft::AllocateGrid(int sx, int sy)
     grid[i]=grid[i-1]+sizey;}
   
   /* Clear grid */
-   {for (int i=0;i<sizex*sizey;i++) 
+  {for (int i=0;i<sizex*sizey;i++) 
      grid[0][i]=0; }
 
 
@@ -71,16 +71,16 @@ void fft::AllocateGrid(int sx, int sy)
   if (polar==NULL)
     MemoryWarning();
   
-  polar[0]=(int *)malloc(rho*sizex*sizeof(int));
+  polar[0]=(int *)malloc(rho*sizer*sizeof(int));
   if (polar[0]==NULL)  
     MemoryWarning();
   
   
   {for (int i=1;i<rho;i++) 
-    polar[i]=polar[i-1]+sizex;}
+    polar[i]=polar[i-1]+sizer;}
   
   /* Clear grid */
-   {for (int i=0;i<rho*sizex;i++) 
+   {for (int i=0;i<rho*sizer;i++) 
      polar[0][i]=0; }
 
 
@@ -88,16 +88,16 @@ void fft::AllocateGrid(int sx, int sy)
   if (tmp_polar==NULL)
     MemoryWarning();
   
-  tmp_polar[0]=(int *)malloc(rho*sizex*sizeof(int));
+  tmp_polar[0]=(int *)malloc(rho*sizer*sizeof(int));
   if (tmp_polar[0]==NULL)  
     MemoryWarning();
   
   
   {for (int i=1;i<rho;i++) 
-    tmp_polar[i]=tmp_polar[i-1]+sizex;}
+    tmp_polar[i]=tmp_polar[i-1]+sizer;}
   
   /* Clear grid */
-   {for (int i=0;i<rho*sizex;i++) 
+   {for (int i=0;i<rho*sizer;i++) 
      tmp_polar[0][i]=0; }
 
 
@@ -126,9 +126,6 @@ void fft::ImportGrid(int **sigma, CellularPotts *cpm)
 		}
 	}
 }
-
-
-
 
 
 void fft::PolarTransform()
@@ -164,7 +161,7 @@ void fft::PolarTransform()
 
 	for (int q = 0; q < rho; ++q)
 	{
-		for (int r=0; r < sizex;++r)
+		for (int r=0; r < sizer;++r)
 		{
 			// need to turn q into radians
 			double qn = q * M_PI / 180.;
@@ -255,20 +252,20 @@ void fft::ShiftGrid(int **toshift, int n)
 	//store 0th array
 	for (int i=0;i<n;++i)
 	{
-		int tmp[sizex];
-		for (int l=0;l<sizex;++l)
+		int tmp[sizer];
+		for (int l=0;l<sizer;++l)
 		{
 			tmp[l] = toshift[0][l];
 		}		
 
 		//shift grid across
-		for (int l=0;l<sizex*rho-sizex;++l)
+		for (int l=0;l<sizer*rho-sizer;++l)
 		{
-			toshift[0][l]=toshift[0][l+sizex];
+			toshift[0][l]=toshift[0][l+sizer];
 		}
 		
 		//replace final line
-		for (int l=0;l<sizex;++l)
+		for (int l=0;l<sizer;++l)
 		{
 			toshift[rho-1][l] = tmp[l];
 		}
@@ -280,8 +277,8 @@ void fft::ShiftGrid(int **toshift, int n)
 void fft::ReflectGrid(int **toshift)
 {
 
-	int tmp[rho][sizex];
-	for (int i=0;i<rho*sizex;++i)
+	int tmp[rho][sizer];
+	for (int i=0;i<rho*sizer;++i)
 	{
 		tmp[0][i] = toshift[0][i];
 	}
@@ -292,7 +289,7 @@ void fft::ReflectGrid(int **toshift)
 		int swap = rho - i - 1;
 		
 		
-		for (int j=0;j<sizex;++j)
+		for (int j=0;j<sizer;++j)
 		{
 			toshift[i][j]=tmp[swap][j];
 		}
@@ -309,13 +306,14 @@ double fft::PolarComparison(int** polar2)
 	double min_overlap=1.;
 
 	//initialise tmp polar to polar
-	for (int i=0;i<rho*sizex;++i)
+	for (int i=0;i<rho*sizer;++i)
 		tmp_polar[0][i]=polar[0][i];
 	
 	//we will rotate and reflect polar, and keep polar2 constant
 
 	for (int i = 0; i < rho; ++i)
 	{
+		cout << "here: " << i << endl;
 
 		int overlap{};
 		int outer{};
@@ -326,9 +324,29 @@ double fft::PolarComparison(int** polar2)
 
 		// polar method over compensates for things close to center, so we are going to remove that by starting
 		// at a higher radius, especially because we want to capture morphology
+		// for (int x = 0; x<rho;++x)
+		// {
+		// 	for (int r=par.size_init_cells/2;r<sizer;++r)
+		// 	{
+		// 		if (!tmp_polar[x][r] && !polar2[x][r])
+		// 		{
+		// 			continue;
+		// 		}
+		// 		else if (tmp_polar[x][r] > 0 && polar2[x][r] > 0)
+		// 		{
+		// 			++overlap;
+		// 		}
+		// 		else if (tmp_polar[x][r] != -1)
+		// 		{
+		// 			++outer;
+		// 		}
+		// 	}
+
+		// }
+		// we can also scale 
 		for (int x = 0; x<rho;++x)
 		{
-			for (int r=par.size_init_cells/2;r<sizex;++r)
+			for (int r=par.size_init_cells/2;r<sizer;++r)
 			{
 				if (!tmp_polar[x][r] && !polar2[x][r])
 				{
@@ -336,16 +354,15 @@ double fft::PolarComparison(int** polar2)
 				}
 				else if (tmp_polar[x][r] > 0 && polar2[x][r] > 0)
 				{
-					++overlap;
+					++overlap*(r+1);
 				}
 				else if (tmp_polar[x][r] != -1)
 				{
-					++outer;
+					++outer*(r+1);
 				}
 			}
 
 		}
-
 
 		proportion = (double)overlap / (double)(overlap + outer);
 		overlaps.push_back(proportion);
@@ -378,7 +395,7 @@ double fft::PolarComparison(int** polar2)
 		// at a higher radius, especially because we want to capture morphology
 		for (int x = 0; x<rho;++x)
 		{
-			for (int r=par.size_init_cells/2;r<sizex;++r)
+			for (int r=par.size_init_cells/2;r<sizer;++r)
 			{
 				if (!tmp_polar[x][r] && !polar2[x][r])
 				{
@@ -386,11 +403,11 @@ double fft::PolarComparison(int** polar2)
 				}
 				else if (tmp_polar[x][r] > 0 && polar2[x][r] > 0)
 				{
-					++overlap;
+					++overlap*(r+1);
 				}
 				else if (tmp_polar[x][r] != -1)
 				{
-					++outer;
+					++outer*(r+1);
 				}
 			}
 
@@ -429,9 +446,9 @@ void fft::FFTransform()
 
 
 
-	double inputData[rho][sizex-1];
+	double inputData[rho][sizer-1];
 	for (int i=0;i<rho;++i)
-		for (int j=0;j<sizex-1;++j)
+		for (int j=0;j<sizer-1;++j)
 		{
 			if (polar[i][j])
 				inputData[i][j]=1;
@@ -440,12 +457,12 @@ void fft::FFTransform()
 		}
 
  
-    double realOut[rho][sizex-1];
-    double imagOut[rho][sizex-1];
-    double amplitudeOut[rho][sizex-1];
+    double realOut[rho][sizer-1];
+    double imagOut[rho][sizer-1];
+    double amplitudeOut[rho][sizer-1];
  
     int height = rho;
-    int width = sizex-1;
+    int width = sizer-1;
  
     // Two outer loops iterate on output data.
     for (int yWave = 0; yWave < height; yWave++)

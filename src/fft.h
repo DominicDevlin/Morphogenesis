@@ -50,6 +50,8 @@ private:
 	int **tmp_polar;
 
 	int rho = 360;
+	// THIS IS HARD CODED, BE CAREFUl!!!
+	int sizer=125;
 
 	int sizex;
 	int sizey;

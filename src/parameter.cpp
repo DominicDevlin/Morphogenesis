@@ -37,7 +37,7 @@
     //basic grid parameters. 
     sizex = 250;
     sizey = 250;
-    mcs = 12100;
+    mcs = 2100;
 
     // show on screen
     graphics = false;

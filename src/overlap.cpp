@@ -307,7 +307,7 @@ int main(int argc, char *argv[]) {
   par.velocities=false;
   
   Parameter();
-  par.n_orgs = 60;
+  par.n_orgs = 4;
   if (par.file_genomes)
   {
     ifstream file("genomes.txt");
