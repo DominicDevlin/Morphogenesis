@@ -19,6 +19,7 @@
     "regex": "cpp",
     "valarray": "cpp",
     "ostream": "cpp",
-    "cstring": "cpp"
+    "cstring": "cpp",
+    "complex": "cpp"
   }
 }

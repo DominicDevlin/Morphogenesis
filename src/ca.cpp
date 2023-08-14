@@ -2163,34 +2163,18 @@ double CellularPotts::discrete_decay(vector<double>& gene_list, double conc, int
 
   double x_1 = 0;
 
-  // if (12 > gene_n > 5)
-  // {
-  //   for (int j=0; j < par.n_activators; ++j)
-  //   {
-  //     x_1 = x_1 + (matrix[gene_n][j] * gene_list.at(j));
-  //   }
-  //   x_1 += par.theta;
-  //   if (x_1 > 2)
-  //     return 1;
-  //   else if (x_1 < -2)
-  //     return 0;
-  //   else
-  //     return (1 / (1 + exp(-20 * x_1)));
-  // }
-  // else
-  // {
   for (int j=0; j < par.n_activators; ++j)
   {
     x_1 += (matrix[gene_n][j] * gene_list.at(j));
   }
   x_1 += par.theta;
 
-  x_1 = (1 / (1 + exp(-20 * x_1))) * 0.25 + conc * par.d_rate;
+  // x_1 = (1 / (1 + exp(-20 * x_1))) * 0.25 + conc * par.d_rate;
+  x_1 = (1 / (1 + exp(-20 * x_1))) * par.delta_t + conc*par.d_rate;
     
 
   return x_1;
 
-  // }
 }
 
 
@@ -3627,11 +3611,11 @@ void CellularPotts::SetColours()
   // map<int,int> colours = {{119675, 45}, {110595, 143},{115579, 84},{45059, 71}, {127867, 88}}; // this is for shield
 
 
-  // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
-  // {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
+  map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
+  {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
 
-  map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
-  {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
+  // map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
+  // {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
   
   // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom-old
 

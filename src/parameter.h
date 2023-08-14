@@ -180,6 +180,7 @@ class Parameter {
 
   double theta;
   double d_rate;
+  double delta_t;
 
   vector<double> new_g; 
 

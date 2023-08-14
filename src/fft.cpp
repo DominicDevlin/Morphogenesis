@@ -11,6 +11,9 @@
 #else
 #include "x11graph.h"
 #endif
+#include <pthread.h>
+
+
 
 // #include <fftw3.h>
 
@@ -185,16 +188,6 @@ void fft::PolarTransform()
 
 void fft::PolarToOutput(string name)
 {
-	// for (int q=0;q<rho;++q)
-	// {
-	// 	for (int r=0;r<sizex;++r)
-	// 	{
-	// 		cout << polar[q][r];
-	// 	}
-	// 	cout << endl;
-	// }
-	cout << name << endl;
-
 	char* nname = new char[name.size() + 1];
 	strcpy(nname, name.c_str());
 
@@ -202,7 +195,7 @@ void fft::PolarToOutput(string name)
 	#ifdef QTGRAPHICS
 
 			
-	QtGraphics g(rho,150);
+	QtGraphics g(rho,sizer);
  
 
 
@@ -214,7 +207,7 @@ void fft::PolarToOutput(string name)
 
 
   for (int i = 0; i < rho-1; i++ )
-    for (int j = 0; j < 150; j++ ) 
+    for (int j = 0; j < sizer; j++ ) 
 		{
       
 
@@ -245,6 +238,77 @@ void fft::PolarToOutput(string name)
 
 	delete[] nname;
 }
+
+
+
+
+void fft::ShowOptimal(string name)
+{
+	char* nname = new char[name.size() + 1];
+	strcpy(nname, name.c_str());
+
+	for (int i=0;i<rho*sizer;++i)
+		tmp_polar[0][i]=polar[0][i];
+
+	if (optimal>rho)
+	{
+		ReflectGrid(tmp_polar);
+		int shifts = optimal % rho;
+		ShiftGrid(tmp_polar, shifts);
+	}
+	else
+	{
+		ShiftGrid(tmp_polar, optimal);
+	}
+
+	#ifdef QTGRAPHICS
+
+			
+	QtGraphics s(rho,sizer);
+
+	char fname[200];
+	sprintf(fname, nname,par.datadir);
+
+	s.BeginScene();
+	s.ClearImage();    
+
+  for (int i = 0; i < rho-1; i++ )
+    for (int j = 0; j < sizer; j++ ) 
+		{
+      
+
+      int colour;
+      if (tmp_polar[i][j]<=0) 
+			{
+				colour=0;
+      } 
+			else 
+			{
+				colour = 10;
+      }
+      
+      if (tmp_polar[i][j]>0)
+			{
+				/* if draw */ 
+				colour = tmp_polar[i][j] % 255;
+				s.Point( colour, i, j);
+			}  
+        
+		}
+
+	s.EndScene();
+
+	s.Write(fname);
+
+	#endif
+
+	delete[] nname;	
+}
+
+
+
+
+
 
 
 void fft::ShiftGrid(int **toshift, int n)
@@ -305,6 +369,10 @@ double fft::PolarComparison(int** polar2)
 	double max_overlap=0.;
 	double min_overlap=1.;
 
+
+	int opt_shift{};
+	int counter{};
+
 	//initialise tmp polar to polar
 	for (int i=0;i<rho*sizer;++i)
 		tmp_polar[0][i]=polar[0][i];
@@ -313,8 +381,7 @@ double fft::PolarComparison(int** polar2)
 
 	for (int i = 0; i < rho; ++i)
 	{
-		cout << "here: " << i << endl;
-
+		
 		int overlap{};
 		int outer{};
 		double proportion{};
@@ -322,28 +389,7 @@ double fft::PolarComparison(int** polar2)
 		// shift grid one degree over
 		ShiftGrid(tmp_polar);
 
-		// polar method over compensates for things close to center, so we are going to remove that by starting
-		// at a higher radius, especially because we want to capture morphology
-		// for (int x = 0; x<rho;++x)
-		// {
-		// 	for (int r=par.size_init_cells/2;r<sizer;++r)
-		// 	{
-		// 		if (!tmp_polar[x][r] && !polar2[x][r])
-		// 		{
-		// 			continue;
-		// 		}
-		// 		else if (tmp_polar[x][r] > 0 && polar2[x][r] > 0)
-		// 		{
-		// 			++overlap;
-		// 		}
-		// 		else if (tmp_polar[x][r] != -1)
-		// 		{
-		// 			++outer;
-		// 		}
-		// 	}
-
-		// }
-		// we can also scale 
+		// we have to scale radius
 		for (int x = 0; x<rho;++x)
 		{
 			for (int r=0;r<sizer;++r)
@@ -354,11 +400,11 @@ double fft::PolarComparison(int** polar2)
 				}
 				else if (tmp_polar[x][r] > 0 && polar2[x][r] > 0)
 				{
-					++overlap*(r+1);
+					overlap += (r+1);
 				}
 				else if (tmp_polar[x][r] != -1)
 				{
-					++outer*(r+1);
+					outer += r+1;
 				}
 			}
 
@@ -366,15 +412,23 @@ double fft::PolarComparison(int** polar2)
 
 		proportion = (double)overlap / (double)(overlap + outer);
 		overlaps.push_back(proportion);
-		// cout << "Overlap is: " << overlap << endl;
+
+		++counter;
+
+		if (par.print_fitness)
+			cout << "Count is... " << counter << "  Overlap is: " << overlap << "  Outer is: " << outer << "  Proportion is: " << proportion << endl;
+			
 		if (proportion > max_overlap)
+		{
 			max_overlap = proportion;
+			opt_shift = counter;
+		}
 
 		if (proportion < min_overlap)
 			min_overlap = proportion;
 
 
-		// cout << "Pre-reflect, i is: " << i << " Overlap is: " << overlap << "  Outer is: " << outer << endl;
+		
 	}
 
 	// we need to now flip the grid to make sure it is reflection invariant as well. 
@@ -403,34 +457,42 @@ double fft::PolarComparison(int** polar2)
 				}
 				else if (tmp_polar[x][r] > 0 && polar2[x][r] > 0)
 				{
-					++overlap*(r+1);
+					overlap += r+1;
 				}
 				else if (tmp_polar[x][r] != -1)
 				{
-					++outer*(r+1);
+					outer += r+1;
 				}
 			}
 
 		}
 
-
-
 		proportion = (double)overlap / (double)(overlap + outer);
 		overlaps.push_back(proportion);
 
 		// cout << "Post-reflect, i is: " << i << " Overlap is: " << overlap << "  Outer is: " << outer << endl;
-
+		++counter;
 		if (proportion > max_overlap)
+		{
 			max_overlap = proportion;
+			opt_shift = counter;
+		}
 		
 		if (proportion < min_overlap)
 			min_overlap = proportion;
+		if (par.print_fitness)
+			cout << "Count is... " << counter << "  Overlap is: " << overlap << "  Outer is: " << outer << "  Proportion is: " << proportion << endl;
+
+		
 		
 	}
 	// cout << "max overlap:  " << max_overlap << endl;
 	// cout << "min overlap:  " << min_overlap << endl;
 
+	if (par.print_fitness)
+		cout << "optimal arrangement is: " << opt_shift << endl;
 
+	optimal = opt_shift;
 	return max_overlap;
 
 

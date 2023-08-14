@@ -367,18 +367,17 @@ TIMESTEP {
     if (t == 12000)
     {
       fft test;
-      test.AllocateGrid(250, 250);
+      test.AllocateGrid(par.sizex, par.sizey);
       test.ImportGrid(dish->CPM->ReturnGrid());//, dish->CPM);
       test.PolarTransform();
       test.PolarToOutput();
 
-      test.ShiftGrid(test.GetPolar(), 180);
+      test.ShiftGrid(test.GetPolar(), 8);
 
-      test.PolarToOutput("polar2.png");
+      test.PolarToOutput("polar-shift.png");
 
-      test.ReflectGrid(test.GetPolar());
-
-      test.PolarToOutput("polar3.png");
+      // test.ReflectGrid(test.GetPolar());
+      // test.PolarToOutput("polar3.png");
 
     }
 

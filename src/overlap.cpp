@@ -228,6 +228,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   vector<double> invariant_p{};
   invariant_p.resize(((par.n_orgs-1)*par.n_orgs)/2);
+  int counter = 1;
 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for 
@@ -257,6 +258,15 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
       // cout << "before check - " << i << " " << j << "  " << num << "  " << inp << endl;
       invariant_p.at(num)=inp;
+
+      // used for sanity check for comparison.
+      ++counter;
+      string t1 = "trial-i-" + to_string(counter) + ".png";
+      string t2 = "trial-i-shift-" + to_string(counter) + ".png";
+      string t3 = "trial-j-" + to_string(counter) + ".png";
+      org1.PolarToOutput(t1);
+      org1.ShowOptimal(t2);
+      org2.PolarToOutput(t3);
     }
   }
 
@@ -295,7 +305,17 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
 // Main function
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
+
+#ifdef QTGRAPHICS
+    QApplication* a = new QApplication(argc, argv);
+    // QtGraphics g(par.sizex*2,par.sizey*2); 
+    // a.connect(&g, SIGNAL(SimulationDone(void)), SLOT(quit(void)) );
+    // a.exec();
+#endif
+
+
 
   
   par.graphics=false;
@@ -383,7 +403,7 @@ int main(int argc, char *argv[]) {
       }
       process_population(networks, polarities);  
   }
-
+  
 
 
 
@@ -403,7 +423,7 @@ int main(int argc, char *argv[]) {
   // process_population(networks, polarities);
 
   // finished
-  par.CleanUp();
+    par.CleanUp();
 
   return 0;
 }
