@@ -40,7 +40,7 @@
     mcs = 12100;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
 
@@ -61,6 +61,8 @@
     file_genomes = true;
 
 
+
+
     //for storing images
     store = true;
     //set specific colours (SHOULD ALWAYS BE FALSE UNLESS NEEDED)
@@ -74,8 +76,8 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, 1, 0, 0, 0, 0, 2, -1 }, { 1, 0, -1, 1, 0, 0, 1, 0, -2 }, { 0, -1, 0, 0, 1, 0, 0, -2, 0 }, { -1, 0, -1, 0, 0, -1, 0, 0, -1 }, { -1, 0, 1, -2, 0, 0, 0, -2, 0 }, { 1, 1, -1, 0, 0, 0, 0, 0, 0 }, { 1, 1, -1, 0, 1, 0, 0, 0, -1 }, { 2, 0, -1, 1, -1, 1, 0, 0, 1 }, { -1, 0, -1, -2, 2, 0, 1, 0, 0 }, { 1, 1, 0, 0, 0, 1, -1, 0, 0 }, { -1, 1, 1, 0, 0, 1, 1, 0, 0 }, { 2, 0, 0, 0, 0, -1, 0, -1, 0 }, { -2, 0, 0, 0, 1, 0, 1, 0, 0 }, { 1, 1, 0, -1, 0, 0, 1, 0, 0 }, { 1, 1, -1, 0, 0, 0, -2, 0, -2 }, { 0, -1, 1, 0, 0, 0, 0, 0, 1 }, { 1, -1, 1, 0, 0, -1, 1, -1, 0 }, { 1, 0, -1, 0, -1, 0, 1, 0, 0 }, { 0, 2, 0, 0, -1, -2, 0, 1, -1 }, { 0, 1, 1, -1, 0, 0, 0, 0, 0 }, { 0, 1, 1, 0, 0, 0, 0, 2, 0 }, { 0, 0, 0, 0, 0, -1, 2, 0, -2 }, { 0, -1, 0, 0, 1, 0, 0, 1, 0 }, { 0, -1, -1, 1, -2, 0, 0, 1, 0 }, { -1, 0, 0, 0, 0, 0, -1, 2, 0 }, { 0, -1, 0, 0, 1, 0, 0, 1, 0 }, { 0, 0, 0, -2, -1, 0, 0, 0, 1 }, };
-
+    start_matrix = { { -1, -1, -2, 0, -2, 1, -2, 0, 2 }, { 1, 0, 2, 2, 0, 0, 2, 2, 0 }, { 0, 1, 0, -1, 2, 0, 1, 0, 0 }, { 1, -1, 0, 1, 0, 0, 0, 0, 0 }, { 0, 1, 0, 0, 0, 0, 0, -1, 0 }, { 1, 0, 0, 0, 0, 0, 2, 0, 0 }, { -1, 1, 0, 0, 1, 0, 0, 0, 0 }, { 0, 0, -1, 0, 0, -1, 1, 2, 0 }, { 0, 1, 0, 2, -1, 0, 0, -1, 1 }, { -1, 0, 0, 0, 1, 0, 0, 2, 0 }, { 0, 1, -1, 0, 0, 0, 1, 0, 0 }, { 0, 0, -1, 0, 0, 0, -1, 2, -2 }, { 0, 1, 2, 0, 1, -2, 0, 0, 0 }, { 0, 0, 1, 0, 0, 0, -1, -1, 1 }, { 0, 1, 1, -1, 0, 0, 0, 1, -1 }, { 0, 1, 0, 1, 0, 0, 0, 2, -2 }, { 1, 0, 0, -1, 0, 0, 1, 0, 0 }, { 1, 0, 2, 0, 2, 0, -1, 1, 1 }, { 0, 0, 1, 0, 0, 0, 0, 0, 1 }, { 0, 0, -2, -1, 1, 0, -2, 1, 1 }, { -1, 1, 0, 0, 1, 0, 0, 0, 0 }, { 0, 1, 0, 0, -1, 0, -1, 0, 0 }, { -1, 0, -1, 0, 0, 0, 0, 0, 1 }, { 1, -2, -1, 0, 1, 1, 1, 0, 0 }, { 0, -1, 0, 1, 0, -1, 0, 1, 0 }, { -1, 0, 0, 0, 0, 1, -1, 0, 0 }, { 0, -1, -1, -1, 0, 0, 0, 1, 1 }, };
+    
 
 
 
@@ -138,13 +140,14 @@
     div_end = 250;
 
     // add noise to regulatory network 
-    noise =false;
+    noise =true;
     // noise amount
-    noise_dose=0.05;
-    noise_start = 8000;
+    noise_dose=0.08;
+    noise_start = 6000;
 
-
-
+    // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
+    // NOTE - MUST RUN with tag: "-platform offscreen" when using cluster (there is no display).
+    overlap_images = false;
 
     // Basic Cellular Potts parameters
     eT = 3; // temperature during programmed divisions 

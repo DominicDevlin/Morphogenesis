@@ -78,7 +78,7 @@ class Parameter {
 
 
   bool file_genomes;
-
+  bool overlap_images;
 
   int n_orgs;
   int n_replicates;

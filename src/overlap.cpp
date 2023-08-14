@@ -231,7 +231,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   int counter = 1;
 
   omp_set_num_threads(par.n_orgs);
-  #pragma omp parallel for 
+  #pragma omp parallel for if(!par.overlap_images)
   for (int i = 0;i<par.n_orgs;i++)
   {
     fft org1;
@@ -260,13 +260,17 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       invariant_p.at(num)=inp;
 
       // used for sanity check for comparison.
-      ++counter;
-      string t1 = "trial-i-" + to_string(counter) + ".png";
-      string t2 = "trial-i-shift-" + to_string(counter) + ".png";
-      string t3 = "trial-j-" + to_string(counter) + ".png";
-      org1.PolarToOutput(t1);
-      org1.ShowOptimal(t2);
-      org2.PolarToOutput(t3);
+      if (par.overlap_images)
+      {
+        string t1 = "trial-i-" + to_string(counter) + ".png";
+        string t2 = "trial-i-shift-" + to_string(counter) + ".png";
+        string t3 = "trial-j-" + to_string(counter) + ".png";
+        org1.PolarToOutput(t1);
+        org1.ShowOptimal(t2);
+        org2.PolarToOutput(t3);
+        ++counter;
+      }
+
     }
   }
 
@@ -308,11 +312,11 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 int main(int argc, char *argv[]) 
 {
 
+
+
 #ifdef QTGRAPHICS
+  if (par.overlap_images)
     QApplication* a = new QApplication(argc, argv);
-    // QtGraphics g(par.sizex*2,par.sizey*2); 
-    // a.connect(&g, SIGNAL(SimulationDone(void)), SLOT(quit(void)) );
-    // a.exec();
 #endif
 
 
