@@ -27,9 +27,11 @@ public:
 
 	void PolarToOutput(string name="polar.png");
 
+	void GridToOutput(string name="grid.png");
+
 	void ShowOptimal(string name = "shift.png");
 
-	double PolarComparison(int** polar2);
+	double PolarComparison(int** polar2, bool record=false);
 
 	void FFTransform();
 
@@ -41,6 +43,8 @@ public:
 	{
 		return polar;
 	}
+
+	void OutputLoss();
 
 	~fft(void);
 
@@ -59,6 +63,8 @@ private:
 	int sizey;
 
 	int optimal;
+
+	vector<double> loss;
 
 };
 

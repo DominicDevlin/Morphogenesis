@@ -248,7 +248,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       org2.ImportGrid(dishes[j].CPM->ReturnGrid());
       org2.PolarTransform();
       // do comparison
-      double inp = org1.PolarComparison(org2.GetPolar());
+      double inp = org1.PolarComparison(org2.GetPolar(), true);
 
       // get the index
       int num{};
@@ -269,6 +269,16 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         org1.ShowOptimal(t2);
         org2.PolarToOutput(t3);
         ++counter;
+
+        if (par.overlap_images)
+        {
+          // org1.OutputLoss();
+          // string g1 = "grid-" + to_string(i) + ".png";
+          // string g2 = "grid-" + to_string(j) + ".png";
+          // org1.GridToOutput(g1);
+          // org2.GridToOutput(g2);
+        }
+
       }
 
     }
@@ -331,7 +341,7 @@ int main(int argc, char *argv[])
   par.velocities=false;
   
   Parameter();
-  par.n_orgs = 60;
+  par.n_orgs = par.overlap_orgs;
   if (par.file_genomes)
   {
     ifstream file("genomes.txt");

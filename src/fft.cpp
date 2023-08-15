@@ -5,6 +5,7 @@
 #include "crash.h"
 #include "string.h"
 #include "ca.h"
+#include <fstream>
 
 #ifdef QTGRAPHICS
 #include "qtgraph.h"
@@ -195,7 +196,7 @@ void fft::PolarToOutput(string name)
 	#ifdef QTGRAPHICS
 
 			
-	QtGraphics g(rho,sizer);
+	QtGraphics g(rho*2,sizer*2);
  
 
 
@@ -225,7 +226,10 @@ void fft::PolarToOutput(string name)
 			{
 				/* if draw */ 
 				colour = polar[i][j] % 255;
-				g.Point( colour, i, j);
+				g.Point( colour, 2*i, 2*j);
+				g.Point( colour, 2*i+1, 2*j+1);
+				g.Point( colour, 2*i, 2*j+1);
+				g.Point( colour, 2*i+1, 2*j);
 			}  
         
 		}
@@ -238,6 +242,68 @@ void fft::PolarToOutput(string name)
 
 	delete[] nname;
 }
+
+
+
+void fft::GridToOutput(string name)
+{
+	char* nname = new char[name.size() + 1];
+	strcpy(nname, name.c_str());
+
+
+	#ifdef QTGRAPHICS
+
+			
+	QtGraphics qtgrid(sizex*2,sizey*2);
+ 
+
+
+	char fname[200];
+	sprintf(fname, nname,par.datadir);
+
+	qtgrid.BeginScene();
+	qtgrid.ClearImage();    
+
+
+  for (int i = 0; i < sizex; i++ )
+    for (int j = 0; j < sizey; j++ ) 
+		{
+      
+
+      int colour{};
+      if (grid[i][j]<=0) 
+			{
+				colour=0;
+      } 
+      
+      if (grid[i][j]>=0)
+			{
+				/* if draw */ 
+				colour = grid[i][j] % 255;
+				qtgrid.Point( colour, 2*i, 2*j);
+				qtgrid.Point( colour, 2*i+1, 2*j+1);
+				qtgrid.Point( colour, 2*i, 2*j+1);
+				qtgrid.Point( colour, 2*i+1, 2*j);
+			} 
+			// else if (!grid[i][j])
+			// {
+
+			// } 
+
+        
+		}
+
+	qtgrid.EndScene();
+
+	qtgrid.Write(fname);
+
+	#endif
+
+	delete[] nname;
+}
+
+
+
 
 
 
@@ -264,7 +330,7 @@ void fft::ShowOptimal(string name)
 	#ifdef QTGRAPHICS
 
 			
-	QtGraphics s(rho,sizer);
+	QtGraphics s(rho*2,sizer*2);
 
 	char fname[200];
 	sprintf(fname, nname,par.datadir);
@@ -291,7 +357,10 @@ void fft::ShowOptimal(string name)
 			{
 				/* if draw */ 
 				colour = tmp_polar[i][j] % 255;
-				s.Point( colour, i, j);
+				s.Point( colour, 2*i, 2*j);
+				s.Point( colour, 2*i+1, 2*j+1);
+				s.Point( colour, 2*i, 2*j+1);
+				s.Point( colour, 2*i+1, 2*j);
 			}  
         
 		}
@@ -362,7 +431,7 @@ void fft::ReflectGrid(int **toshift)
 
 
 // we dont need to be efficient so can just compare grids with changing rho using dice coefficient
-double fft::PolarComparison(int** polar2)
+double fft::PolarComparison(int** polar2, bool record)
 {
 
 	vector<int> overlaps;
@@ -427,6 +496,8 @@ double fft::PolarComparison(int** polar2)
 		if (proportion < min_overlap)
 			min_overlap = proportion;
 
+		if (record)
+			loss.push_back(proportion);
 
 		
 	}
@@ -483,7 +554,8 @@ double fft::PolarComparison(int** polar2)
 		if (par.print_fitness)
 			cout << "Count is... " << counter << "  Overlap is: " << overlap << "  Outer is: " << outer << "  Proportion is: " << proportion << endl;
 
-		
+		if (record)
+			loss.push_back(proportion);		
 		
 	}
 	// cout << "max overlap:  " << max_overlap << endl;
@@ -498,6 +570,20 @@ double fft::PolarComparison(int** polar2)
 
 }
 
+
+void fft::OutputLoss()
+{
+	ofstream outfile;
+  string var_name = "loss.txt";
+  outfile.open(var_name, ios::app);
+
+	for (unsigned int i=0;i<rho;++i)
+	{
+		outfile << i << '\t' << loss[i] << endl;
+		
+	}
+	outfile.close();
+}
 
 
 
