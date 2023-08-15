@@ -1,6 +1,2 @@
-Component # 0  contains  1  big states.
-The states  ['116896']  are differentiated.
-Component # 1  contains  1  big states.
-The states  ['116897']  are differentiated.
-Component # 2  contains  8  big states.
-The states  ['8059', '8058', '7939', '105219', '105347', '103330', '103331', '103299']  are stem.
+Component # 0  contains  4  big states.
+The states  ['77696', '12160', '12280', '12024']  are stem.
