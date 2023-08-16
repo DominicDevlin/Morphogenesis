@@ -380,6 +380,11 @@ TIMESTEP {
       // test.PolarToOutput("polar3.png");
 
     }
+    
+    if (t==8000)
+    {
+      dish->PDEfield->PrintAxisConcentrations(true, 120);
+    }
 
 
 

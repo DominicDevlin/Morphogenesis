@@ -231,6 +231,8 @@ class PDE {
 
   void manipulate_conc(int x, int y, int l);
 
+  void PrintAxisConcentrations(bool dim=true, int point=125);
+
 
  protected:
 

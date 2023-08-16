@@ -21,6 +21,75 @@
         }
 
         
+        #loadingBar {
+            position:absolute;
+            top:0px;
+            left:0px;
+            width: 500px;
+            height: 500px;
+            background-color:rgba(200,200,200,0.8);
+            -webkit-transition: all 0.5s ease;
+            -moz-transition: all 0.5s ease;
+            -ms-transition: all 0.5s ease;
+            -o-transition: all 0.5s ease;
+            transition: all 0.5s ease;
+            opacity:1;
+        }
+
+        #bar {
+            position:absolute;
+            top:0px;
+            left:0px;
+            width:20px;
+            height:20px;
+            margin:auto auto auto auto;
+            border-radius:11px;
+            border:2px solid rgba(30,30,30,0.05);
+            background: rgb(0, 173, 246); /* Old browsers */
+            box-shadow: 2px 0px 4px rgba(0,0,0,0.4);
+        }
+
+        #border {
+            position:absolute;
+            top:10px;
+            left:10px;
+            width:500px;
+            height:23px;
+            margin:auto auto auto auto;
+            box-shadow: 0px 0px 4px rgba(0,0,0,0.2);
+            border-radius:10px;
+        }
+
+        #text {
+            position:absolute;
+            top:8px;
+            left:530px;
+            width:30px;
+            height:50px;
+            margin:auto auto auto auto;
+            font-size:22px;
+            color: #000000;
+        }
+
+        div.outerBorder {
+            position:relative;
+            top:400px;
+            width:600px;
+            height:44px;
+            margin:auto auto auto auto;
+            border:8px solid rgba(0,0,0,0.1);
+            background: rgb(252,252,252); /* Old browsers */
+            background: -moz-linear-gradient(top,  rgba(252,252,252,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,252,252,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+            background: -webkit-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+            background: -o-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+            background: -ms-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+            background: linear-gradient(to bottom,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+            border-radius:72px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+        }
+        
 
         
 
@@ -31,6 +100,15 @@
 
 <body>
 <div id = "mynetwork"></div>
+
+<div id="loadingBar">
+    <div class="outerBorder">
+        <div id="text">0%</div>
+        <div id="border">
+            <div id="bar"></div>
+        </div>
+    </div>
+</div>
 
 
 <script type="text/javascript">
@@ -50,8 +128,8 @@
         
 
         // parsing and collecting nodes and edges from the python
-        nodes = new vis.DataSet([{"id": "12024", "label": "12024", "shape": "dot", "size": 39}, {"id": "12280", "label": "12280", "shape": "dot", "size": 34}, {"id": "12160", "label": "12160", "shape": "dot", "size": 78}, {"id": "77696", "label": "77696", "shape": "dot", "size": 93}, {"id": "12168", "label": "12168", "shape": "dot", "size": 1}, {"id": "12200", "label": "12200", "shape": "dot", "size": 1.0954451150103321}]);
-        edges = new vis.DataSet([{"arrows": "to", "from": "12024", "label": 1, "to": "12280", "weight": 1, "width": 5.89036}, {"arrows": "to", "from": "12160", "label": 1, "to": "12024", "weight": 1, "width": 3.81092}, {"arrows": "to", "from": "12160", "label": 1, "to": "12280", "weight": 1, "width": 6.04644}, {"arrows": "to", "from": "12160", "label": 1, "to": "77696", "weight": 1, "width": 5.42575}, {"arrows": "to", "from": "12168", "label": 1, "to": "12160", "weight": 1, "width": 1.29861}, {"arrows": "to", "from": "12280", "label": 1, "to": "12024", "weight": 1, "width": 5.76834}, {"arrows": "to", "from": "12280", "label": 1, "to": "12160", "weight": 1, "width": 6.13489}, {"arrows": "to", "from": "12280", "label": 1, "to": "12168", "weight": 1, "width": 1.29861}, {"arrows": "to", "from": "77696", "label": 1, "to": "12160", "weight": 1, "width": 5.19043}]);
+        nodes = new vis.DataSet([{"id": "4995", "label": "4995", "shape": "dot", "size": 9}, {"id": "103299", "label": "103299", "shape": "dot", "size": 33}, {"id": "5027", "label": "5027", "shape": "dot", "size": 7}, {"id": "5026", "label": "5026", "shape": "dot", "size": 9}, {"id": "103330", "label": "103330", "shape": "dot", "size": 19}, {"id": "103331", "label": "103331", "shape": "dot", "size": 26}, {"id": "6010", "label": "6010", "shape": "dot", "size": 10}, {"id": "8058", "label": "8058", "shape": "dot", "size": 28}, {"id": "6915", "label": "6915", "shape": "dot", "size": 6}, {"id": "105219", "label": "105219", "shape": "dot", "size": 23}, {"id": "7939", "label": "7939", "shape": "dot", "size": 68}, {"id": "106243", "label": "106243", "shape": "dot", "size": 9}, {"id": "7971", "label": "7971", "shape": "dot", "size": 6}, {"id": "8059", "label": "8059", "shape": "dot", "size": 20}, {"id": "100513", "label": "100513", "shape": "dot", "size": 11}, {"id": "116897", "label": "116897", "shape": "dot", "size": 18}, {"id": "100515", "label": "100515", "shape": "dot", "size": 8}, {"id": "103298", "label": "103298", "shape": "dot", "size": 7}, {"id": "105347", "label": "105347", "shape": "dot", "size": 25}, {"id": "111523", "label": "111523", "shape": "dot", "size": 10}, {"id": "104611", "label": "104611", "shape": "dot", "size": 5}, {"id": "104963", "label": "104963", "shape": "dot", "size": 2}, {"id": "105091", "label": "105091", "shape": "dot", "size": 4}, {"id": "105123", "label": "105123", "shape": "dot", "size": 4}, {"id": "111522", "label": "111522", "shape": "dot", "size": 7}, {"id": "111490", "label": "111490", "shape": "dot", "size": 9}, {"id": "116896", "label": "116896", "shape": "dot", "size": 56}, {"id": "116960", "label": "116960", "shape": "dot", "size": 7}, {"id": "4994", "label": "4994", "shape": "dot", "size": 0.8944271909999159}, {"id": "5010", "label": "5010", "shape": "dot", "size": 3.847076812334269}, {"id": "5042", "label": "5042", "shape": "dot", "size": 2.6832815729997477}, {"id": "5058", "label": "5058", "shape": "dot", "size": 0.6324555320336759}, {"id": "5074", "label": "5074", "shape": "dot", "size": 1.8973665961010275}, {"id": "5090", "label": "5090", "shape": "dot", "size": 0.8944271909999159}, {"id": "5891", "label": "5891", "shape": "dot", "size": 5.796550698475776}, {"id": "5922", "label": "5922", "shape": "dot", "size": 2.898275349237888}, {"id": "5923", "label": "5923", "shape": "dot", "size": 3.794733192202055}, {"id": "5938", "label": "5938", "shape": "dot", "size": 0.6324555320336759}, {"id": "5986", "label": "5986", "shape": "dot", "size": 1.4142135623730951}, {"id": "6002", "label": "6002", "shape": "dot", "size": 0.6324555320336759}, {"id": "6019", "label": "6019", "shape": "dot", "size": 3.847076812334269}, {"id": "6034", "label": "6034", "shape": "dot", "size": 1.2649110640673518}, {"id": "6050", "label": "6050", "shape": "dot", "size": 5.761944116355173}, {"id": "6051", "label": "6051", "shape": "dot", "size": 5.059644256269407}, {"id": "6066", "label": "6066", "shape": "dot", "size": 1.4142135623730951}, {"id": "6098", "label": "6098", "shape": "dot", "size": 1.4142135623730951}, {"id": "6114", "label": "6114", "shape": "dot", "size": 0.6324555320336759}, {"id": "6130", "label": "6130", "shape": "dot", "size": 1.8973665961010275}, {"id": "6138", "label": "6138", "shape": "dot", "size": 0.6324555320336759}, {"id": "6722", "label": "6722", "shape": "dot", "size": 1.4142135623730951}, {"id": "6754", "label": "6754", "shape": "dot", "size": 1.0954451150103321}, {"id": "6850", "label": "6850", "shape": "dot", "size": 0.8944271909999159}, {"id": "6882", "label": "6882", "shape": "dot", "size": 0.8944271909999159}, {"id": "6978", "label": "6978", "shape": "dot", "size": 0.6324555320336759}, {"id": "7010", "label": "7010", "shape": "dot", "size": 0.6324555320336759}, {"id": "7043", "label": "7043", "shape": "dot", "size": 4.898979485566356}, {"id": "7106", "label": "7106", "shape": "dot", "size": 1.4142135623730951}, {"id": "7122", "label": "7122", "shape": "dot", "size": 1.5491933384829668}, {"id": "7138", "label": "7138", "shape": "dot", "size": 0.8944271909999159}, {"id": "7778", "label": "7778", "shape": "dot", "size": 1.4142135623730951}, {"id": "7970", "label": "7970", "shape": "dot", "size": 0.6324555320336759}, {"id": "8019", "label": "8019", "shape": "dot", "size": 0.6324555320336759}, {"id": "8034", "label": "8034", "shape": "dot", "size": 1.5491933384829668}, {"id": "8050", "label": "8050", "shape": "dot", "size": 0.6324555320336759}, {"id": "8051", "label": "8051", "shape": "dot", "size": 0.6324555320336759}, {"id": "8067", "label": "8067", "shape": "dot", "size": 1.5491933384829668}, {"id": "8130", "label": "8130", "shape": "dot", "size": 0.6324555320336759}, {"id": "8146", "label": "8146", "shape": "dot", "size": 0.6324555320336759}, {"id": "8162", "label": "8162", "shape": "dot", "size": 0.6324555320336759}, {"id": "8178", "label": "8178", "shape": "dot", "size": 0.6324555320336759}, {"id": "35042", "label": "35042", "shape": "dot", "size": 0.6324555320336759}, {"id": "37778", "label": "37778", "shape": "dot", "size": 0.6324555320336759}, {"id": "37842", "label": "37842", "shape": "dot", "size": 0.6324555320336759}, {"id": "39138", "label": "39138", "shape": "dot", "size": 1.7888543819998317}, {"id": "39618", "label": "39618", "shape": "dot", "size": 7.974960814950754}, {"id": "39650", "label": "39650", "shape": "dot", "size": 5.176871642217914}, {"id": "39778", "label": "39778", "shape": "dot", "size": 0.6324555320336759}, {"id": "39874", "label": "39874", "shape": "dot", "size": 1.6733200530681511}, {"id": "39890", "label": "39890", "shape": "dot", "size": 2.449489742783178}, {"id": "40802", "label": "40802", "shape": "dot", "size": 0.6324555320336759}, {"id": "51426", "label": "51426", "shape": "dot", "size": 0.6324555320336759}, {"id": "100576", "label": "100576", "shape": "dot", "size": 0.6324555320336759}, {"id": "100578", "label": "100578", "shape": "dot", "size": 1.7888543819998317}, {"id": "103314", "label": "103314", "shape": "dot", "size": 6.0}, {"id": "103346", "label": "103346", "shape": "dot", "size": 1.2649110640673518}, {"id": "103378", "label": "103378", "shape": "dot", "size": 0.8944271909999159}, {"id": "104674", "label": "104674", "shape": "dot", "size": 1.4142135623730951}, {"id": "104867", "label": "104867", "shape": "dot", "size": 0.6324555320336759}, {"id": "105186", "label": "105186", "shape": "dot", "size": 0.8944271909999159}, {"id": "105346", "label": "105346", "shape": "dot", "size": 0.6324555320336759}, {"id": "105362", "label": "105362", "shape": "dot", "size": 1.6733200530681511}, {"id": "105363", "label": "105363", "shape": "dot", "size": 0.8944271909999159}, {"id": "105379", "label": "105379", "shape": "dot", "size": 3.63318042491699}, {"id": "105426", "label": "105426", "shape": "dot", "size": 6.663332499583072}, {"id": "105427", "label": "105427", "shape": "dot", "size": 1.0954451150103321}, {"id": "111491", "label": "111491", "shape": "dot", "size": 1.7888543819998317}, {"id": "111506", "label": "111506", "shape": "dot", "size": 1.4142135623730951}, {"id": "113538", "label": "113538", "shape": "dot", "size": 2.0}, {"id": "113539", "label": "113539", "shape": "dot", "size": 0.8944271909999159}, {"id": "113554", "label": "113554", "shape": "dot", "size": 2.449489742783178}, {"id": "113555", "label": "113555", "shape": "dot", "size": 1.2649110640673518}, {"id": "113618", "label": "113618", "shape": "dot", "size": 10.89954127475097}, {"id": "113619", "label": "113619", "shape": "dot", "size": 1.8973665961010275}, {"id": "116898", "label": "116898", "shape": "dot", "size": 0.6324555320336759}, {"id": "116962", "label": "116962", "shape": "dot", "size": 1.2649110640673518}]);
+        edges = new vis.DataSet([{"arrows": "to", "from": "4995", "label": 1, "to": "103299", "weight": 1, "width": 1.58629}, {"arrows": "to", "from": "4995", "label": 1, "to": "5027", "weight": 1, "width": 1.80944}, {"arrows": "to", "from": "5026", "label": 1, "to": "103330", "weight": 1, "width": 1.58629}, {"arrows": "to", "from": "5027", "label": 1, "to": "103331", "weight": 1, "width": 1.58629}, {"arrows": "to", "from": "5027", "label": 1, "to": "4995", "weight": 1, "width": 1.58629}, {"arrows": "to", "from": "6010", "label": 1, "to": "8058", "weight": 1, "width": 4.17029}, {"arrows": "to", "from": "6915", "label": 1, "to": "105219", "weight": 1, "width": 1.99176}, {"arrows": "to", "from": "6915", "label": 1, "to": "7939", "weight": 1, "width": 2.27944}, {"arrows": "to", "from": "7939", "label": 1, "to": "105219", "weight": 1, "width": 2.68491}, {"arrows": "to", "from": "7939", "label": 1, "to": "106243", "weight": 1, "width": 3.9612}, {"arrows": "to", "from": "7939", "label": 1, "to": "6915", "weight": 1, "width": 2.50259}, {"arrows": "to", "from": "7939", "label": 1, "to": "7971", "weight": 1, "width": 3.4581}, {"arrows": "to", "from": "7939", "label": 1, "to": "8058", "weight": 1, "width": 4.71086}, {"arrows": "to", "from": "7939", "label": 1, "to": "8059", "weight": 1, "width": 5.05981}, {"arrows": "to", "from": "7971", "label": 1, "to": "7939", "weight": 1, "width": 3.14444}, {"arrows": "to", "from": "7971", "label": 1, "to": "8058", "weight": 1, "width": 2.76495}, {"arrows": "to", "from": "7971", "label": 1, "to": "8059", "weight": 1, "width": 2.27944}, {"arrows": "to", "from": "8058", "label": 1, "to": "6010", "weight": 1, "width": 4.17029}, {"arrows": "to", "from": "8058", "label": 1, "to": "7939", "weight": 1, "width": 2.90805}, {"arrows": "to", "from": "8058", "label": 1, "to": "7971", "weight": 1, "width": 1.58629}, {"arrows": "to", "from": "8058", "label": 1, "to": "8059", "weight": 1, "width": 5.52301}, {"arrows": "to", "from": "8059", "label": 1, "to": "7939", "weight": 1, "width": 5.54233}, {"arrows": "to", "from": "8059", "label": 1, "to": "7971", "weight": 1, "width": 2.50259}, {"arrows": "to", "from": "8059", "label": 1, "to": "8058", "weight": 1, "width": 5.00402}, {"arrows": "to", "from": "100513", "label": 1, "to": "116897", "weight": 1, "width": 3.41888}, {"arrows": "to", "from": "100515", "label": 1, "to": "100513", "weight": 1, "width": 3.4581}, {"arrows": "to", "from": "103298", "label": 1, "to": "103330", "weight": 1, "width": 1.58629}, {"arrows": "to", "from": "103299", "label": 1, "to": "103331", "weight": 1, "width": 3.69651}, {"arrows": "to", "from": "103299", "label": 1, "to": "105347", "weight": 1, "width": 1.58629}, {"arrows": "to", "from": "103299", "label": 1, "to": "4995", "weight": 1, "width": 1.80944}, {"arrows": "to", "from": "103330", "label": 1, "to": "103298", "weight": 1, "width": 1.80944}, {"arrows": "to", "from": "103330", "label": 1, "to": "103331", "weight": 1, "width": 2.39722}, {"arrows": "to", "from": "103331", "label": 1, "to": "103299", "weight": 1, "width": 3.4581}, {"arrows": "to", "from": "103331", "label": 1, "to": "103330", "weight": 1, "width": 2.68491}, {"arrows": "to", "from": "103331", "label": 1, "to": "111523", "weight": 1, "width": 1.58629}, {"arrows": "to", "from": "104611", "label": 1, "to": "100515", "weight": 1, "width": 3.4581}, {"arrows": "to", "from": "104963", "label": 1, "to": "105091", "weight": 1, "width": 1.99176}, {"arrows": "to", "from": "105091", "label": 1, "to": "104611", "weight": 1, "width": 2.5979}, {"arrows": "to", "from": "105091", "label": 1, "to": "105123", "weight": 1, "width": 2.76495}, {"arrows": "to", "from": "105123", "label": 1, "to": "104611", "weight": 1, "width": 2.90805}, {"arrows": "to", "from": "105219", "label": 1, "to": "104963", "weight": 1, "width": 1.99176}, {"arrows": "to", "from": "105219", "label": 1, "to": "105091", "weight": 1, "width": 3.03321}, {"arrows": "to", "from": "105219", "label": 1, "to": "105347", "weight": 1, "width": 3.5673}, {"arrows": "to", "from": "105219", "label": 1, "to": "6915", "weight": 1, "width": 1.80944}, {"arrows": "to", "from": "105347", "label": 1, "to": "103299", "weight": 1, "width": 3.29104}, {"arrows": "to", "from": "106243", "label": 1, "to": "105219", "weight": 1, "width": 3.91357}, {"arrows": "to", "from": "106243", "label": 1, "to": "7939", "weight": 1, "width": 1.58629}, {"arrows": "to", "from": "111522", "label": 1, "to": "111490", "weight": 1, "width": 1.80944}, {"arrows": "to", "from": "116896", "label": 1, "to": "116960", "weight": 1, "width": 1.99176}, {"arrows": "to", "from": "116897", "label": 1, "to": "116896", "weight": 1, "width": 3.37805}, {"arrows": "to", "from": "116960", "label": 1, "to": "116896", "weight": 1, "width": 1.58629}]);
 
         // adding nodes and edges to the graph
         data = {nodes: nodes, edges: edges};
@@ -103,6 +181,24 @@
         
 
 
+        
+        network.on("stabilizationProgress", function(params) {
+      		document.getElementById('loadingBar').removeAttribute("style");
+	        var maxWidth = 496;
+	        var minWidth = 20;
+	        var widthFactor = params.iterations/params.total;
+	        var width = Math.max(minWidth,maxWidth * widthFactor);
+
+	        document.getElementById('bar').style.width = width + 'px';
+	        document.getElementById('text').innerHTML = Math.round(widthFactor*100) + '%';
+	    });
+	    network.once("stabilizationIterationsDone", function() {
+	        document.getElementById('text').innerHTML = '100%';
+	        document.getElementById('bar').style.width = '496px';
+	        document.getElementById('loadingBar').style.opacity = 0;
+	        // really clean the dom element
+	        setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
+	    });
         
 
         return network;

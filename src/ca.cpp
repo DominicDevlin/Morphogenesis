@@ -2165,7 +2165,7 @@ double CellularPotts::discrete_decay(vector<double>& gene_list, double conc, int
 
   for (int j=0; j < par.n_activators; ++j)
   {
-    x_1 += (matrix[gene_n][j] * gene_list.at(j));
+    x_1 += matrix[gene_n][j] * gene_list[j];
   }
   x_1 += par.theta;
 
@@ -2178,24 +2178,24 @@ double CellularPotts::discrete_decay(vector<double>& gene_list, double conc, int
 }
 
 
-  void CellularPotts::noise_term(double &x)
+void CellularPotts::noise_term(double &x)
+{
+  double rand = RANDOM(s_val) * par.noise_dose;
+  // need to choose whether to add or subtract
+  bool choose = round(RANDOM(s_val));
+  if (choose)
   {
-    double rand = RANDOM(s_val) * par.noise_dose;
-    // need to choose whether to add or subtract
-    bool choose = round(RANDOM(s_val));
-    if (choose)
-    {
-      x += rand;
-      if (x > 1)
-        x = 1;
-    }
-    else
-    {
-      x -= rand;
-      if (x < 0)
-        x = 0;
-    }
+    x += rand;
+    if (x > 1)
+      x = 1;
   }
+  else
+  {
+    x -= rand;
+    if (x < 0)
+      x = 0;
+  }
+}
 
 
 
@@ -2238,8 +2238,6 @@ void CellularPotts::add_noise()
           ++m;
         }
       }
-
-
     }
   }
 

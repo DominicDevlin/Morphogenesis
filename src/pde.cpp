@@ -28,6 +28,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include "ca.h"
 #include "pde.h"
 #include "conrec.h"
+#include <fstream>
 
 /* STATIC DATA MEMBER INITIALISATION */
 const int PDE::nx[9] = {0, 1, 1, 1, 0,-1,-1,-1, 0 };
@@ -246,6 +247,48 @@ void PDE::Secrete(CellularPotts *cpm)
   }
 
 }
+
+
+void PDE::PrintAxisConcentrations(bool dim, int point)
+{
+  // if dim is true, we are going to have a fixed x, iterate through y
+
+  string var_name = "morph-dim-conc.dat";
+  ofstream outfile;
+  outfile.open(var_name, ios::app);
+  
+
+  if (dim)
+  {
+    for (int y=0;y<sizey;y++) 
+    {
+      outfile << y;
+      for (int n = 0;n<par.n_diffusers;++n)
+      {
+        outfile << '\t' << sigma[n][point][y];
+      }
+      outfile << endl;
+    }
+  }
+  else
+  {
+    for (int x=0;x<sizex;x++) 
+    {
+      outfile << x;
+      for (int n = 0;n<par.n_diffusers;++n)
+      {
+        outfile << '\t' << sigma[n][x][point];
+      }
+      outfile << endl;
+    }    
+  }
+
+
+
+}
+
+
+
 
 
 
