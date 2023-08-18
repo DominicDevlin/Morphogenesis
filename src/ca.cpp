@@ -2158,7 +2158,7 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
 }
 
 
-double CellularPotts::discrete_decay(vector<double>& gene_list, double conc, int gene_n, int tsteps)
+double CellularPotts::numeric_step(vector<double>& gene_list, double conc, int gene_n, int tsteps)
 {
 
   double x_1 = 0;
@@ -2266,29 +2266,30 @@ void CellularPotts::update_network(int tsteps)
         cout << "EMPTY" << endl;
 
       // iterate through genes and update them according to GRN
-      // iteration is a bit weird through different vectors so dont screw it up. 
+      // iteration is a bit weird through different vectors
+      // gene expression for morphogens is in diffuser, but the input is in the genes vector
       int j=0;
       int k=0;
       int m=0;
       for (int i = 0; i < par.n_genes; ++i)
       {
         if (i < par.n_diffusers)
-          diffusers[i] = discrete_decay(gene_copy, diffusers[i], i, tsteps);
+          diffusers[i] = numeric_step(gene_copy, diffusers[i], i, tsteps);
         else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
-          genes[i] = discrete_decay(gene_copy, genes[i], i, tsteps);
+          genes[i] = numeric_step(gene_copy, genes[i], i, tsteps);
         else if (i < par.n_genes - par.n_locks - par.n_mediums)
         {
-          locks[j] = discrete_decay(gene_copy, locks[j], i, tsteps);
+          locks[j] = numeric_step(gene_copy, locks[j], i, tsteps);
           ++j;
         }
         else if (i < par.n_genes - par.n_mediums)
         {
-          keys[k] = discrete_decay(gene_copy, keys[k], i, tsteps);
+          keys[k] = numeric_step(gene_copy, keys[k], i, tsteps);
           ++k;
         }
         else 
         {
-          meds[m] = discrete_decay(gene_copy, meds[m], i, tsteps);
+          meds[m] = numeric_step(gene_copy, meds[m], i, tsteps);
           ++m;
         }
       }
@@ -5922,15 +5923,21 @@ void CellularPotts::BindingBetweenCells()
       //compare the two with binding function
       int pi = phenotypes[i];
       int pj = phenotypes[j];
-      int score = LKScore(locks[pi], keys[pi], locks[pj], keys[pj]);
+      double score = (double)LKScore(locks[pi], keys[pi], locks[pj], keys[pj]);
+      
+      double medi = (double)MedBinding(meds[pi]);
+      double medj = (double)MedBinding(meds[pj]);
+      double avg_med = (medi + medj) / 2;
+      double g = avg_med - (score / 2);
 
       // higher score = higher binding = lower J
-      outfile << pi << '\t' << pj << '\t' << score << endl;
+      outfile << pi << '\t' << pj << '\t' << score << '\t' << g << endl;
     }
   }
 
   // should output mediums as well
   outfile << endl;
+  outfile << "medium binding" << endl;
   for (int i = 0; i < sizeL; ++i)
   {
     int p = phenotypes[i];
