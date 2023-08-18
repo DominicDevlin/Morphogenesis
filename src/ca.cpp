@@ -5943,6 +5943,63 @@ void CellularPotts::BindingBetweenCells()
 }
 
 
+void CellularPotts::RecordGamma()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      vector<bool>& locks = c->get_locks_bool();
+      vector<bool> keys = c->get_keys_bool();
+      double score = (double)LKScore(locks, keys, locks, keys);
+      double med_score = (double)c->CalculateJwithMed();
+      double g = med_score - (score / 2);
+      // cout << score << '\t' << med_score << '\t' << gamma << endl;
+      c->AddGamma(g);
+    }
+  }
+}
+
+void CellularPotts::OutputGamma()
+{
+  string fnamen = data_file + "/gamma";
+
+  if (mkdir(fnamen.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;  
+
+  if (mkdir(data_file.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;
+
+
+
+  map<int,int> velphentally{};
+  map<int,double> veltally{};
+  map<int,double> varveltally{};
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      string var_name = data_file + "/gamma/cell_" + to_string(c->Sigma()) + ".dat";
+      ofstream outfile;
+      outfile.open(var_name, ios::app);
+      vector<double>& glist = c->GetGamma();
+      for (int i = 0; i < glist.size(); ++i)
+      {
+        outfile << i << '\t' << glist[i] << endl;
+      }
+      outfile.close();
+    }
+  }
+
+}
+
 
 
 

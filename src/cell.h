@@ -123,6 +123,8 @@ public:
     ycens = src.ycens;
     vel_phens = src.vel_phens;
 
+    gamma_list = src.gamma_list;
+
 
     diffs = new double[par.n_diffusers];
 
@@ -211,6 +213,8 @@ public:
     xcens = src.xcens;
     ycens = src.ycens;
     vel_phens = src.vel_phens;
+
+    gamma_list = src.gamma_list;
 
     diffs = new double[par.n_diffusers];
 
@@ -925,6 +929,16 @@ private:
 
   int CheckMedsOn();
 
+  inline void AddGamma(double g)
+  {
+    gamma_list.push_back(g);
+  }
+
+  inline vector<double>& GetGamma()
+  {
+    return gamma_list;
+  }
+
   
 private:
 //! Increments the cell's actual area by 1 unit.
@@ -986,6 +1000,8 @@ protected:
 
   unordered_map<int, int> phentime;
   unordered_map<int, int> adulttime;
+
+  vector<double> gamma_list; 
 
 
   bool exposed{true};

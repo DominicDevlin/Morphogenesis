@@ -56,6 +56,7 @@
     // record velocities for all cells
     velocities = false;
 
+    output_gamma = true;
 
     // read genomes from file
     file_genomes = false;

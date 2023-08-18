@@ -278,6 +278,10 @@ public:
 
   void BindingBetweenCells();
 
+  void RecordGamma();
+
+  void OutputGamma();
+
   double AvgMedsOn();
 
   void DeviationCheck();

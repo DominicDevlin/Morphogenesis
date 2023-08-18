@@ -120,6 +120,8 @@ void Cell::CellBirth(Cell &mother_cell) {
   ycens = mother_cell.ycens;
   vel_phens = mother_cell.vel_phens;
 
+  gamma_list = mother_cell.gamma_list;
+
   for (int i=0;i<par.n_diffusers;i++)
   {
     diffs[i]=mother_cell.diffs[i];

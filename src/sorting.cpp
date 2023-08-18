@@ -167,7 +167,9 @@ TIMESTEP {
         // if (par.velocities)
         // {
         //   dish->CPM->RecordMasses();
-        // } 
+        // }
+        if (par.output_gamma)
+          dish->CPM->RecordGamma(); 
 
         // speed up initial PDE diffusion
         for (int r=0;r<par.program_its;r++) 
@@ -193,6 +195,10 @@ TIMESTEP {
           dish->CPM->CountTypesTime();
         }
 
+        if (par.output_gamma)
+        {
+          dish->CPM->RecordGamma();
+        }
  
 
       }
@@ -251,6 +257,9 @@ TIMESTEP {
         dish->CPM->CellVelocities();
 
       // dish->CPM->TypeFitness2();
+
+      if (par.output_gamma)
+        dish->CPM->OutputGamma();
 
 
       dish->CPM->get_fitness();

@@ -81,6 +81,8 @@ class Parameter {
   bool overlap_images;
   int overlap_orgs;
 
+  bool output_gamma;
+
   int n_orgs;
   int n_replicates;
 
