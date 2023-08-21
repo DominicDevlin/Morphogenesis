@@ -373,6 +373,8 @@ TIMESTEP {
     }
 
 
+    // BELOW IS THINGS WHICH DONT HAVE AN ASSOCIATED PARAMETER
+
     if (t == 12000)
     {
       // fft test;
@@ -390,17 +392,6 @@ TIMESTEP {
 
     }
     
-    if (t==8000)
-    {
-      dish->PDEfield->PrintAxisConcentrations(true, 120);
-    }
-
-
-
-    if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
-      dish->CPM->swap_cells();
-
-
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
@@ -423,7 +414,14 @@ TIMESTEP {
       dish->CPM->PrintColours();
     }
 
+    // if (t==8000)
+    // {
+    //   dish->PDEfield->PrintAxisConcentrations(true, 120);
+    // }
 
+
+    if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
+      dish->CPM->swap_cells();
 
 
     // for spawning a lot of morphogen at a specific point, or changing cell types + morphogen
@@ -447,7 +445,6 @@ TIMESTEP {
     {
       // dish->CPM->DestroyCellsByRadius(34.);
       // dish->CPM->DestroyCellsByPhenotype(111104, false);
-
       // dish->CPM->DestroyCellsByPhenotype(51699, true, 51331, 51339);
       // dish->CPM->DestroyCellsByPhenotype(103234, true, 103235, 103171);
       // dish->CPM->DestroyCellsByMorphogen(1, 0.15);

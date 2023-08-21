@@ -80,6 +80,7 @@ class Parameter {
   bool file_genomes;
   bool overlap_images;
   int overlap_orgs;
+  bool between_org_overlap;
 
   bool output_gamma;
 

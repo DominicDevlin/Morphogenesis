@@ -151,6 +151,16 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
             dishes[i].CPM->CountTypesTime();
           }
 
+          if (par.output_gamma)
+          {
+            dishes[i].CPM->RecordGamma();
+          }
+
+        }
+
+        if (par.velocities)
+        {
+          dishes[i].CPM->RecordMasses();
         }
 
 
@@ -230,6 +240,14 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     else
       cout << "Directory created." << endl;   
 
+
+
+    if (par.velocities)
+      dishes[i].CPM->CellVelocities();
+
+
+    if (par.output_gamma)
+      dishes[i].CPM->OutputGamma();
 
     dishes[i].CPM->print_cell_GRN();
 

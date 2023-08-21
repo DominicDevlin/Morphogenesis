@@ -262,27 +262,25 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       // used for sanity check for comparison.
       if (par.overlap_images)
       {
-        string t1 = "trial-i-" + to_string(counter) + ".png";
-        string t2 = "trial-i-shift-" + to_string(counter) + ".png";
-        string t3 = "trial-j-" + to_string(counter) + ".png";
+        string t1 = "org-i-" + to_string(counter) + ".png";
+        string t2 = "org-i-shift-" + to_string(counter) + ".png";
+        string t3 = "org-j-" + to_string(counter) + ".png";
         org1.PolarToOutput(t1);
         org1.ShowOptimal(t2);
         org2.PolarToOutput(t3);
         ++counter;
 
-        if (par.overlap_images)
-        {
-          // org1.OutputLoss();
-          // string g1 = "grid-" + to_string(i) + ".png";
-          // string g2 = "grid-" + to_string(j) + ".png";
-          // org1.GridToOutput(g1);
-          // org2.GridToOutput(g2);
-        }
-
+        // org1.OutputLoss();
+        // string g1 = "grid-" + to_string(i) + ".png";
+        // string g2 = "grid-" + to_string(j) + ".png";
+        // org1.GridToOutput(g1);
+        // org2.GridToOutput(g2);
       }
-
     }
+    // string t1 = "org-" + to_string(i+1) + ".png";
+    // org1.GridToOutput(t1);
   }
+  
 
   double inp_avg{};
   double inp_var{};
@@ -389,14 +387,30 @@ int main(int argc, char *argv[])
 
     file.close();
 
-    for (vector<vector<int>> i : genomes)
+    if (!par.between_org_overlap)
     {
+      for (vector<vector<int>> i : genomes)
+      {
 
-      // This is currently depracated. 
+        // This is currently depracated. 
+        vector<bool> start_p = { 0, 0, 0, 0 };
+        vector<vector<vector<int>>> networks{};
+        vector<vector<bool>> polarities{};
+        for (int j=0;j<par.n_orgs;++j)
+        {
+            networks.push_back(i);
+            polarities.push_back(start_p);
+        }
+        process_population(networks, polarities);
+      }
+    }
+    else  
+    {
+      par.n_orgs = genomes.size();
       vector<bool> start_p = { 0, 0, 0, 0 };
       vector<vector<vector<int>>> networks{};
-      vector<vector<bool>> polarities{};
-      for (int j=0;j<par.n_orgs;++j)
+      vector<vector<bool>> polarities{};      
+      for (vector<vector<int>> i : genomes)
       {
           networks.push_back(i);
           polarities.push_back(start_p);
@@ -417,6 +431,8 @@ int main(int argc, char *argv[])
       }
       process_population(networks, polarities);  
   }
+
+
   
 
 
