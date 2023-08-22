@@ -4439,10 +4439,6 @@ void CellularPotts::CellVelocities()
 
   }
   
-  
-
-
-  
   string var_name = data_file + "/type-velocities.dat"; 
   ofstream outfile;
   outfile.open(var_name, ios::app);  
@@ -4452,8 +4448,136 @@ void CellularPotts::CellVelocities()
     outfile << t.first << "\t" << t.second << "\t" << varveltally[t.first] << "\t" << velphentally[t.first] << endl;
   }
   outfile.close();
+}
+
+
+
+void CellularPotts::SpecialVelocity()
+{
+  // manual method to separate speeds into components
+  vector<double> group1{};
+  vector<double> group2{};
+  vector<double> group3{};
+  vector<double> group4{};
+
+  
+  map<int,int> velphentally{};
+  map<int,double> veltally{};
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+
+      vector<double>& xm = c->get_xcens();
+      vector<double>& ym = c->get_ycens();
+      vector<int>& velp = c->get_velphens();
+
+      int s = xm.size();
+
+      for (int i = 500; i < s; ++i)
+      {
+        // we want displacement from a while ago to account for back and forth motion
+        double x = xm[i-500];
+        double y = ym[i-500];
+        double x1 = xm[i];
+        double y1 = ym[i];
+
+        double len = sqrt(pow(x1-x,2) + pow(y1-y,2));
+
+        // lets take the type in the middle as the relevant type
+        int t = velp[i-250];
+        
+        //manually determine component
+        if (t > 107000 && t < 108050)
+        {
+          group1.push_back(len);
+        }
+        if (t > 123000 && t < 123100)
+        {
+          group2.push_back(len);
+        }
+        if (t > 114000 && t < 118000)
+        {
+          group3.push_back(len);
+        }
+        if (t == 107651)
+        {
+          group4.push_back(len);
+        }
+
+      }
+
+    }
+  }
+
+
+  sort(group1.begin(), group1.end());
+  sort(group2.begin(), group2.end());
+  sort(group3.begin(), group3.end());
+  sort(group4.begin(), group4.end());
+
+
+  string var_name = data_file + "/component1.dat";
+  ofstream outfile;
+  outfile.open(var_name, ios::app);
+
+  // we are only going to output a certain number of points, because there will be too many.
+  int step = round(group1.size() / 1000);
+  for (int i =0;i < group1.size(); i = i + step)
+  {
+    outfile << group1[i] << endl;
+  }
+
+  cout << step << endl;
+
+  outfile.close();
+  var_name = data_file + "/component2.dat";
+  outfile.open(var_name, ios::app);
+
+  step = round(group2.size() / 1000);
+  for (int i =0;i < group2.size(); i = i + step)
+  {
+    outfile << group2[i] << endl;
+  }
+
+  cout << step << endl;
+
+
+  outfile.close();
+  var_name = data_file + "/component3.dat";
+  outfile.open(var_name, ios::app);
+
+  step = round(group3.size() / 1000);
+  for (int i =0;i < group3.size(); i = i + step)
+  {
+    outfile << group3[i] << endl;
+  }
+
+  cout << step << endl;
+
+
+  outfile.close();
+  var_name = data_file + "/component4.dat";
+  outfile.open(var_name, ios::app);
+
+  step = round(group4.size() / 1000);
+  for (int i =0;i < group4.size(); i = i + step)
+  {
+    outfile << group4[i] << endl;
+  }
+
+  cout << step << endl;
+
+  outfile.close();
 
 }
+
+
+
+
+
 
 
 

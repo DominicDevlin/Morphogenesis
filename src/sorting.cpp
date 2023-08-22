@@ -256,7 +256,8 @@ TIMESTEP {
       if (par.velocities)
         dish->CPM->CellVelocities();
 
-      // dish->CPM->TypeFitness2();
+      dish->CPM->SpecialVelocity();
+
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();
@@ -267,20 +268,6 @@ TIMESTEP {
       map<int, int> phens = dish->CPM->get_phenotype_time();
       map<int, int> types = dish->CPM->get_AdultTypes();  
 
-      // vector<int> edge_start{};
-      // vector<int> edge_end{};
-
-
-      // for (auto i : types)
-      // {
-      //   cout << "printing adult types.. " <<  i.first << "  " << i.second << endl;
-      // }    
-      // unordered_map<string, int> gg = dish->CPM->transitions();
-
-
-
-
- 
 
       
       map<pair<int,int>,int> edge_tally{};

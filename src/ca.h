@@ -300,6 +300,8 @@ public:
 
   void CellVelocities();
 
+  void SpecialVelocity();
+
   // returns colour at this site
   int SiteColour(int x, int y);
 
