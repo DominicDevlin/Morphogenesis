@@ -54,10 +54,10 @@
     gene_record = true;
 
     // record velocities for all cells
-    velocities = true;
+    velocities = false;
 
     // record gamma parameter
-    output_gamma = true;
+    output_gamma = false;
 
     // read genomes from file
     file_genomes = true;
@@ -67,7 +67,7 @@
     //set specific colours (SHOULD ALWAYS BE FALSE UNLESS NEEDED)
     set_colours = true;
     // Start from specific seed. USE 0 for random seed. (SHOULD ALWAYS be 0 unless need specific seed.)
-    pickseed=1370678184773597213;
+    pickseed=0;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -75,12 +75,12 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, 2, 0, 0, 0, 0, 1, 0 }, { 0, -2, 2, -2, 0, 1, 0, 0, -2 }, { 0, 0, 1, -1, 0, 0, 0, 1, 1 }, { 0, 0, 0, 2, 0, 0, 0, -1, 1 }, { 0, 0, -1, 1, 0, 0, 1, -1, 0 }, { 1, 1, -1, -2, 2, 0, 0, 1, -1 }, { 0, 1, -1, 0, 0, 2, 1, 0, 0 }, { 0, 0, -1, -1, 0, 0, 1, 0, 0 }, { 2, -1, 0, 0, 1, -1, 0, 1, -1 }, { 2, 1, 0, 0, 0, 1, 0, 1, 1 }, { -1, 1, 0, 0, -1, 0, 2, 1, 0 }, { -1, -1, 0, 1, 0, 0, 0, 0, -1 }, { 1, 1, 1, 1, 2, -2, 1, 0, 0 }, { 1, 0, 2, 0, 2, 2, 0, 0, 0 }, { -1, 0, 0, 0, -1, 1, 1, 0, 1 }, { 1, -1, 0, 2, 1, 0, 0, -2, -1 }, { 1, -1, -1, 0, -1, 0, 0, 1, 0 }, { -1, 0, 0, -1, 1, 0, 0, 0, 0 }, { 0, 1, 0, 1, -1, -1, 0, -2, 0 }, { 1, 0, 0, 1, 0, 1, -2, 0, 0 }, { 0, 0, 0, 0, -2, 1, 0, 0, 0 }, { 0, 0, 0, -1, 0, 0, 2, -2, 0 }, { -2, 0, 1, 0, 0, 0, 1, 0, -1 }, { -2, 0, 2, 0, 1, 0, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, 0, 1, -1 }, { 0, -1, 0, 0, 0, 1, 0, 0, -1 }, { 0, 1, -2, 0, 0, 1, 0, 0, 0 }, };
-    
+    start_matrix = { { 0, 0, 0, 1, 0, -2, 0, 0, 1 }, { 0, 2, 1, 0, 0, 2, 0, 0, 1 }, { -1, 0, -1, 0, 0, 1, 1, 2, 0 }, { 0, 0, -1, 0, 1, 2, 0, 0, -1 }, { 1, 0, -2, 2, 1, 0, -1, 0, 0 }, { 1, 0, 0, -1, 0, 0, 0, 1, -1 }, { 2, -1, 0, 1, 0, 1, 0, 0, 0 }, { 0, -1, 0, 0, -1, 0, 0, -1, 0 }, { 0, 1, 0, -1, 0, 0, 0, 0, 1 }, { 0, 0, 1, -1, 0, 1, 2, 0, 0 }, { -1, 2, 0, 0, 1, 0, 0, 0, 2 }, { -2, 1, 1, 0, 0, 0, 0, 1, 1 }, { 2, 1, 1, 0, 0, -1, 0, -1, 0 }, { 0, 0, 0, 0, 1, 0, 0, 1, 0 }, { 1, 0, 0, -1, 2, 0, -1, 0, -1 }, { 0, 0, 0, 0, -2, 0, 1, 1, 0 }, { 0, 0, 1, 1, 2, -1, 0, -1, 0 }, { 1, 1, 1, 0, 1, 2, -1, 0, -2 }, { 0, 0, -1, 2, -1, 0, 2, -1, -1 }, { 0, 0, 1, -1, -1, -1, 0, 0, 1 }, { -1, -1, 1, 1, 0, 0, 1, -1, 0 }, { 0, 0, 0, 0, 0, 0, 2, -1, 0 }, { -1, 0, 0, 0, -2, 0, 1, 1, 0 }, { -1, 0, 0, 0, -1, -1, 1, 0, 0 }, { 0, 0, -1, 0, 1, 0, 1, 0, -1 }, { 0, -1, 0, -1, -2, 0, 0, 1, 1 }, { 0, -1, 0, 0, -1, 2, 0, -1, 1 }, };
 
 
 
-    n_orgs = 2; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TESTn_orgs = 16; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TEST
+
+    n_orgs = 60; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TESTn_orgs = 16; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TEST
     n_replicates = 2;
     // edges and nodes only at end of simulation.
     potency_edges = true;
@@ -146,7 +146,8 @@
     // NOTE - MUST RUN with tag: "-platform offscreen" when using cluster (there is no display).
     overlap_images = false;
     overlap_orgs = 60;
-    between_org_overlap = true;
+    // true = compare different genomes, false = compare same genomes
+    between_org_overlap = false;
 
     // Basic Cellular Potts parameters
     eT = 3; // temperature during programmed divisions 

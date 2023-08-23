@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
 
     file.close();
 
-    if (!par.between_org_overlap)
+    if (!par.between_org_overlap) // compare same genomes
     {
       for (vector<vector<int>> i : genomes)
       {
@@ -404,7 +404,7 @@ int main(int argc, char *argv[])
         process_population(networks, polarities);
       }
     }
-    else  
+    else // compare different genomes 
     {
       par.n_orgs = genomes.size();
       vector<bool> start_p = { 0, 0, 0, 0 };

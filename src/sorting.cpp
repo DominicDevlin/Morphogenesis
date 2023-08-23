@@ -256,7 +256,7 @@ TIMESTEP {
       if (par.velocities)
         dish->CPM->CellVelocities();
 
-      dish->CPM->SpecialVelocity();
+      // dish->CPM->SpecialVelocity();
 
 
       if (par.output_gamma)
