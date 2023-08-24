@@ -4429,7 +4429,7 @@ void CellularPotts::CellVelocities()
 
     // we now compute variance by (E(x^2)-E(x)^2)/N . Need to do variance before dividing out N
      double meansq = pow(veltally[t.first],2) / t.second;
-     cout << t.first << "\t" << t.second << "\t" << meansq << "\t" << varveltally[t.first] << endl;
+     // cout << t.first << "\t" << t.second << "\t" << meansq << "\t" << varveltally[t.first] << endl;
      double var = (varveltally[t.first] - meansq) / t.second;
      varveltally[t.first] = var;
 
@@ -4512,65 +4512,146 @@ void CellularPotts::SpecialVelocity()
     }
   }
 
+  double mean1=0;
+  double var1=0;
+  double s1 = group1.size();
 
-  sort(group1.begin(), group1.end());
-  sort(group2.begin(), group2.end());
-  sort(group3.begin(), group3.end());
-  sort(group4.begin(), group4.end());
+  // now do averaging across cell type. 
+  for (auto &t : group1)
+  {
+    mean1 += t;
+  }
+  mean1 = mean1 / s1;
+  for (auto &t : group1)
+  {
+    var1 += pow(mean1 - t, 2);
+  }
+  double meansq = pow(mean1, 2);
+  var1 = var1 / s1;
 
 
-  string var_name = data_file + "/component1.dat";
+
+  double mean2=0;
+  double var2=0;
+  double s2 = group2.size();
+  for (auto &t : group2)
+  {
+    mean2 += t;
+  }
+  mean2 = mean2 / s2;
+  for (auto &t : group2)
+  {
+    var2 += pow(mean2 - t, 2);
+  }
+  meansq = pow(mean2, 2);
+  var2 = var2 / s2;
+
+
+
+  double mean3=0;
+  double var3=0;
+  double s3 = group3.size();
+  for (auto &t : group3)
+  {
+    mean3 += t;
+  }
+  mean3 = mean3 / s3;
+  for (auto &t : group3)
+  {
+    var3 += pow(mean3 - t, 2);
+  }
+  meansq = pow(mean3, 2);
+  var3 = var3 / s3;
+
+
+
+
+  double mean4=0;
+  double var4=0;
+  double s4 = group4.size();
+  for (auto &t : group4)
+  {
+    mean4 += t;
+  }
+  mean4 = mean4 / s4;
+  for (auto &t : group4)
+  {
+    var4 += pow(mean4 - t, 2);
+  }
+  meansq = pow(mean4, 2);
+  var4 = var4 / s4;
+
+
+
+  string var_name = data_file + "/component-averages.dat";
   ofstream outfile;
   outfile.open(var_name, ios::app);
-
-  // we are only going to output a certain number of points, because there will be too many.
-  int step = round(group1.size() / 1000);
-  for (int i =0;i < group1.size(); i = i + step)
-  {
-    outfile << group1[i] << endl;
-  }
-
-  cout << step << endl;
+  outfile << mean1 << '\t' << var1 << '\t' << sqrt(var1) << endl;
+  outfile << mean2 << '\t' << var2 << '\t' << sqrt(var2) << endl;
+  outfile << mean3 << '\t' << var3 << '\t' << sqrt(var3) << endl;
+  outfile << mean4 << '\t' << var4 << '\t' << sqrt(var4) << endl;
 
   outfile.close();
-  var_name = data_file + "/component2.dat";
-  outfile.open(var_name, ios::app);
-
-  step = round(group2.size() / 1000);
-  for (int i =0;i < group2.size(); i = i + step)
-  {
-    outfile << group2[i] << endl;
-  }
-
-  cout << step << endl;
 
 
-  outfile.close();
-  var_name = data_file + "/component3.dat";
-  outfile.open(var_name, ios::app);
-
-  step = round(group3.size() / 1000);
-  for (int i =0;i < group3.size(); i = i + step)
-  {
-    outfile << group3[i] << endl;
-  }
-
-  cout << step << endl;
+  // sort(group1.begin(), group1.end());
+  // sort(group2.begin(), group2.end());
+  // sort(group3.begin(), group3.end());
+  // sort(group4.begin(), group4.end());
 
 
-  outfile.close();
-  var_name = data_file + "/component4.dat";
-  outfile.open(var_name, ios::app);
+  // string var_name = data_file + "/component1.dat";
+  // ofstream outfile;
+  // outfile.open(var_name, ios::app);
 
-  step = round(group4.size() / 1000);
-  for (int i =0;i < group4.size(); i = i + step)
-  {
-    outfile << group4[i] << endl;
-  }
+  // // we are only going to output a certain number of points, because there will be too many.
+  // int step = round(group1.size() / 1000);
+  // for (int i =0;i < group1.size(); i = i + step)
+  // {
+  //   outfile << group1[i] << endl;
+  // }
 
-  cout << step << endl;
+  // cout << step << endl;
 
-  outfile.close();
+  // outfile.close();
+  // var_name = data_file + "/component2.dat";
+  // outfile.open(var_name, ios::app);
+
+  // step = round(group2.size() / 1000);
+  // for (int i =0;i < group2.size(); i = i + step)
+  // {
+  //   outfile << group2[i] << endl;
+  // }
+
+  // cout << step << endl;
+
+
+  // outfile.close();
+  // var_name = data_file + "/component3.dat";
+  // outfile.open(var_name, ios::app);
+
+  // step = round(group3.size() / 1000);
+  // for (int i =0;i < group3.size(); i = i + step)
+  // {
+  //   outfile << group3[i] << endl;
+  // }
+
+  // cout << step << endl;
+
+
+  // outfile.close();
+  // var_name = data_file + "/component4.dat";
+  // outfile.open(var_name, ios::app);
+
+  // step = round(group4.size() / 1000);
+  // for (int i =0;i < group4.size(); i = i + step)
+  // {
+  //   outfile << group4[i] << endl;
+  // }
+
+  // cout << step << endl;
+
+  // outfile.close();
 
 }
 
