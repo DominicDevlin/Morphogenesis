@@ -252,7 +252,7 @@ def prune_nodes(nodes, node_sizes, edges, edge_widths):
 
     i = 0
     while i < len(node_sizes):
-        if node_sizes[i] < 60:
+        if node_sizes[i] < 15:
             nodes_to_kill.append(nodes[i])
             nodes.pop(i)
             node_sizes.pop(i)
