@@ -208,6 +208,11 @@ TIMESTEP {
         dish->CPM->RecordMasses();
       }
 
+      if (par.output_sizes)
+      {
+        dish->CPM->RecordSizes();
+      }
+
       // if (par.gene_record)
       // {
       //   dish->CPM->RecordTypes();
@@ -256,11 +261,13 @@ TIMESTEP {
       if (par.velocities)
         dish->CPM->CellVelocities();
 
-      dish->CPM->SpecialVelocity();
-
+      // dish->CPM->SpecialVelocity();
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();
+
+      if (par.output_sizes)
+        dish->CPM->OutputSizes();
 
 
       dish->CPM->get_fitness();

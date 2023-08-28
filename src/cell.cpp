@@ -121,6 +121,7 @@ void Cell::CellBirth(Cell &mother_cell) {
   vel_phens = mother_cell.vel_phens;
 
   gamma_list = mother_cell.gamma_list;
+  mass_list = mother_cell.mass_list;
 
   for (int i=0;i<par.n_diffusers;i++)
   {

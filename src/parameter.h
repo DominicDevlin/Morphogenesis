@@ -84,6 +84,8 @@ class Parameter {
 
   bool output_gamma;
 
+  bool output_sizes;
+
   int n_orgs;
   int n_replicates;
 

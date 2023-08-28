@@ -6188,7 +6188,6 @@ void CellularPotts::OutputGamma()
     cout << "Directory created." << endl;
 
 
-
   map<int,int> velphentally{};
   map<int,double> veltally{};
   map<int,double> varveltally{};
@@ -6211,6 +6210,58 @@ void CellularPotts::OutputGamma()
   }
 
 }
+
+void CellularPotts::RecordSizes()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      c->MassToList();
+    }
+  }
+}
+
+
+void CellularPotts::OutputSizes()
+{
+  string fnamen = data_file + "/masses";
+
+  if (mkdir(fnamen.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;  
+
+  if (mkdir(data_file.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;
+
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      string var_name = data_file + "/masses/cell_" + to_string(c->Sigma()) + ".dat";
+      ofstream outfile;
+      outfile.open(var_name, ios::app);
+      vector<double>& glist = c->GetMassList();
+      for (int i = 0; i < glist.size(); ++i)
+      {
+        outfile << i << '\t' << glist[i] << endl;
+      }
+      outfile.close();
+    }
+  }
+
+
+  
+}
+
+
+
 
 
 

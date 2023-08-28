@@ -302,6 +302,10 @@ public:
 
   void SpecialVelocity();
 
+  void RecordSizes();
+
+  void OutputSizes();
+
   // returns colour at this site
   int SiteColour(int x, int y);
 

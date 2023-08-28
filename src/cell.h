@@ -124,6 +124,7 @@ public:
     vel_phens = src.vel_phens;
 
     gamma_list = src.gamma_list;
+    mass_list = src.mass_list;
 
 
     diffs = new double[par.n_diffusers];
@@ -215,6 +216,8 @@ public:
     vel_phens = src.vel_phens;
 
     gamma_list = src.gamma_list;
+    mass_list = src.mass_list;
+
 
     diffs = new double[par.n_diffusers];
 
@@ -939,6 +942,16 @@ private:
     return gamma_list;
   }
 
+  inline void MassToList()
+  {
+    mass_list.push_back(area);
+  }
+
+  inline vector<double>& GetMassList()
+  {
+    return mass_list;
+  }
+
   
 private:
 //! Increments the cell's actual area by 1 unit.
@@ -1002,6 +1015,7 @@ protected:
   unordered_map<int, int> adulttime;
 
   vector<double> gamma_list; 
+  vector<double> mass_list;
 
 
   bool exposed{true};
