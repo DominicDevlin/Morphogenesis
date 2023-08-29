@@ -306,6 +306,17 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   outfile << inp_avg << '\t' << inp_var << endl;
   outfile.close();
 
+  if (par.between_org_overlap)
+  {
+    var_name = "overlap-data.txt";
+    outfile.open(var_name, ios::app);
+    for (double i : invariant_p)
+    {
+      outfile << i << endl;
+    }
+    outfile.close();
+  }
+
 
 
 
