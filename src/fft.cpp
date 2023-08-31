@@ -679,8 +679,8 @@ double fft::StickSymmetry()
 
 	bad_length = bad_length / 10000000;
 
-	double fitness = (max_r * opp_r) / bad_length;
-	fitness = fitness / 500;
+	double fitness = (max_r + opp_r - 80) / bad_length;
+	fitness = fitness;
 
 
 	if (par.print_fitness)
