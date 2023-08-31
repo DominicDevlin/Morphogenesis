@@ -302,6 +302,8 @@ public:
 
   void SpecialVelocity();
 
+  void Directionality();
+
   void RecordSizes();
 
   void OutputSizes();

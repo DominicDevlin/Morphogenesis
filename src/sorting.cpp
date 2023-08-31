@@ -263,6 +263,8 @@ TIMESTEP {
 
       // dish->CPM->SpecialVelocity();
 
+      dish->CPM->Directionality();
+
       if (par.output_gamma)
         dish->CPM->OutputGamma();
 

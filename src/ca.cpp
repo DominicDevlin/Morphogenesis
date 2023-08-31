@@ -48,6 +48,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <sys/types.h>
 #include <fstream>
 #include "fft.h"
+#include <cmath>
 
 
 
@@ -4430,7 +4431,6 @@ void CellularPotts::CellVelocities()
 
       outfile.close();
 
-
     }
   }
 
@@ -4460,6 +4460,82 @@ void CellularPotts::CellVelocities()
   }
   outfile.close();
 }
+
+
+
+void CellularPotts::Directionality()
+{
+
+  // manual method to separate speeds into components
+  vector<double> speeds{};
+  vector<double> vectors{};
+
+
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+
+      vector<double>& xm = c->get_xcens();
+      vector<double>& ym = c->get_ycens();
+      vector<int>& velp = c->get_velphens();
+
+      int s = xm.size();
+
+      for (int i = 500; i < s; ++i)
+      {
+        // we want displacement from a while ago to account for back and forth motion
+        double x = xm[i-500];
+        double y = ym[i-500];
+        double x1 = xm[i];
+        double y1 = ym[i];
+
+        double len = sqrt(pow(x1-x,2) + pow(y1-y,2));
+
+
+        double angle = atan2(y1-y, x1-x);
+        angle = angle * (180.0 / M_PI);
+
+        // lets take the type in the middle as the relevant type
+        int t = velp[i-250];
+        
+        if (t > 114000 && t < 118000)
+        {
+          speeds.push_back(len);
+          vectors.push_back(angle);
+        }
+
+      }
+
+    }
+  }
+
+
+  string var_name = data_file + "/stem-directions.dat";
+  ofstream outfile;
+  outfile.open(var_name, ios::app);
+
+  int s = speeds.size();
+  for (int i=0;i<s;++i)
+  {
+    outfile << speeds[i] << '\t' << vectors[i] << endl;
+  }
+  outfile.close();
+
+
+
+
+}
+
+
+
+
+
+
+
+
 
 
 
