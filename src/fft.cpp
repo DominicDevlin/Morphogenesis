@@ -587,6 +587,113 @@ void fft::OutputLoss()
 
 
 
+
+double fft::StickSymmetry()
+{
+	// we want to check where the longest stick in the organism is, and see if it is also long on the other side. 
+	// Anywhere else detracts. 
+	double max_rho{};
+	double max_r{};
+	for (int i=0;i<rho;++i)
+		for (int j=0;j<sizer-1;++j)
+		{
+			if (polar[i][j])
+			{
+				if (j > max_r)
+				{
+					max_r = j;
+					max_rho = i;
+				}
+			}
+		}
+
+
+	double same_side_max = (max_rho + 40 < rho) ? max_rho + 40 : (int(max_rho) + 40) % rho;
+	double same_side_min = (max_rho - 40 > 0) ? max_rho - 40 : rho + max_rho - 40;
+
+	double opp = (max_rho < rho/2) ? max_rho + rho/2 : max_rho - rho/2;
+	double opp_min = (opp - 40 > 0) ? opp - 40 : rho + opp - 40;
+	double opp_max = (opp + 40 < rho) ? opp + 40 : (int(opp) + 40) % rho;
+
+	double opp_r{};
+	double opp_rho{};
+	
+	double bad_length{};
+
+	// sub + add loop
+	for (int i=0;i<rho;++i)
+		for (int j=0;j<sizer-1;++j)
+		{
+			if (polar[i][j])
+			{
+
+				if (same_side_max < same_side_min && (i > same_side_min || i < same_side_max) || (i > same_side_min && i <  same_side_max))
+				{
+					continue;
+				}
+				else
+				{
+					if (opp_max < opp_min)
+					{
+						if (i > opp_min || i < opp_max)
+						{
+							// larger is better
+							if (j > opp_r)
+							{
+								opp_r = j;
+								opp_rho = i;
+							}
+						}
+						else
+						{
+							// smaller is better
+							bad_length += j*j;
+						}
+					}
+					else
+					{
+						if (i > opp_min && i < opp_max)
+						{
+							// larger is better
+							if (j > opp_r)
+							{
+								opp_r = j;
+								opp_rho = i;
+							}
+						}
+						else
+						{
+							// smaller is better
+							bad_length += j*j;
+						}
+					}
+				}
+
+
+
+				
+			}
+		}
+
+
+
+	bad_length = bad_length / 10000000;
+
+	double fitness = (max_r * opp_r) / bad_length;
+	fitness = fitness / 500;
+
+
+	if (par.print_fitness)
+	{
+		cout << "Fitness: " << fitness << "  length: " << max_r << "  opp length: " << opp_r << endl;
+		cout << "max rho: " << max_rho << "  opp rho: " << opp_rho << "  detraction: " << bad_length << endl;
+	}
+
+
+	return fitness;
+}
+
+
 void fft::FFTransform()
 {
 	// double *in;

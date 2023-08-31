@@ -39,6 +39,8 @@ public:
 
 	void ReflectGrid(int **toshift);
 
+	double StickSymmetry();
+
 	inline int** GetPolar()
 	{
 		return polar;
@@ -56,7 +58,7 @@ private:
 	int **tmp_polar;
 
 	int rho = 360;
-	// THIS IS HARD CODED, BE CAREFUl!!! needs to be 2*a^2, where a^2 is half the size of x or y on the grid. Longer is better than shorter.
+	// THIS IS HARD CODED, BE CAREFUl!!! needs to be at least 2*a^2, where a^2 is half the size of x or y on the grid. Longer is better than shorter.
 	int sizer=180;
 
 	int sizex;

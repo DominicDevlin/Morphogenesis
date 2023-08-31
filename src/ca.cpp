@@ -47,6 +47,8 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fstream>
+#include "fft.h"
+
 
 
 // #define FILESYSTEM
@@ -2973,6 +2975,9 @@ void CellularPotts::update_fitness()
   {
     // Fitness is a combination of Circle Deviation (deformation - force applied) and segments (coordinated cell movements) = complexity
 
+
+
+
     double dev = (DeviationFromCircle()) * 1.4; // The question is whether to add total mass into this equation. Sqrt cell mass maybe?
     double wspc = sqrt((WhiteSpace())) * 2;
     double asymmetry = 0;
@@ -3030,7 +3035,6 @@ double CellularPotts::get_fitness()
     shp = 0;
   }
   
-  // multiplier to ensure shape dominates fitness. 
   double fitness = shp; 
 
   if (par.print_fitness)
@@ -3045,8 +3049,15 @@ double CellularPotts::get_fitness()
     return CellDensity();
   }
 
-
-     
+  if (par.elongation_selection)
+  {
+    fft test;
+    test.AllocateGrid(par.sizex, par.sizey);
+    test.ImportGrid(sigma);
+    test.PolarTransform();
+    fitness += test.StickSymmetry();
+    test.~fft();
+  }  
 
   return fitness;
 
