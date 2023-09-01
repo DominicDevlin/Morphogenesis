@@ -70,7 +70,7 @@
     //set specific colours (SHOULD ALWAYS BE FALSE UNLESS NEEDED)
     set_colours = true;
     // Start from specific seed. USE 0 for random seed. (SHOULD ALWAYS be 0 unless need specific seed.)
-    pickseed=15766612587818008957;
+    pickseed=4702000133023871255;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION

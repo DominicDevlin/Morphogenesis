@@ -4541,7 +4541,7 @@ void CellularPotts::Directionality()
 void CellularPotts::SingleCellDirection()
 {
 
-  int cell_num = 260;
+  int cell_num = 227;
 
   vector<double>& xinit = cell->at(cell_num).get_xcens();
   vector<double>& yinit = cell->at(cell_num).get_ycens();
