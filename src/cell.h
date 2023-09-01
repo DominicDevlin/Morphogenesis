@@ -280,6 +280,8 @@ public:
   inline void set_ctype(const int col)
   {
     c_type = col;
+    if (sigma == 260)
+      c_type = 103;
   }
 
 

@@ -264,6 +264,7 @@ TIMESTEP {
       // dish->CPM->SpecialVelocity();
 
       dish->CPM->Directionality();
+      dish->CPM->SingleCellDirection();
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();

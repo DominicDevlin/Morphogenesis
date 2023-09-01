@@ -304,6 +304,8 @@ public:
 
   void Directionality();
 
+  void SingleCellDirection();
+
   void RecordSizes();
 
   void OutputSizes();
