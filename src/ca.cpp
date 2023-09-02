@@ -4506,16 +4506,20 @@ void CellularPotts::Directionality()
         //   speeds.push_back(len);
         //   vectors.push_back(angle);
         // }
-        // if (t > 123000 && t < 123500)
-        // {
-        //   speeds.push_back(len);
-        //   vectors.push_back(angle);
-        // }
-        if (t < 5000)
+
+
+        if (t > 123000 && t < 123500)
         {
           speeds.push_back(len);
           vectors.push_back(angle);
         }
+
+
+        // if (t < 5000)
+        // {
+        //   speeds.push_back(len);
+        //   vectors.push_back(angle);
+        // }
 
       }
 
