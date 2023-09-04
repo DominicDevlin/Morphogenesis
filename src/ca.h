@@ -114,6 +114,9 @@ public:
   // Function to get new colour==c_type 
   int set_type(vector<bool>& set);
 
+
+  void SetAllStates();
+
   int get_ntypes(void);
 
   void set_num(int in);

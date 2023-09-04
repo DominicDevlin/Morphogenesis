@@ -126,8 +126,18 @@ TIMESTEP {
     static Info *info=new Info(*dish, *this);
     
     // record initial expression state. This occurs before any time step updates. 
-    if (par.gene_output && t == 100)
-      dish->CPM->record_GRN();
+    if (t == 100)
+    {
+      if (par.flush_cells)
+      {
+        dish->CPM->SetAllStates();
+        dish->PDEfield->FlushGrid();
+      }
+      if (par.gene_output)
+        dish->CPM->record_GRN();
+
+    }
+      
     
     // programmed cell division section
     if (t < par.end_program)
@@ -262,9 +272,12 @@ TIMESTEP {
         dish->CPM->CellVelocities();
 
       // dish->CPM->SpecialVelocity();
+      if (par.record_directions)
+      {
+        dish->CPM->Directionality();
+        // dish->CPM->SingleCellDirection();
+      }
 
-      dish->CPM->Directionality();
-      // dish->CPM->SingleCellDirection();
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();

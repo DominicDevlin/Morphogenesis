@@ -133,7 +133,13 @@ class Parameter {
 
   int shrink;
   int s_shrink;
+
+  bool single_cell;
+  int single_type;
+  vector<double> single_states;
+  bool flush_cells;
   
+  bool record_directions;
 
   string data_file;
 

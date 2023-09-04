@@ -233,6 +233,8 @@ class PDE {
 
   void PrintAxisConcentrations(bool dim=true, int point=125);
 
+  void FlushGrid();
+
 
  protected:
 

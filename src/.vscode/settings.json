@@ -20,6 +20,7 @@
     "valarray": "cpp",
     "ostream": "cpp",
     "cstring": "cpp",
-    "complex": "cpp"
+    "complex": "cpp",
+    "fstream": "cpp"
   }
 }

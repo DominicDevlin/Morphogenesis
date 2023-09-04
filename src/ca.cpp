@@ -3326,6 +3326,19 @@ void CellularPotts::cell_concentrations()
         outfile << endl;
       }
       outfile.close();
+      if (par.single_cell && par.single_type == c->GetPhenotype())
+      {
+        string var_name = data_file + "/proteins-" + to_string(c->GetPhenotype()) + ".dat";
+        outfile.open(var_name, ios::app);
+        vector<vector<double>>& gene_history = c->get_history();
+        outfile << "{ ";
+        for (unsigned int i=0;i<gene_history.size();++i)
+        {
+          outfile << gene_history[i].back() << ", ";
+        }
+        outfile << " };" << endl;
+        outfile.close();
+      }
     }
   }
 }
@@ -3533,7 +3546,6 @@ void CellularPotts::print_cell_GRN()
   #endif
 
   cell_concentrations();
-
 
   cell_divisions();
 
@@ -4501,19 +4513,24 @@ void CellularPotts::Directionality()
         // lets take the type in the middle as the relevant type
         int t = velp[i-250];
         
-        // if (t > 114000 && t < 118000)
-        // {
-        //   speeds.push_back(len);
-        //   vectors.push_back(angle);
-        // }
-
-
-        if (t > 123000 && t < 123500)
+        if (t > 114000 && t < 118000)
         {
           speeds.push_back(len);
           vectors.push_back(angle);
         }
 
+
+        // if (t > 123000 && t < 123500)
+        // {
+        //   speeds.push_back(len);
+        //   vectors.push_back(angle);
+        // }
+
+        // if (t == 108034 || t == 107010)
+        // {
+        //   speeds.push_back(len);
+        //   vectors.push_back(angle);
+        // }
 
         // if (t < 5000)
         // {
@@ -4540,6 +4557,35 @@ void CellularPotts::Directionality()
 
 }
 
+
+void CellularPotts::SetAllStates()
+{
+  vector<double> new_g{};
+  vector<double> new_d{};
+  for (int i=0;i<par.gene_vector_size;++i)
+  {
+    if (i<par.n_diffusers)
+      new_d.push_back(par.single_states[i]);
+
+    new_g.push_back(par.single_states[i]);
+    
+  }
+
+  for (int i=0;i<par.n_diffusers;++i)
+  {
+    new_g[i] = par.single_states[par.n_genes + i];
+  }
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->set_genes(new_g);
+      c->set_diffusers(new_d);
+    }
+  }
+}
 
 
 void CellularPotts::SingleCellDirection()

@@ -55,6 +55,7 @@
 
     // record velocities for all cells
     velocities = true;
+    record_directions = true;
 
     // record gamma parameter
     output_gamma = false;
@@ -70,7 +71,7 @@
     //set specific colours (SHOULD ALWAYS BE FALSE UNLESS NEEDED)
     set_colours = true;
     // Start from specific seed. USE 0 for random seed. (SHOULD ALWAYS be 0 unless need specific seed.)
-    pickseed=16791004956631755557;
+    pickseed=0;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -171,6 +172,14 @@
 
     //count stem and differentiated cells
     stem_counts = false;
+
+
+    // print single cell proteins
+    single_cell = false;
+    single_type = 115075;
+    // turn all cells into this state
+    single_states = { 0.993102, 0.9931, 0.993102, 0.00640191, 0.000116624, 0.993102, 0.993102, 9.27369e-05, 0.0391005, 0.993102, 0.993102, 2.01255e-23, 0.993102, 0.993102, 0.993091, 0.00212721, 3.50843e-13, 2.20008e-13, 0.0448034, 0.0623951, 0.993101, 0.993102, 5.10337e-05, 0.0011969, 0.00119392, 7.19069e-05, 7.42993e-05, 1.15551, 1.12854, 1.15551,  };
+    flush_cells = true;
 
 
     // when to collect fitness

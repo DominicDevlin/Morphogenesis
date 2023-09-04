@@ -525,3 +525,17 @@ void PDE::manipulate_conc(int x, int y, int l)
   sigma[l][x][y] = par.morphogen_dose;
 }
 
+
+void PDE::FlushGrid()
+{
+  for (int n = 0;n<layers;++n)
+  {
+    for (int x=1;x<sizex-1;x++)
+      for (int y=1;y<sizey-1;y++) 
+      {
+        // inside cells with diffuser on (secrete + decay)
+        sigma[n][x][y] = par.single_states[n];
+      }
+  }
+}
+
