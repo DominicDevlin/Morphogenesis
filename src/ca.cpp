@@ -4667,14 +4667,53 @@ void CellularPotts::SingleCellDirection()
 
 
 
+void CellularPotts::CheckCellsInBud()
+{
+
+  int state1=3971;
+  int state2=27855;
+
+  int s1_total{};
+  int s2_total{};
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+
+    if (c->AliveP())
+    {
+      // get phenotype history
+      unordered_map<int,int> &ptime = c->AdultTime();
+
+      for (auto &i : ptime)
+      {
+        if (i.first == state1)
+        {
+          s1_total += 1;
+        }
+        else if (i.first == state2)
+        {
+          s2_total += 1;
+        }
+      }
+    }
+  }
 
 
 
+  
+
+  string var_name = "bud-counts.dat";
+  ofstream outfile;
+  outfile.open(var_name, ios::app);
 
 
+  outfile << s1_total << '\t'  << s2_total << endl;
+
+  outfile.close();
 
 
-
+}
 
 
 

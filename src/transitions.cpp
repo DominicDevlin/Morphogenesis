@@ -195,6 +195,10 @@ vector<double> process_population(vector<vector<vector<int>>> &network_list, vec
 
   for (int i = 0; i < par.n_orgs; ++i)
   {
+    if (par.count_bud_cells)
+      dishes[i].CPM->CheckCellsInBud();
+
+      
     map<int, int> phentime = dishes[i].CPM->get_phenotype_time();
     map<int, int> difftime = dishes[i].CPM->get_AdultTypes();
     stores.add_to_time(phentime, difftime);
@@ -266,7 +270,7 @@ int main(int argc, char *argv[])
   par.gene_output = false;
   par.velocities = false;
   Parameter();
-  par.n_orgs = 10;
+  par.n_orgs = 2;
   par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10 * par.n_orgs);
   // This is currently depracated.
   vector<bool> start_p = {0, 0, 0, 0};

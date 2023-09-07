@@ -210,6 +210,8 @@ class Parameter {
   int begin_movement;
   int program_its;
 
+  bool count_bud_cells;
+
   bool asymmetry_selection;
   bool asym_only;
   double swap_selection;

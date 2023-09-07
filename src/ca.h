@@ -313,6 +313,8 @@ public:
 
   void OutputSizes();
 
+  void CheckCellsInBud();
+
   // returns colour at this site
   int SiteColour(int x, int y);
 
