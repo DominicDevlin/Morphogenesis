@@ -3306,6 +3306,9 @@ void CellularPotts::cell_concentrations()
   else
     cout << "Directory created." << endl;
 
+  vector<int> col_index{};
+
+
   vector<Cell>::iterator c;
   for ((c=cell->begin(), c++); c!=cell->end(); c++)
   {
@@ -3326,9 +3329,43 @@ void CellularPotts::cell_concentrations()
         outfile << endl;
       }
       outfile.close();
+
+      if (par.umap)
+      {
+        vector<int>& hist = c->TypeHistory();
+        var_name = data_file + "/cdata.dat";
+        outfile.open(var_name, ios::app);
+        for (unsigned int i=152;i<gene_history.at(0).size();i+=10)
+        {
+          for (int j=0;j<par.n_genes; ++j)
+          {
+            outfile << gene_history.at(j).at(i) << '\t';
+          }
+          int p = hist[i];
+          auto it = find(col_index.begin(), col_index.end(), p);
+
+          if (it == col_index.end())
+          {
+            col_index.push_back(p);
+            outfile << col_index.size();
+          }
+          else 
+          {
+            int val = it - col_index.begin();
+            outfile << val + 1;
+          }
+
+          outfile << endl;
+        }
+      }
+
+
+
+
+
       if (par.single_cell && par.single_type == c->GetPhenotype())
       {
-        string var_name = data_file + "/proteins-" + to_string(c->GetPhenotype()) + ".dat";
+        var_name = data_file + "/proteins-" + to_string(c->GetPhenotype()) + ".dat";
         outfile.open(var_name, ios::app);
         vector<vector<double>>& gene_history = c->get_history();
         outfile << "{ ";

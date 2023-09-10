@@ -212,6 +212,8 @@ class Parameter {
 
   bool count_bud_cells;
 
+  bool umap;
+
   bool asymmetry_selection;
   bool asym_only;
   double swap_selection;
