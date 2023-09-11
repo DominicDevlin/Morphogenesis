@@ -3335,7 +3335,7 @@ void CellularPotts::cell_concentrations()
         vector<int>& hist = c->TypeHistory();
         var_name = data_file + "/cdata.dat";
         outfile.open(var_name, ios::app);
-        for (unsigned int i=152;i<gene_history.at(0).size();i+=10)
+        for (unsigned int i=153;i<gene_history.at(0).size();++i)
         {
           for (int j=0;j<par.n_genes; ++j)
           {
