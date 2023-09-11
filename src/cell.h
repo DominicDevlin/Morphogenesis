@@ -123,6 +123,7 @@ public:
     ycens = src.ycens;
     vel_phens = src.vel_phens;
 
+
     gamma_list = src.gamma_list;
     mass_list = src.mass_list;
 
@@ -785,6 +786,7 @@ private:
     xcens.push_back(xcen);
     ycens.push_back(ycen);
     vel_phens.push_back(phenotype);
+
   }
 
   inline vector<double>& get_xcens()
@@ -879,6 +881,10 @@ private:
 
   bool limit_cycle();
 
+  inline int get_time_created()
+  {
+    return time_created;
+  }
 
 
 
@@ -893,6 +899,7 @@ private:
       pair<int, int> newt = {phenotype, time};
       div_time.push_back(newp);
       div_phen.push_back(newt);
+      time_created = xcens.size();
       // cout << "division recorded with phenotype: " << phenotype << endl;
     }
 
@@ -1057,6 +1064,7 @@ protected:
   vector<double> xcens;
   vector<double> ycens;
   vector<int> vel_phens;
+  int time_created=0;
 
 
   vector<tuple<int,int, uint64_t>> switches;

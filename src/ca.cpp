@@ -4453,6 +4453,7 @@ void CellularPotts::CellVelocities()
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
       vector<int>& velp = c->get_velphens();
+      int init_time = c->get_time_created();
 
       int s = xm.size();
 
@@ -4471,10 +4472,14 @@ void CellularPotts::CellVelocities()
 
 
         // lets take the type in the middle as the relevant type
-        int t = velp[i-250];
-        velphentally[t] +=1;
-        veltally[t] += len;
-        varveltally[t] += pow(len,2);
+        if (i > 500 + init_time)
+        {
+          int t = velp[i-250];
+          velphentally[t] +=1;
+          veltally[t] += len;
+          varveltally[t] += pow(len,2);
+        }
+
 
       }
 
@@ -4530,10 +4535,11 @@ void CellularPotts::Directionality()
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
       vector<int>& velp = c->get_velphens();
-
+      vector<double>& sizes = c->GetMassList();
       int s = xm.size();
+      int init_time = c->get_time_created();
 
-      for (int i = 500; i < s; ++i)
+      for (int i = 500 + init_time; i < s; ++i)
       {
         // we want displacement from a while ago to account for back and forth motion
         double x = xm[i-500];
@@ -4549,29 +4555,32 @@ void CellularPotts::Directionality()
 
         // lets take the type in the middle as the relevant type
         int t = velp[i-250];
-        
-        if (t > 114000 && t < 118000)
-        {
-          speeds.push_back(len);
-          vectors.push_back(angle);
-        }
+        double csize = sizes[i-250];
+        double total = csize * len;
+
+
+        // if (t > 114000 && t < 118000)
+        // {
+        //   speeds.push_back(total);
+        //   vectors.push_back(angle);
+        // }
 
 
         // if (t > 123000 && t < 123500)
         // {
-        //   speeds.push_back(len);
+        //   speeds.push_back(total);
         //   vectors.push_back(angle);
         // }
 
-        // if (t == 108034 || t == 107010)
-        // {
-        //   speeds.push_back(len);
-        //   vectors.push_back(angle);
-        // }
+        if (t == 108034 || t == 107010)
+        {
+          speeds.push_back(total);
+          vectors.push_back(angle);
+        }
 
         // if (t < 5000)
         // {
-        //   speeds.push_back(len);
+        //   speeds.push_back(total);
         //   vectors.push_back(angle);
         // }
 
