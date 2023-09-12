@@ -100,9 +100,12 @@ pal = [
 color_key = {str(d): c for d, c in enumerate(pal)}
 
 
-
+count = 0
 while max_val+1 > len(color_key):
-  color_key[str(len(color_key))] = "#FF6700"
+  color_key[str(len(color_key))] = pal[count]
+  count += 1
+  if count >= len(pal): 
+    count = 0
 
 print(color_key)
 

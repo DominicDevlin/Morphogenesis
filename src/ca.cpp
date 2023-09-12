@@ -3659,10 +3659,11 @@ void CellularPotts::SetColours()
   // {126339, 56}, {118147, 56}, {83906, 47}}; // this is for arrow
   // 1160099 - connects layers 2 and 3, 63599 - cells at bottom, 118147 = cells center of top
 
+  map<int, int> colours = {{103043, 236}, {102915, 237}, {103171, 238}, {104319, 239}, {104307, 240}};
 
 
-  map<int, int> colours = {{51331, 103}, {103235, 91}, {103171, 12}, {51699, 88}, 
-  {105227, 29}, {18443, 37}, {103234, 27}, {51339, 81}}; // this is for jellyfish
+  // map<int, int> colours = {{51331, 103}, {103235, 91}, {103171, 12}, {51699, 88}, 
+  // {105227, 29}, {18443, 37}, {103234, 27}, {51339, 81}}; // this is for jellyfish
 
   // map<int,int> colours = {{93571, 81}, {23919, 6}, {23811, 73}, {19843, 102}, {19911, 4}}; // this is for megamind
 
