@@ -71,7 +71,7 @@ QtGraphics::QtGraphics(int xfield, int yfield, const char *movie_file)
   //  pic.save( "file.png" );
   
   // Allocate colors
-  pens = new QPen[268];
+  pens = new QPen[300];
 	
   
   ReadColorTable(pens);
