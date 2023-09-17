@@ -43,41 +43,40 @@ for i in target:
 
 
 pal = [
-  "#262626",
-  "#E99A28",
-  "#485AF2",
-  "#f67a49",
-  "#8D378D",
-  "#78EB4A",
-  "#FE00FE",
-  "#70C570",
-  "#E14600",
-  "#378ebb",
-  "#5e4fa2",
-  "#17becf",
-  "#CE72ED",
-  "#2ca02c",
-  "#BDBDBD",
-  "#C0C0C0",
-  "#8c564b",
-  "#F2A2E8",
-  "#008080",
-  "#C9BE62",
-  "#FDBD01",
-  "#A3ACFF",
-  "#16E2F5",
-  "#A2AD9C",
-  "#00FEFE",
-  "#DAEE01",
-  "#B5EAAA",
-  "#808000",
-  "#808000",
-  "#0000FF",
-  "#368BC1",
-  "#2F539B",
-  "#B6B6B4",
-  "#0C090A",
-  "#FF6700"
+"#262626",
+"#E99A28",
+"#485AF2",
+"#8D378D",
+"#78EB4A",
+"#CE72ED",
+"#BDBDBD",
+"#C0C0C0",
+"#74c7a5",
+"#00FEFE",
+"#5e4fa2",
+"#F0D67C",
+"#E14600",
+"#A3ACFF",
+"#d62728",
+"#9467bd",
+"#8c564b",
+"#FE00FE",
+"#70C570",
+"#C9BE62",
+"#FDBD01",
+"#FF6700",
+"#16E2F5",
+"#A2AD9C",
+"#00FA9A",
+"#DAEE01",
+"#B5EAAA",
+"#C3FDB8",
+"#808000",
+"#808000",
+"#368BC1",
+"#2F539B",
+"#B6B6B4",
+"#0C090A"
 ]
 color_key = {str(d): c for d, c in enumerate(pal)}
 
@@ -92,7 +91,7 @@ while max_val+1 > len(color_key):
 print(color_key)
 
 
-reducer = umap.UMAP(random_state=43, n_neighbors=50, min_dist=0.5)
+reducer = umap.UMAP(random_state=44, n_neighbors=50, min_dist=0.5)
 embedding = reducer.fit_transform(data)
 
 
@@ -109,7 +108,7 @@ cvs = ds.Canvas(plot_width=400, plot_height=400)
 agg = cvs.points(df, "x", "y", ds.count_cat("class"))
 img = tf.shade(agg, min_alpha=255, color_key=color_key, how="eq_hist")
 
-utils.export_image(img, filename="tester", background="white")
+utils.export_image(img, filename="tester", background="white", fmt=".svg")
 
 image = plt.imread("tester.png")
 fig, ax = plt.subplots(figsize=(6, 6))
