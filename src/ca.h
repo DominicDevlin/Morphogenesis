@@ -315,6 +315,8 @@ public:
 
   void CheckCellsInBud();
 
+  void ColourIndex();
+
   // returns colour at this site
   int SiteColour(int x, int y);
 

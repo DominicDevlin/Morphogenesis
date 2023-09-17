@@ -25,6 +25,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 using namespace std;
 class Parameter {
   
@@ -213,6 +214,9 @@ class Parameter {
   bool count_bud_cells;
 
   bool umap;
+  unordered_map<int,int> colour_index;
+
+
 
   bool asymmetry_selection;
   bool asym_only;

@@ -3337,25 +3337,30 @@ void CellularPotts::cell_concentrations()
         outfile.open(var_name, ios::app);
         for (unsigned int i=153;i<gene_history.at(0).size();++i)
         {
-          for (int j=0;j<par.n_genes; ++j)
-          {
-            outfile << gene_history.at(j).at(i) << '\t';
-          }
+
           int p = hist[i];
-          auto it = find(col_index.begin(), col_index.end(), p);
-
-          if (it == col_index.end())
+          if (par.colour_index.find(p) != par.colour_index.end() )
           {
-            col_index.push_back(p);
-            outfile << col_index.size();
-          }
-          else 
-          {
-            int val = it - col_index.begin();
-            outfile << val + 1;
+            for (int j=0;j<par.n_genes; ++j)
+            {
+              outfile << gene_history.at(j).at(i) << '\t';
+            }
+            outfile << par.colour_index[p] << endl;;
           }
 
-          outfile << endl;
+          // auto it = find(col_index.begin(), col_index.end(), p);
+
+          // if (it == col_index.end())
+          // {
+          //   col_index.push_back(p);
+          //   outfile << col_index.size();
+          // }
+          // else 
+          // {
+          //   int val = it - col_index.begin();
+          //   outfile << val + 1;
+          // }
+          // outfile << endl;
         }
       }
 
@@ -3642,8 +3647,51 @@ void CellularPotts::PrintColours()
   {
     cout << "Colour of cell number: " << i.first << "  is: " << i.second << endl;
   }
+}
+
+
+
+
+void CellularPotts::ColourIndex()
+{
+  unordered_map<int, int> colour_index{};
+
+  int count = 0;
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      vector<int>& hist = c->TypeHistory();
+      for (unsigned int i=153;i<hist.size();++i)
+      {
+        int p = hist[i];
+        if (colour_index.find(p) == colour_index.end())
+        {
+          colour_index[p] = count;
+          ++count;
+        }
+      }
+    }
+  }
+
+
+  ofstream outfile;
+  string netw = data_file + "/colour_index.txt";
+  outfile.open(netw, ios::app);
+  outfile << "{ ";
+  for (auto i : colour_index)
+  {
+    outfile << "{" << i.first << ", " << i.second << "}, ";
+  }
+  outfile << "}" << endl;
+  outfile.close();
+
+
 
 }
+
+
 
 void CellularPotts::SetColours()
 {
@@ -3672,8 +3720,8 @@ void CellularPotts::SetColours()
   // map<int,int> colours = {{119675, 45}, {110595, 143},{115579, 84},{45059, 71}, {127867, 88}}; // this is for shield
 
 
-  // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
-  // {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
+  map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
+  {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
 
   // map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
   // {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
@@ -3695,8 +3743,8 @@ void CellularPotts::SetColours()
 
   // map<int,int> colours = {{92811, 117}, {64892, 47}, {31747, 106}, {76427, 119}};  // this is for asym8
 
-  map<int,int> colours = {{33543, 268}, {33671, 269}, {99207, 270}, {99295, 271}, {115711, 272}, 
-  {117503, 273}, {109311, 274}, {117759, 275}, {99327, 276}, {33667, 277}}; // pluri53
+  // map<int,int> colours = {{33543, 268}, {33671, 269}, {99207, 270}, {99295, 271}, {115711, 272}, 
+  // {117503, 273}, {109311, 274}, {117759, 275}, {99327, 276}, {33667, 277}}; // pluri53
 
   // 45059, 3137, 31345
 

@@ -43,6 +43,89 @@ for i in target:
 
 
 pal = [
+  "#262626",
+  "#E99A28",
+  "#485AF2",
+  "#f67a49",
+  "#8D378D",
+  "#78EB4A",
+  "#FE00FE",
+  "#70C570",
+  "#E14600",
+  "#378ebb",
+  "#5e4fa2",
+  "#17becf",
+  "#CE72ED",
+  "#2ca02c",
+  "#BDBDBD",
+  "#C0C0C0",
+  "#8c564b",
+  "#F2A2E8",
+  "#008080",
+  "#C9BE62",
+  "#FDBD01",
+  "#A3ACFF",
+  "#16E2F5",
+  "#A2AD9C",
+  "#00FEFE",
+  "#DAEE01",
+  "#B5EAAA",
+  "#808000",
+  "#808000",
+  "#0000FF",
+  "#368BC1",
+  "#2F539B",
+  "#B6B6B4",
+  "#0C090A",
+  "#FF6700"
+]
+color_key = {str(d): c for d, c in enumerate(pal)}
+
+
+count = 0
+while max_val+1 > len(color_key):
+  color_key[str(len(color_key))] = pal[count]
+  count += 1
+  if count >= len(pal): 
+    count = 0
+
+print(color_key)
+
+
+reducer = umap.UMAP(random_state=43, n_neighbors=50, min_dist=0.5)
+embedding = reducer.fit_transform(data)
+
+
+# fig, ax = plt.subplots(figsize=(12, 10))
+# # color = mnist.target.astype(int)
+# plt.scatter(embedding[:, 0], embedding[:, 1], c=source_df["class"].values, cmap="Spectral", s=0.1)
+# plt.show()
+
+
+df = pd.DataFrame(embedding, columns=("x", "y"))
+df["class"] = pd.Series([str(x) for x in target], dtype="category")
+
+cvs = ds.Canvas(plot_width=400, plot_height=400)
+agg = cvs.points(df, "x", "y", ds.count_cat("class"))
+img = tf.shade(agg, min_alpha=255, color_key=color_key, how="eq_hist")
+
+utils.export_image(img, filename="tester", background="white")
+
+image = plt.imread("tester.png")
+fig, ax = plt.subplots(figsize=(6, 6))
+plt.imshow(image)
+plt.setp(ax, xticks=[], yticks=[])
+plt.title(
+    "Cell expression data\n"
+    "into two dimensions by UMAP\n"
+    "visualised with Datashader",
+    fontsize=12,
+)
+
+plt.show()
+
+
+pal = [
     "#9e0142",
     "#d8434e",
     "#f67a49",
@@ -79,65 +162,4 @@ pal = [
     "#FF6700",
     "#FF6700",
     "#FF6700"
-
-    # "#9e0142",
-    # "#d8434e",
-    # "#f67a49",
-    # "#fdbf6f",
-    # "#feeda1",
-    # "#f1f9a9",
-    # "#bfe5a0",
-    # "#74c7a5",
-    # "#378ebb",
-    # "#5e4fa2",
-    # "#17becf",
-    # "#ff7f0e",
-    # "#2ca02c",
-    # "#d62728",
-    # "#9467bd",
-    # "#8c564b"
 ]
-color_key = {str(d): c for d, c in enumerate(pal)}
-
-
-count = 0
-while max_val+1 > len(color_key):
-  color_key[str(len(color_key))] = pal[count]
-  count += 1
-  if count >= len(pal): 
-    count = 0
-
-print(color_key)
-
-
-reducer = umap.UMAP(random_state=42, n_neighbors=50, min_dist=0.5)
-embedding = reducer.fit_transform(data)
-
-
-# fig, ax = plt.subplots(figsize=(12, 10))
-# # color = mnist.target.astype(int)
-# plt.scatter(embedding[:, 0], embedding[:, 1], c=source_df["class"].values, cmap="Spectral", s=0.1)
-# plt.show()
-
-
-df = pd.DataFrame(embedding, columns=("x", "y"))
-df["class"] = pd.Series([str(x) for x in target], dtype="category")
-
-cvs = ds.Canvas(plot_width=400, plot_height=400)
-agg = cvs.points(df, "x", "y", ds.count_cat("class"))
-img = tf.shade(agg, min_alpha=255, color_key=color_key, how="eq_hist")
-
-utils.export_image(img, filename="tester", background="black")
-
-image = plt.imread("tester.png")
-fig, ax = plt.subplots(figsize=(6, 6))
-plt.imshow(image)
-plt.setp(ax, xticks=[], yticks=[])
-plt.title(
-    "Cell expression data\n"
-    "into two dimensions by UMAP\n"
-    "visualised with Datashader",
-    fontsize=12,
-)
-
-plt.show()

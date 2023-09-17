@@ -285,6 +285,8 @@ TIMESTEP {
       if (par.output_sizes)
         dish->CPM->OutputSizes();
 
+      if (par.umap)
+        dish->CPM->ColourIndex();
 
       dish->CPM->get_fitness();
 
