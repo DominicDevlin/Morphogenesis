@@ -320,6 +320,9 @@ public:
   // returns colour at this site
   int SiteColour(int x, int y);
 
+  vector<vector<double>> OrganismGenes(int start);
+
+  vector<int> OrganismTypes(int start);
 
 
 

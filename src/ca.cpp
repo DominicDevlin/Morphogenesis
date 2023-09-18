@@ -3306,7 +3306,7 @@ void CellularPotts::cell_concentrations()
   else
     cout << "Directory created." << endl;
 
-  vector<int> col_index{};
+  // vector<int> col_index{};
 
 
   vector<Cell>::iterator c;
@@ -3322,7 +3322,7 @@ void CellularPotts::cell_concentrations()
 
       for (unsigned int i=0;i<gene_history.at(0).size();++i)
       {
-        for (int j=0;j<(int)(gene_history.size()); ++j)
+        for (unsigned int j=0;j<(gene_history.size()); ++j)
         {
           outfile << gene_history.at(j).at(i) << '\t';
         }
@@ -3345,9 +3345,8 @@ void CellularPotts::cell_concentrations()
             {
               outfile << gene_history.at(j).at(i) << '\t';
             }
-            outfile << par.colour_index[p] << endl;;
+            outfile << par.colour_index[p] << endl;
           }
-
           // auto it = find(col_index.begin(), col_index.end(), p);
 
           // if (it == col_index.end())
@@ -3363,9 +3362,6 @@ void CellularPotts::cell_concentrations()
           // outfile << endl;
         }
       }
-
-
-
 
 
       if (par.single_cell && par.single_type == c->GetPhenotype())
@@ -3384,6 +3380,57 @@ void CellularPotts::cell_concentrations()
     }
   }
 }
+
+
+
+vector<vector<double>> CellularPotts::OrganismGenes(int start)
+{
+  vector<vector<double>> full_history{};
+  
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      vector<vector<double>>& gene_history = c->get_history();
+      for (unsigned int i=start;i<gene_history.at(0).size();++i)
+      {
+        vector<double> expression{};
+        for (int j=0;j<par.n_genes;++j)
+        {
+          expression.push_back(gene_history[j][i]);
+        }
+        full_history.push_back(expression);
+      }
+    }
+  }
+  return full_history;
+
+}
+
+
+vector<int> CellularPotts::OrganismTypes(int start)
+{
+  vector<int> full_types{};
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      vector<int>& hist = c->TypeHistory();
+      int val = hist.size();
+      for (int i = start; i < val; ++i)
+      {
+        full_types.push_back(hist[i]);
+      }
+      
+    }
+  }
+  return full_types;
+}
+
+
+
 
 
 
