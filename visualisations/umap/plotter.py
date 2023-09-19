@@ -44,7 +44,7 @@ for i in target:
 
 
 
-
+# this is for pluri56
 pal = [
 "#C2D354",
 "#8F2CFE",

@@ -53,17 +53,17 @@
     // gene record needs to always be on to test network connectivity. 
     gene_record = true;
     //for umap
-    umap = true;
+    umap = false;
 
     // record velocities for all cells
-    velocities = false;
+    velocities = true;
     record_directions = false;
+
+    // record cell sizes
+    output_sizes = true;
 
     // record gamma parameter
     output_gamma = false;
-
-    // record cell sizes
-    output_sizes = false;
 
     // read genomes from file
     file_genomes = false;
@@ -81,8 +81,8 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 1, 0, 0, 2, 1, -2, 1, -2 }, { 0, 0, -2, 2, 0, -1, 1, 0, -2 }, { 0, 1, -1, 0, 0, 0, 0, -1, 1 }, { 1, -1, -2, 1, 0, 0, 1, 0, -1 }, { 1, 0, 2, 0, -1, 1, 1, -1, 1 }, { -2, -2, 1, 2, 2, 0, 0, 2, 1 }, { 0, -1, 0, 0, 0, 0, -1, 1, -1 }, { 1, -1, -1, 0, 1, 0, 1, 0, -1 }, { 1, -1, 1, -1, 0, 1, 0, 0, 0 }, { 1, 0, 0, 2, 0, 0, 2, -1, 0 }, { 0, 0, -1, 0, 1, -1, -1, 0, 1 }, { -1, 1, -1, 2, 0, -1, 0, 0, 1 }, { -2, 0, 0, 0, 0, 0, -2, 0, 2 }, { -2, 0, 0, 0, 0, -2, 1, 0, -1 }, { -1, 0, 2, 0, 1, -1, 0, 0, 2 }, { 0, 0, 0, 0, 2, 0, 0, 0, 0 }, { 2, 0, -2, 0, -1, 0, -1, -1, 0 }, { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 1, 1, -1, 0, 1 }, { 1, 0, -1, 1, -2, 0, 1, 0, 0 }, { 1, 2, 0, 1, -1, -2, 1, -1, -1 }, { 0, 0, -2, 1, -1, 1, 0, -1, 0 }, { 0, -2, 2, 1, 0, -2, -2, 0, 0 }, { 0, 1, -2, 0, -1, 0, 1, 0, 1 }, { 0, 1, -1, 0, -1, 1, 1, -1, 0 }, { 1, 0, -2, 0, -1, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0, -2, -1, 1, 0 }, };
-    
+    start_matrix = { { 0, 0, -2, 1, -1, 0, 1, -2, 1 }, { 0, -2, -2, 0, 2, -2, 2, 0, -1 }, { 0, 0, 0, 0, -1, 0, -1, 2, 0 }, { -1, -2, 0, 2, 0, 0, 1, -2, 0 }, { 0, 2, 1, -1, 2, -1, 0, 0, 0 }, { -1, 1, 0, 1, 0, 0, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, -1, 1, 0 }, { 1, -1, -1, 0, 0, 1, 0, -2, 0 }, { -1, 0, -1, 0, -1, 0, 0, 2, 2 }, { -1, 0, 0, 1, 2, 0, 1, -2, 1 }, { 0, 0, 0, 0, 1, 2, 2, -2, 1 }, { 0, 0, -1, -1, 0, 0, 0, 0, 0 }, { -1, -1, 1, 0, 0, 1, 0, 0, 1 }, { 0, -1, 0, 0, 0, 0, 0, 0, 1 }, { -1, 0, 0, 2, 0, -1, -1, -1, 0 }, { 1, 0, -1, 0, 0, 0, 1, 2, 0 }, { 0, 2, 0, -1, 0, -1, 1, 0, 1 }, { 1, 1, 0, -2, 0, 0, 1, -2, -1 }, { 0, 1, 0, 0, 1, 1, 0, 0, -2 }, { 1, 2, 0, -1, 0, 1, 1, -1, 0 }, { -2, -1, -2, -2, 2, 0, 1, 0, 0 }, { 0, 0, 1, 1, 0, -1, 0, 0, 0 }, { -1, -2, 1, -1, 1, -1, -1, 0, 0 }, { -1, 0, 0, 2, 1, -2, 0, 0, -1 }, { 0, 0, 1, 1, 0, 0, -1, 0, -1 }, { 0, 0, 0, 1, -2, 0, -1, 1, -1 }, { 0, 0, 2, -1, 0, 0, -1, 0, 0 }, };
+
 
 
 
@@ -145,7 +145,7 @@
     div_end = 250;
 
     // add noise to regulatory network 
-    noise = true;
+    noise = false;
     // noise amount
     noise_dose=0.012;
     noise_start = 6000;
@@ -181,7 +181,7 @@
     //count stem and differentiated cells
     stem_counts = false;
 
-    count_bud_cells = true;
+    count_bud_cells = false;
 
     // print single cell proteins
     single_cell = false;

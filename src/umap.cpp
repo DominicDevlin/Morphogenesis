@@ -279,6 +279,7 @@ int main(int argc, char *argv[]) {
   par.gene_output = false;
   par.velocities = false;
   par.umap = true;
+  par.noise = true;
 
   Parameter();
   par.n_orgs = 4;
