@@ -168,7 +168,7 @@
     T = 3;
     target_length = 0;
     lambda = 0.5;
-    lambda2 = 0.1; // I think having this too high increases the volume too quickly.
+    lambda2 = 0.1;
 
 
     // DEPRACATED: let all cells be capable of cell division. MUST BE FALSE FOR stem cell evolution testing. False promotes stem cell evolution?
