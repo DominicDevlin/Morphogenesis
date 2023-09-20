@@ -42,16 +42,45 @@ for i in target:
     max_val = i
 
 
-
-
-# this is for pluri56
+# mushroom palette
 pal = [
-"#C2D354",
-"#8F2CFE",
+"#262626",
+"#E99A28",
+"#485AF2",
+"#8D378D",
+"#78EB4A",
+"#CE72ED",
+"#BDBDBD",
+"#C0C0C0",
+"#74c7a5",
 "#00FEFE",
-"#E4A600",
-"#BA6581"
+"#5e4fa2",
+"#F0D67C",
+"#E14600",
+"#A3ACFF",
+"#d62728",
+"#9467bd",
+"#8c564b",
+"#FE00FE",
+"#70C570",
+"#C9BE62",
+"#FDBD01",
+"#FF6700",
+"#16E2F5",
+"#A2AD9C",
+"#00FA9A",
+"#DAEE01",
+"#B5EAAA",
+"#C3FDB8",
+"#808000",
+"#808000",
+"#368BC1",
+"#2F539B",
+"#B6B6B4",
+"#0C090A"
 ]
+
+
 
 
 
@@ -70,7 +99,7 @@ while max_val+1 > len(color_key):
 print(color_key)
 
 
-reducer = umap.UMAP(random_state=42, n_neighbors=50, min_dist=0.5)
+reducer = umap.UMAP(random_state=62, n_neighbors=50, min_dist=0.5)
 embedding = reducer.fit_transform(data)
 
 
@@ -143,40 +172,11 @@ pal = [
 ]
 
 
-# mushroom palette
+# this is for pluri56
 # pal = [
-# "#262626",
-# "#E99A28",
-# "#485AF2",
-# "#8D378D",
-# "#78EB4A",
-# "#CE72ED",
-# "#BDBDBD",
-# "#C0C0C0",
-# "#74c7a5",
+# "#C2D354",
+# "#8F2CFE",
 # "#00FEFE",
-# "#5e4fa2",
-# "#F0D67C",
-# "#E14600",
-# "#A3ACFF",
-# "#d62728",
-# "#9467bd",
-# "#8c564b",
-# "#FE00FE",
-# "#70C570",
-# "#C9BE62",
-# "#FDBD01",
-# "#FF6700",
-# "#16E2F5",
-# "#A2AD9C",
-# "#00FA9A",
-# "#DAEE01",
-# "#B5EAAA",
-# "#C3FDB8",
-# "#808000",
-# "#808000",
-# "#368BC1",
-# "#2F539B",
-# "#B6B6B4",
-# "#0C090A"
+# "#E4A600",
+# "#BA6581"
 # ]
