@@ -3734,9 +3734,136 @@ void CellularPotts::ColourIndex()
   outfile << "}" << endl;
   outfile.close();
 
+  par.colour_index = colour_index;
+
+  PrintHexColours();
 
 
 }
+
+
+string decToHexa(int n)
+{
+    // char array to store hexadecimal number
+    char hexaDeciNum[2];
+ 
+    // counter for hexadecimal number array
+    int i = 0;
+    while (n != 0) {
+ 
+        // temporary variable to store remainder
+        int temp = 0;
+ 
+        // storing remainder in temp variable.
+        temp = n % 16;
+ 
+        // check if temp < 10
+        if (temp < 10) {
+            hexaDeciNum[i] = temp + 48;
+            i++;
+        }
+        else {
+            hexaDeciNum[i] = temp + 55;
+            i++;
+        }
+ 
+        n = n / 16;
+    }
+ 
+    string hexCode = "";
+    if (i == 2) {
+        hexCode.push_back(hexaDeciNum[0]);
+        hexCode.push_back(hexaDeciNum[1]);
+    }
+    else if (i == 1) {
+        hexCode = "0";
+        hexCode.push_back(hexaDeciNum[0]);
+    }
+    else if (i == 0)
+        hexCode = "00";
+ 
+    // Return the equivalent
+    // hexadecimal color code
+    return hexCode;
+}
+ 
+// Function to convert the
+// RGB code to Hex color code
+string convertRGBtoHex(int R, int G, int B)
+{
+    if ((R >= 0 && R <= 255)
+        && (G >= 0 && G <= 255)
+        && (B >= 0 && B <= 255)) {
+ 
+        string hexCode = "#";
+        hexCode += decToHexa(R);
+        hexCode += decToHexa(G);
+        hexCode += decToHexa(B);
+ 
+        return hexCode;
+    }
+ 
+    // The hex color code doesn't exist
+    else
+        return "-1";
+}
+
+
+void CellularPotts::PrintHexColours()
+{
+  
+  char name[50];
+  sprintf(name,"default.ctb");
+   
+  FILE *fpc;
+  if ((fpc = fopen(name,"r")) == NULL) 
+  {
+    char *message=new char[2000];
+    if (message==0) 
+    {
+      throw "Memory panic in QtGraphics::ReadColorTable\n";
+    }
+    sprintf(message,"QtGraphics::ReadColorTable: Colormap '%s' not found.",name);
+     
+    throw(message);
+  }
+
+  vector<string> hexcolours;
+  hexcolours.resize(par.colour_index.size());
+  int r,g,b;
+  int i;
+  while (fscanf(fpc,"%d",&i) != EOF) 
+  {
+    fscanf(fpc,"%d %d %d\n",&r,&g,&b);
+    string rgb = convertRGBtoHex(r,g,b);
+    for (auto j : par.colour_index)
+    {
+      if (j.second == i)
+      {
+        hexcolours[j.second] = rgb;
+      }
+    }
+  }
+  fclose(fpc);
+
+  ofstream outfile;
+  string netw = data_file + "/colour_index.txt";
+  outfile.open(netw, ios::app);
+  for (auto i : hexcolours)
+  {
+    outfile << "\"" << i << "\"," << endl;
+  }
+   
+
+
+}
+
+
+
+
+
+
+
 
 
 
@@ -3854,129 +3981,126 @@ int CellularPotts::SiteColour(int x, int y)
 
 
 
-  void CellularPotts::PrintTypesTime(bool prune)
+void CellularPotts::PrintTypesTime(bool prune)
+{
+
+  // We are going to want to order everything correctly.
+  // Need to create a new list where things are now ordered by state->time instead of time->state
+  // then we can remove the transition types.
+
+  map<int,int> ordered_types{};
+
+
+  vector<vector<int>> timestate{};
+
+  for (auto i : TypeCounts)
   {
+    for (auto j : i)
+    {
+      ordered_types[j.first] += j.second;
+      // if (find(ordered_types.begin(), ordered_types.end(), j.first) == ordered_types.end())
+      // {
+      //   ordered_types[]
+      // }
+    }
+  }
+  
 
-    // We are going to want to order everything correctly.
-    // Need to create a new list where things are now ordered by state->time instead of time->state
-    // then we can remove the transition types.
-
-    map<int,int> ordered_types{};
+  vector<vector<int>> stemdiff;
 
 
-    vector<vector<int>> timestate{};
+  // create new vector of small states, remove from ordered types
+  vector<int> to_remove{};
 
+  if (prune)
+    for (auto it = ordered_types.begin(); it != ordered_types.end();)
+    {
+      if (it->second < 300)
+      {
+        to_remove.push_back(it->first);
+        it = ordered_types.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+
+
+
+    }
+
+  // now print - convert typecounts to timestate
+  
+  string var_name = data_file + "/type-counts.dat";
+  ofstream outfile;
+  outfile.open(var_name, ios::app);
+
+  for (auto type : ordered_types)
+  {
+    outfile << type.first << '\t';
+  }
+  outfile << endl;
+
+
+
+  for (auto time : TypeCounts)
+  {
+    for (auto type : ordered_types)
+    {
+      outfile << time[type.first] << '\t';
+
+      // else
+      // {
+      //   outfile << 0 << '\t';
+      // }
+    }
+    outfile << endl;
+  }
+  outfile.close();
+
+
+  if (par.stem_counts)
+  {
+    var_name = data_file + "/stem-counts.dat";
+    outfile.open(var_name, ios::app);
+
+
+    // now do it just stem and differentiated
+    map<int,int> stemtypes{};
+    
     for (auto i : TypeCounts)
     {
       for (auto j : i)
       {
-        ordered_types[j.first] += j.second;
+        stemtypes[j.first] += j.second;
         // if (find(ordered_types.begin(), ordered_types.end(), j.first) == ordered_types.end())
         // {
         //   ordered_types[]
         // }
       }
     }
-    
-
-    vector<vector<int>> stemdiff;
-
-
-    // create new vector of small states, remove from ordered types
-    vector<int> to_remove{};
-
-    if (prune)
-      for (auto it = ordered_types.begin(); it != ordered_types.end();)
-      {
-        if (it->second < 300)
-        {
-          to_remove.push_back(it->first);
-          it = ordered_types.erase(it);
-        }
-        else
-        {
-          ++it;
-        }
-
-
-
-      }
-
-    // now print - convert typecounts to timestate
-    
-    string var_name = data_file + "/type-counts.dat";
-    ofstream outfile;
-    outfile.open(var_name, ios::app);
-
-    for (auto type : ordered_types)
-    {
-      outfile << type.first << '\t';
-    }
-    outfile << endl;
-
 
 
     for (auto time : TypeCounts)
     {
-      for (auto type : ordered_types)
+      int stem{};
+      int diff{};
+
+      for (auto type : stemtypes)
       {
-        outfile << time[type.first] << '\t';
+        if (type.first > 20000)
+          stem += time[type.first];
+        else
+          diff += time[type.first];
 
-        // else
-        // {
-        //   outfile << 0 << '\t';
-        // }
       }
-      outfile << endl;
-    }
-    outfile.close();
-
-
-    if (par.stem_counts)
-    {
-      var_name = data_file + "/stem-counts.dat";
-      outfile.open(var_name, ios::app);
-
-
-      // now do it just stem and differentiated
-      map<int,int> stemtypes{};
-      
-      for (auto i : TypeCounts)
-      {
-        for (auto j : i)
-        {
-          stemtypes[j.first] += j.second;
-          // if (find(ordered_types.begin(), ordered_types.end(), j.first) == ordered_types.end())
-          // {
-          //   ordered_types[]
-          // }
-        }
-      }
-
-
-      for (auto time : TypeCounts)
-      {
-        int stem{};
-        int diff{};
-
-        for (auto type : stemtypes)
-        {
-          if (type.first > 20000)
-            stem += time[type.first];
-          else
-            diff += time[type.first];
-
-        }
-        outfile << stem << '\t' << diff << endl;
-      }
-
-    outfile.close();
+      outfile << stem << '\t' << diff << endl;
     }
 
-
-
-
+  outfile.close();
   }
+
+}
 
 
 

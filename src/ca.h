@@ -317,6 +317,9 @@ public:
 
   void ColourIndex();
 
+  void PrintHexColours();
+
+
   // returns colour at this site
   int SiteColour(int x, int y);
 
