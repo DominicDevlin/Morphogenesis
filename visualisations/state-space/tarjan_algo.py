@@ -275,7 +275,7 @@ def prune_nodes(nodes, node_sizes, edges, edge_widths):
         
 def prune_edges(edges, edge_widths):
     for i in range(len(edge_widths) -1, -1, -1):
-        if edge_widths[i] < 1.5:
+        if edge_widths[i] < 1:
             del edge_widths[i]
             del edges[i]
 

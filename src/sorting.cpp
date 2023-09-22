@@ -80,8 +80,11 @@ INIT
     par.print_fitness = true;
     par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
 
-    // temp
-    CPM->PrintHexColours();
+    if (par.set_colours)
+    {
+      CPM->SetColours();
+    }
+
 
     if (par.store)
     {

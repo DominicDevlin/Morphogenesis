@@ -164,8 +164,10 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
       
     // cout << "Sim complete. The number of cells is: " << dishes[i].CPM->CountCells() << endl;
 
-  }
 
+
+  }
+  // dishes[0].CPM->PrintColourList();
 
   vector<vector<double>> sum_history{};
   vector<int> sum_types{};

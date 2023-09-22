@@ -1,2 +1,24 @@
-Component # 0  contains  17  big states.
-The states  ['99591', '99719', '34183', '83327', '2047', '67583', '83455', '83447', '83331', '116099', '115975', '115971', '50567', '91631', '25991', '17799', '1415']  are stem.
+Component # 0  contains  1  big states.
+The states  ['83327']  are differentiated.
+Component # 1  contains  3  big states.
+The states  ['2047', '67583', '83455']  are differentiated.
+Component # 2  contains  1  big states.
+The states  ['83447']  are differentiated.
+Component # 3  contains  3  big states.
+The states  ['83331', '116099', '115971']  are differentiated.
+Component # 4  contains  1  big states.
+The states  ['115975']  are differentiated.
+Component # 5  contains  1  big states.
+The states  ['50567']  are differentiated.
+Component # 6  contains  1  big states.
+The states  ['17799']  are differentiated.
+Component # 7  contains  1  big states.
+The states  ['99591']  are differentiated.
+Component # 8  contains  2  big states.
+The states  ['99719', '34183']  are differentiated.
+Component # 9  contains  1  big states.
+The states  ['1415']  are differentiated.
+Component # 10  contains  1  big states.
+The states  ['25991']  are differentiated.
+Component # 11  contains  1  big states.
+The states  ['91631']  are differentiated.

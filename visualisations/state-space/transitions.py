@@ -17,6 +17,7 @@ print(len(edges))
 
 
 prune_nodes(nodes, node_sizes, edges, edge_widths)
+prune_edges(edges, edge_widths)
 
 
 

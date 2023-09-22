@@ -112,7 +112,9 @@ public:
   void set_long_switches(map<pair<int,int>,int>& tally);
 
   // Function to get new colour==c_type 
-  int set_type(vector<bool>& set);
+  int set_type(int& setv);
+
+  void PrintColourList();
 
 
   void SetAllStates();
@@ -601,7 +603,7 @@ private:
 
 
   // list of non-cycling cell types
-  vector<vector<bool>> type_list{};
+  map<int,int> type_list;
 
   vector<vector<int>> matrix;
   vector<bool> polarity;

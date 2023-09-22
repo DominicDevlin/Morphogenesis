@@ -41,104 +41,81 @@ for i in target:
   if i > max_val:
     max_val = i
 
-# inducer
-pal = [
-"#EFEFEF",
-"#000000",
-"#EF0000",
-"#EFEF00",
-"#0000EF",
-"#FF00FF",
-"#00FFFF",
-"#00FF00",
-"#555555",
-"#6C1717",
-"#176C17",
-"#E8E883",
-"#17176C",
-"#E883E8",
-"#83E8E8",
-"#AAAAAA",
-"#C417E9",
-"#94B5B5",
-"#32B2B2",
-"#4ADADA",
-"#0073B5",
-"#37195A",
-"#FFFB00",
-"#008182",
-"#9919A3",
-"#1C1C1C",
-"#727272",
-"#8E8E8E",
-"#070707",
-"#EBEBEB",
-"#9BE8E8",
-"#27C9C9",
-"#6508BA",
-"#2E0D0D",
-"#66E4E4",
-"#5D5D5D",
-"#999999",
-"#0000F3",
-"#6D6D6D",
-"#DADADA",
-"#CCCCCC",
-"#373737",
-"#C4C4C4",
-"#080808",
-"#FEFEFE",
-"#D83ED8",
-"#B9B9B9",
-"#683E3E",
-"#C9C9C9",
-"#FBFBFB",
-"#383838",
-"#535353",
-"#0B0000",
-"#121212",
-"#08B508",
-"#BBBBBB",
-"#D5D5D5",
-"#B6B6B6",
-"#070707",
-"#616161",
-"#D2D2D2",
-"#949494",
-"#292929",
-"#D7D7D7",
-"#00000B",
-"#00B500",
-"#9602CA",
-"#2B0CCD",
-"#6C5D2E",
-"#B8995B",
-"#7305D1",
-"#E828A9",
-"#FF0066",
-"#FF8338",
-"#FF1A5B",
-"#FF9900",
-"#8A160C"
-]
+# color_key = {str(d): c for d, c in enumerate(pal)}
 
 
+# count = 0
+# while max_val+1 > len(color_key):
+#   color_key[str(len(color_key))] = pal[count]
+#   count += 1
+#   if count >= len(pal): 
+#     count = 0
 
 
-color_key = {str(d): c for d, c in enumerate(pal)}
+color_key = {
+'8' : "#555555",
+'10' : "#71c671",
+'14' : "#388e8e",
+'16' : "#4c719e",
+'24' : "#99913a",
+'25' : "#c1c1c1",
+'26' : "#272727",
+'27' : "#e8e8e8",
+'29' : "#bebebe",
+'32' : "#5680ab",
+'34' : "#664e4e",
+'36' : "#999999",
+'37' : "#00003f",
+'38' : "#d6d6d6",
+'47' : "#86e3e3",
+'48' : "#9c9c9c",
+'49' : "#bfbfbf",
+'52' : "#b00000",
+'54' : "#085b08",
+'55' : "#bbbbbb",
+'57' : "#6b6b6b",
+'58' : "#070707",
+'60' : "#2d2d2d",
+'61' : "#494949",
+'67' : "#b2c0dc",
+'69' : "#8b99b5",
+'70' : "#37051d",
+'71' : "#8e829a",
+'72' : "#ff0066",
+'73' : "#ff3883",
+'74' : "#ffa1b5",
+'75' : "#ff9900",
+'76' : "#a8610c",
+'77' : "#873d38",
+'78' : "#6dd339",
+'79' : "#ab4d00",
+'80' : "#057a0b",
+'81' : "#ccff66",
+'82' : "#ff66cc",
+'83' : "#192785",
+'84' : "#8cffd8",
+'85' : "#add979",
+'86' : "#633dff",
+'87' : "#6aa9d8",
+'88' : "#c665ff",
+'89' : "#cc6666",
+'90' : "#f9c664",
+'91' : "#2e8c68",
+'92' : "#35461e",
+'93' : "#a624a1",
+'94' : "#3946af",
+'95' : "#a200ff",
+'96' : "#7da8af",
+'97' : "#cc99ff",
+'98' : "#ffcc99",
+}
 
 
-count = 0
-while max_val+1 > len(color_key):
-  color_key[str(len(color_key))] = pal[count]
-  count += 1
-  if count >= len(pal): 
-    count = 0
 
 print(color_key)
 
 
-reducer = umap.UMAP(random_state=62, n_neighbors=50, min_dist=0.5)
+reducer = umap.UMAP(random_state=42, n_neighbors=50, min_dist=0.5)
 embedding = reducer.fit_transform(data)
 
 

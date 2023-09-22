@@ -2373,22 +2373,13 @@ void CellularPotts::update_network(int tsteps)
         {
           c->AddType();
         }
+        int ptype=c->GetPhenotype();
+        int tau = c->getTau();
+        // set the type of the cell based on network arrangement.
+        c->set_ctype(set_type(ptype));// * c->getTau());
+        // c->add_to_cycle();
+
       }
-
-
-
-      // set the type of the cell based on network arrangement.
-      if (tsteps > par.end_program)
-      {
-        c->set_ctype(set_type(full_set) * c->getTau());
-        if (par.set_colours)
-        {
-          SetColours();
-        }
-      }
-
-      // c->add_to_cycle();
-
       
       /// change target length based on boolified values of two target genes at location 12 and 13
       if (genes.at(par.tloc1) > 0.5 && genes.at(par.tloc2) > 0.5)
@@ -2556,28 +2547,34 @@ double CellularPotts::get_enzyme_conc(int n, int x, int y)
 
 
 
-int CellularPotts::set_type(vector<bool>& set)
+int CellularPotts::set_type(int& setv)
 {
 
   // iterate through type list to see if type is already there.
-  auto it = find(type_list.begin(), type_list.end(), set);
+  // auto it = find(type_list.begin(), type_list.end(), set);
+  if (type_list.find(setv) == type_list.end())
+  {
+    type_list[setv] = (type_list.size() + 4);
+  }
+  return type_list[setv];
 
-  if (it != type_list.end())
-  {
-    return (it - type_list.begin() + 4);
-  }
-  else 
-  {
-    type_list.push_back(set);
+
+  // if (it != type_list.end())
+  // {
+  //   return (it - type_list.begin() + 4);
+  // }
+  // else 
+  // {
+  //   type_list.push_back(set);
     
-    // print new cell type network
-    // for (int i=0; i < new_list.size();++i)
-    // {
-    //   cout << new_list.at(i) << " ";
-    // }
-    // cout << endl;
-    return static_cast<int>(type_list.size()) + 4;
-  }
+  //   // print new cell type network
+  //   // for (int i=0; i < new_list.size();++i)
+  //   // {
+  //   //   cout << new_list.at(i) << " ";
+  //   // }
+  //   // cout << endl;
+  //   return static_cast<int>(type_list.size()) + 4;
+  // }
 }
 
 
@@ -3697,13 +3694,27 @@ void CellularPotts::PrintColours()
 }
 
 
+void CellularPotts::PrintColourList()
+{
+  for (auto i : type_list)
+  {
+    cout << i.first << "\t" << i.second << endl;
+  }
+
+  cout << "Now printing index..." << endl;
+  for (auto i : par.colour_index)
+  {
+    cout << i.first << "\t" << i.second << endl;
+  }
+}
+
+
 
 
 void CellularPotts::ColourIndex()
 {
   unordered_map<int, int> colour_index{};
 
-  int count = 0;
   vector<Cell>::iterator c;
   for ((c=cell->begin(), c++); c!=cell->end(); c++)
   {
@@ -3715,13 +3726,19 @@ void CellularPotts::ColourIndex()
         int p = hist[i];
         if (colour_index.find(p) == colour_index.end())
         {
-          colour_index[p] = count;
-          ++count;
+          if (type_list.find(p) == type_list.end())
+          {
+            cout << "INDEXING ERROR!" << endl;
+          }
+          colour_index[p] = type_list[p];
         }
       }
     }
   }
-
+  // for (auto i : type_list)
+  // {
+  //   cout << i.first << "\t" << i.second << endl;
+  // }
 
   ofstream outfile;
   string netw = data_file + "/colour_index.txt";
@@ -3739,73 +3756,6 @@ void CellularPotts::ColourIndex()
   PrintHexColours();
 
 
-}
-
-
-string decToHexa(int n)
-{
-    // char array to store hexadecimal number
-    char hexaDeciNum[2];
- 
-    // counter for hexadecimal number array
-    int i = 0;
-    while (n != 0) {
- 
-        // temporary variable to store remainder
-        int temp = 0;
- 
-        // storing remainder in temp variable.
-        temp = n % 16;
- 
-        // check if temp < 10
-        if (temp < 10) {
-            hexaDeciNum[i] = temp + 48;
-            i++;
-        }
-        else {
-            hexaDeciNum[i] = temp + 55;
-            i++;
-        }
- 
-        n = n / 16;
-    }
- 
-    string hexCode = "";
-    if (i == 2) {
-        hexCode.push_back(hexaDeciNum[0]);
-        hexCode.push_back(hexaDeciNum[1]);
-    }
-    else if (i == 1) {
-        hexCode = "0";
-        hexCode.push_back(hexaDeciNum[0]);
-    }
-    else if (i == 0)
-        hexCode = "00";
- 
-    // Return the equivalent
-    // hexadecimal color code
-    return hexCode;
-}
- 
-// Function to convert the
-// RGB code to Hex color code
-string convertRGBtoHex(int R, int G, int B)
-{
-    if ((R >= 0 && R <= 255)
-        && (G >= 0 && G <= 255)
-        && (B >= 0 && B <= 255)) {
- 
-        string hexCode = "#";
-        hexCode += decToHexa(R);
-        hexCode += decToHexa(G);
-        hexCode += decToHexa(B);
- 
-        return hexCode;
-    }
- 
-    // The hex color code doesn't exist
-    else
-        return "-1";
 }
 
 
@@ -3828,19 +3778,37 @@ void CellularPotts::PrintHexColours()
     throw(message);
   }
 
-  vector<string> hexcolours;
-  hexcolours.resize(par.colour_index.size());
+  int maxs{};
+  for (auto i : par.colour_index)
+  {
+    if (i.second > maxs)
+    {
+      maxs = i.second;
+    }
+  }
+  cout << "maxs is " << maxs << endl;
+  string tmp = ".";
+
+  map<int,string> hexcolours;
+  for (int i = 0; i < maxs+1;++i)
+  {
+    hexcolours[i] = tmp;
+  }
+  // vector<string> hexcolours(maxs+1, tmp);
   int r,g,b;
   int i;
   while (fscanf(fpc,"%d",&i) != EOF) 
   {
     fscanf(fpc,"%d %d %d\n",&r,&g,&b);
-    string rgb = convertRGBtoHex(r,g,b);
     for (auto j : par.colour_index)
     {
       if (j.second == i)
       {
-        hexcolours[j.second] = rgb;
+        char h[8]{};
+        sprintf(h, "#%02x%02x%02x", r, g, b); 
+        string str(h);
+        // cout << j.second << "\t" << str << endl;
+        hexcolours[j.second] = str;
       }
     }
   }
@@ -3849,9 +3817,11 @@ void CellularPotts::PrintHexColours()
   ofstream outfile;
   string netw = data_file + "/colour_index.txt";
   outfile.open(netw, ios::app);
+  outfile << endl;
   for (auto i : hexcolours)
   {
-    outfile << "\"" << i << "\"," << endl;
+    if (i.second != tmp)
+      outfile << "\'" << i.first << "\' : " << "\"" << i.second << "\"," << endl;
   }
    
 
@@ -3929,22 +3899,28 @@ void CellularPotts::SetColours()
   // 46 is dark grey, 47 is sky blue, 48, 49, 50 is grey, 51 is black, 52 is red/pink, 53 is black, 112 is fluor green
   // 115 grey-red, 116 is dark grey, 117 is purple-blue, 118 is fluoro blue, 119 is deepy-light blue
 
-  vector<Cell>::iterator c;
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  for (auto i : colours)
   {
-    if (c->AliveP())
-    {
-      c->Phenotype();
-      int p = c->GetPhenotype();
-
-      map<int,int>::iterator it;
-      it = colours.find(p);
-      if (it != colours.end())
-      {
-        c->set_ctype(it->second);
-      }
-    }
+    type_list[i.first] = i.second;
   }
+
+
+  // vector<Cell>::iterator c;
+  // for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  // {
+  //   if (c->AliveP())
+  //   {
+  //     c->Phenotype();
+  //     int p = c->GetPhenotype();
+
+  //     map<int,int>::iterator it;
+  //     it = colours.find(p);
+  //     if (it != colours.end())
+  //     {
+  //       c->set_ctype(it->second);
+  //     }
+  //   }
+  // }
 }
 
 
