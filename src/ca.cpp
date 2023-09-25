@@ -2321,7 +2321,6 @@ void CellularPotts::update_network(int tsteps)
         }
       }
 
-
       //create bool based on lock and keys.
       vector<bool>& l_bool = c->get_locks_bool();
       vector<bool>& k_bool = c->get_keys_bool();
@@ -2343,11 +2342,29 @@ void CellularPotts::update_network(int tsteps)
         full_set[i+par.n_lockandkey] = m_bool[i];
       }
 
+      full_set[par.n_functional-par.n_length_genes] = ((genes.at(par.tloc1)>0.5) ? true : false);
+      full_set[par.n_functional-par.n_length_genes+1] = ((genes.at(par.tloc2)>0.5) ? true : false);
 
 
-      // hard coding the two target genes in for now. 
-      full_set[15] = ((genes.at(par.tloc1)>0.5) ? true : false);
-      full_set[16] = ((genes.at(par.tloc2)>0.5) ? true : false);
+      /// change target length based on boolified values of two target genes
+      if (genes.at(par.tloc1) > 0.5 && genes.at(par.tloc2) > 0.5)
+      {
+        c->SetTargetLength(round(c->Area() / par.tlength2)); 
+        c->set_lambda_2(par.lambda2);
+      }
+      else if (genes.at(par.tloc1) > 0.5 || genes.at(par.tloc2) > 0.5)
+      {
+        c->SetTargetLength(round(c->Area() / par.tlength1));
+        c->set_lambda_2(par.lambda2);
+      }
+      else
+      {
+        c->SetTargetLength(0.0);
+        c->set_lambda_2(0);    
+      }
+
+
+
 
 
       if (par.gene_record && tsteps > par.end_program)
@@ -2381,23 +2398,6 @@ void CellularPotts::update_network(int tsteps)
 
       }
       
-      /// change target length based on boolified values of two target genes at location 12 and 13
-      if (genes.at(par.tloc1) > 0.5 && genes.at(par.tloc2) > 0.5)
-      {
-        c->SetTargetLength(round(c->Area() / par.tlength2)); 
-        c->set_lambda_2(par.lambda2);
-      }
-      else if (genes.at(par.tloc1) > 0.5 || genes.at(par.tloc2) > 0.5)
-      {
-        c->SetTargetLength(round(c->Area() / par.tlength1));
-        c->set_lambda_2(par.lambda2);
-      }
-      else
-      {
-        c->SetTargetLength(0.0);
-        c->set_lambda_2(0);    
-      }
-
     }
 
   }
