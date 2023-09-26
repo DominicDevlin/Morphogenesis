@@ -2156,6 +2156,11 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
       c->set_genes(new_g);
       c->set_diffusers(new_d);
       c->set_lists();
+
+      if (par.max_statespace)
+      {
+        c->MaxSet();
+      }
     }
   }
 }
@@ -2307,20 +2312,6 @@ void CellularPotts::update_network(int tsteps)
         c->set_shrink(false);  
       }
 
-
-      // make boolean set. 
-      vector<bool>& full_set = c->get_set();
-
-      // for recording differentiation events to output.
-      array<bool, 17> cp;
-      if (par.gene_record && tsteps > par.end_program)
-      {
-        for (int i = 0;i<(int)full_set.size();i++)
-        {
-          cp[i] = full_set[i];
-        }
-      }
-
       //create bool based on lock and keys.
       vector<bool>& l_bool = c->get_locks_bool();
       vector<bool>& k_bool = c->get_keys_bool();
@@ -2328,24 +2319,9 @@ void CellularPotts::update_network(int tsteps)
 
       for (int i=0; i < par.n_locks; ++i)
       {
-
         l_bool[i] = (locks[i]>0.5) ? true : false;
-        full_set[i] = l_bool[i];
-
         k_bool[i] = (keys[i]>0.5) ? true : false;
-        full_set[i+par.n_locks] = k_bool[i];
       }
-
-      for (int i=0; i < par.n_mediums; ++i)
-      {
-        m_bool[i] = (meds[i]>0.5) ? true : false;
-        full_set[i+par.n_lockandkey] = m_bool[i];
-      }
-
-      full_set[par.n_functional-par.n_length_genes] = ((genes.at(par.tloc1)>0.5) ? true : false);
-      full_set[par.n_functional-par.n_length_genes+1] = ((genes.at(par.tloc2)>0.5) ? true : false);
-
-
       /// change target length based on boolified values of two target genes
       if (genes.at(par.tloc1) > 0.5 && genes.at(par.tloc2) > 0.5)
       {
@@ -2364,39 +2340,131 @@ void CellularPotts::update_network(int tsteps)
       }
 
 
-
-
-
       if (par.gene_record && tsteps > par.end_program)
       {
-        
-        c->AddPhenotype();
-        c->RecordLongSwitch(cp, RandomNumber(INT_MAX, s_val));
-        if (tsteps > par.adult_begins)
+        if (!par.max_statespace)
         {
-          c->AddType();
+
+          // make boolean set. 
+          vector<bool>& full_set = c->get_set();
+          // for recording differentiation events to output.
+          vector<bool> cp(par.n_functional);
+          if (par.gene_record && tsteps > par.end_program)
+          {
+            for (int i = 0;i<(int)full_set.size();i++)
+            {
+              cp[i] = full_set[i];
+            }
+          }
+
+          for (int i=0; i < par.n_locks; ++i)
+          {
+
+            full_set[i] = l_bool[i];
+            full_set[i+par.n_locks] = k_bool[i];
+          }
+
+          for (int i=0; i < par.n_mediums; ++i)
+          {
+            m_bool[i] = (meds[i]>0.5) ? true : false;
+            full_set[i+par.n_lockandkey] = m_bool[i];
+          }
+
+          full_set[par.n_functional-par.n_length_genes] = ((genes.at(par.tloc1)>0.5) ? true : false);
+          full_set[par.n_functional-par.n_length_genes+1] = ((genes.at(par.tloc2)>0.5) ? true : false);
+
+          c->AddPhenotype();
+          c->RecordLongSwitch(cp, RandomNumber(INT_MAX, s_val));
+          if (tsteps > par.adult_begins)
+          {
+            c->AddType();
+          }
+          if (!par.potency_edges)
+            c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
+          else if (par.potency_edges && tsteps > par.adult_begins)
+          {
+            c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
+          }
+          // unfortunately need to add old and new phenotype just in case a node is missed. 
+          c->Phenotype();
+          // Have to record types before and after switch otherwise a node could be skipped.
+          c->AddPhenotype();
+          if (tsteps > par.adult_begins)
+          {
+            c->AddType();
+          }
+          int ptype=c->GetPhenotype();
+          // int tau = c->getTau();
+          // set the type of the cell based on network arrangement.
+          c->set_ctype(set_type(ptype));// * c->getTau());
+          // c->add_to_cycle();
         }
-        if (!par.potency_edges)
-          c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
-        else if (par.potency_edges && tsteps > par.adult_begins)
+        else
         {
-          c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
+          // make boolean set. 
+          vector<bool>& full_set = c->get_set();
+          // for recording differentiation events to output.
+          vector<bool> cp(par.n_functional);
+          if (par.gene_record && tsteps > par.end_program)
+          {
+            for (int i = 0;i<(int)full_set.size();i++)
+            {
+              cp[i] = full_set[i];
+            }
+
+            for (int i=0; i < par.n_locks; ++i)
+            {
+
+              full_set[i] = l_bool[i];
+              full_set[i+par.n_locks] = k_bool[i];
+            }
+
+            for (int i=0; i < par.n_mediums; ++i)
+            {
+              m_bool[i] = (meds[i]>0.5) ? true : false;
+              full_set[i+par.n_lockandkey] = m_bool[i];
+            }
+
+            full_set[par.n_functional-par.n_length_genes] = ((genes.at(par.tloc1)>0.5) ? true : false);
+            full_set[par.n_functional-par.n_length_genes+1] = ((genes.at(par.tloc2)>0.5) ? true : false);
+
+            for (int i=0;i<par.n_activators;++i)
+            {
+              full_set[par.n_functional+i] = ((genes[i]>0.5)? true : false);
+            }
+            c->AddPhenotype();
+            c->RecordLongSwitch(cp, RandomNumber(INT_MAX, s_val));
+            if (tsteps > par.adult_begins)
+            {
+              c->AddType();
+            }
+            if (!par.potency_edges)
+              c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
+            else if (par.potency_edges && tsteps > par.adult_begins)
+            {
+              c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
+            }
+            // unfortunately need to add old and new phenotype just in case a node is missed. 
+            c->Phenotype();
+            // Have to record types before and after switch otherwise a node could be skipped.
+            c->AddPhenotype();
+            if (tsteps > par.adult_begins)
+            {
+              c->AddType();
+            }
+            int ptype=c->GetPhenotype();
+            // int tau = c->getTau();
+            // set the type of the cell based on network arrangement.
+            c->set_ctype(set_type(ptype));// * c->getTau());
+            // c->add_to_cycle();
+
+
+          }
         }
-        // unfortunately need to add old and new phenotype just in case a node is missed. 
-        c->Phenotype();
-        // Have to record types before and after switch otherwise a node could be skipped.
-        c->AddPhenotype();
-        if (tsteps > par.adult_begins)
-        {
-          c->AddType();
-        }
-        int ptype=c->GetPhenotype();
-        int tau = c->getTau();
-        // set the type of the cell based on network arrangement.
-        c->set_ctype(set_type(ptype));// * c->getTau());
-        // c->add_to_cycle();
+
 
       }
+      
       
     }
 

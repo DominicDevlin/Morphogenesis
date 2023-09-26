@@ -331,14 +331,14 @@ bool Cell::checkforcycles(int max)
 void Cell::Phenotype()
 {
   int pcode{};
-  for (int i=0;i<par.n_functional;++i)
+  int tot = full_set.size();
+  for (int i=0;i<tot;++i)
   {
-    int x = par.n_functional - 1 - i;
+    int x = tot - 1 - i;
     pcode += full_set[i] * pow(2,x);
   }
   phenotype = pcode;
 }
-
 
 int Cell::RegPhenotype()
 {
@@ -360,14 +360,15 @@ int Cell::RegPhenotype()
 
 
 
-void Cell::RecordLongSwitch(array<bool, 17> &v1, uint64_t rndm)
+void Cell::RecordLongSwitch(vector<bool> &v1, uint64_t rndm)
 {
   int p1{};
   int p2{};
+  int tot = full_set.size();
 
-  for (int i=0;i<par.n_functional;++i)
+  for (int i=0;i<tot;++i)
   {
-    int x = 16 - i;
+    int x = tot - 1 - i;
     p1 += v1[i] * pow(2,x);
     p2 += full_set[i] * pow(2,x);
   }
@@ -382,14 +383,15 @@ void Cell::RecordLongSwitch(array<bool, 17> &v1, uint64_t rndm)
 }
 
 
-void Cell::RecordSwitch(array<bool, 17> &v1, uint64_t rndm)
+void Cell::RecordSwitch(vector<bool> &v1, uint64_t rndm)
 {
   int p1{};
   int p2{};
+  int tot = full_set.size();
 
-  for (int i=0;i<par.n_functional;++i)
+  for (int i=0;i<tot;++i)
   {
-    int x = 16 - i;
+    int x = tot - 1 - i;
     p1 += v1[i] * pow(2,x);
     p2 += full_set[i] * pow(2,x);
   }

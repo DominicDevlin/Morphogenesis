@@ -459,10 +459,10 @@ TIMESTEP {
     }
 
     // for removing cells. 
-    if (t == 6000)
+    if (t == 10000)
     {
       // dish->CPM->DestroyCellsByRadius(34.);
-      // dish->CPM->DestroyCellsByPhenotype(111104, false);
+      dish->CPM->DestroyCellsByPhenotype(31747, true);
       // dish->CPM->DestroyCellsByPhenotype(51699, true, 51331, 51339);
       // dish->CPM->DestroyCellsByPhenotype(103234, true, 103235, 103171);
       // dish->CPM->DestroyCellsByMorphogen(1, 0.15);

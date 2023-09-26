@@ -835,9 +835,9 @@ private:
     return phenotype;
   }
 
-  void RecordSwitch(array<bool, 17> &v1, uint64_t rndm);
+  void RecordSwitch(vector<bool> &v1, uint64_t rndm);
 
-  void RecordLongSwitch(array<bool, 17> &v1, uint64_t rndm);
+  void RecordLongSwitch(vector<bool> &v1, uint64_t rndm);
 
 
 
@@ -959,6 +959,11 @@ private:
   inline vector<double>& GetMassList()
   {
     return mass_list;
+  }
+
+  inline void MaxSet()
+  {
+    full_set.resize(par.n_functional+par.n_activators, 0);
   }
 
   

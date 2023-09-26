@@ -140,6 +140,9 @@ class Parameter {
   vector<double> single_states;
   bool flush_cells;
   
+  bool max_statespace;
+
+
   bool record_directions;
 
   string data_file;
