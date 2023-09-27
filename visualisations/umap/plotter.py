@@ -21,6 +21,7 @@ import datashader.utils as utils
 import datashader.transfer_functions as tf
 import matplotlib.pyplot as plt
 import seaborn as sns
+import scvelo as scv
 
 sns.set(context="paper", style="white")
 
@@ -35,6 +36,7 @@ source_df = pd.read_csv("cdata.csv")
 
 data = source_df.iloc[:, :27].values.astype(np.float32)
 target = source_df["class"].values
+
 
 max_val=0
 for i in target:
@@ -55,119 +57,111 @@ for i in target:
 color_key = {
 '4' : "#0000fe",
 '5' : "#ff00ff",
+'6' : "#00ffff",
 '7' : "#00ff00",
 '8' : "#555555",
 '9' : "#c67171",
 '10' : "#71c671",
+'11' : "#8e8e38",
+'12' : "#7171c6",
 '13' : "#8e388e",
-'14' : "#388e8e",
 '16' : "#4c719e",
+'17' : "#495b5b",
+'18' : "#232b2b",
+'19' : "#a4adad",
 '20' : "#00375b",
 '21' : "#7391a5",
 '22' : "#ffbf00",
 '23' : "#001828",
 '24' : "#99913a",
 '25' : "#c1c1c1",
+'26' : "#272727",
 '27' : "#e8e8e8",
 '28' : "#707070",
 '29' : "#bebebe",
+'30' : "#b98e8e",
+'31' : "#729c9c",
 '32' : "#5680ab",
 '33' : "#e2d0d0",
+'34' : "#664e4e",
+'35' : "#d5d5d5",
+'36' : "#999999",
+'37' : "#00003f",
 '38' : "#d6d6d6",
-'39' : "#adadad",
-'40' : "#cccccc",
-'41' : "#737373",
-'42' : "#4c4c4c",
-'43' : "#808080",
-'44' : "#efefef",
-'45' : "#8de38d",
-'46' : "#9b9b9b",
-'47' : "#86e3e3",
-'48' : "#9c9c9c",
-'49' : "#bfbfbf",
-'50' : "#838383",
-'51' : "#353535",
-'52' : "#b00000",
-'53' : "#212121",
-'54' : "#085b08",
-'55' : "#bbbbbb",
-'56' : "#5d5d5d",
-'57' : "#6b6b6b",
-'58' : "#070707",
-'59' : "#161616",
-'60' : "#2d2d2d",
-'61' : "#494949",
-'62' : "#929292",
-'63' : "#7d7d7d",
-'64' : "#0000b0",
-'65' : "#005b00",
-'66' : "#6920ac",
-'67' : "#b2c0dc",
-'68' : "#c6d5e2",
-'69' : "#8b99b5",
-'70' : "#37051d",
-'71' : "#8e829a",
-'72' : "#ff0066",
-'73' : "#ff3883",
-'74' : "#ffa1b5",
-'75' : "#ff9900",
-'76' : "#a8610c",
-'77' : "#873d38",
-'78' : "#6dd339",
-'79' : "#ab4d00",
-'80' : "#057a0b",
-'81' : "#ccff66",
-'82' : "#ff66cc",
-'83' : "#192785",
-'84' : "#8cffd8",
-'85' : "#add979",
-'86' : "#633dff",
-'87' : "#6aa9d8",
-'88' : "#c665ff",
-'89' : "#cc6666",
-'90' : "#f9c664",
-'91' : "#2e8c68",
-'92' : "#35461e",
-'93' : "#a624a1",
-'94' : "#3946af",
 }
 
+colours = []
+for i in target:
+  val = str(i)
+  colours.append(color_key[val])
 
 
-print(color_key)
 
 
 reducer = umap.UMAP(random_state=42, n_neighbors=50, min_dist=0.5)
 embedding = reducer.fit_transform(data)
 
 
-# fig, ax = plt.subplots(figsize=(12, 10))
-# # color = mnist.target.astype(int)
-# plt.scatter(embedding[:, 0], embedding[:, 1], c=source_df["class"].values, cmap="Spectral", s=0.1)
-# plt.show()
+arrows = []
 
+for i in range(len(embedding)):
+  while (i < 1000 and i > 0):
+    new_arrow = []
+    x1=embedding[i-1][0]
+    y1=embedding[i-1][1]
+    x2=embedding[i][0]
+    y2=embedding[i][1]
+    new_arrow.append(x1)
+    new_arrow.append(y1)
+    new_arrow.append(x2-x1)
+    new_arrow.append(y2-y1)
+    arrows.append(new_arrow)
+    
 
-df = pd.DataFrame(embedding, columns=("x", "y"))
-df["class"] = pd.Series([str(x) for x in target], dtype="category")
+print(arrows)
 
-cvs = ds.Canvas(plot_width=400, plot_height=400)
-agg = cvs.points(df, "x", "y", ds.count_cat("class"))
-img = tf.shade(agg, min_alpha=255, color_key=color_key, how="eq_hist")
+fig, ax = plt.subplots(figsize=(12, 10))
+plt.scatter(embedding[:, 0], embedding[:, 1], c=colours, s=0.3)#, cmap="Spectral", s=0.1)
 
-utils.export_image(img, filename="tester", background="white", fmt=".png")
+count = 0
+for i in range(len(embedding)):
+  if (count % 100 == 0):
+    embedding[:,]
 
-image = plt.imread("tester.png")
-fig, ax = plt.subplots(figsize=(6, 6))
-plt.imshow(image)
-plt.setp(ax, xticks=[], yticks=[])
-plt.title(
-    "Cell expression data\n"
-    "into two dimensions by UMAP\n"
-    "visualised with Datashader",
-    fontsize=12,
-)
+for i in arrows:
+  plt.arrow(i[0], i[1], i[2], i[3], head_width=0.5, width=0.1, color="black")
 
 plt.show()
+
+
+
+
+
+
+
+# df = pd.DataFrame(embedding, columns=("x", "y"))
+
+# df["class"] = pd.Series([str(x) for x in target], dtype="category")
+
+
+# cvs = ds.Canvas(plot_width=400, plot_height=400)
+# agg = cvs.points(df, "x", "y", ds.count_cat("class"))
+# img = tf.shade(agg, min_alpha=255, color_key=color_key, how="eq_hist")
+
+# utils.export_image(img, filename="tester", background="white", fmt=".png")
+
+# image = plt.imread("tester.png")
+# fig, ax = plt.subplots(figsize=(6, 6))
+# plt.imshow(image)
+# plt.setp(ax, xticks=[], yticks=[])
+# plt.title(
+#     "Cell expression data\n"
+#     "into two dimensions by UMAP\n"
+#     "visualised with Datashader",
+#     fontsize=12,
+# )
+
+# plt.show()
 
 
 

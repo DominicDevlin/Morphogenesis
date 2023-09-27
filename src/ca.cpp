@@ -3400,6 +3400,7 @@ void CellularPotts::cell_concentrations()
         vector<int>& hist = c->TypeHistory();
         var_name = data_file + "/cdata.dat";
         outfile.open(var_name, ios::app);
+        int count = 0;
         for (unsigned int i=153;i<gene_history.at(0).size();++i)
         {
 
@@ -3412,8 +3413,15 @@ void CellularPotts::cell_concentrations()
             }
             outfile << par.colour_index[p] << endl;
           }
-          // auto it = find(col_index.begin(), col_index.end(), p);
+          // if (count % 100 == 0)
+          // {
+          //   outfile << 
+          // }
+          // outfile << endl;
 
+          // ++count;
+
+          // auto it = find(col_index.begin(), col_index.end(), p);
           // if (it == col_index.end())
           // {
           //   col_index.push_back(p);
@@ -3426,6 +3434,22 @@ void CellularPotts::cell_concentrations()
           // }
           // outfile << endl;
         }
+        // outfile.close();
+        // var_name = data_file + "/cdata2.dat";
+        // outfile.open(var_name, ios::app);
+        // for (unsigned int i=153;i<gene_history.at(0).size();++i)
+        // {
+        //   int p = hist[i-5];
+        //   if (par.colour_index.find(p) != par.colour_index.end() )
+        //   {
+        //     for (int j=0;j<par.n_genes; ++j)
+        //     {
+        //       outfile << gene_history.at(j).at(i-5) << '\t';
+        //     }
+        //     outfile << endl;
+        //   }
+        // }
+        // outfile.close();
       }
 
 
