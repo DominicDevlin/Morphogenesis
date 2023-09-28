@@ -25,127 +25,35 @@ import pickle
 
 
 
-sns.set(context="paper", style="white")
-
-# if not os.path.isfile("fashion-mnist.csv"):
-#     csv_data = requests.get("https://www.openml.org/data/get_csv/18238735/phpnBqZGZ")
-#     with open("fashion-mnist.csv", "w") as f:
-#         f.write(csv_data.text)
-# source_df = pd.read_csv("fashion-mnist.csv")
-
-source_df = pd.read_csv("cdata.csv")
-
-
-data = source_df.iloc[:, :27].values.astype(np.float32)
-target = source_df["class"].values
-
-
-max_val=0
-for i in target:
-  if i > max_val:
-    max_val = i
-
-# color_key = {str(d): c for d, c in enumerate(pal)}
-
-
-# count = 0
-# while max_val+1 > len(color_key):
-#   color_key[str(len(color_key))] = pal[count]
-#   count += 1
-#   if count >= len(pal): 
-#     count = 0
-
-
-color_key = {
-'4' : "#0000fe",
-'5' : "#ff00ff",
-'6' : "#00ffff",
-'7' : "#00ff00",
-'8' : "#555555",
-'9' : "#c67171",
-'10' : "#71c671",
-'11' : "#8e8e38",
-'12' : "#7171c6",
-'13' : "#8e388e",
-'16' : "#4c719e",
-'17' : "#495b5b",
-'18' : "#232b2b",
-'19' : "#a4adad",
-'20' : "#00375b",
-'21' : "#7391a5",
-'22' : "#ffbf00",
-'23' : "#001828",
-'24' : "#99913a",
-'25' : "#c1c1c1",
-'26' : "#272727",
-'27' : "#e8e8e8",
-'28' : "#707070",
-'29' : "#bebebe",
-'30' : "#b98e8e",
-'31' : "#729c9c",
-'32' : "#5680ab",
-'33' : "#e2d0d0",
-'34' : "#664e4e",
-'35' : "#d5d5d5",
-'36' : "#999999",
-'37' : "#00003f",
-'38' : "#d6d6d6",
-}
-
-colours = []
-for i in target:
-  val = str(i)
-  colours.append(color_key[val])
-
-
-
-reducer = umap.UMAP(random_state=42, n_neighbors=50, min_dist=0.5)
-embedding = reducer.fit_transform(data)
-
-
-with open('embedding', 'wb') as f:
-  pickle.dump(embedding, f)
+obj1 = open('embedding', 'rb')
+embedding = pickle.load(obj1)
+obj1.close()
 
 arrows = []
-
-
 for i in range(len(embedding)):
-  if (i < 300 and i > 0):
+  if (i < 20050 and i > 19900):
     new_arrow = []
-    x1=embedding[i-1][0]
+    x1 = embedding[i-1][0]
     y1=embedding[i-1][1]
-    x2=embedding[i][0]
-    y2=embedding[i][1]
+    x=embedding[i][0] - embedding[i-1][0]
+    y=embedding[i][1] - embedding[i-1][1]
+    length = np.sqrt(pow(x,2) + pow(y,2))
     new_arrow.append(x1)
     new_arrow.append(y1)
-    new_arrow.append(x2-x1)
-    new_arrow.append(y2-y1)
+    new_arrow.append(x)
+    new_arrow.append(y)
+    new_arrow.append(length)
     arrows.append(new_arrow)
     
 
-# print(arrows)
-
 fig, ax = plt.subplots(figsize=(12, 10))
-plt.scatter(embedding[:, 0], embedding[:, 1], c=colours, s=0.3)#, cmap="Spectral", s=0.1)
+plt.scatter(embedding[:, 0], embedding[:, 1], s=0.3)#, cmap="Spectral", s=0.1)
 
-count = 0
-for i in range(len(embedding)):
-  if (count % 100 == 0):
-    embedding[:,]
 
 for i in arrows:
-  plt.arrow(i[0], i[1], i[2], i[3], head_width=0.5, width=0.1, color="black")
-
-with open('my_plot.pkl', 'wb') as f:
-    pickle.dump(fig, f)
+  plt.arrow(i[0], i[1], i[2], i[3], head_width=np.log10(i[4])/3, width=(np.log10(i[4])/6), color="black")
 
 plt.show()
-
-
-
-
-
-
 
 # df = pd.DataFrame(embedding, columns=("x", "y"))
 
