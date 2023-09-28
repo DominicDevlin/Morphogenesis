@@ -53,7 +53,7 @@
     // gene record needs to always be on to test network connectivity. 
     gene_record = true;
     // include regulatory proteins in the state space 
-    max_statespace = false;
+    max_statespace = true;
 
     //for umap
     umap = true;
