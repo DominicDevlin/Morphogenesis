@@ -2622,7 +2622,7 @@ int CellularPotts::set_type(int& setv)
   // auto it = find(type_list.begin(), type_list.end(), set);
   if (type_list.find(setv) == type_list.end())
   {
-    type_list[setv] = (type_list.size() + 4);
+    type_list[setv] = (type_list.size() + 4 - init_colours);
   }
   return type_list[setv];
 
@@ -3377,6 +3377,7 @@ void CellularPotts::cell_concentrations()
   vector<Cell>::iterator c;
   for ((c=cell->begin(), c++); c!=cell->end(); c++)
   {
+    int count = 0;
     if (c->AliveP())
     {
       string var_name = data_file + "/conc/cell_conc_" + to_string(c->Sigma()) + ".dat";
@@ -3400,8 +3401,8 @@ void CellularPotts::cell_concentrations()
         vector<int>& hist = c->TypeHistory();
         var_name = data_file + "/cdata.dat";
         outfile.open(var_name, ios::app);
-        int count = 0;
-        for (unsigned int i=153;i<gene_history.at(0).size();++i)
+        
+        for (unsigned int i=152;i<gene_history.at(0).size();++i)
         {
 
           int p = hist[i];
@@ -3413,6 +3414,9 @@ void CellularPotts::cell_concentrations()
             }
             outfile << par.colour_index[p] << endl;
           }
+
+          // outfile << count << endl;
+          // ++count;
           // if (count % 100 == 0)
           // {
           //   outfile << 
@@ -3956,8 +3960,10 @@ void CellularPotts::SetColours()
   // map<int,int> colours = {{119675, 45}, {110595, 143},{115579, 84},{45059, 71}, {127867, 88}}; // this is for shield
 
 
-  map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
-  {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
+  // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
+  // {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
+  map<int,int> colours = {{6096811, 278}, {6160299, 279}, {6159915, 280}, {49940175, 281},
+  {49942223, 282}, {49940174, 283}, {16385742, 284}}; // this is for waffle
 
   // map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
   // {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
@@ -3995,6 +4001,7 @@ void CellularPotts::SetColours()
   {
     type_list[i.first] = i.second;
   }
+  init_colours=type_list.size();
 
 
   // vector<Cell>::iterator c;

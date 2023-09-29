@@ -1,16 +1,3 @@
-"""
-UMAP on the Fashion MNIST Digits dataset using Datashader
----------------------------------------------------------
-
-This is a simple example of using UMAP on the Fashion-MNIST
-dataset. The goal of this example is largely to demonstrate
-the use of datashader as an effective tool for visualising
-UMAP results. In particular datashader allows visualisation
-of very large datasets where overplotting can be a serious
-problem. It supports coloring by categorical variables
-(as shown in this example), or by continuous variables,
-or by density (as is common in datashader examples).
-"""
 import umap
 import numpy as np
 import pandas as pd
@@ -24,6 +11,24 @@ import seaborn as sns
 import pickle
 
 
+data = pd.read_csv("cdata.csv")
+
+cell_list = data['cell'].to_list()
+
+
+i_min = 10000000000
+i_max = 0
+cell_n = 4
+for i in range(len(cell_list)):
+  if cell_n == cell_list[i]:
+    if (i < i_min):
+      i_min = i
+    elif (i > i_max):
+      i_max = i
+
+print(i_min)
+print(i_max)
+
 
 obj1 = open('embedding', 'rb')
 embedding = pickle.load(obj1)
@@ -31,7 +36,7 @@ obj1.close()
 
 arrows = []
 for i in range(len(embedding)):
-  if (i < 20050 and i > 19900):
+  if (i < i_max and i > i_min):
     new_arrow = []
     x1 = embedding[i-1][0]
     y1=embedding[i-1][1]
@@ -51,8 +56,9 @@ plt.scatter(embedding[:, 0], embedding[:, 1], s=0.3)#, cmap="Spectral", s=0.1)
 
 
 for i in arrows:
-  plt.arrow(i[0], i[1], i[2], i[3], head_width=np.log10(i[4])/3, width=(np.log10(i[4])/6), color="black")
+  plt.arrow(i[0], i[1], i[2], i[3], head_width=0.5, width=0.1, color="black")
 
+# head_width=np.log10(i[4])/5, width=(np.log10(i[4]))
 plt.show()
 
 # df = pd.DataFrame(embedding, columns=("x", "y"))

@@ -581,6 +581,7 @@ private:
 
   int stack[8]; // stack to count number of different surrounding cells, CHANGE TO MEMBER FUNCTION
 
+  int init_colours;
 
   int rows;
   int cols;

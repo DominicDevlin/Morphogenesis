@@ -211,10 +211,10 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
     string n = "c" + to_string(i+1);
     outfile << n << '\t';
   }
-  outfile << "class" << endl;
+  outfile << "class" << '\t' << "cell" << endl;
 
   // vector<int> col_index{};
-
+  int count=1;
   int f = sum_history.size();
   for (int i = 0; i < f;++i)
   {
@@ -244,7 +244,12 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
     {
       outfile << par.colour_index[p];
     }
-    outfile << endl;
+
+    if (((i+1) % 150) == 0)
+    {
+      count+=1;
+    }
+    outfile << '\t' << count << endl;
 
   }
 

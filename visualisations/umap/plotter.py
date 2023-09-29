@@ -1,16 +1,3 @@
-"""
-UMAP on the Fashion MNIST Digits dataset using Datashader
----------------------------------------------------------
-
-This is a simple example of using UMAP on the Fashion-MNIST
-dataset. The goal of this example is largely to demonstrate
-the use of datashader as an effective tool for visualising
-UMAP results. In particular datashader allows visualisation
-of very large datasets where overplotting can be a serious
-problem. It supports coloring by categorical variables
-(as shown in this example), or by continuous variables,
-or by density (as is common in datashader examples).
-"""
 import umap
 import numpy as np
 import pandas as pd
@@ -57,39 +44,45 @@ for i in target:
 
 
 color_key = {
-'4' : "#0000fe",
-'5' : "#ff00ff",
-'6' : "#00ffff",
+'0' : "#00ff00",
 '7' : "#00ff00",
-'8' : "#555555",
-'9' : "#c67171",
-'10' : "#71c671",
-'11' : "#8e8e38",
 '12' : "#7171c6",
-'13' : "#8e388e",
-'16' : "#4c719e",
-'17' : "#495b5b",
-'18' : "#232b2b",
 '19' : "#a4adad",
-'20' : "#00375b",
-'21' : "#7391a5",
-'22' : "#ffbf00",
-'23' : "#001828",
-'24' : "#99913a",
-'25' : "#c1c1c1",
-'26' : "#272727",
 '27' : "#e8e8e8",
-'28' : "#707070",
-'29' : "#bebebe",
-'30' : "#b98e8e",
-'31' : "#729c9c",
 '32' : "#5680ab",
 '33' : "#e2d0d0",
 '34' : "#664e4e",
 '35' : "#d5d5d5",
 '36' : "#999999",
-'37' : "#00003f",
 '38' : "#d6d6d6",
+'39' : "#adadad",
+'41' : "#737373",
+'42' : "#4c4c4c",
+'44' : "#efefef",
+'45' : "#8de38d",
+'46' : "#9b9b9b",
+'47' : "#86e3e3",
+'48' : "#9c9c9c",
+'49' : "#bfbfbf",
+'50' : "#838383",
+'51' : "#353535",
+'52' : "#b00000",
+'53' : "#212121",
+'54' : "#085b08",
+'55' : "#bbbbbb",
+'59' : "#161616",
+'62' : "#929292",
+'63' : "#7d7d7d",
+'64' : "#0000b0",
+'65' : "#005b00",
+'66' : "#6920ac",
+'278' : "#45b9bc",
+'279' : "#c2b23b",
+'280' : "#70c570",
+'281' : "#c4639c",
+'282' : "#ff9800",
+'283' : "#727272",
+'284' : "#48b5ff",
 }
 
 colours = []
@@ -106,23 +99,6 @@ embedding = reducer.fit_transform(data)
 with open('embedding', 'wb') as f:
   pickle.dump(embedding, f)
 
-arrows = []
-
-
-for i in range(len(embedding)):
-  if (i < 300 and i > 0):
-    new_arrow = []
-    x1=embedding[i-1][0]
-    y1=embedding[i-1][1]
-    x2=embedding[i][0]
-    y2=embedding[i][1]
-    new_arrow.append(x1)
-    new_arrow.append(y1)
-    new_arrow.append(x2-x1)
-    new_arrow.append(y2-y1)
-    arrows.append(new_arrow)
-    
-
 # print(arrows)
 
 fig, ax = plt.subplots(figsize=(12, 10))
@@ -133,11 +109,9 @@ for i in range(len(embedding)):
   if (count % 100 == 0):
     embedding[:,]
 
-for i in arrows:
-  plt.arrow(i[0], i[1], i[2], i[3], head_width=0.5, width=0.1, color="black")
 
-with open('my_plot.pkl', 'wb') as f:
-    pickle.dump(fig, f)
+# with open('my_plot.pkl', 'wb') as f:
+#     pickle.dump(fig, f)
 
 plt.show()
 
