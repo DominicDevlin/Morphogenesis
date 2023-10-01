@@ -17,7 +17,6 @@ source_df = pd.read_csv("cdata.csv")
 data = source_df.iloc[:, :27].values.astype(np.float32)
 target = source_df["class"].values
 
-
 color_key = {
 '0' : "#00ff00",
 '7' : "#00ff00",

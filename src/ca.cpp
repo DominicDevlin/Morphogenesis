@@ -2322,6 +2322,13 @@ void CellularPotts::update_network(int tsteps)
         l_bool[i] = (locks[i]>0.5) ? true : false;
         k_bool[i] = (keys[i]>0.5) ? true : false;
       }
+      for (int i=0;i < par.n_mediums;++i)
+      {
+        m_bool[i] = (meds[i]>0.5) ? true : false;
+      }
+
+
+
       /// change target length based on boolified values of two target genes
       if (genes.at(par.tloc1) > 0.5 && genes.at(par.tloc2) > 0.5)
       {
@@ -2338,7 +2345,6 @@ void CellularPotts::update_network(int tsteps)
         c->SetTargetLength(0.0);
         c->set_lambda_2(0);    
       }
-
 
       if (par.gene_record && tsteps > par.end_program)
       {
@@ -2366,7 +2372,6 @@ void CellularPotts::update_network(int tsteps)
 
           for (int i=0; i < par.n_mediums; ++i)
           {
-            m_bool[i] = (meds[i]>0.5) ? true : false;
             full_set[i+par.n_lockandkey] = m_bool[i];
           }
 
@@ -2461,13 +2466,8 @@ void CellularPotts::update_network(int tsteps)
 
           }
         }
-
-
       }
-      
-      
     }
-
   }
 }
 
@@ -3962,8 +3962,9 @@ void CellularPotts::SetColours()
 
   // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
   // {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
-  map<int,int> colours = {{6096811, 278}, {6160299, 279}, {6159915, 280}, {49940175, 281},
-  {49942223, 282}, {49940174, 283}, {16385742, 284}}; // this is for waffle
+
+  // map<int,int> colours = {{6096811, 278}, {6160299, 279}, {6159915, 280}, {49940175, 281},
+  // {49942223, 282}, {49940174, 283}, {16385742, 284}}; // this is for waffle
 
   // map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
   // {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
@@ -3985,8 +3986,8 @@ void CellularPotts::SetColours()
 
   // map<int,int> colours = {{92811, 117}, {64892, 47}, {31747, 106}, {76427, 119}};  // this is for asym8
 
-  // map<int,int> colours = {{33543, 268}, {33671, 269}, {99207, 270}, {99295, 271}, {115711, 272}, 
-  // {117503, 273}, {109311, 274}, {117759, 275}, {99327, 276}, {33667, 277}}; // pluri53
+  map<int,int> colours = {{33543, 268}, {33671, 269}, {99207, 270}, {99295, 271}, {115711, 272}, 
+  {117503, 273}, {109311, 274}, {117759, 275}, {99327, 276}, {33667, 277}}; // pluri53
 
   // 45059, 3137, 31345
 
