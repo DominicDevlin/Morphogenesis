@@ -281,8 +281,12 @@ public:
   inline void set_ctype(const int col)
   {
     c_type = col;
-    // if (sigma == 227)
-    //   c_type = 103;
+    // if (sigma == 97)
+    // {
+    //   c_type = 2;
+    //   cout << xcen << '\t' << ycen << endl;
+    // }
+
   }
 
 

@@ -35,8 +35,8 @@
   Parameter::Parameter()
   {
     //basic grid parameters. 
-    sizex = 250;
-    sizey = 250;
+    sizex = 300;
+    sizey = 300;
     mcs = 12100;
 
     // show on screen
@@ -53,17 +53,17 @@
     // gene record needs to always be on to test network connectivity. 
     gene_record = true;
     // include regulatory proteins in the state space 
-    max_statespace = false;
+    max_statespace = true;
 
     //for umap
-    umap = true;
+    umap = false;
 
     // record velocities for all cells
-    velocities = true;
+    velocities = false;
     record_directions = false;
 
     // record cell sizes
-    output_sizes = true;
+    output_sizes = false;
 
     // record gamma parameter
     output_gamma = false;
@@ -75,7 +75,7 @@
     store = true;
     //set specific colours (SHOULD ALWAYS BE FALSE UNLESS NEEDED)
     set_colours = true;
-    // Start from specific seed. USE 0 for random seed. (SHOULD ALWAYS be 0 unless need specific seed.)
+    // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
     pickseed=0;
     rseed = -1;
 
@@ -84,7 +84,8 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 1, 0, 0, -2, 1, 0, -1, 1, -1 }, { 0, 2, 1, 1, 0, 0, 0, 0, 0 }, { -1, 0, 0, 0, 0, 2, 0, 0, 0 }, { 0, 0, 2, 0, 0, 0, 1, 0, 0 }, { 1, 1, 0, 1, 1, -1, -1, -1, 0 }, { 0, -2, -1, -1, 1, 0, 0, 0, 1 }, { 0, -1, 0, -1, 0, 1, 0, -1, 0 }, { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 2, 2, 0, -1, 0 }, { 1, 0, -1, 1, 0, 0, 0, 0, 0 }, { 1, 1, 2, 0, 0, 0, 0, 0, -1 }, { 0, 0, 0, 0, -2, 2, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, -1, 1, 0 }, { 1, 1, -1, 0, 1, 0, 1, 1, 1 }, { 0, 1, -1, 1, -1, 0, 0, 0, 0 }, { -2, 0, 1, 0, 2, 1, 0, -1, -1 }, { 0, 0, 0, 0, 0, -1, 0, 0, 0 }, { 0, 1, 2, 0, -1, 2, 1, 1, -1 }, { 1, 1, 0, 0, -2, 0, 0, 0, -2 }, { 0, 0, 0, 0, 0, 0, 1, 0, 1 }, { 2, -2, -1, -1, 0, -1, -1, 2, 1 }, { -2, 0, 0, -1, 1, 0, 1, 1, 1 }, { -1, 0, 0, 0, -1, 0, 0, 2, 1 }, { 0, 0, -2, 2, 0, 0, 0, 0, 0 }, { 0, -1, 1, 0, 0, 0, 0, 2, 0 }, { 0, -1, 0, 1, 0, 0, 0, 2, 0 }, { 0, 0, -1, 0, 1, -2, 0, 1, 0 }, };
+    start_matrix = { { 1, 1, -1, 0, -2, -1, -2, 0, 1 }, { 0, 0, -2, 0, -1, -1, 1, 0, 0 }, { 0, 2, 2, -1, 1, 0, 1, 0, 1 }, { 0, -2, 2, 0, 1, -2, 0, -1, 0 }, { -1, 0, 1, 0, -1, 1, -2, 1, -1 }, { 1, 1, 0, 1, 0, 0, -1, 2, 0 }, { 0, -1, -1, -1, 1, 0, 0, -1, 0 }, { 0, 0, 0, 0, -1, -1, 2, 1, 0 }, { 1, 1, -1, -1, 0, 0, 0, 0, 0 }, { 1, 1, 0, 1, 0, 0, 0, 0, 1 }, { -1, 1, -1, -1, 2, 0, 0, 0, 0 }, { 2, 1, 0, -1, -1, -1, 0, 0, 0 }, { -1, 2, 0, 0, 1, 0, 0, 0, -2 }, { 0, -1, 0, -2, 0, 0, 2, 0, 1 }, { 0, 0, -1, -1, 0, 0, 2, 1, 0 }, { 0, 0, 0, 1, -1, -1, 0, 0, 0 }, { 0, 2, 0, 0, 0, 0, 0, 1, 0 }, { 0, 1, -1, 1, -2, 0, 0, 2, 2 }, { 0, -1, 1, 0, 1, 1, 0, 0, 0 }, { 0, 0, 2, 0, 0, 0, 0, 1, 0 }, { 1, 0, 0, 1, 1, 0, 0, 1, 0 }, { 0, 0, 1, 0, 0, 0, 0, 0, 1 }, { 1, 0, 1, 1, -1, 0, 1, 1, 0 }, { -1, 0, 2, 0, 0, -1, 0, 0, 0 }, { -1, 1, 2, 0, 0, -1, 0, 1, 1 }, { -1, 1, 0, -1, 0, 0, 0, 0, 1 }, { 0, 1, -1, 0, 0, -1, 0, 1, 0 }, };
+
 
 
 
