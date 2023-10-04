@@ -21,6 +21,7 @@
     "ostream": "cpp",
     "cstring": "cpp",
     "complex": "cpp",
-    "fstream": "cpp"
+    "fstream": "cpp",
+    "new": "cpp"
   }
 }

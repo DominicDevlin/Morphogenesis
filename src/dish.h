@@ -109,6 +109,11 @@ public:
     return cell[c];
   }
 
+  inline CellularPotts* get_cpm()
+  {
+    return CPM;
+  }
+
   // Dom has changed these static variables to functions 
   void add_maxsigma(void);
   int get_maxsigma(void);

@@ -226,6 +226,7 @@ class Parameter {
   double swap_selection;
   bool growth_selection;
   bool elongation_selection;
+  bool evo_pics;
 
   bool starter;
   vector<vector<int>> start_n;

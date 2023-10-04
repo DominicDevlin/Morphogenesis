@@ -16,6 +16,9 @@
 #include "omp.h"
 #include <chrono>
 #include <random>
+#include "fft.h"
+#include <sys/stat.h>
+
 
 #ifdef QTGRAPHICS
 #include "qtgraph.h"
@@ -302,7 +305,7 @@ void printn(vector<vector<int>> netw, vector<bool> pol, vector<double> fitn)
 
 
 // function that simulates a population for a single evolutionary step. 
-vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols)
+vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, int time)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -400,6 +403,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (t == par.mcs-1)
       {
         inter_org_fitness[i] = dishes[i].CPM->get_fitness();
+
       }        
     }
         
@@ -407,8 +411,25 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       cout << "Sim #1 complete. The number of cells is: " << dishes[i].CPM->CountCells() << endl;
 
   }
+  
+  if (par.evo_pics)
+  {
+    if (mkdir(par.data_file.c_str(), 0777) != -1)
+      cout << "Directory created." << endl;
+    for (int i=0; i < par.n_orgs; ++i)
+    {
+      fft new_org(par.sizex,par.sizey);
+      new_org.ImportCPM(dishes[i].get_cpm());
+      string f1 = "/time-";
+      string f2 = "-org-";
+      string n1 = to_string(time);
+      string n2 = to_string(i);
+      string ftype = ".png";
+      string foutput = f1 + n1 + f2 + n2 + ftype;
+      new_org.cpmOutput(foutput);
+    }
+  }
   delete[] dishes;
-
 
   // do sorting algorithm and return fitness
   sorter(network_list, pols, inter_org_fitness);
@@ -492,7 +513,12 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 // Main function
 int main(int argc, char *argv[]) {
 
-  
+#ifdef QTGRAPHICS
+  if (par.evo_pics)
+    QApplication* a = new QApplication(argc, argv);
+#endif
+
+
   par.graphics=false;
   par.contours=false;
   par.print_fitness=false;
@@ -503,7 +529,11 @@ int main(int argc, char *argv[]) {
   par.velocities=false;
   par.output_gamma=false;
   par.pickseed = 0;
+  par.umap = false;
+  par.output_sizes=false;
   par.mcs = 12100;
+  par.data_file = "images";
+
   Parameter();
 
   // This is currently depracated. 
@@ -531,7 +561,7 @@ int main(int argc, char *argv[]) {
   {
     cout << "current ev timestep is: " << t+1 << endl;
     // process population. 
-    vector<double> fit = process_population(networks, polarities);
+    vector<double> fit = process_population(networks, polarities, t);
 
     // output every x evolution steps. 
     // if (t%1==0)

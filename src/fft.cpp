@@ -23,6 +23,70 @@ extern Parameter par;
 
 using namespace std;
 
+fft::fft(void)
+{
+	sizex=250;
+	sizey=250;
+}
+
+fft::fft(int sx, int sy)
+{
+	sizex = sx;
+	sizey = sy;
+	grid=(int **)malloc(sizex*sizeof(int *));
+	if (grid==NULL)
+		MemoryWarning();
+  
+  grid[0]=(int *)malloc(sizex*sizey*sizeof(int));
+  if (grid[0]==NULL)  
+    MemoryWarning();
+  
+  
+  {for (int i=1;i<sizex;i++) 
+    grid[i]=grid[i-1]+sizey;}
+  
+  /* Clear grid */
+  {for (int i=0;i<sizex*sizey;i++) 
+     grid[0][i]=0; }
+
+
+
+  polar=(int **)malloc(rho*sizeof(int *));
+  if (polar==NULL)
+    MemoryWarning();
+  
+  polar[0]=(int *)malloc(rho*sizer*sizeof(int));
+  if (polar[0]==NULL)  
+    MemoryWarning();
+  
+  
+  {for (int i=1;i<rho;i++) 
+    polar[i]=polar[i-1]+sizer;}
+  
+  /* Clear grid */
+   {for (int i=0;i<rho*sizer;i++) 
+     polar[0][i]=0; }
+
+
+  tmp_polar=(int **)malloc(rho*sizeof(int *));
+  if (tmp_polar==NULL)
+    MemoryWarning();
+  
+  tmp_polar[0]=(int *)malloc(rho*sizer*sizeof(int));
+  if (tmp_polar[0]==NULL)  
+    MemoryWarning();
+  
+  
+  {for (int i=1;i<rho;i++) 
+    tmp_polar[i]=tmp_polar[i-1]+sizer;}
+  
+  /* Clear grid */
+   {for (int i=0;i<rho*sizer;i++) 
+     tmp_polar[0][i]=0; }
+}
+
+
+
 
 // destructor (virtual)
 fft::~fft(void) {
@@ -120,17 +184,10 @@ void fft::ImportGrid(int **sigma)
 }
 
 // value of grid corresponds to cell type
-void fft::ImportGrid(int **sigma, CellularPotts *cpm)
+void fft::ImportCPM(CellularPotts *cpm)
 {
-	for (int x=0; x < sizex;++x)
-	{
-		for (int y = 0; y < sizey;++y)
-		{
-			grid[x][y] = cpm->SiteColour(x, y);
-		}
-	}
+	m_CPM = cpm;
 }
-
 
 void fft::PolarTransform()
 {
@@ -243,6 +300,31 @@ void fft::PolarToOutput(string name)
 	delete[] nname;
 }
 
+void fft::cpmOutput(string name)
+{
+	char* nname = new char[name.size() + 1];
+	strcpy(nname, name.c_str());
+
+	#ifdef QTGRAPHICS
+
+	QtGraphics g(sizex*2,sizey*2);
+
+	char fname[200];
+	sprintf(fname, "%s/%07.png",par.data_file.c_str(), nname);
+
+	g.BeginScene();
+	g.ClearImage();    
+
+	m_CPM->SearchNandPlot(&g, false);
+
+	g.EndScene();
+	g.Write(fname);
+
+	#endif
+
+	delete[] nname;
+}
+
 
 
 void fft::GridToOutput(string name)
@@ -333,7 +415,7 @@ void fft::ShowOptimal(string name)
 	QtGraphics s(rho*2,sizer*2);
 
 	char fname[200];
-	sprintf(fname, nname,par.datadir);
+	sprintf(fname, nname,par.data_file);
 
 	s.BeginScene();
 	s.ClearImage();    
@@ -355,7 +437,7 @@ void fft::ShowOptimal(string name)
       
       if (tmp_polar[i][j]>0)
 			{
-				/* if draw */ 
+				// draw colour, double size for more pixels
 				colour = tmp_polar[i][j] % 255;
 				s.Point( colour, 2*i, 2*j);
 				s.Point( colour, 2*i+1, 2*j+1);
@@ -627,7 +709,7 @@ double fft::StickSymmetry()
 			if (polar[i][j])
 			{
 
-				if (same_side_max < same_side_min && (i > same_side_min || i < same_side_max) || (i > same_side_min && i <  same_side_max))
+				if ((same_side_max < same_side_min && (i > same_side_min || i < same_side_max)) || (i > same_side_min && i <  same_side_max))
 				{
 					continue;
 				}

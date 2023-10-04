@@ -17,15 +17,22 @@ using namespace std;
 class fft
 {
 public:
+
+	fft(void);
+
+	fft(int sx, int sy);
+
 	void AllocateGrid(int sizex, int sizey);
 
 	void ImportGrid(int **sigma);
 
-	void ImportGrid(int **sigma, CellularPotts *cpm);
+	void ImportCPM(CellularPotts *cpm);
 
 	void PolarTransform();
 
 	void PolarToOutput(string name="polar.png");
+
+	void cpmOutput(string name="cpm.png");
 
 	void GridToOutput(string name="grid.png");
 
@@ -65,6 +72,8 @@ private:
 	int sizey;
 
 	int optimal;
+
+	CellularPotts *m_CPM;
 
 	vector<double> loss;
 
