@@ -164,7 +164,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         if (check_shape == false)
         {
           inter_org_fitness[i] = 0;
-          t = par.mcs;
+          // t = par.mcs;
           // cout << "Org number: " << i << " has bad shape. " << endl;
         }
       }
@@ -330,35 +330,43 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
 
-void print_fitness(vector<double> fitn)
+void print_fitness(vector<double>& fitn)
 {
   // max fitness 
-  double max_fit = fitn.front();
+  double max_fit = 0;
+  double stdev=0;
 
   //average fitness
   double avgfit = 0;
   double n_alive=0;
   for (double i : fitn)
   {
-    avgfit += i;
     if (i > 0)
     {
       ++n_alive;
+      avgfit += i;
     }
+    if (i > max_fit)
+      max_fit = i;
   }
   avgfit = avgfit / n_alive;
-
-
-  if (par.asym_only && par.asymmetry_selection && avgfit > par.swap_selection)
+  // calculate stdev
+  for (double i : fitn)
   {
-    par.asym_only = false;
+    if (i > 0)
+    {
+      stdev += pow(i-avgfit,2);
+
+    }
   }
+  stdev = sqrt(stdev/n_alive);
+
 
   //output fitness  
   string var_name = "fitness.txt";
   ofstream outfile;
   outfile.open(var_name, ios::app);
-  outfile << max_fit << '\t' << avgfit << endl;
+  outfile << max_fit << '\t' << avgfit << '\t' << stdev << endl;
   outfile.close();
 
 }
