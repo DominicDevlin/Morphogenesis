@@ -327,6 +327,46 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 }
 
 
+
+
+
+void print_fitness(vector<double> fitn)
+{
+  // max fitness 
+  double max_fit = fitn.front();
+
+  //average fitness
+  double avgfit = 0;
+  double n_alive=0;
+  for (double i : fitn)
+  {
+    avgfit += i;
+    if (i > 0)
+    {
+      ++n_alive;
+    }
+  }
+  avgfit = avgfit / n_alive;
+
+
+  if (par.asym_only && par.asymmetry_selection && avgfit > par.swap_selection)
+  {
+    par.asym_only = false;
+  }
+
+  //output fitness  
+  string var_name = "fitness.txt";
+  ofstream outfile;
+  outfile.open(var_name, ios::app);
+  outfile << max_fit << '\t' << avgfit << endl;
+  outfile.close();
+
+}
+
+
+
+
+
 // Main function
 int main(int argc, char *argv[]) 
 {
@@ -412,7 +452,8 @@ int main(int argc, char *argv[])
             networks.push_back(i);
             polarities.push_back(start_p);
         }
-        process_population(networks, polarities);
+        vector<double> fitness = process_population(networks, polarities);
+        print_fitness(fitness);
       }
     }
     else // compare different genomes 

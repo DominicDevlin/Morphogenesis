@@ -90,7 +90,7 @@
 
 
 
-    n_orgs = 10; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TESTn_orgs = 16; // MUST BE MULTIPLE OF 4 !! OR 10 FOR POTENCY TEST
+    n_orgs = 60; // should be multiple of 4, 60 used for evolution
     n_replicates = 2;
     // edges and nodes only at end of simulation.
     potency_edges = true;
