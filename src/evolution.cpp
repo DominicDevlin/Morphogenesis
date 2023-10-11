@@ -447,7 +447,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   }
 
-  if (par.evo_pics && par.pic_gen_interval)
+  if (par.evo_pics && time % par.pic_gen_interval == 0)
   {
     string dirn = par.data_file + "/" + to_string(time+1);
     if (mkdir(dirn.c_str(), 0777) != -1)
