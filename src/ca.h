@@ -321,6 +321,8 @@ public:
 
   void PrintHexColours();
 
+  void ColourCells();
+
 
   // returns colour at this site
   int SiteColour(int x, int y);
@@ -581,7 +583,7 @@ private:
 
   int stack[8]; // stack to count number of different surrounding cells, CHANGE TO MEMBER FUNCTION
 
-  int init_colours;
+  int init_colours=-20;
 
   int rows;
   int cols;

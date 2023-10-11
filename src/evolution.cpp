@@ -89,7 +89,14 @@ void swapb(vector<bool> *xp, vector<bool> *yp)
   *yp = temp;
 }
 
-void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, vector<double> &fitlist)
+void swapd(Dish *d, int max_idx, int i)
+{
+  Dish tmp = d[max_idx];
+  d[max_idx] = d[i];
+  d[i] = tmp;
+}
+
+void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, vector<double> &fitlist, Dish *dishes)
 {
   int i, j, max_idx;
   int n = par.n_orgs;
@@ -106,6 +113,9 @@ void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, ve
     swap(&fitlist.at(max_idx), &fitlist.at(i));
     swapv(&networks.at(max_idx), &networks.at(i));
     swapb(&pol.at(max_idx), &pol.at(i));
+    // std::swap(dishes[max_idx], dishes[i]);
+
+    // swapd(&dishes[max_idx], &dishes[i]);
   }
 }
 
@@ -229,6 +239,31 @@ void output_networks(vector<vector<vector<int>>>& netw)
       if (i == par.n_genes -1)
         cout << "}" << endl;
     }
+}
+
+void record_networks(vector<vector<vector<int>>>& netw, string oname)
+{
+  string nname = oname + "/" + "genomes.txt";
+  std::ofstream outfile;
+  outfile.open(nname, ios::app);
+  for (int org=0;org<par.n_orgs;++org)
+    for (int i=0;i<par.n_genes;++i)
+    {
+      if (i == 0)
+        outfile << "{ ";
+      for (int j=0;j<par.n_activators;++j)
+      {
+        if (j==0)
+          outfile << "{ " << netw[org][i][j] << ", ";
+        else if (j==par.n_activators-1)
+          outfile << netw[org][i][j] << " }, ";
+        else 
+          outfile << netw[org][i][j] << ", ";
+      }
+      if (i == par.n_genes -1)
+        outfile << "}" << endl;
+    }
+  outfile.close();
 }
 
 
@@ -411,34 +446,37 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       cout << "Sim #1 complete. The number of cells is: " << dishes[i].CPM->CountCells() << endl;
 
   }
-  
-  if (par.evo_pics)
+
+  if (par.evo_pics && par.pic_gen_interval)
   {
-    if (mkdir(par.data_file.c_str(), 0777) != -1)
+    string dirn = par.data_file + "/" + to_string(time+1);
+    if (mkdir(dirn.c_str(), 0777) != -1)
       cout << "Directory created." << endl;
+    record_networks(network_list, dirn);
     for (int i=0; i < par.n_orgs; ++i)
     {
+      dishes[i].CPM->ColourCells();
       fft new_org(par.sizex,par.sizey);
       new_org.ImportCPM(dishes[i].get_cpm());
-      string f1 = "/time-";
-      string f2 = "-org-";
-      string n1 = to_string(time);
+      string f2 = "org-";
       string n2 = to_string(i);
       string ftype = ".png";
-      string foutput = f1 + n1 + f2 + n2 + ftype;
+      string foutput = dirn + "/" + f2 + n2 + ftype;
       new_org.cpmOutput(foutput);
     }
   }
+
   delete[] dishes;
 
   // do sorting algorithm and return fitness
-  sorter(network_list, pols, inter_org_fitness);
+  sorter(network_list, pols, inter_org_fitness, dishes);
 
   //output to standard output
   output_networks(network_list);
 
   // output to file
   printn(network_list.front(), pols.front(), inter_org_fitness);
+
 
   vector<vector<vector<int>>> nextgen{};
   vector<vector<bool>> nextgenpol{};
@@ -516,6 +554,10 @@ int main(int argc, char *argv[]) {
 #ifdef QTGRAPHICS
   if (par.evo_pics)
     QApplication* a = new QApplication(argc, argv);
+  par.data_file = "images";
+  if (mkdir(par.data_file.c_str(), 0777) != -1)
+    cout << "Directory created." << endl;
+  
 #endif
 
 
@@ -532,7 +574,7 @@ int main(int argc, char *argv[]) {
   par.umap = false;
   par.output_sizes=false;
   par.mcs = 12100;
-  par.data_file = "images";
+  
 
   Parameter();
 

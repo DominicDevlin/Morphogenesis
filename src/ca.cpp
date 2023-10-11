@@ -2463,7 +2463,6 @@ void CellularPotts::update_network(int tsteps)
             c->set_ctype(set_type(ptype));// * c->getTau());
             // c->add_to_cycle();
 
-
           }
         }
       }
@@ -2495,6 +2494,50 @@ bool CellularPotts::CycleCheck()
   } 
 
 }
+
+
+
+void CellularPotts::ColourCells()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {    
+      // make boolean set. 
+      vector<bool>& full_set = c->get_set();
+
+      vector<double>& genes = c->get_genes();
+      vector<double>& diffusers = c->get_diffusers(); 
+      vector<double>& locks = c->get_locks();
+      vector<double>& keys = c->get_keys();
+      vector<double>& meds = c->get_medp();
+
+
+     for (int i=0; i < par.n_locks; ++i)
+      {
+        full_set[i] = (locks[i]>0.5) ? true : false;
+        full_set[i+par.n_locks] = (keys[i]>0.5) ? true : false;
+      }
+      for (int i=0;i < par.n_mediums;++i)
+      {
+        full_set[i + par.n_lockandkey] = (meds[i]>0.5) ? true : false;
+      }
+
+      full_set[par.n_functional-par.n_length_genes] = ((genes.at(par.tloc1)>0.5) ? true : false);
+      full_set[par.n_functional-par.n_length_genes+1] = ((genes.at(par.tloc2)>0.5) ? true : false);
+
+      c->Phenotype();
+      int ptype=c->GetPhenotype();
+      // int tau = c->getTau();
+      // set the type of the cell based on network arrangement.
+      c->set_ctype(set_type(ptype));// * c->getTau());
+      // c->add_to_cycle();
+    }
+  }
+}
+
+
 
 
 

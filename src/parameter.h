@@ -227,6 +227,7 @@ class Parameter {
   bool growth_selection;
   bool elongation_selection;
   bool evo_pics;
+  int pic_gen_interval;
 
   bool starter;
   vector<vector<int>> start_n;

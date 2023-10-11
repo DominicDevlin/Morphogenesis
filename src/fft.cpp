@@ -304,14 +304,12 @@ void fft::cpmOutput(string name)
 {
 	char* nname = new char[name.size() + 1];
 	strcpy(nname, name.c_str());
-
 	#ifdef QTGRAPHICS
 
 	QtGraphics g(sizex*2,sizey*2);
 
 	char fname[200];
-	sprintf(fname, "%s/%07.png",par.data_file.c_str(), nname);
-
+	sprintf(fname, nname);
 	g.BeginScene();
 	g.ClearImage();    
 
