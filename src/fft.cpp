@@ -112,6 +112,14 @@ fft::~fft(void) {
 	}
 }
 
+void fft::ClearPolar()
+{
+	for (int i=0;i<rho*sizer;i++)
+	{
+		tmp_polar[0][i]=0;
+	}
+}
+
 
 void fft::AllocateGrid(int sx, int sy)
 {
@@ -189,8 +197,10 @@ void fft::ImportCPM(CellularPotts *cpm)
 	m_CPM = cpm;
 }
 
-void fft::PolarTransform()
+void fft::PolarTransform(int xcen, int ycen)
 {
+	ClearPolar();
+
   // find c.o.m
   int center[] = {0,0};
   int xtotal{};
@@ -216,8 +226,10 @@ void fft::PolarTransform()
 
 	// going to make the grid 360 x 250, although we dont need 250 pixels. 
 
+	// Origin is being used instead of center of mass(com). Replace par.sizex/sizey with center[0]/center[1] for com.
 
-	// WE ARE GOING TO USE THE ORIGIN INSTEAD OF CENTER OF MASS FOR NOW!!! Replace par.sizex with center[0] and center[1] for com.
+	int xorigin = round(par.sizex/2) + xcen;
+	int yorigin = round(par.sizey/2) + ycen;
 
 
 	for (int q = 0; q < rho; ++q)
@@ -227,8 +239,8 @@ void fft::PolarTransform()
 			// need to turn q into radians
 			double qn = q * M_PI / 180.;
 
-			int x = round(par.sizex/2) + round(r*cos(qn));
-			int y = round(par.sizey/2) + round(r*sin(qn));
+			int x = xorigin + round(r*cos(qn));
+			int y = yorigin + round(r*sin(qn));
 
 
 			if (x >= sizex -1 || x <= 0 || y >= sizex-1 || y <= 0)
@@ -241,6 +253,10 @@ void fft::PolarTransform()
 	}
 
 }
+
+
+
+
 
 
 
@@ -510,7 +526,7 @@ void fft::ReflectGrid(int **toshift)
 }
 
 
-// we dont need to be efficient so can just compare grids with changing rho using dice coefficient
+// Compare grids with changing rho using Jaccard index
 double fft::PolarComparison(int** polar2, bool record)
 {
 
@@ -748,15 +764,8 @@ double fft::StickSymmetry()
 						}
 					}
 				}
-
-
-
-				
 			}
 		}
-
-
-
 	bad_length = bad_length / 10000000;
 
 	double fitness = (max_r + opp_r - 80) / bad_length;
@@ -768,8 +777,6 @@ double fft::StickSymmetry()
 		cout << "Fitness: " << fitness << "  length: " << max_r << "  opp length: " << opp_r << endl;
 		cout << "max rho: " << max_rho << "  opp rho: " << opp_rho << "  detraction: " << bad_length << endl;
 	}
-
-
 	return fitness;
 }
 
@@ -778,8 +785,6 @@ void fft::FFTransform()
 {
 	// double *in;
 	// fftw_complex *out;
-
-
 
 	double inputData[rho][sizer-1];
 	for (int i=0;i<rho;++i)

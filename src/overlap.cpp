@@ -224,14 +224,13 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
 
-  // Now we are going to add rotationally invariant version.
-
+  // Rotation and reflection invariant
   vector<double> invariant_p{};
   invariant_p.resize(((par.n_orgs-1)*par.n_orgs)/2);
   int counter = 1;
 
-  omp_set_num_threads(par.n_orgs);
-  #pragma omp parallel for if(!par.overlap_images)
+  // omp_set_num_threads(par.n_orgs);
+  // #pragma omp parallel for if(!par.overlap_images)
   for (int i = 0;i<par.n_orgs;i++)
   {
     fft org1;
@@ -248,7 +247,35 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       org2.ImportGrid(dishes[j].CPM->ReturnGrid());
       org2.PolarTransform();
       // do comparison
-      double inp = org1.PolarComparison(org2.GetPolar(), true);
+      double inp=0;
+      if (!par.translation)
+      {
+        inp = org1.PolarComparison(org2.GetPolar(), true);
+      }  
+      else
+      {
+        // we dont need to move much about the origin because there is no "force".
+        // Organisms will always be roughly translation invariant about the center.
+        // we are going to translate at evenly distributed points to make a square around the center.
+        // This will give a close enough approximation for translation, although it isn't really needed
+        // because translation about the origin will almost always give the best result.
+        // minimum value that we are going to iterate from
+        int min_tx = -(floor(par.nt_intervals/2) * par.t_interval);
+        int min_ty = -(floor(par.nt_intervals/2) * par.t_interval);
+
+        for (int x=0;x<par.nt_intervals;++x)
+        {
+          for (int y=0;y<par.nt_intervals;++y)
+          {
+            int tx = min_tx + x*par.t_interval;
+            int ty = min_ty + y*par.t_interval;
+            org2.PolarTransform(tx, ty);
+            double jcind = org1.PolarComparison(org2.GetPolar(), true);
+            if (jcind > inp)
+              inp = jcind;
+          }
+        }
+      }
 
       // get the index
       int num{};

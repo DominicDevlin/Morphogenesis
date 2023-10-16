@@ -22,6 +22,7 @@
     "cstring": "cpp",
     "complex": "cpp",
     "fstream": "cpp",
-    "new": "cpp"
+    "new": "cpp",
+    "chrono": "cpp"
   }
 }

@@ -82,6 +82,9 @@ class Parameter {
   bool overlap_images;
   int overlap_orgs;
   bool between_org_overlap;
+  bool translation;
+  int t_interval;
+  int nt_intervals;
 
   bool output_gamma;
 

@@ -28,7 +28,7 @@ public:
 
 	void ImportCPM(CellularPotts *cpm);
 
-	void PolarTransform();
+	void PolarTransform(int xcen=0, int ycen=0);
 
 	void PolarToOutput(string name="polar.png");
 
@@ -52,6 +52,8 @@ public:
 	{
 		return polar;
 	}
+
+	void ClearPolar();
 
 	void OutputLoss();
 
