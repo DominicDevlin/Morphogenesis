@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
   par.velocities = false;
   Parameter();
   par.n_orgs = 2;
-  par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10 * par.n_orgs);
+  par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 20 * par.n_orgs);
   // This is currently depracated.
   vector<bool> start_p = {0, 0, 0, 0};
 
