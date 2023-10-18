@@ -247,12 +247,12 @@ def CellStates(nodes, edges, node_sizes):
 
 
 
-def prune_nodes(nodes, node_sizes, edges, edge_widths):
+def prune_nodes(nodes, node_sizes, edges, edge_widths, min_size=15):
     nodes_to_kill = []
 
     i = 0
     while i < len(node_sizes):
-        if node_sizes[i] < 15:
+        if node_sizes[i] < min_size:
             nodes_to_kill.append(nodes[i])
             nodes.pop(i)
             node_sizes.pop(i)
@@ -273,9 +273,9 @@ def prune_nodes(nodes, node_sizes, edges, edge_widths):
         i = i + 1
         
         
-def prune_edges(edges, edge_widths):
+def prune_edges(edges, edge_widths, min_width=1):
     for i in range(len(edge_widths) -1, -1, -1):
-        if edge_widths[i] < 1:
+        if edge_widths[i] < min_width:
             del edge_widths[i]
             del edges[i]
 
