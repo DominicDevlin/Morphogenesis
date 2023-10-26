@@ -229,8 +229,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   invariant_p.resize(((par.n_orgs-1)*par.n_orgs)/2);
   int counter = 1;
 
-  // omp_set_num_threads(par.n_orgs);
-  // #pragma omp parallel for if(!par.overlap_images)
+  omp_set_num_threads(par.n_orgs);
+  #pragma omp parallel for if(!par.overlap_images)
   for (int i = 0;i<par.n_orgs;i++)
   {
     fft org1;
