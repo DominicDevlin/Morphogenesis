@@ -62,6 +62,9 @@ INIT
     // Define initial distribution of cells
     CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
     CPM->ConstructInitCells(*this);
+
+    if (par.velocities)
+      par.output_sizes = true;
     
     // If we have only one big cell and divide it a few times
     // we start with a nice initial clump of cells. 
@@ -291,8 +294,8 @@ TIMESTEP {
       if (par.output_sizes)
         dish->CPM->OutputSizes();
 
-      if (par.umap)
-        dish->CPM->ColourIndex();
+      // if (par.umap)
+      dish->CPM->ColourIndex();
 
       dish->CPM->get_fitness();
 

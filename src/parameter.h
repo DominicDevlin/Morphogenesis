@@ -221,7 +221,7 @@ class Parameter {
 
   bool umap;
   unordered_map<int,int> colour_index;
-
+  bool use_colour_index;
 
 
   bool asymmetry_selection;

@@ -3993,8 +3993,8 @@ void CellularPotts::SetColours()
   // map<int, int> colours = {{103043, 236}, {102915, 237}, {103171, 238}, {104319, 239}, {104307, 240}};
 
 
-  // map<int, int> colours = {{51331, 103}, {103235, 91}, {103171, 12}, {51699, 88}, 
-  // {105227, 29}, {18443, 37}, {103234, 27}, {51339, 81}}; // this is for jellyfish
+  map<int, int> colours = {{51331, 103}, {103235, 91}, {103171, 12}, {51699, 88}, 
+  {105227, 29}, {18443, 37}, {103234, 27}, {51339, 81}}; // this is for jellyfish
 
   // map<int,int> colours = {{93571, 81}, {23919, 6}, {23811, 73}, {19843, 102}, {19911, 4}}; // this is for megamind
 
@@ -4006,8 +4006,8 @@ void CellularPotts::SetColours()
   // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
   // {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
 
-  map<int,int> colours = {{6096811, 278}, {6160299, 279}, {6159915, 280}, {49940175, 281},
-  {49942223, 282}, {49940174, 283}, {16385742, 284}}; // this is for waffle
+  // map<int,int> colours = {{6096811, 278}, {6160299, 279}, {6159915, 280}, {49940175, 281},
+  // {49942223, 282}, {49940174, 283}, {16385742, 284}}; // this is for waffle
 
   // map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
   // {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
@@ -4040,11 +4040,21 @@ void CellularPotts::SetColours()
   // 66 is dark purple, 72 is deep red, 95 is fluoro purple, 56 is light black, 25 is light grey, 26 is dark black,, 44 is white, 45 is light green
   // 46 is dark grey, 47 is sky blue, 48, 49, 50 is grey, 51 is black, 52 is red/pink, 53 is black, 112 is fluor green
   // 115 grey-red, 116 is dark grey, 117 is purple-blue, 118 is fluoro blue, 119 is deepy-light blue
-
-  for (auto i : colours)
+  if (!par.use_colour_index)
   {
-    type_list[i.first] = i.second;
+    for (auto i : colours)
+    {
+      type_list[i.first] = i.second;
+    }
   }
+  else
+  {
+    for (auto i : par.colour_index)
+    {
+      type_list[i.first] = i.second;
+    }
+  } 
+
   init_colours=type_list.size();
 
 
@@ -4918,11 +4928,11 @@ void CellularPotts::Directionality()
           vectors.push_back(angle);
         }
 
-        // if (t < 5000)
-        // {
-        //   speeds.push_back(total);
-        //   vectors.push_back(angle);
-        // }
+        if (t > 50000 && t < 55000)
+        {
+          speeds.push_back(total);
+          vectors.push_back(angle);
+        }
 
       }
 
