@@ -410,7 +410,7 @@ void PruneBiEdges(vector<int>& start, vector<int>& end)
 }
 
 
-void PruneEdges(map<pair<int,int>,int> tally, int n_orgs)
+void PruneEdges(map<pair<int,int>,int> &tally, int n_orgs)
 {
 	for (auto it = tally.begin(); it != tally.end();)
 	{
@@ -432,7 +432,7 @@ void PruneEdges(map<pair<int,int>,int> tally, int n_orgs)
 map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, map<pair<int,int>,int>& tally, int n_orgs, bool cycling)
 {
 	vector<int> state_sizes{};
-  vector<int> state_values{};
+  	vector<int> state_values{};
 
 	
 	if (par.prune_edges)
@@ -448,7 +448,6 @@ map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, ma
 
 
 	// state values to numbers. 
-
 	if (par.potency_edges)
 	{
 		for (auto i : types)
@@ -505,7 +504,7 @@ map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, ma
 	// now we find if there are weakly connected components within each group:
 
 	// we need to create subsets of nodes and types for each group of discongroup. 
-	// Then have to find the edges that are specifically invovled with those nodes... 
+	// Then have to find the edges that are specifically involved with those nodes... 
 	map<int,int> toreturn{};
 
 	int counter = 0;
@@ -554,11 +553,8 @@ map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, ma
 			cout << endl;			
 		}
 
-
-
 		// cout << "subcount done with size " << subcomps.size() << endl;
 
-		
 		if (subcomps.size() > 0)
 			toreturn[counter] = subcomps.size();
 

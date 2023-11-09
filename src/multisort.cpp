@@ -283,8 +283,23 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       }
       else
       {
+        for (auto i : phens)
+        {
+          cout << i.first << " " << i.second << endl;
+        }
+        for (auto i : types)
+        {
+          cout << i.first << " " << i.second << endl;
+        }
+        for (auto i : edge_tally)
+        {
+          cout << i.first.first << "  " << i.first.second << " " << i.second << endl;
+        }
+        cout << phens.size() << "  " << types.size() << "  " << edge_tally.size() << endl;
+
         Graph ungraph(types.size());
         subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+        cout << subcomps.size() << endl;
       }
 
 
@@ -293,7 +308,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         ofstream outfile;
         string switch_out = fname + "/potency.dat";
         outfile.open(switch_out, ios::app);
-        
         for (auto kv : subcomps)
         {
           outfile << "Component number: " << kv.first;
@@ -338,6 +352,7 @@ int main(int argc, char *argv[]) {
   par.randomise=false;
   par.gene_output=true;
   par.gene_record=true;
+  par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   
   Parameter();
 
