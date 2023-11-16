@@ -4121,9 +4121,10 @@ void CellularPotts::PrintTypesTime(bool prune)
 
 
   vector<vector<int>> timestate{};
-
+  vector<int> totals{};
   for (auto i : TypeCounts)
   {
+    int total{};
     for (auto j : i)
     {
       ordered_types[j.first] += j.second;
@@ -4131,7 +4132,9 @@ void CellularPotts::PrintTypesTime(bool prune)
       // {
       //   ordered_types[]
       // }
+      total += j.second;
     }
+    totals.push_back(total);
   }
   
 
@@ -4168,12 +4171,13 @@ void CellularPotts::PrintTypesTime(bool prune)
   {
     outfile << type.first << '\t';
   }
-  outfile << endl;
+  outfile << "total" << endl;
 
 
-
+  int iter=0;
   for (auto time : TypeCounts)
   {
+
     for (auto type : ordered_types)
     {
       outfile << time[type.first] << '\t';
@@ -4183,7 +4187,8 @@ void CellularPotts::PrintTypesTime(bool prune)
       //   outfile << 0 << '\t';
       // }
     }
-    outfile << endl;
+    outfile << totals[iter] << endl;
+    ++iter;
   }
   outfile.close();
 
@@ -4928,7 +4933,19 @@ void CellularPotts::Directionality()
         //   vectors.push_back(angle);
         // }
 
-        // if (t > 50000 && t < 55000)
+        // if (t > 55000 && t < 60000)
+        // {
+        //   speeds.push_back(total);
+        //   vectors.push_back(angle);
+        // }
+
+        if (t > 111000 && t < 112000)
+        {
+          speeds.push_back(total);
+          vectors.push_back(angle);
+        }
+
+        // if (t < 10000 || (t > 65000 && t < 75000))
         // {
         //   speeds.push_back(total);
         //   vectors.push_back(angle);
@@ -4955,11 +4972,11 @@ void CellularPotts::Directionality()
         //   speeds.push_back(total);
         //   vectors.push_back(angle);
         // }   
-        if (t > 111100 && t < 111250)
-        {
-          speeds.push_back(total);
-          vectors.push_back(angle);
-        } 
+        // if (t > 111100 && t < 111250)
+        // {
+        //   speeds.push_back(total);
+        //   vectors.push_back(angle);
+        // } 
       }
 
     }
