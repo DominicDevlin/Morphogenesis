@@ -4939,11 +4939,11 @@ void CellularPotts::Directionality()
         //   vectors.push_back(angle);
         // }
 
-        if (t > 111000 && t < 112000)
-        {
-          speeds.push_back(total);
-          vectors.push_back(angle);
-        }
+        // if (t > 111000 && t < 112000)
+        // {
+        //   speeds.push_back(total);
+        //   vectors.push_back(angle);
+        // }
 
         // if (t < 10000 || (t > 65000 && t < 75000))
         // {
@@ -4973,6 +4973,11 @@ void CellularPotts::Directionality()
         //   vectors.push_back(angle);
         // }   
         // if (t > 111100 && t < 111250)
+        // {
+        //   speeds.push_back(total);
+        //   vectors.push_back(angle);
+        // } 
+        // if (t < 10000)
         // {
         //   speeds.push_back(total);
         //   vectors.push_back(angle);
