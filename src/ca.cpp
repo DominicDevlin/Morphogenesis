@@ -2173,7 +2173,7 @@ double CellularPotts::numeric_step(vector<double>& gene_list, double conc, int g
 
   for (int j=0; j < par.n_activators; ++j)
   {
-    x_1 += matrix[gene_n][j] * gene_list[j];
+    x_1 += matrix[gene_n][j] * gene_list[j]; // (gene_list[j] > 1 ? 1 : gene_list[j]); // max morph at 1 for one test
   }
   x_1 += par.theta;
 
@@ -4962,11 +4962,11 @@ void CellularPotts::Directionality()
         //   vectors.push_back(angle);
         // }   
 
-        // if ((t > 6000000 && t < 6500000))
-        // {
-        //   speeds.push_back(total);
-        //   vectors.push_back(angle);
-        // }                
+        if ((t > 6000000 && t < 6500000))
+        {
+          speeds.push_back(total);
+          vectors.push_back(angle);
+        }                
         // if ((t > 40000000 && t < 50000000) || (t > 16000000 && t < 16500000))
         // {
         //   speeds.push_back(total);
