@@ -1,4 +1,0 @@
-Component # 0  contains  3  big states.
-The states  ['34214780', '34149244', '34083708']  are differentiated.
-Component # 1  contains  7  big states.
-The states  ['36628276', '36570932', '36627764', '36439860', '36505396', '36243316', '36243252']  are stem.
