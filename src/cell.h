@@ -682,6 +682,8 @@ private:
     keys.resize(par.n_locks);
     locks_bool.resize(par.n_locks);
     keys_bool.resize(par.n_locks);
+    medp.resize(par.n_mediums);
+    medp_bool.resize(par.n_mediums);
     full_set.resize(par.n_lockandkey + par.n_length_genes + par.n_mediums);
     cycles.resize(par.cycle_size);
     gene_recordings.resize(par.n_genes+par.n_diffusers);
@@ -1052,16 +1054,16 @@ protected:
   vector<double> diff_genes;
 
 
-  vector<double> locks{0.0,0.0,0.0,0.0,0.0};
-  vector<bool> locks_bool{0,0,0,0,0};
+  vector<double> locks{};
+  vector<bool> locks_bool{};
 
-  vector<double> keys{0.0,0.0,0.0,0.0,0.0};
-  vector<bool> keys_bool{0,0,0,0,0};
+  vector<double> keys{};
+  vector<bool> keys_bool{};
 
-  vector<double> medp{0.0,0.0,0.0,0.0,0.0};
-  vector<bool> medp_bool{0,0,0,0,0};
+  vector<double> medp{};
+  vector<bool> medp_bool{};
 
-  vector<bool> full_set{0,0,0,0,0,0,0,0,0,0,0,0};
+  vector<bool> full_set{};
 
   vector<vector<bool>> cycles; 
 

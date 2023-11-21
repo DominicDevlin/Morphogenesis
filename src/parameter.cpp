@@ -45,7 +45,7 @@
     contours = false;
 
     // Generate a random genome
-    randomise = false;
+    randomise = true;
 
     // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
     // output data for analysis (connectivity, gene expression, state transitions)
@@ -83,7 +83,8 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, -2, 0, 0, 0, 0, 0, 1, 2 }, { 0, 0, 0, 0, 1, 0, 1, 0, -1 }, { 0, -1, 1, -1, -1, 2, 0, 1, -2 }, { -2, 0, 1, 1, 2, 0, 0, 0, -2 }, { 1, 0, 1, 0, -1, -1, 2, 0, 0 }, { 2, 0, 1, -1, 0, 0, 0, 0, 0 }, { 1, 0, 2, 1, -1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, -1, 0, 0, 0 }, { 0, 0, -2, 0, 1, 1, -1, 0, 0 }, { 0, 1, -1, 0, 2, -1, 0, -1, 1 }, { 0, 2, -2, 1, 0, 0, 1, 0, 0 }, { 1, -1, 0, 1, -1, 1, 0, 2, 1 }, { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, { -1, 0, 1, 0, 0, -1, 0, -1, 1 }, { -2, 1, 0, 0, 0, 0, 0, 0, -1 }, { 0, 1, 0, -1, 0, 0, 0, 0, -1 }, { -1, 0, 0, 0, 0, 1, 0, 0, 1 }, { 1, 0, -1, -1, 0, 1, -1, 1, 0 }, { 0, 0, 0, 0, 2, 0, -1, 0, 1 }, { 2, -1, 1, 0, 0, 0, 0, 1, 2 }, { 0, -1, 0, 0, 2, 1, 0, 0, 0 }, { 0, 1, 1, 0, 1, -2, 0, 0, -1 }, { -1, 0, 2, 1, -2, 0, 1, -1, 0 }, { -1, -1, 0, 1, 0, 0, 0, 1, 0 }, { -1, -1, 0, 1, 0, -1, 0, 1, 0 }, { -1, -1, -2, 1, 0, 0, 0, 0, 0 }, { 1, 0, -2, -1, 0, 1, 0, 1, 0 }, };
+    start_matrix = { { 0, 0, 1, 0, -1, 0 }, { -1, -1, 0, 1, 0, 1 }, { -1, 0, 0, 1, 0, 0 }, { 0, -2, 0, -1, 0, 0 }, { -2, 0, 1, 0, 0, 1 }, { 0, 1, -1, 1, -1, 1 }, { 0, 0, 0, 2, -2, -1 }, { 0, 0, 0, 0, 0, 1 }, { 0, 0, 1, 1, 0, 0 }, { -1, 0, -1, -2, 2, 0 }, { 0, 2, 0, 0, 0, 0 }, { 1, 1, 0, -1, 0, 1 }, { 1, 0, 0, 1, 0, 1 }, };
+    
 
 
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
@@ -114,7 +115,7 @@
     
     start_n = { { -1, -1, -1, 0, -1, 1, 0, 0, 2 }, { 0, -1, 2, 2, 0, -1, -1, 1, 0 }, { 0, 1, 0, -1, 0, 0, 1, 0, 0 }, { 0, -1, 0, 1, -1, 1, 0, 0, 1 }, { 0, 0, 1, -1, 0, 0, -1, 0, 0 }, { 2, -1, 1, 0, 0, 0, 0, 1, 0 }, { -1, 1, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 1, 1, 0, 0, 0 }, { 0, 0, -1, 1, -1, 0, 0, -1, 1 }, { 0, -1, 0, 0, 2, 2, 0, 1, 0 }, { 0, 0, 0, 0, 0, 0, -1, 0, 0 }, { 1, 0, -1, 0, 0, 0, 0, -1, -1 }, { 0, -1, 0, 0, 0, 0, 0, 1, 0 }, { 0, 0, 0, 0, -1, 0, 0, -1, 0 }, { 0, 0, 0, 0, 0, 0, 0, 1, -1 }, { 0, 1, 0, 1, 0, 1, -2, 0, -2 }, { -1, 0, 0, -1, 0, 0, 0, -1, 2 }, { 1, 0, -1, -1, 0, 0, 0, 1, 0 }, { 0, 0, 1, 0, 0, 0, 0, 1, 0 }, { 1, 0, 0, -1, 0, 0, -1, 1, 0 }, { -1, 1, 0, 0, 1, 0, 0, -1, -2 }, { 2, 0, 0, 0, 0, -1, 0, 0, 0 }, { 0, 0, 0, -1, -2, 0, 1, -1, 0 }, { 0, 0, 1, 0, 0, 0, 0, -2, 0 }, { 0, 0, 0, 0, 0, -1, -2, -2, 0 }, { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, { 1, 1, -1, -1, 0, -1, -2, 0, -1 }, };
 
-    evo_pics = true;
+    evo_pics = false;
     pic_gen_interval = 100;
   
 
@@ -206,9 +207,6 @@
     fitness_begin = 0.9;
     // frequency of time steps fitness is collected
     fitness_typerate = 100;
-    // frequency of time steps to calculate rate of somatic cell production
-    fitness_somrate = 2000;
-    // select for increasing cell types
     
 
 
@@ -226,32 +224,32 @@
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     shrink = -16;
     s_shrink = -16;
-    shrink_on = true;
+    shrink_on = false;
 
 
     // Number of morphogens, Does changes depending on sim
-    n_diffusers = 3;
+    n_diffusers = 2;
 
     // enzymes that can break down the morphogen
     enzymes = false;
 
     // gene network parameters
     
-    n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
-    n_locks = 5; // must be half lockandkey. locks = keys
+    n_lockandkey = 4; // number of lock = keys, stored in separate vector for ease
+    n_locks = 2; // must be half lockandkey. 
     
     //adding new medium genes to release constraint on keys
-    n_mediums = 5;
+    n_mediums = 3;
 
 
-    // number of transcription factors. The first two transcription factors must be ON for stem cell identity. 
-    n_TF = 4; 
+    // number of transcription factors.
+    n_TF = 2; 
     
-    n_length_genes = 2;
+    n_length_genes = 0;
     n_MF = 2;
 
     // number of genes. All gene types must sum to this value (except if using morphogenwave, then activators is +1).
-    n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes +n_MF + shrink_on + (enzymes * n_diffusers); 
+    n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers); 
 
     n_activators = n_diffusers + n_TF+n_MF; //number of genes that can activate network (<= n_genes)
 
@@ -292,12 +290,8 @@
     // new_g = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // 
 
     theta = -0.3;
-    
     delta_t = 0.25;
-    // decay rate should be 1 - delta_t, but I accidentally used this.
-    // It has no effect, as the difference between exp(-0.29) and 1-delta_t is very small.
-    d_rate = exp(-0.29);
-    morphdecay = exp(-0.2);
+    d_rate = 1;
 
     morphogen_dose = 40.;
 

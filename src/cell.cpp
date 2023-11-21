@@ -306,8 +306,7 @@ int Cell::CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 )
     score += ( key2[i] != locks_bool[i] )?1:0; // (( key2[i] == locks_bool[i] )?1:0) * par.med_table[i];
   }
   // perfect score is 10 (all locks and keys match). 
-  int J = 4 + (int)( 20. - 20 * ((double)score) / (par.n_lockandkey)); //4 10 10     20-16 
-
+  int J = 4 + (int)( 8. - 8 * ((double)score / par.n_lockandkey)); //4 10 10     20-16 
   return J; 
 }
 

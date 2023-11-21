@@ -135,7 +135,6 @@ vector<vector<int>> get_random_network()
     for (int j = 0; j < par.n_activators; ++j)
     {
       double val = double_num(mersenne);
-      // slight ON bias for random networks. This is due to theta = -0.3. 
       if (val < 0.05)
       {
         matrix[i][j] = -2;
@@ -144,11 +143,11 @@ vector<vector<int>> get_random_network()
       {
         matrix[i][j] = -1;
       }
-      else if (val < 0.74)
+      else if (val < 0.7)
       {
         matrix[i][j] = 0;
       }
-      else if (val < 0.93)
+      else if (val < 0.95)
       {
         matrix[i][j] = 1;
       }
@@ -553,10 +552,12 @@ int main(int argc, char *argv[]) {
 
 #ifdef QTGRAPHICS
   if (par.evo_pics)
+  {
     QApplication* a = new QApplication(argc, argv);
-  par.data_file = "images";
-  if (mkdir(par.data_file.c_str(), 0777) != -1)
-    cout << "Directory created." << endl;
+    par.data_file = "images";
+    if (mkdir(par.data_file.c_str(), 0777) != -1)
+      cout << "Directory created." << endl;
+  }
   
 #endif
 

@@ -114,7 +114,6 @@ class Parameter {
   // when to collect fitness
   double fitness_begin;
   int fitness_typerate;
-  int fitness_somrate;
   bool print_fitness;
 
   bool all_divide;
@@ -129,7 +128,7 @@ class Parameter {
 
   int n_diffusers;
   int n_locks;
-  int med_table[5] = {5,4,3,2,1};
+  int med_table[3] = {6,4,2};
 
   int div_threshold;
   int gthresh;
