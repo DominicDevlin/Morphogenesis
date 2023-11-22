@@ -45,7 +45,7 @@
     contours = false;
 
     // Generate a random genome
-    randomise = true;
+    randomise = false;
 
     // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
     // output data for analysis (connectivity, gene expression, state transitions)
@@ -83,7 +83,7 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, 1, 0, -1, 0 }, { -1, -1, 0, 1, 0, 1 }, { -1, 0, 0, 1, 0, 0 }, { 0, -2, 0, -1, 0, 0 }, { -2, 0, 1, 0, 0, 1 }, { 0, 1, -1, 1, -1, 1 }, { 0, 0, 0, 2, -2, -1 }, { 0, 0, 0, 0, 0, 1 }, { 0, 0, 1, 1, 0, 0 }, { -1, 0, -1, -2, 2, 0 }, { 0, 2, 0, 0, 0, 0 }, { 1, 1, 0, -1, 0, 1 }, { 1, 0, 0, 1, 0, 1 }, };
+    start_matrix = { { 1, -1, 1, -1, 0, 0 }, { -1, -1, 1, 0, 0, 0 }, { 0, 0, 2, 0, 0, 0 }, { 0, 2, 0, 1, 0, 0 }, { 1, 2, 1, 0, 2, 0 }, { 1, 0, 2, -2, 0, 1 }, { 1, 1, 0, -1, 1, 0 }, { 1, -1, 0, -2, 0, 0 }, { 0, 1, 1, 0, 0, 1 }, { -1, 0, 1, 1, 1, 0 }, { 0, 0, 1, 0, -1, 0 }, { 0, 0, 0, 2, 0, 0 }, { 0, 1, 1, 0, 1, -2 }, };
     
 
 

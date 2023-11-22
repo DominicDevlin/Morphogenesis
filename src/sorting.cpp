@@ -329,19 +329,6 @@ TIMESTEP {
         }
         else
         {
-          for (auto i : phens)
-          {
-            cout << i.first << " " << i.second << endl;
-          }
-          for (auto i : types)
-          {
-            cout << i.first << " " << i.second << endl;
-          }
-          for (auto i : edge_tally)
-          {
-            cout << i.first.first << "  " << i.first.second << " " << i.second << endl;
-          }
-          cout << phens.size() << "  " << types.size() << "  " << edge_tally.size() << endl;
           Graph ungraph(types.size());
           subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
         }
