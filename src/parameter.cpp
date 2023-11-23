@@ -40,7 +40,7 @@
     mcs = 12100;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
 
