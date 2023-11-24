@@ -40,7 +40,7 @@
     mcs = 12100;
 
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
     contours = false;
 
@@ -83,8 +83,8 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 1, 0, -1, 1, 0, 0, 0 }, { -1, -1, 0, 1, -1, 1, 1, 0 }, { 1, 0, 1, 1, -1, 0, 0, 0 }, { 0, -1, 0, 0, -1, 1, 1, 0 }, { -2, 1, 1, -2, 1, 2, 0, 1 }, { 0, -2, 1, 2, -1, 1, -1, 0 }, { 0, 1, 0, 0, -1, 1, -1, 1 }, { 0, 0, 1, 1, 0, 0, -2, 1 }, { 0, -2, 2, 2, 1, 0, 1, -1 }, { -1, 1, -1, 0, 1, 1, 0, 0 }, { -2, 0, 0, 1, 2, 1, -1, 0 }, };
-
+    start_matrix = { { 1, 1, 0, 1, 0, 1, 0, 0 }, { 0, -2, -1, 1, 0, -1, 2, -2 }, { 1, 1, 0, 0, 0, 0, 1, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { -1, 0, -1, 0, 1, 0, -2, -1 }, { 1, -1, -1, 0, 0, 0, 1, 2 }, { -1, -1, 1, -1, 0, 0, 0, 0 }, { -1, -2, 0, 0, 0, 0, -1, 0 }, { 0, -1, 1, 0, 0, 0, 1, 0 }, { 1, 2, 0, -1, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0, 1, 0, -1 }, { -1, -2, 0, 1, -1, 2, -1, 0 }, { -1, 0, 1, 0, 0, 1, 0, 0 }, };
+    
 
 
 
@@ -238,7 +238,7 @@
 
     // gene network parameters
     
-    n_lockandkey = 2; // number of lock = keys, stored in separate vector for ease
+    n_lockandkey = 4; // number of lock = keys, stored in separate vector for ease
     n_locks = 2; // must be half lockandkey. 
     
     //adding new medium genes to release constraint on keys
