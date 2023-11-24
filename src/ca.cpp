@@ -6766,7 +6766,7 @@ int LKScore(vector<bool>& l1, vector<bool>& k1, vector<bool>& l2, vector<bool>& 
   }
 
   // perfect score is 10 (all locks and keys match). 
-  int J = 4 + (int)( 20. - 20 * ((double)score) / (par.n_lockandkey)); //4 10 10     20-16 
+  int J = 4 + (int)( 8. - 8 * ((double)score) / (par.n_lockandkey)); //4 10 10     20-16 
 
   return J; 
 }

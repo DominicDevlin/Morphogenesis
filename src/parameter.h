@@ -128,7 +128,7 @@ class Parameter {
 
   int n_diffusers;
   int n_locks;
-  int med_table[3] = {6,4,2};
+  int med_table[3] = {18};//{6,4,2};
 
   int div_threshold;
   int gthresh;
