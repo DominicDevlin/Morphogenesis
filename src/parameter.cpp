@@ -40,7 +40,7 @@
     mcs = 12100;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
 
@@ -83,7 +83,7 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 1, 1, 0, 1, 0, 1, 0, 0 }, { 0, -2, -1, 1, 0, -1, 2, -2 }, { 1, 1, 0, 0, 0, 0, 1, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { -1, 0, -1, 0, 1, 0, -2, -1 }, { 1, -1, -1, 0, 0, 0, 1, 2 }, { -1, -1, 1, -1, 0, 0, 0, 0 }, { -1, -2, 0, 0, 0, 0, -1, 0 }, { 0, -1, 1, 0, 0, 0, 1, 0 }, { 1, 2, 0, -1, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0, 1, 0, -1 }, { -1, -2, 0, 1, -1, 2, -1, 0 }, { -1, 0, 1, 0, 0, 1, 0, 0 }, };
+    start_matrix = { { 2, -2, -1, -1, 2, -1 }, { -1, 0, 0, 0, 1, 1 }, { 0, 0, -1, -1, 1, 1 }, { 1, 2, 0, -2, 0, 0 }, { 1, 1, 2, 1, 0, 0 }, { -1, -1, -1, 0, 1, 0 }, { 1, 1, 0, 0, -1, 0 }, { 0, 0, 1, 1, 0, 0 }, { 1, 0, 0, -2, 1, 0 }, { 2, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, -2, -1 }, { -1, 0, 1, 1, 1, 0 }, { -2, 0, 0, 0, -1, 0 }, { 0, 0, 1, 1, 0, 0 }, { -1, 1, 1, 1, 0, 1 }, { 0, 0, 1, 1, 1, 0 }, { 0, 1, 1, -1, 0, 0 }, { -2, 0, 2, 0, 0, 0 }, { 0, 0, 0, -1, 0, -1 }, { 0, 0, 1, 0, 0, 2 }, { 0, 0, 0, -2, 0, 1 }, };
     
 
 
@@ -231,25 +231,46 @@
 
 
     // Number of morphogens, Does changes depending on sim
-    n_diffusers = 2;
+    n_diffusers = 3;
 
     // enzymes that can break down the morphogen
     enzymes = false;
 
     // gene network parameters
     
-    n_lockandkey = 4; // number of lock = keys, stored in separate vector for ease
-    n_locks = 2; // must be half lockandkey. 
+    n_lockandkey = 10; // number of lock = keys, stored in separate vector for ease
+    n_locks = 5; // must be half lockandkey. 
     
     //adding new medium genes to release constraint on keys
-    n_mediums = 1;
+    n_mediums = 5;
 
+    // J values for cell with medium
+    med_table = new int[n_mediums];
+    med_table[0] = 5;
+    med_table[1] = 4;
+    med_table[2] = 3;
+    med_table[3] = 2;
+    med_table[4] = 1;
+    // [3] = {18};//{6,4,2};
 
     // number of transcription factors.
-    n_TF = 4; 
+    n_TF = 1; 
     
     n_length_genes = 0;
     n_MF = 2;
+
+    //min J if all cell-cell are paired
+    minJ = 4;
+    // max J if all cell-cell are not paired
+    maxJ = 24;
+    // min J with medium if all proteins are on
+    minM = 6;
+
+    // difference between maximum and minimum cell J
+    interval1 = maxJ-minJ;
+    // addition of J for each lock and key pair
+    interval2 = interval1 / n_lockandkey;
+
 
     // number of genes. All gene types must sum to this value (except if using morphogenwave, then activators is +1).
     n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers); 
@@ -269,6 +290,8 @@
 
     e1_loc=shrink_loc+1;
     e2_loc=e1_loc+1;
+
+
 
 
     // n_gr = 1; // increment target area of cell (growth gene)

@@ -6751,7 +6751,7 @@ int MedBinding(vector<bool>& med)
     
     Jval += med[i]*par.med_table[i]; // medp_bool[i]*4;
   }
-  Jval += 6; //  += 6 offset so interaction with medium is not 0     
+  Jval += par.minM; //  += 6 offset so interaction with medium is not 0     
   return Jval;
 }
 
@@ -6766,7 +6766,7 @@ int LKScore(vector<bool>& l1, vector<bool>& k1, vector<bool>& l2, vector<bool>& 
   }
 
   // perfect score is 10 (all locks and keys match). 
-  int J = 4 + (int)( 8. - 8 * ((double)score) / (par.n_lockandkey)); //4 10 10     20-16 
+  int J = par.maxJ - par.interval2 * score; 
 
   return J; 
 }

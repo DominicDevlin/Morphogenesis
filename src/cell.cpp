@@ -278,7 +278,7 @@ int Cell::CalculateJfromMed(vector<bool>& medp2)
     Jval += medp2[i]*par.med_table[i]; // medp2[i] * 4
   }
   
-  Jval += 6; // += 6 offset so interaction with medium is not 0
+  Jval += par.minM; // += 6 offset so interaction with medium is not 0
   return Jval;
 }
 
@@ -291,7 +291,7 @@ int Cell::CalculateJwithMed()
     
     Jval += medp_bool[i]*par.med_table[i]; // medp_bool[i]*4;
   }
-  Jval += 6; //  += 6 offset so interaction with medium is not 0     
+  Jval += par.minM; //  += 6 offset so interaction with medium is not 0     
   return Jval;
 }
 
@@ -305,8 +305,9 @@ int Cell::CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 )
     score += ( keys_bool[i] != lock2[i] )?1:0; // (( keys_bool[i] == lock2[i] )?1:0) * par.med_table[i];
     score += ( key2[i] != locks_bool[i] )?1:0; // (( key2[i] == locks_bool[i] )?1:0) * par.med_table[i];
   }
+  int J = par.maxJ - par.interval2 * score; 
   // perfect score is 10 (all locks and keys match). 
-  int J = 4 + (int)( 8. - 8 * ((double)score / par.n_lockandkey)); //4 10 10     20-16 
+  //  int J = 4 + (int)( 8. - 8 * ((double)score / par.n_lockandkey)); //4 10 10     20-16 
   return J; 
 }
 
