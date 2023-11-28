@@ -234,19 +234,19 @@
 
     // gene network parameters
     
-    n_lockandkey = 10; // number of lock = keys, stored in separate vector for ease
-    n_locks = 5; // must be half lockandkey. 
+    n_lockandkey = 2; // number of lock = keys, stored in separate vector for ease
+    n_locks = 4; // must be half lockandkey. 
     
     //adding new medium genes to release constraint on keys
-    n_mediums = 5;
+    n_mediums = 2;
 
     // J values for cell with medium
     med_table = new int[n_mediums];
-    med_table[0] = 5;
-    med_table[1] = 4;
-    med_table[2] = 3;
-    med_table[3] = 2;
-    med_table[4] = 1;
+    med_table[0] = 10;
+    med_table[1] = 2;
+    // med_table[2] = 3;
+    //med_table[3] = 2;
+    //med_table[4] = 1;
     // [3] = {18};//{6,4,2};
 
     // number of transcription factors.
@@ -258,7 +258,7 @@
     //min J if all cell-cell are paired
     minJ = 4;
     // max J if all cell-cell are not paired
-    maxJ = 24;
+    maxJ = 20;
     // min J with medium if all proteins are on
     minM = 6;
 
