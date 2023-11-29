@@ -2847,15 +2847,7 @@ void CellularPotts::CellHammingDifferences()
 
 
 
-
-
-
-
 } 
-
-
-
-
 
 
 
@@ -3054,8 +3046,8 @@ void CellularPotts::update_fitness()
 
 
 
-
-    double dev = (DeviationFromCircle()) * 1.4; // The question is whether to add total mass into this equation. Sqrt cell mass maybe?
+    // deformation from circle
+    double dev = (DeviationFromCircle()) * 1.4; 
     double wspc = sqrt((WhiteSpace())) * 2;
     double asymmetry = 0;
     if (par.asymmetry_selection)
@@ -3076,7 +3068,7 @@ void CellularPotts::update_fitness()
     }
     else
     {
-      asymmetry = asymmetry / 4.;
+      asymmetry = asymmetry / 2.;
       shape_fitness_list.push_back(dev + wspc + asymmetry);
     }
   }
@@ -6040,7 +6032,7 @@ double CellularPotts::DeviationFromCircle()
     dev += CirclePosGrad(i, center, rad);
   }
 
-  // algorithm is wrong, need to draw lines to radius based on degrees. 
+  // draw lines to radius based on degrees. 
   // angle -> line, multiplied by radius to get x and y val, get actual x and y val (can draw bresenhaum line) and then compute squared vector difference
 
   for (int x=0;x<sizex;++x)
