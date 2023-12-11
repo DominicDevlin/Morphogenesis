@@ -56,7 +56,30 @@
         // adding nodes and edges to the graph
         data = {nodes: nodes, edges: edges};
 
-        var options = {
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "90114", "label": "90114", "shape": "dot", "size": 65}, {"color": "#97c2fc", "id": "90118", "label": "90118", "shape": "dot", "size": 17}, {"color": "#97c2fc", "id": "90242", "label": "90242", "shape": "dot", "size": 46}, {"color": "#97c2fc", "id": "123010", "label": "123010", "shape": "dot", "size": 18}, {"color": "#97c2fc", "id": "124150", "label": "124150", "shape": "dot", "size": 29}, {"color": "#97c2fc", "id": "91382", "label": "91382", "shape": "dot", "size": 25}, {"color": "#97c2fc", "id": "91366", "label": "91366", "shape": "dot", "size": 13}, {"color": "#97c2fc", "id": "91390", "label": "91390", "shape": "dot", "size": 78}, {"color": "#97c2fc", "id": "124158", "label": "124158", "shape": "dot", "size": 21}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "90114", "to": "90118", "width": 1}, {"arrows": "to", "from": "90114", "to": "90242", "width": 1}, {"arrows": "to", "from": "90118", "to": "90114", "width": 1}, {"arrows": "to", "from": "90242", "to": "123010", "width": 1}, {"arrows": "to", "from": "90242", "to": "124150", "width": 1}, {"arrows": "to", "from": "90242", "to": "90114", "width": 1}, {"arrows": "to", "from": "90242", "to": "91382", "width": 1}, {"arrows": "to", "from": "91382", "to": "90242", "width": 1}, {"arrows": "to", "from": "91382", "to": "91366", "width": 1}, {"arrows": "to", "from": "91382", "to": "91390", "width": 1}, {"arrows": "to", "from": "91390", "to": "124158", "width": 1}, {"arrows": "to", "from": "91390", "to": "91382", "width": 1}, {"arrows": "to", "from": "123010", "to": "124150", "width": 1}, {"arrows": "to", "from": "123010", "to": "90242", "width": 1}, {"arrows": "to", "from": "124150", "to": "124158", "width": 1}, {"arrows": "to", "from": "124150", "to": "91382", "width": 1}, {"arrows": "to", "from": "124150", "to": "91390", "width": 1}, {"arrows": "to", "from": "124158", "to": "91390", "width": 1}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
     "configure": {
         "enabled": false
     },
