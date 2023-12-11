@@ -4879,8 +4879,6 @@ void CellularPotts::Directionality()
   vector<double> speeds{};
   vector<double> vectors{};
 
-
-
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
   {
@@ -4914,11 +4912,11 @@ void CellularPotts::Directionality()
         double total = csize * len;
 
 
-        // if (t > 114000 && t < 118000)
-        // {
-        //   speeds.push_back(total);
-        //   vectors.push_back(angle);
-        // }
+        if (t > 114000 && t < 118000)
+        {
+          speeds.push_back(total);
+          vectors.push_back(angle);
+        }
 
 
         // if (t > 123000 && t < 123500)
@@ -4962,11 +4960,11 @@ void CellularPotts::Directionality()
         //   vectors.push_back(angle);
         // }   
 
-        if ((t > 6000000 && t < 6500000))
-        {
-          speeds.push_back(total);
-          vectors.push_back(angle);
-        }                
+        // if ((t > 6000000 && t < 6500000))
+        // {
+        //   speeds.push_back(total);
+        //   vectors.push_back(angle);
+        // }                
         // if ((t > 40000000 && t < 50000000) || (t > 16000000 && t < 16500000))
         // {
         //   speeds.push_back(total);
@@ -4987,7 +4985,7 @@ void CellularPotts::Directionality()
     }
   }
 
-  string var_name = data_file + "/stem-directions.dat";
+  string var_name = data_file + "/directions.dat";
   ofstream outfile;
   outfile.open(var_name, ios::app);
 
@@ -4999,9 +4997,82 @@ void CellularPotts::Directionality()
   outfile.close();
 
 
+  // i have vectors and speeds.. Want to distribute them to 36 bins, and measure anistropy by squaring the bins. 
+
+  // convert to radians
+  for (auto&d : vectors)
+  {
+    d = d * M_PI / 180.0;
+    if (d < 0)
+    {
+      d = d + 2*M_PI;
+    }
+  }
+  double cosval = 0.0, sinval = 0.0;
+  double xmag = 0.0, ymag = 0.0;  
+
+  for (size_t i = 0; i < speeds.size(); ++i) 
+  {
+    cosval += speeds[i] * std::cos(vectors[i]);
+    sinval += speeds[i] * std::sin(vectors[i]);
+    xmag += speeds[i] * std::cos(vectors[i]);
+    ymag += speeds[i] * std::sin(vectors[i]);
+  }
+
+  // average angle
+  double avg = std::atan2(sinval, cosval);
+  avg = fmod(avg +2*M_PI, 2 * M_PI);
+  
+  cout << avg << endl;
+
+  // get magnitude by converting back to cartesian, adding all x and y then getting magnitude
+  // this is momentum (where time = 500 mcs).
+  double mr = std::sqrt(std::pow(xmag, 2) + std::pow(ymag, 2)) / vectors.size();
+  cout << mr << endl;
+
+  int num_bins = 36;
+  std::vector<double> bin_edges(num_bins + 1);
+  double bin_size = 2 * M_PI / num_bins;
+  for (int i = 0; i <= num_bins; ++i) 
+  {
+    bin_edges[i] = i * bin_size;
+  }
+  std::vector<double> magnitude(num_bins, 0.0);
+
+  for (size_t i = 0; i < vectors.size(); ++i) 
+  {
+    // cout << vectors[i] << endl;
+    for (int j = 0; j < num_bins; ++j) {
+      if (vectors[i] < bin_edges[j + 1]) 
+      {
+        magnitude[j] += speeds[i];
+        break;
+      }
+    }
+  }
+
+  // average momentium in each direction
+  double avg_moment{};
+  for (auto& m : magnitude) 
+  {
+    m /= vectors.size();
+    avg_moment+=m;
+    cout << m << endl;
+  }
+  avg_moment /= num_bins;
+
+  double m_var{};
+  for (auto&m : magnitude)
+  {
+    m_var += pow(m-avg_moment, 2);
+  }
+  m_var /= num_bins;
+  cout << m_var << endl;
 
 
 }
+
+
 
 
 void CellularPotts::SetAllStates()
