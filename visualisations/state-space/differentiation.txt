@@ -1,2 +1,0 @@
-Component # 0  contains  8  big states.
-The states  ['91382', '91390', '124158', '124150', '123010', '90242', '90118', '90114']  are stem.
