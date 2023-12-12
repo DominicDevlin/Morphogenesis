@@ -60,7 +60,7 @@
 
     // record velocities for all cells
     velocities = true;
-    record_directions = true;
+    record_directions = false;
 
     // record cell sizes
     output_sizes = false;
@@ -75,7 +75,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=1370678184773597213;
+    pickseed=0;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -83,7 +83,7 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, 2, 0, 0, 0, 0, 1, 0 }, { 0, -2, 2, -2, 0, 1, 0, 0, -2 }, { 0, 0, 1, -1, 0, 0, 0, 1, 1 }, { 0, 0, 0, 2, 0, 0, 0, -1, 1 }, { 0, 0, -1, 1, 0, 0, 1, -1, 0 }, { 1, 1, -1, -2, 2, 0, 0, 1, -1 }, { 0, 1, -1, 0, 0, 2, 1, 0, 0 }, { 0, 0, -1, -1, 0, 0, 1, 0, 0 }, { 2, -1, 0, 0, 1, -1, 0, 1, -1 }, { 2, 1, 0, 0, 0, 1, 0, 1, 1 }, { -1, 1, 0, 0, -1, 0, 2, 1, 0 }, { -1, -1, 0, 1, 0, 0, 0, 0, -1 }, { 1, 1, 1, 1, 2, -2, 1, 0, 0 }, { 1, 0, 2, 0, 2, 2, 0, 0, 0 }, { -1, 0, 0, 0, -1, 1, 1, 0, 1 }, { 1, -1, 0, 2, 1, 0, 0, -2, -1 }, { 1, -1, -1, 0, -1, 0, 0, 1, 0 }, { -1, 0, 0, -1, 1, 0, 0, 0, 0 }, { 0, 1, 0, 1, -1, -1, 0, -2, 0 }, { 1, 0, 0, 1, 0, 1, -2, 0, 0 }, { 0, 0, 0, 0, -2, 1, 0, 0, 0 }, { 0, 0, 0, -1, 0, 0, 2, -2, 0 }, { -2, 0, 1, 0, 0, 0, 1, 0, -1 }, { -2, 0, 2, 0, 1, 0, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, 0, 1, -1 }, { 0, -1, 0, 0, 0, 1, 0, 0, -1 }, { 0, 1, -2, 0, 0, 1, 0, 0, 0 }, };
+    start_matrix = { { -1, 0, 2, 0, 0, 1, 1, -1, 0 }, { 0, 0, 0, -1, 1, 0, 2, -2, -1 }, { 0, 1, -2, 0, -2, 1, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, -1, 0, 0 }, { 0, 0, 0, 2, 1, 0, -1, 0, 0 }, { 0, -2, 1, 0, 0, 1, 2, 1, -2 }, { -1, 1, -1, 0, 0, 0, -1, 0, 0 }, { 0, 1, 0, 2, -1, 0, 0, 0, 0 }, { 0, -2, 1, 0, 0, 0, -1, 0, -1 }, { 0, 0, 1, 0, 1, 1, 0, -1, 0 }, { 0, 2, 1, -1, -1, 1, 0, -1, 1 }, { -1, -1, 1, -1, 0, -1, -1, 0, 1 }, { 1, 0, 0, 0, 0, -1, 0, 1, 1 }, { 1, 0, 0, 0, 0, 0, 0, 1, 0 }, { 0, 0, 2, 1, -1, 1, 1, 0, -2 }, { 0, 0, 1, 0, -2, 0, 0, -2, 0 }, { 0, 0, 0, -1, 1, 0, 1, 0, -1 }, { 1, 0, -1, 1, 0, 1, 1, 0, -1 }, { -2, 0, -1, -1, 1, -1, 0, 0, -1 }, { 1, 0, 0, 0, 1, -1, 0, 0, -1 }, { -1, 0, 0, -1, 1, 1, 0, -2, 2 }, { 0, 0, 2, 1, 0, 0, 0, 0, 1 }, { 0, -1, -1, 0, 1, -1, 0, 0, -1 }, { 0, -1, 1, 1, 0, 0, -2, 2, 0 }, { -2, -1, 0, 1, 0, 0, 0, 0, 1 }, { -1, 0, 0, 0, 0, -1, 1, -1, -1 }, { -1, 0, -2, 0, 0, 0, -1, 0, -1 }, };
 
 
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
@@ -91,13 +91,18 @@
     // edges and nodes only at end of simulation.
     potency_edges = true;
     // what mcs to start measuring adult types & differentiation. set to 8000 for all results
-    adult_begins = 8000;
-    // prune tiny edges (<1 per org) from graph ( we keep this to false )
-    prune_edges = false;
+    adult_begins = 6000;
+
     // scramble cells
     scramble = false;
     // flat threshold for nodes
-    node_threshold = int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
+    node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
+
+    // prune tiny edges (<1 per org) from graph ( we keep this to false )
+    prune_edges = false;
+    
+    prune_amount = 10;
+
     // DEPRACATED - prune nodes below this percent. Should probably set this as a minimum value (i.e. 10 cells equivalent)
     node_percent = 0.03;
 

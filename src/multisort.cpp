@@ -162,6 +162,10 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         {
           dishes[i].CPM->RecordMasses();
         }
+        if (par.output_sizes)
+        {
+          dishes[i].CPM->RecordSizes();
+        }
 
 
         // if (par.gene_record)
@@ -232,6 +236,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
     dishes[i].CPM->set_datafile(fname);
+    par.data_file = fname;
 
     // string command = "mkdir " + fname;
     // system(command.c_str());
@@ -240,23 +245,20 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     else
       cout << "Directory created." << endl;   
 
-
-
-    if (par.velocities)
-      dishes[i].CPM->CellVelocities();
-
-
+  
     if (par.output_gamma)
       dishes[i].CPM->OutputGamma();
 
-    dishes[i].CPM->print_cell_GRN();
 
 
-    // dishes[i].CPM->TypeFitness2();
-    // dishes[i].CPM->get_fitness();
+    // if (par.umap)
+
+    dishes[i].CPM->get_fitness();
 
     map<int, int> phens = dishes[i].CPM->get_phenotype_time();
     map<int, int> types = dishes[i].CPM->get_AdultTypes();  
+
+
     
     map<pair<int,int>,int> edge_tally{};
     
@@ -272,6 +274,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       dishes[i].CPM->set_switches(edge_tally);
     }
 
+    vector<vector<int>> scc;
+
     if (par.potency_edges)
     {
       // entire program is run from ungraph now
@@ -283,31 +287,27 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       }
       else
       {
-        for (auto i : phens)
-        {
-          cout << i.first << " " << i.second << endl;
-        }
-        for (auto i : types)
-        {
-          cout << i.first << " " << i.second << endl;
-        }
-        for (auto i : edge_tally)
-        {
-          cout << i.first.first << "  " << i.first.second << " " << i.second << endl;
-        }
-        cout << phens.size() << "  " << types.size() << "  " << edge_tally.size() << endl;
-
         Graph ungraph(types.size());
         subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-        cout << subcomps.size() << endl;
-      }
+        scc = ungraph.GetComps(types, 500);
+        for (auto i : scc)
+        {
+            cout << "component: ";
+            for (int j : i)
+            {
+                cout << j << "  ";
+            }
+            cout << std::endl;
+        }
 
+      }
 
       if (par.gene_output)
       {
         ofstream outfile;
-        string switch_out = fname + "/potency.dat";
+        string switch_out = par.data_file + "/potency.dat";
         outfile.open(switch_out, ios::app);
+
         for (auto kv : subcomps)
         {
           outfile << "Component number: " << kv.first;
@@ -331,12 +331,48 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       map<int,int> subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
     }
 
+    if (par.gene_output)
+    {
+      ofstream outnet;
+      string netw = par.data_file + "/network.txt";
+      outnet.open(netw, ios::app);
+      for (int i=0;i<par.n_genes;++i)
+      {
+        if (i == 0)
+          outnet << "{ ";
+        for (int j=0;j<par.n_activators;++j)
+        {
+          if (j==0)
+            outnet << "{ " << par.start_matrix[i][j] << ", ";
+          else if (j==par.n_activators-1)
+            outnet << par.start_matrix[i][j] << " }, ";
+          else 
+            outnet << par.start_matrix[i][j] << ", ";
+        }
+        if (i == par.n_genes -1)
+          outnet << "}" << endl;
+      }
+
+      outnet << endl << "Seed is: " << endl << par.pickseed;
+      outnet.close();
+    }
+
+
+
+    if (par.velocities)
+    {
+      // dishes[i].CPM->CellVelocities();
+      dishes[i].CPM->Directionality(scc);
+    }
+      
+    // dishes[i].CPM->SpecialVelocity();
+    if (par.record_directions)
+    {
+      dishes[i].CPM->Directionality();
+      // dishes[i].CPM->SingleCellDirection();
+    }
 
   }
-
-
-
-
 
 
 }
@@ -352,7 +388,9 @@ int main(int argc, char *argv[]) {
   par.randomise=false;
   par.gene_output=true;
   par.gene_record=true;
-  par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
+  // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
+  if (par.velocities)
+  par.output_sizes = true;
   
   Parameter();
 

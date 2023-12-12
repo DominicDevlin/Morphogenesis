@@ -309,6 +309,8 @@ public:
 
   void Directionality();
 
+  void Directionality(vector<vector<int>> sccs);
+
   void SingleCellDirection();
 
   void RecordSizes();

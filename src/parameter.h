@@ -121,6 +121,7 @@ class Parameter {
 
   bool potency_edges;
   bool prune_edges;
+  int prune_amount;
   double node_percent;
   int node_threshold;
   int adult_begins;

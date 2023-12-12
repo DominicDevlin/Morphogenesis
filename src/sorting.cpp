@@ -81,7 +81,7 @@ INIT
     CPM->start_network(par.start_matrix, par.start_polarity);
 
     par.print_fitness = true;
-    par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
+    par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
 
     if (par.set_colours)
     {
@@ -277,15 +277,6 @@ TIMESTEP {
 
     if (t == par.mcs - 1)
     {
-      if (par.velocities)
-        dish->CPM->CellVelocities();
-
-      // dish->CPM->SpecialVelocity();
-      if (par.record_directions)
-      {
-        dish->CPM->Directionality();
-        // dish->CPM->SingleCellDirection();
-      }
 
 
       if (par.output_gamma)
@@ -318,6 +309,8 @@ TIMESTEP {
         dish->CPM->set_switches(edge_tally);
       }
 
+      vector<vector<int>> scc;
+
       if (par.potency_edges)
       {
         // entire program is run from ungraph now
@@ -331,8 +324,18 @@ TIMESTEP {
         {
           Graph ungraph(types.size());
           subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-        }
+          scc = ungraph.GetComps(types, 500);
+          for (auto i : scc)
+          {
+              cout << "component: ";
+              for (int j : i)
+              {
+                  cout << j << "  ";
+              }
+              cout << std::endl;
+          }
 
+        }
 
         if (par.gene_output)
         {
@@ -389,6 +392,20 @@ TIMESTEP {
         outnet.close();
       }
 
+
+
+      if (par.velocities)
+      {
+        dish->CPM->CellVelocities();
+        dish->CPM->Directionality(scc);
+      }
+        
+      // dish->CPM->SpecialVelocity();
+      if (par.record_directions)
+      {
+        dish->CPM->Directionality();
+        // dish->CPM->SingleCellDirection();
+      }
    
 
     }

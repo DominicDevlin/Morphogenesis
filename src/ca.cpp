@@ -4810,6 +4810,9 @@ void CellularPotts::CellVelocities()
       vector<int>& velp = c->get_velphens();
       int init_time = c->get_time_created();
 
+
+
+
       int s = xm.size();
 
       for (int i = 500; i < s; ++i)
@@ -4868,6 +4871,170 @@ void CellularPotts::CellVelocities()
     outfile << t.first << "\t" << t.second << "\t" << varveltally[t.first] << "\t" << velphentally[t.first] << endl;
   }
   outfile.close();
+}
+
+
+
+void CellularPotts::Directionality(vector<vector<int>> sccs)
+{
+
+  // automatic method to separate speeds into components
+
+  for (vector<int> scc : sccs)
+  {
+    vector<double> speeds{};
+    vector<double> vectors{};
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+
+        vector<double>& xm = c->get_xcens();
+        vector<double>& ym = c->get_ycens();
+        vector<int>& velp = c->get_velphens();
+        vector<double>& sizes = c->GetMassList();
+        int s = xm.size();
+        int init_time = c->get_time_created();
+
+
+
+      
+
+        for (int i = 500 + init_time; i < s; ++i)
+        {
+          // we want displacement from a while ago to account for back and forth motion
+          int t = velp[i-250];
+
+          if (find(scc.begin(), scc.end(), t) == scc.end())
+          {
+            continue;
+          }
+          else
+          {
+            double x = xm[i-500];
+            double y = ym[i-500];
+            double x1 = xm[i];
+            double y1 = ym[i];
+
+
+            double len = sqrt(pow(x1-x,2) + pow(y1-y,2));
+
+
+            double angle = atan2(y1-y, x1-x);
+            angle = angle * (180.0 / M_PI);
+
+            // lets take the type in the middle as the relevant type
+            double csize = sizes[i-250];
+            double total = csize * len;
+
+
+            speeds.push_back(total);
+            vectors.push_back(angle);
+
+          }
+        }
+      }
+    }
+    // string var_name = data_file + "/directions.dat" ;
+    // ofstream outfile;
+    // outfile.open(var_name, ios::app);
+
+    // int s = speeds.size();
+    // for (int i=0;i<s;++i)
+    // {
+    //   outfile << vectors[i] << '\t'  << speeds[i] << endl;
+    // }
+    // outfile.close();
+
+
+    string var_name = data_file + "/component-momenta.dat" ;
+    ofstream outfile;
+    outfile.open(var_name, ios::app);
+
+    for (int i : scc)
+    {
+      outfile << i << " ";
+    }
+    outfile << endl;
+
+    // i have vectors and speeds.. Want to distribute them to 36 bins, and measure anistropy by squaring the bins around mean to get variance. 
+    // convert to radians
+    for (auto&d : vectors)
+    {
+      d = d * M_PI / 180.0;
+      if (d < 0)
+      {
+        d = d + 2*M_PI;
+      }
+    }
+    double cosval = 0.0, sinval = 0.0;
+    double xmag = 0.0, ymag = 0.0;  
+
+    for (size_t i = 0; i < speeds.size(); ++i) 
+    {
+      cosval += speeds[i] * std::cos(vectors[i]);
+      sinval += speeds[i] * std::sin(vectors[i]);
+      xmag += speeds[i] * std::cos(vectors[i]);
+      ymag += speeds[i] * std::sin(vectors[i]);
+    }
+
+    // average angle
+    double avg = std::atan2(sinval, cosval);
+    avg = fmod(avg +2*M_PI, 2 * M_PI);
+    // cout << avg << endl;
+
+    // get magnitude by converting back to cartesian, adding all x and y then getting magnitude
+    // this is momentum (where time = 500 mcs).
+    double mr = std::sqrt(std::pow(xmag, 2) + std::pow(ymag, 2)) / vectors.size();
+    // cout << mr << endl;
+
+    int num_bins = 36;
+    std::vector<double> bin_edges(num_bins + 1);
+    double bin_size = 2 * M_PI / num_bins;
+    for (int i = 0; i <= num_bins; ++i) 
+    {
+      bin_edges[i] = i * bin_size;
+    }
+    std::vector<double> magnitude(num_bins, 0.0);
+
+    for (size_t i = 0; i < vectors.size(); ++i) 
+    {
+      // cout << vectors[i] << endl;
+      for (int j = 0; j < num_bins; ++j) {
+        if (vectors[i] < bin_edges[j + 1]) 
+        {
+          magnitude[j] += speeds[i];
+          break;
+        }
+      }
+    }
+
+    // average momentium in each direction
+    double avg_moment{};
+    for (auto& m : magnitude) 
+    {
+      m /= vectors.size();
+      avg_moment+=m;
+    }
+    double integral = avg_moment;
+    avg_moment /= num_bins;
+
+    double m_var{};
+    for (auto&m : magnitude)
+    {
+      m_var += pow(m-avg_moment, 2);
+    }
+    m_var /= num_bins;
+    // cout << m_var << endl;
+
+    outfile << "direction in radians: " << avg << " with magnitude: " << mr << endl;
+    outfile << "growth: " << integral << endl;
+    outfile << "variance: " << m_var << endl;
+    outfile << endl;
+    outfile.close();
+  }
+
 }
 
 
@@ -5071,7 +5238,6 @@ void CellularPotts::Directionality()
 
 
 }
-
 
 
 
