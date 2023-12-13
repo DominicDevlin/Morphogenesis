@@ -299,7 +299,7 @@ TIMESTEP {
       
       // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)
       bool cycling = dish->CPM->CycleCheck();
-      if (cycling)
+      if (cycling && par.cycle_check)
       {
         cout << "There is cycling!!" << endl;
         dish->CPM->set_long_switches(edge_tally);
@@ -315,7 +315,7 @@ TIMESTEP {
       {
         // entire program is run from ungraph now
         map<int,int>subcomps{};
-        if (cycling)
+        if (cycling && par.cycle_check)
         {
           Graph ungraph(phens.size());
           subcomps = ungraph.CreateUnGraph(phens, phens, edge_tally, 1, true);          

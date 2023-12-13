@@ -4882,8 +4882,15 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
 
   for (vector<int> scc : sccs)
   {
+    int minx=0;
+    int maxx=0;
+    int miny=par.sizex;
+    int maxy=par.sizey;
+  
     vector<double> speeds{};
     vector<double> vectors{};
+    vector<double> x_positions{};
+    vector<double> y_positions{};
     vector<Cell>::iterator c;
     for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
@@ -4896,10 +4903,6 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
         vector<double>& sizes = c->GetMassList();
         int s = xm.size();
         int init_time = c->get_time_created();
-
-
-
-      
 
         for (int i = 500 + init_time; i < s; ++i)
         {
@@ -4928,6 +4931,23 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
             double csize = sizes[i-250];
             double total = csize * len;
 
+            double xpos = xm[i-250];
+            double ypos = ym[i-250];
+
+            x_positions.push_back(xpos);
+            y_positions.push_back(ypos);
+
+
+            if (xpos < minx)
+              minx=xpos;
+            if (xpos > maxx)
+              maxx = xpos;
+            if (ypos < miny)
+              miny=ypos;
+            if (ypos > maxy)
+              maxy = ypos;
+
+
 
             speeds.push_back(total);
             vectors.push_back(angle);
@@ -4947,6 +4967,33 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
     // }
     // outfile.close();
 
+    double xcen = double(maxx-minx)/2;
+    double ycen = double(maxy-miny)/2;
+
+    vector<double> r_values{};
+    vector<double> theta_values{};
+
+    for (int i=0;i<x_positions.size();++i)
+    {
+      x_positions[i] = x_positions[i] - xcen;
+      y_positions[i] = y_positions[i] - ycen;
+
+      double r = (x_positions[i] * x_positions[i] + y_positions[i] * y_positions[i]);
+      double theta = atan2(y_positions[i], x_positions[i]);
+
+      r_values.push_back(r);
+      theta_values.push_back(theta);
+    }
+
+    vector<vector<double>> rings{};
+    int n_bins=6;
+    int n_rads;
+
+
+
+
+
+
 
     string var_name = data_file + "/component-momenta.dat" ;
     ofstream outfile;
@@ -4957,6 +5004,11 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
       outfile << i << " ";
     }
     outfile << endl;
+
+
+    // calculate "activity center" of all x and y positions
+
+
 
     // i have vectors and speeds.. Want to distribute them to 36 bins, and measure anistropy by squaring the bins around mean to get variance. 
     // convert to radians
