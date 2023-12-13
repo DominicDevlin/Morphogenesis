@@ -4882,10 +4882,10 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
 
   for (vector<int> scc : sccs)
   {
-    int minx=0;
     int maxx=0;
-    int miny=par.sizex;
-    int maxy=par.sizey;
+    int maxy=0;
+    int minx=par.sizex;
+    int miny=par.sizey;
   
     vector<double> speeds{};
     vector<double> vectors{};
@@ -4978,19 +4978,102 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
       x_positions[i] = x_positions[i] - xcen;
       y_positions[i] = y_positions[i] - ycen;
 
-      double r = (x_positions[i] * x_positions[i] + y_positions[i] * y_positions[i]);
+      double r = sqrt(x_positions[i] * x_positions[i] + y_positions[i] * y_positions[i]);
+
+      // atan2 returns on interval (-pi to +pi)
       double theta = atan2(y_positions[i], x_positions[i]);
+
+      // converty to interval (0 to 2pi)
+      theta = fmod(theta + 2*M_PI, 2 * M_PI);
 
       r_values.push_back(r);
       theta_values.push_back(theta);
     }
 
-    vector<vector<double>> rings{};
-    int n_bins=6;
-    int n_rads;
+    
+    int n_angles=6;
+    int n_circles=6;
+    vector<double> radii_bins{};
+    vector<double> theta_bins{};
+
+    double tmp1 = max(maxx-xcen, xcen-minx);
+    double tmp2 = max(maxy-ycen, ycen-miny);
+    double radius = max(tmp1, tmp2);
+
+
+    // double area_between = M_PI * radius * radius / n_circles;
+
+    for (int n = 1; n < n_circles+1; ++n) 
+    {
+      double newr = n*(radius / n_circles); // sqrt(n * area_between / M_PI);
+      cout << "NEWR: " << newr << endl;
+      radii_bins.push_back(newr);
+    }
+
+    for (int n = 1; n < n_angles + 1; ++n)
+    {
+      double newtheta = (2 * M_PI / n_angles) * n;
+      theta_bins.push_back(newtheta);
+    }
+
+    vector<double> theta_mags(n_angles, 0.0);
+    vector<vector<double>> rings(n_circles, theta_mags);
+
+    vector<int> theta_m(n_angles, 0);
+    vector<vector<int>> ring_counter(n_circles, theta_m);
+
+    for (size_t i = 0; i < r_values.size(); ++i) 
+    {
+      // cout << vectors[i] << endl;
+      for (int j = 0; j < n_circles; ++j) 
+      {
+        if (r_values[i] < radii_bins[j]) 
+        {
+          for (int k = 0; k < n_angles;++k)
+          {
+            if (theta_values[i] < theta_bins[k])
+            {
+              rings[j][k] += speeds[i];
+              ring_counter[j][k]+=1;
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    for (int j = 0; j < n_circles; ++j) 
+    {
+      for (int k = 0; k < n_angles;++k)
+      {
+        cout << j << "   " << k << "   " << rings[j][k] << "   " << ring_counter[j][k] << endl;
+        rings[j][k] /= ring_counter[j][k];
+      }
+    }
 
 
 
+    double total_variance{};
+    // nowe need to calculate the variance on bins across theta.
+    for (int i = 0; i < n_circles; ++i)
+    {
+      double circle_variance{};
+      double avg_m{};
+      for (double& j : rings[i])
+      {
+        j /= speeds.size();
+        avg_m += j;
+      }
+      avg_m /= n_angles;
+      for (double& j : rings[i])
+      {
+        circle_variance += pow(j-avg_m, 2);
+      } 
+      circle_variance /= n_angles;
+      total_variance += circle_variance;
+      cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+    }
 
 
 
@@ -5083,6 +5166,7 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
     outfile << "direction in radians: " << avg << " with magnitude: " << mr << endl;
     outfile << "growth: " << integral << endl;
     outfile << "variance: " << m_var << endl;
+    outfile << "TOTAL VARIANCE: " << total_variance << endl;
     outfile << endl;
     outfile.close();
   }
