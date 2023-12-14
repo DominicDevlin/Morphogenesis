@@ -362,7 +362,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     if (par.velocities)
     {
       // dishes[i].CPM->CellVelocities();
-      dishes[i].CPM->Directionality(scc);
+      dishes[i].CPM->momenta(scc);
     }
       
     // dishes[i].CPM->SpecialVelocity();
@@ -445,11 +445,15 @@ int main(int argc, char *argv[]) {
   for (vector<vector<int>> i : genomes)
   {
     polarities.push_back(start_p);
+  }
+
+  par.n_orgs = 10;
+  for (vector<vector<int>> i : genomes)
+  {
+    vector<vector<vector<int>>> replays(par.n_orgs, i);
+    process_population(replays, polarities);
 
   }
-  par.n_orgs = genomes.size();
-  process_population(genomes, polarities);
-
 
 
 

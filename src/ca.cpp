@@ -4875,17 +4875,212 @@ void CellularPotts::CellVelocities()
 
 
 
-void CellularPotts::Directionality(vector<vector<int>> sccs)
+
+
+
+
+
+
+
+pair<double, double> CellularPotts::momenta(void)
+{
+
+  double max_radius{};
+  vector<double> r_values{};
+  vector<double> theta_values{};
+
+  vector<double> speeds{};
+  vector<double> vectors{};
+  vector<double> x_positions{};
+  vector<double> y_positions{};
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      // when the cell first appears in the SCC
+      int cell_origin=INT_MAX;
+      int x_origin=0;
+      int y_origin=0;
+
+      vector<double>& xm = c->get_xcens();
+      vector<double>& ym = c->get_ycens();
+      vector<int>& velp = c->get_velphens();
+      vector<double>& sizes = c->GetMassList();
+      int s = xm.size();
+      int init_time = c->get_time_created();
+
+      for (int i = 500 + init_time; i < s; ++i)
+      {
+        // we want displacement from a while ago to account for back and forth motion
+        int t = velp[i-250];
+
+        if (i < cell_origin)
+        {
+          cell_origin = i;
+          x_origin = xm[i-250];
+          y_origin = ym[i-250];
+        }
+          
+        double x = xm[i-500];
+        double y = ym[i-500];
+        double x1 = xm[i];
+        double y1 = ym[i];
+
+
+        double len = sqrt(pow(x1-x,2) + pow(y1-y,2));
+
+
+        double angle = atan2(y1-y, x1-x);
+        angle = angle * (180.0 / M_PI);
+
+        // lets take the type in the middle as the relevant type
+        double csize = sizes[i-250];
+        double total = csize * len;
+
+        double xpos = xm[i-250];
+        double ypos = ym[i-250];
+
+        double xrel = xpos-x_origin;
+        double yrel = ypos-y_origin;
+        x_positions.push_back(xrel);
+        y_positions.push_back(yrel);
+
+        // atan2 returns on interval (-pi to +pi)
+        double theta = atan2(y_positions[i], x_positions[i]);
+        // converty to interval (0 to 2pi)
+        theta = fmod(theta + 2*M_PI, 2 * M_PI);
+        theta_values.push_back(theta);
+
+        double check_r = sqrt(pow(xrel,2) + pow(yrel,2));
+        r_values.push_back(check_r);
+        if (check_r > max_radius)
+        {
+          max_radius = check_r;
+        }
+          
+
+
+        speeds.push_back(total);
+        vectors.push_back(angle);
+
+      }
+    }
+  }
+  // string var_name = data_file + "/directions.dat" ;
+  // ofstream outfile;
+  // outfile.open(var_name, ios::app);
+
+  // int s = speeds.size();
+  // for (int i=0;i<s;++i)
+  // {
+  //   outfile << vectors[i] << '\t'  << speeds[i] << endl;
+  // }
+  // outfile.close();
+
+
+  int n_angles=6;
+  int n_circles=6;
+  vector<double> radii_bins{};
+  vector<double> theta_bins{};
+
+
+
+  // double area_between = M_PI * radius * radius / n_circles;
+
+  for (int n = 1; n < n_circles+1; ++n) 
+  {
+    double newr = n*(max_radius / n_circles); // sqrt(n * area_between / M_PI);
+    radii_bins.push_back(newr);
+  }
+
+  for (int n = 1; n < n_angles + 1; ++n)
+  {
+    double newtheta = (2 * M_PI / n_angles) * n;
+    theta_bins.push_back(newtheta);
+  }
+
+  vector<double> theta_mags(n_angles, 0.0);
+  vector<vector<double>> rings(n_circles, theta_mags);
+
+  vector<int> theta_m(n_angles, 0);
+  vector<vector<int>> ring_counter(n_circles, theta_m);
+
+  double total_speed{};
+
+  for (size_t i = 0; i < r_values.size(); ++i) 
+  {
+    for (int j = 0; j < n_circles; ++j) 
+    {
+      if (r_values[i] < radii_bins[j]) 
+      {
+        for (int k = 0; k < n_angles;++k)
+        {
+          if (theta_values[i] < theta_bins[k])
+          {
+            rings[j][k] += speeds[i];
+            total_speed += speeds[i];
+            ring_counter[j][k]+=1;
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  for (int j = 0; j < n_circles; ++j) 
+  {
+    for (int k = 0; k < n_angles;++k)
+    {
+      if (ring_counter[j][k])
+        rings[j][k] /= ring_counter[j][k];
+    }
+  }
+
+
+
+  double total_variance{};
+  // nowe need to calculate the variance on bins across theta.
+  for (int i = 0; i < n_circles; ++i)
+  {
+    double circle_variance{};
+    double avg_m{};
+    for (double& j : rings[i])
+    {
+      avg_m += j;
+    }
+    avg_m /= n_angles;
+    for (double& j : rings[i])
+    {
+      circle_variance += pow(j-avg_m, 2);
+    } 
+    circle_variance /= n_angles;
+    total_variance += circle_variance;
+    // cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+  }
+
+  pair<double, double> toreturn = {total_speed, total_variance};
+  
+  return toreturn;
+}
+
+
+
+
+
+pair<double, double> CellularPotts::momenta(vector<vector<int>> sccs)
 {
 
   // automatic method to separate speeds into components
+  vector<pair<double,double>> scc_mags{};
 
   for (vector<int> scc : sccs)
   {
-    int maxx=0;
-    int maxy=0;
-    int minx=par.sizex;
-    int miny=par.sizey;
+
+    double max_radius{};
+    vector<double> r_values{};
+    vector<double> theta_values{};
   
     vector<double> speeds{};
     vector<double> vectors{};
@@ -4896,6 +5091,10 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
     {
       if (c->AliveP())
       {
+        // when the cell first appears in the SCC
+        int cell_origin=INT_MAX;
+        int x_origin=0;
+        int y_origin=0;
 
         vector<double>& xm = c->get_xcens();
         vector<double>& ym = c->get_ycens();
@@ -4915,6 +5114,14 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
           }
           else
           {
+
+            if (i < cell_origin)
+            {
+              cell_origin = i;
+              x_origin = xm[i-250];
+              y_origin = ym[i-250];
+            }
+              
             double x = xm[i-500];
             double y = ym[i-500];
             double x1 = xm[i];
@@ -4934,19 +5141,24 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
             double xpos = xm[i-250];
             double ypos = ym[i-250];
 
-            x_positions.push_back(xpos);
-            y_positions.push_back(ypos);
+            double xrel = xpos-x_origin;
+            double yrel = ypos-y_origin;
+            x_positions.push_back(xrel);
+            y_positions.push_back(yrel);
 
+            // atan2 returns on interval (-pi to +pi)
+            double theta = atan2(y_positions[i], x_positions[i]);
+            // converty to interval (0 to 2pi)
+            theta = fmod(theta + 2*M_PI, 2 * M_PI);
+            theta_values.push_back(theta);
 
-            if (xpos < minx)
-              minx=xpos;
-            if (xpos > maxx)
-              maxx = xpos;
-            if (ypos < miny)
-              miny=ypos;
-            if (ypos > maxy)
-              maxy = ypos;
-
+            double check_r = sqrt(pow(xrel,2) + pow(yrel,2));
+            r_values.push_back(check_r);
+            if (check_r > max_radius)
+            {
+              max_radius = check_r;
+            }
+              
 
 
             speeds.push_back(total);
@@ -4967,46 +5179,19 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
     // }
     // outfile.close();
 
-    double xcen = double(maxx-minx)/2;
-    double ycen = double(maxy-miny)/2;
 
-    vector<double> r_values{};
-    vector<double> theta_values{};
-
-    for (int i=0;i<x_positions.size();++i)
-    {
-      x_positions[i] = x_positions[i] - xcen;
-      y_positions[i] = y_positions[i] - ycen;
-
-      double r = sqrt(x_positions[i] * x_positions[i] + y_positions[i] * y_positions[i]);
-
-      // atan2 returns on interval (-pi to +pi)
-      double theta = atan2(y_positions[i], x_positions[i]);
-
-      // converty to interval (0 to 2pi)
-      theta = fmod(theta + 2*M_PI, 2 * M_PI);
-
-      r_values.push_back(r);
-      theta_values.push_back(theta);
-    }
-
-    
     int n_angles=6;
     int n_circles=6;
     vector<double> radii_bins{};
     vector<double> theta_bins{};
 
-    double tmp1 = max(maxx-xcen, xcen-minx);
-    double tmp2 = max(maxy-ycen, ycen-miny);
-    double radius = max(tmp1, tmp2);
 
 
     // double area_between = M_PI * radius * radius / n_circles;
 
     for (int n = 1; n < n_circles+1; ++n) 
     {
-      double newr = n*(radius / n_circles); // sqrt(n * area_between / M_PI);
-      cout << "NEWR: " << newr << endl;
+      double newr = n*(max_radius / n_circles); // sqrt(n * area_between / M_PI);
       radii_bins.push_back(newr);
     }
 
@@ -5022,9 +5207,10 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
     vector<int> theta_m(n_angles, 0);
     vector<vector<int>> ring_counter(n_circles, theta_m);
 
+    double total_speed{};
+
     for (size_t i = 0; i < r_values.size(); ++i) 
     {
-      // cout << vectors[i] << endl;
       for (int j = 0; j < n_circles; ++j) 
       {
         if (r_values[i] < radii_bins[j]) 
@@ -5034,6 +5220,7 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
             if (theta_values[i] < theta_bins[k])
             {
               rings[j][k] += speeds[i];
+              total_speed += speeds[i];
               ring_counter[j][k]+=1;
               break;
             }
@@ -5047,8 +5234,8 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
     {
       for (int k = 0; k < n_angles;++k)
       {
-        cout << j << "   " << k << "   " << rings[j][k] << "   " << ring_counter[j][k] << endl;
-        rings[j][k] /= ring_counter[j][k];
+        if (ring_counter[j][k])
+          rings[j][k] /= ring_counter[j][k];
       }
     }
 
@@ -5062,7 +5249,6 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
       double avg_m{};
       for (double& j : rings[i])
       {
-        j /= speeds.size();
         avg_m += j;
       }
       avg_m /= n_angles;
@@ -5072,8 +5258,10 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
       } 
       circle_variance /= n_angles;
       total_variance += circle_variance;
-      cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+      // cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
     }
+
+    pair<double, double> toreturn = {total_speed, total_variance};
 
 
 
@@ -5166,10 +5354,13 @@ void CellularPotts::Directionality(vector<vector<int>> sccs)
     outfile << "direction in radians: " << avg << " with magnitude: " << mr << endl;
     outfile << "growth: " << integral << endl;
     outfile << "variance: " << m_var << endl;
-    outfile << "TOTAL VARIANCE: " << total_variance << endl;
+    // outfile << "TOTAL VARIANCE: " << total_variance << endl;
     outfile << endl;
     outfile.close();
   }
+
+  
+  return 
 
 }
 

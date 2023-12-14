@@ -309,7 +309,9 @@ public:
 
   void Directionality();
 
-  void Directionality(vector<vector<int>> sccs);
+  pair<double, double> momenta(vector<vector<int>> sccs);
+
+  pair<double, double> momenta(void);
 
   void SingleCellDirection();
 
