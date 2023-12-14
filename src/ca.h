@@ -309,7 +309,7 @@ public:
 
   void Directionality();
 
-  pair<double, double> momenta(vector<vector<int>> sccs);
+  vector<pair<double, double>> scc_momenta(vector<vector<int>> sccs);
 
   pair<double, double> momenta(void);
 

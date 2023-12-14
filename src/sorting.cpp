@@ -397,7 +397,7 @@ TIMESTEP {
       if (par.velocities)
       {
         dish->CPM->CellVelocities();
-        dish->CPM->Directionality(scc);
+        dish->CPM->scc_momenta(scc);
       }
         
       // dish->CPM->SpecialVelocity();

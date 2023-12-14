@@ -5069,7 +5069,7 @@ pair<double, double> CellularPotts::momenta(void)
 
 
 
-pair<double, double> CellularPotts::momenta(vector<vector<int>> sccs)
+vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs)
 {
 
   // automatic method to separate speeds into components
@@ -5180,12 +5180,13 @@ pair<double, double> CellularPotts::momenta(vector<vector<int>> sccs)
     // outfile.close();
 
 
-    int n_angles=6;
-    int n_circles=6;
+    int n_angles=8;
+    int n_circles=4;
     vector<double> radii_bins{};
     vector<double> theta_bins{};
 
-
+    // max radius is too large because boundary is inconsistent. Use 0.95*r
+    max_radius *= 0.95;
 
     // double area_between = M_PI * radius * radius / n_circles;
 
@@ -5199,6 +5200,7 @@ pair<double, double> CellularPotts::momenta(vector<vector<int>> sccs)
     {
       double newtheta = (2 * M_PI / n_angles) * n;
       theta_bins.push_back(newtheta);
+      cout << newtheta << endl;
     }
 
     vector<double> theta_mags(n_angles, 0.0);
@@ -5245,11 +5247,14 @@ pair<double, double> CellularPotts::momenta(vector<vector<int>> sccs)
     // nowe need to calculate the variance on bins across theta.
     for (int i = 0; i < n_circles; ++i)
     {
+      double circle_mean=0;
       double circle_variance{};
       double avg_m{};
       for (double& j : rings[i])
       {
         avg_m += j;
+        circle_mean += j;
+        cout << i + 1 << "  " << j << endl;
       }
       avg_m /= n_angles;
       for (double& j : rings[i])
@@ -5257,11 +5262,18 @@ pair<double, double> CellularPotts::momenta(vector<vector<int>> sccs)
         circle_variance += pow(j-avg_m, 2);
       } 
       circle_variance /= n_angles;
+      // get index of disperal
+      circle_variance /= circle_mean;
       total_variance += circle_variance;
-      // cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+      cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
     }
 
-    pair<double, double> toreturn = {total_speed, total_variance};
+    if (par.print_fitness)
+    {
+      cout << "Total magntitude: " << total_speed << "   Total variance: " << total_variance << endl;
+    }
+    pair<double, double> result = {total_speed, total_variance};
+    scc_mags.push_back(result);
 
 
 
@@ -5275,10 +5287,6 @@ pair<double, double> CellularPotts::momenta(vector<vector<int>> sccs)
       outfile << i << " ";
     }
     outfile << endl;
-
-
-    // calculate "activity center" of all x and y positions
-
 
 
     // i have vectors and speeds.. Want to distribute them to 36 bins, and measure anistropy by squaring the bins around mean to get variance. 
@@ -5360,7 +5368,7 @@ pair<double, double> CellularPotts::momenta(vector<vector<int>> sccs)
   }
 
   
-  return 
+  return scc_mags;
 
 }
 
