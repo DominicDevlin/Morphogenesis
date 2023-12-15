@@ -4884,11 +4884,9 @@ void CellularPotts::CellVelocities()
 
 pair<double, double> CellularPotts::momenta(void)
 {
-
-  double max_radius{};
+  vector<double> max_rads{};
   vector<double> r_values{};
   vector<double> theta_values{};
-
 
 
   vector<double> speeds{};
@@ -4896,12 +4894,12 @@ pair<double, double> CellularPotts::momenta(void)
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
   {
+    
     if (c->AliveP())
     {
-      string var_name = data_file + "/momenta-data-" + to_string(c - cell->begin());
-      ofstream outfile;
-      outfile.open(var_name, ios::app);
-      // when the cell first appears in the SCC
+      // string var_name = data_file + "/momenta-data-" + to_string(c - cell->begin());
+      // ofstream outfile;
+      // outfile.open(var_name, ios::app);
 
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
@@ -4913,8 +4911,26 @@ pair<double, double> CellularPotts::momenta(void)
       int x_origin=xm[250];
       int y_origin=ym[250];
 
+      double max_cell_r=0;
+
+      // for (int i = 500 + init_time; i < s; ++i)
+      // {
+
+      //   double xpos = xm[i-250];
+      //   double ypos = ym[i-250];
+
+      //   double xrel = xpos-x_origin;
+      //   double yrel = ypos-y_origin;
+
+      //   double check_r = sqrt(pow(xrel,2) + pow(yrel,2));
+      //   if (check_r > max_cell_r)
+      //   {
+      //     max_cell_r = check_r;
+      //   }
+      // }
+
       for (int i = 500 + init_time; i < s; ++i)
-      { //  + init_time
+      { 
         // we want displacement from a while ago to account for back and forth motion
         int t = velp[i-250];
 
@@ -4943,7 +4959,7 @@ pair<double, double> CellularPotts::momenta(void)
 
         double xrel = xpos-x_origin;
         double yrel = ypos-y_origin;
-        outfile << xrel << '\t' << yrel << endl;
+        // outfile << xrel << '\t' << yrel << endl;
 
         // atan2 returns on interval (-pi to +pi)
         double theta = atan2(yrel, xrel);
@@ -4953,14 +4969,17 @@ pair<double, double> CellularPotts::momenta(void)
         // theta = fmod(theta + 2*M_PI, 2 * M_PI);
         theta_values.push_back(theta);
 
+        // normalise by radius so that its a number between 0 and 1
         double check_r = sqrt(pow(xrel,2) + pow(yrel,2));
+        // cout << check_r << endl;
         r_values.push_back(check_r);
-        if (check_r > max_radius)
+        if (check_r > max_cell_r)
         {
-          max_radius = check_r;
+          max_cell_r = check_r;
         }
       }
-      outfile.close();
+      // outfile.close();
+      max_rads.push_back(max_cell_r);
     }
   }
   
@@ -4975,6 +4994,11 @@ pair<double, double> CellularPotts::momenta(void)
   //   outfile << vectors[i] << '\t'  << speeds[i] << endl;
   // }
   // outfile.close();
+  sort(max_rads.begin(), max_rads.end());
+
+  int maxr_it = floor(double(max_rads.size()) * 0.9);
+  double max_radius = max_rads[maxr_it];
+  // cout << max_radius << endl;
 
 
   int n_angles=6;
@@ -4989,6 +5013,7 @@ pair<double, double> CellularPotts::momenta(void)
   for (int n = 1; n < n_circles+1; ++n) 
   {
     double newr = n*(max_radius / n_circles); // sqrt(n * area_between / M_PI);
+    // double newr = double(n) / double(n_circles); // sqrt(n * area_between / M_PI);
     radii_bins.push_back(newr);
   }
 
@@ -5086,7 +5111,7 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
   for (vector<int> scc : sccs)
   {
 
-    double max_radius{};
+    vector<double> max_rads{};
     vector<double> r_values{};
     vector<double> theta_values{};
   
@@ -5110,6 +5135,8 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
         int cell_origin=INT_MAX;
         int x_origin=xm[250];
         int y_origin=ym[250];
+
+        double max_cell_r=0;
 
         for (int i = 500 + init_time; i < s; ++i)
         {
@@ -5158,18 +5185,21 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
             // atan2 returns on interval (-pi to +pi)
             double theta = atan2(yrel, xrel);
             // converty to interval (0 to 2pi)
-            theta = fmod(theta + 2*M_PI, 2 * M_PI);
+            if (theta < 0)
+              theta = theta + 2*M_PI;
             theta_values.push_back(theta);
 
             double check_r = sqrt(pow(xrel,2) + pow(yrel,2));
             r_values.push_back(check_r);
-            if (check_r > max_radius)
+            if (check_r > max_cell_r)
             {
-              max_radius = check_r;
+              max_cell_r = check_r;
             }
 
           }
         }
+        if (max_cell_r > 0)
+          max_rads.push_back(max_cell_r);
       }
     }
     // string var_name = data_file + "/directions.dat" ;
@@ -5202,14 +5232,22 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
       cout << endl;      
     }
 
+    sort(max_rads.begin(), max_rads.end());
+    int maxr_it = floor(double(max_rads.size()) * 0.8);
+    double max_radius = max_rads[maxr_it];
+    cout << "MAX RADIUS: " << max_radius << endl;
+    for (auto i : max_rads)
+      cout << i << "  ";
+    cout << endl;
 
-    int n_angles=8;
-    int n_circles=4;
+
+    int n_angles=6;
+    int n_circles=6;
     vector<double> radii_bins{};
     vector<double> theta_bins{};
 
     // max radius is too large because boundary is inconsistent. Use 0.95*r
-    max_radius *= 0.8;
+    // max_radius *= 0.8;
 
     // double area_between = M_PI * radius * radius / n_circles;
 
