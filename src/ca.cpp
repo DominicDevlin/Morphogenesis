@@ -4889,19 +4889,19 @@ pair<double, double> CellularPotts::momenta(void)
   vector<double> r_values{};
   vector<double> theta_values{};
 
+
+
   vector<double> speeds{};
   vector<double> vectors{};
-  vector<double> x_positions{};
-  vector<double> y_positions{};
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
   {
     if (c->AliveP())
     {
+      string var_name = data_file + "/momenta-data-" + to_string(c - cell->begin());
+      ofstream outfile;
+      outfile.open(var_name, ios::app);
       // when the cell first appears in the SCC
-      int cell_origin=INT_MAX;
-      int x_origin=0;
-      int y_origin=0;
 
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
@@ -4909,19 +4909,16 @@ pair<double, double> CellularPotts::momenta(void)
       vector<double>& sizes = c->GetMassList();
       int s = xm.size();
       int init_time = c->get_time_created();
+      int cell_origin=INT_MAX;
+      int x_origin=xm[250];
+      int y_origin=ym[250];
 
       for (int i = 500 + init_time; i < s; ++i)
-      {
+      { //  + init_time
         // we want displacement from a while ago to account for back and forth motion
         int t = velp[i-250];
 
-        if (i < cell_origin)
-        {
-          cell_origin = i;
-          x_origin = xm[i-250];
-          y_origin = ym[i-250];
-        }
-          
+        
         double x = xm[i-500];
         double y = ym[i-500];
         double x1 = xm[i];
@@ -4937,19 +4934,23 @@ pair<double, double> CellularPotts::momenta(void)
         // lets take the type in the middle as the relevant type
         double csize = sizes[i-250];
         double total = csize * len;
+        // this is magnitude of momentum and angle of momentum in degrees on interval -180 to 180
+        speeds.push_back(total);
+        vectors.push_back(angle);
 
         double xpos = xm[i-250];
         double ypos = ym[i-250];
 
         double xrel = xpos-x_origin;
         double yrel = ypos-y_origin;
-        x_positions.push_back(xrel);
-        y_positions.push_back(yrel);
+        outfile << xrel << '\t' << yrel << endl;
 
         // atan2 returns on interval (-pi to +pi)
-        double theta = atan2(y_positions[i], x_positions[i]);
+        double theta = atan2(yrel, xrel);
         // converty to interval (0 to 2pi)
-        theta = fmod(theta + 2*M_PI, 2 * M_PI);
+        if (theta < 0)
+          theta = theta + 2*M_PI;
+        // theta = fmod(theta + 2*M_PI, 2 * M_PI);
         theta_values.push_back(theta);
 
         double check_r = sqrt(pow(xrel,2) + pow(yrel,2));
@@ -4958,15 +4959,12 @@ pair<double, double> CellularPotts::momenta(void)
         {
           max_radius = check_r;
         }
-          
-
-
-        speeds.push_back(total);
-        vectors.push_back(angle);
-
       }
+      outfile.close();
     }
   }
+  
+
   // string var_name = data_file + "/directions.dat" ;
   // ofstream outfile;
   // outfile.open(var_name, ios::app);
@@ -5044,11 +5042,14 @@ pair<double, double> CellularPotts::momenta(void)
   // nowe need to calculate the variance on bins across theta.
   for (int i = 0; i < n_circles; ++i)
   {
+    double circle_mean=0;
     double circle_variance{};
     double avg_m{};
     for (double& j : rings[i])
     {
       avg_m += j;
+      circle_mean += j;
+      cout << i + 1 << "  " << j << endl;
     }
     avg_m /= n_angles;
     for (double& j : rings[i])
@@ -5056,8 +5057,15 @@ pair<double, double> CellularPotts::momenta(void)
       circle_variance += pow(j-avg_m, 2);
     } 
     circle_variance /= n_angles;
+    // get index of disperal
+    circle_variance /= circle_mean;
     total_variance += circle_variance;
-    // cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+    cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+  }
+
+  if (par.print_fitness)
+  {
+    cout << "Total magntitude: " << total_speed << "   Total variance: " << total_variance << endl;
   }
 
   pair<double, double> toreturn = {total_speed, total_variance};
@@ -5084,17 +5092,13 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
   
     vector<double> speeds{};
     vector<double> vectors{};
-    vector<double> x_positions{};
-    vector<double> y_positions{};
     vector<Cell>::iterator c;
     for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
       if (c->AliveP())
       {
         // when the cell first appears in the SCC
-        int cell_origin=INT_MAX;
-        int x_origin=0;
-        int y_origin=0;
+
 
         vector<double>& xm = c->get_xcens();
         vector<double>& ym = c->get_ycens();
@@ -5102,6 +5106,10 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
         vector<double>& sizes = c->GetMassList();
         int s = xm.size();
         int init_time = c->get_time_created();
+
+        int cell_origin=INT_MAX;
+        int x_origin=xm[250];
+        int y_origin=ym[250];
 
         for (int i = 500 + init_time; i < s; ++i)
         {
@@ -5127,7 +5135,6 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
             double x1 = xm[i];
             double y1 = ym[i];
 
-
             double len = sqrt(pow(x1-x,2) + pow(y1-y,2));
 
 
@@ -5138,16 +5145,18 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
             double csize = sizes[i-250];
             double total = csize * len;
 
+            speeds.push_back(total);
+            vectors.push_back(angle);
+
+
             double xpos = xm[i-250];
             double ypos = ym[i-250];
 
             double xrel = xpos-x_origin;
             double yrel = ypos-y_origin;
-            x_positions.push_back(xrel);
-            y_positions.push_back(yrel);
 
             // atan2 returns on interval (-pi to +pi)
-            double theta = atan2(y_positions[i], x_positions[i]);
+            double theta = atan2(yrel, xrel);
             // converty to interval (0 to 2pi)
             theta = fmod(theta + 2*M_PI, 2 * M_PI);
             theta_values.push_back(theta);
@@ -5158,11 +5167,6 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
             {
               max_radius = check_r;
             }
-              
-
-
-            speeds.push_back(total);
-            vectors.push_back(angle);
 
           }
         }
@@ -5179,6 +5183,25 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
     // }
     // outfile.close();
 
+    string var_name = data_file + "/component-momenta.dat" ;
+    ofstream outfile;
+    outfile.open(var_name, ios::app);
+
+    for (int i : scc)
+    {
+      outfile << i << " ";
+    }
+    outfile << endl;
+
+    if (par.print_fitness)
+    {
+      for (int i : scc)
+      {
+        cout << i << " ";
+      }
+      cout << endl;      
+    }
+
 
     int n_angles=8;
     int n_circles=4;
@@ -5186,7 +5209,7 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
     vector<double> theta_bins{};
 
     // max radius is too large because boundary is inconsistent. Use 0.95*r
-    max_radius *= 0.95;
+    max_radius *= 0.8;
 
     // double area_between = M_PI * radius * radius / n_circles;
 
@@ -5200,7 +5223,6 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
     {
       double newtheta = (2 * M_PI / n_angles) * n;
       theta_bins.push_back(newtheta);
-      cout << newtheta << endl;
     }
 
     vector<double> theta_mags(n_angles, 0.0);
@@ -5217,6 +5239,7 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
       {
         if (r_values[i] < radii_bins[j]) 
         {
+          // cout << r_values[i] << endl;
           for (int k = 0; k < n_angles;++k)
           {
             if (theta_values[i] < theta_bins[k])
@@ -5278,15 +5301,7 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
 
 
 
-    string var_name = data_file + "/component-momenta.dat" ;
-    ofstream outfile;
-    outfile.open(var_name, ios::app);
 
-    for (int i : scc)
-    {
-      outfile << i << " ";
-    }
-    outfile << endl;
 
 
     // i have vectors and speeds.. Want to distribute them to 36 bins, and measure anistropy by squaring the bins around mean to get variance. 
