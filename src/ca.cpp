@@ -4979,7 +4979,8 @@ pair<double, double> CellularPotts::momenta(void)
         }
       }
       // outfile.close();
-      max_rads.push_back(max_cell_r);
+      if (max_cell_r > 0)
+        max_rads.push_back(max_cell_r);
     }
   }
   
@@ -4996,13 +4997,15 @@ pair<double, double> CellularPotts::momenta(void)
   // outfile.close();
   sort(max_rads.begin(), max_rads.end());
 
-  int maxr_it = floor(double(max_rads.size()) * 0.9);
+  int maxr_it = floor(double(max_rads.size()) * 0.8);
   double max_radius = max_rads[maxr_it];
-  // cout << max_radius << endl;
+  // cout << "MAX RADIUS: " << max_radius << endl;
+  // for (auto i : max_rads)
+  //   cout << i << "  ";
+  // cout << endl;
+  int n_circles=5;
+  int n_angles=10;
 
-
-  int n_angles=6;
-  int n_circles=6;
   vector<double> radii_bins{};
   vector<double> theta_bins{};
 
@@ -5085,7 +5088,7 @@ pair<double, double> CellularPotts::momenta(void)
     // get index of disperal
     circle_variance /= circle_mean;
     total_variance += circle_variance;
-    cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+    // cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
   }
 
   if (par.print_fitness)
@@ -5138,6 +5141,23 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
 
         double max_cell_r=0;
 
+        // first find when the cell lineage entered the SCC to set original position of cell
+        for (int i = 500; i < s; ++i)
+        {
+          int t = velp[i-250];
+          if (find(scc.begin(), scc.end(), t) == scc.end())
+          {
+            continue;
+          }
+          else
+          {
+            x_origin = xm[i-250];
+            y_origin = ym[i-250];
+            break;
+          }
+        }
+
+
         for (int i = 500 + init_time; i < s; ++i)
         {
           // we want displacement from a while ago to account for back and forth motion
@@ -5149,12 +5169,9 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
           }
           else
           {
-
             if (i < cell_origin)
             {
               cell_origin = i;
-              x_origin = xm[i-250];
-              y_origin = ym[i-250];
             }
               
             double x = xm[i-500];
@@ -5241,8 +5258,10 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
     cout << endl;
 
 
-    int n_angles=6;
-    int n_circles=6;
+    
+    int n_circles=5;
+    int n_angles=8;
+
     vector<double> radii_bins{};
     vector<double> theta_bins{};
 

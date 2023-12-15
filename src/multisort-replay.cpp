@@ -358,12 +358,22 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     }
 
 
-
+    pair<double,double> moment{};
     if (par.velocities)
     {
       // dishes[i].CPM->CellVelocities();
-      dishes[i].CPM->momenta(scc);
+      moment = dishes[i].CPM->momenta();
     }
+
+    string var_name = "momenta-data.dat";
+    ofstream outfile;
+    outfile.open(var_name, ios::app);
+
+    outfile << moment.first << '\t' << moment.second << endl;
+
+    outfile.close();  
+
+
       
     // dishes[i].CPM->SpecialVelocity();
     if (par.record_directions)
@@ -389,7 +399,6 @@ int main(int argc, char *argv[]) {
   par.gene_output=true;
   par.gene_record=true;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
-  if (par.velocities)
   par.output_sizes = true;
   
   Parameter();
