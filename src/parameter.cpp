@@ -83,14 +83,14 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, 2, 0, 0, 0, 0, 1, 0 }, { 0, -2, 2, -2, 0, 1, 0, 0, -2 }, { 0, 0, 1, -1, 0, 0, 0, 1, 1 }, { 0, 0, 0, 2, 0, 0, 0, -1, 1 }, { 0, 0, -1, 1, 0, 0, 1, -1, 0 }, { 1, 1, -1, -2, 2, 0, 0, 1, -1 }, { 0, 1, -1, 0, 0, 2, 1, 0, 0 }, { 0, 0, -1, -1, 0, 0, 1, 0, 0 }, { 2, -1, 0, 0, 1, -1, 0, 1, -1 }, { 2, 1, 0, 0, 0, 1, 0, 1, 1 }, { -1, 1, 0, 0, -1, 0, 2, 1, 0 }, { -1, -1, 0, 1, 0, 0, 0, 0, -1 }, { 1, 1, 1, 1, 2, -2, 1, 0, 0 }, { 1, 0, 2, 0, 2, 2, 0, 0, 0 }, { -1, 0, 0, 0, -1, 1, 1, 0, 1 }, { 1, -1, 0, 2, 1, 0, 0, -2, -1 }, { 1, -1, -1, 0, -1, 0, 0, 1, 0 }, { -1, 0, 0, -1, 1, 0, 0, 0, 0 }, { 0, 1, 0, 1, -1, -1, 0, -2, 0 }, { 1, 0, 0, 1, 0, 1, -2, 0, 0 }, { 0, 0, 0, 0, -2, 1, 0, 0, 0 }, { 0, 0, 0, -1, 0, 0, 2, -2, 0 }, { -2, 0, 1, 0, 0, 0, 1, 0, -1 }, { -2, 0, 2, 0, 1, 0, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, 0, 1, -1 }, { 0, -1, 0, 0, 0, 1, 0, 0, -1 }, { 0, 1, -2, 0, 0, 1, 0, 0, 0 }, };
+    start_matrix = { { 0, 0, 0, 0, 0, -1, 0, 0, 0 }, { -1, -1, 0, 0, -2, 0, 0, -1, 0 }, { 0, 0, 2, 1, 0, -1, 2, 1, 0 }, { 2, 0, 0, 0, 0, 0, -2, 0, 0 }, { 0, 0, 0, 1, 1, -1, -1, 0, -2 }, { 0, 0, -2, 0, -1, -1, 1, 0, 0 }, { 0, 0, 0, 0, 2, 0, 0, 0, 1 }, { 0, 0, 2, 2, -1, -2, 0, 0, 0 }, { 0, -2, -1, 0, -1, -1, 0, 1, 0 }, { -2, 2, 0, 0, 0, 0, 1, 0, 0 }, { -1, 0, 2, -1, 0, 0, 0, 1, -1 }, { -1, 0, 0, 1, 0, 0, 1, 0, 1 }, { 0, 0, 1, 2, 0, 0, -1, 0, 1 }, { -1, 1, 1, 1, 0, 0, 0, 1, 0 }, { 0, 2, 0, 0, 0, 0, 0, -1, 0 }, { 0, 0, 1, -2, 0, 0, 0, 0, 0 }, { 0, -1, 0, 0, 0, 2, 0, 1, 0 }, { 0, 1, 0, -2, 2, 0, 0, 0, 0 }, { -2, -1, 1, -1, -1, 0, -1, -1, 0 }, { 0, 1, 0, 0, 0, 0, 0, 0, 1 }, { -1, 2, 0, -1, 0, 0, 1, -1, 0 }, { 1, -1, 0, 1, 0, 2, 0, -1, 1 }, { 0, -2, 0, 0, -2, 0, 1, 0, 1 }, { -1, 0, 0, 0, -2, 0, 1, 0, 1 }, { 1, 0, 0, 0, 0, 1, 0, 0, 1 }, { 0, 1, 0, 2, 0, -1, 1, 0, 1 }, { 0, -1, 0, 0, 2, 0, 1, -2, -1 }, };
 
 
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
     n_replicates = 2;
-    // edges and nodes only at end of simulation.
+    // edges and nodes only at end of simulation (always true).
     potency_edges = true;
-    // what mcs to start measuring adult types & differentiation. set to 8000 for all results
+    // what mcs to start measuring adult types & differentiation. set to 6000 for all results
     adult_begins = 6000;
 
     // scramble cells
@@ -105,8 +105,8 @@
 
     cycle_check = false;
 
-
     // DEPRACATED - prune nodes below this percent. Should probably set this as a minimum value (i.e. 10 cells equivalent)
+    // using node threshold above
     node_percent = 0.03;
 
 /*Conditions for evolution */

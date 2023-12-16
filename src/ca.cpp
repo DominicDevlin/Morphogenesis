@@ -5077,7 +5077,7 @@ pair<double, double> CellularPotts::momenta(void)
     {
       avg_m += j;
       circle_mean += j;
-      cout << i + 1 << "  " << j << endl;
+      // cout << i + 1 << "  " << j << endl;
     }
     avg_m /= n_angles;
     for (double& j : rings[i])

@@ -310,6 +310,25 @@ TIMESTEP {
       }
 
       vector<vector<int>> scc;
+      if (par.velocities)
+      {
+        par.node_threshold = 0;
+        par.prune_edges = true;
+        map<int,int>subcomps{};
+        Graph ungraph(types.size());
+        subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+        scc = ungraph.GetComps(types, 500);
+        for (auto i : scc)
+        {
+            cout << "component: ";
+            for (int j : i)
+            {
+                cout << j << "  ";
+            }
+            cout << std::endl;
+        }
+      }
+
 
       if (par.potency_edges)
       {
@@ -323,17 +342,10 @@ TIMESTEP {
         else
         {
           Graph ungraph(types.size());
+          par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 20);
+          par.prune_edges = false;
           subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-          scc = ungraph.GetComps(types, 500);
-          for (auto i : scc)
-          {
-              cout << "component: ";
-              for (int j : i)
-              {
-                  cout << j << "  ";
-              }
-              cout << std::endl;
-          }
+          vector<vector<int>> result = ungraph.GetComps(types);
 
         }
 
@@ -357,7 +369,6 @@ TIMESTEP {
       }
       else
       {
-
         // Graph newgraph(phens.size());
         // newgraph.CreateDiGraph(phens, types, edge_start, edge_end);
 

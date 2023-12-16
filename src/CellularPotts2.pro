@@ -12,7 +12,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-TARGET = multisort-replay
+TARGET = sorting
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 
 message( $$MAINFILE )

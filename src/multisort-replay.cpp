@@ -70,7 +70,7 @@ TIMESTEP
 
 
 // function that simulates a population for a single evolutionary step. 
-vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols)
+void process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, int org_number)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -87,7 +87,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   {
 
 
-    dishes[i].CPM->set_num(i+1);
+    dishes[i].CPM->set_num(org_number + i + 1);
     // does init block above.
     dishes[i].Init();
 
@@ -232,7 +232,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
     ++count;
 
-    string fname = "org" + to_string(count);
+    string fname = "org" + to_string(org_number);
 
 
     dishes[i].CPM->set_datafile(fname);
@@ -275,31 +275,43 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     }
 
     vector<vector<int>> scc;
+    if (par.velocities)
+    {
+      par.node_threshold = 0;
+      par.prune_edges = true;
+      map<int,int>subcomps{};
+      Graph ungraph(types.size());
+      subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+      scc = ungraph.GetComps(types, 500);
+      for (auto i : scc)
+      {
+          cout << "component: ";
+          for (int j : i)
+          {
+              cout << j << "  ";
+          }
+          cout << std::endl;
+      }     
+    }
+
+
+
 
     if (par.potency_edges)
     {
       // entire program is run from ungraph now
       map<int,int>subcomps{};
-      if (cycling)
+      Graph ungraph(types.size());
+      subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+      scc = ungraph.GetComps(types, 500);
+      for (auto i : scc)
       {
-        Graph ungraph(phens.size());
-        subcomps = ungraph.CreateUnGraph(phens, phens, edge_tally, 1, true);          
-      }
-      else
-      {
-        Graph ungraph(types.size());
-        subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-        scc = ungraph.GetComps(types, 500);
-        for (auto i : scc)
+        cout << "component: ";
+        for (int j : i)
         {
-            cout << "component: ";
-            for (int j : i)
-            {
-                cout << j << "  ";
-            }
-            cout << std::endl;
+            cout << j << "  ";
         }
-
+        cout << std::endl;
       }
 
       if (par.gene_output)
@@ -318,21 +330,9 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         }
         outfile.close();
       }
+
+
       
-    }
-    else
-    {
-
-      // Graph newgraph(phens.size());
-      // newgraph.CreateDiGraph(phens, types, edge_start, edge_end);
-
-      // cout << "Having a look at the undirected graph...." << endl;
-      Graph ungraph(phens.size());
-      map<int,int> subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-    }
-
-    if (par.gene_output)
-    {
       ofstream outnet;
       string netw = par.data_file + "/network.txt";
       outnet.open(netw, ios::app);
@@ -383,7 +383,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     }
 
   }
-
+  delete[] dishes;
 
 }
 
@@ -397,7 +397,7 @@ int main(int argc, char *argv[]) {
   par.print_fitness=true;
   par.randomise=false;
   par.gene_output=true;
-  par.gene_record=true;
+  par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.output_sizes = true;
   
@@ -457,10 +457,12 @@ int main(int argc, char *argv[]) {
   }
 
   par.n_orgs = 10;
+  int count=1;
   for (vector<vector<int>> i : genomes)
   {
+    ++count;
     vector<vector<vector<int>>> replays(par.n_orgs, i);
-    process_population(replays, polarities);
+    process_population(replays, polarities, count);
 
   }
 

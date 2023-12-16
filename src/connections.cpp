@@ -328,7 +328,7 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int> &nodes, map<int, int> &ty
 
 	if (par.print_fitness && pruned.size() > 0)
 	{
-		cout << "new component...." << endl;
+		// cout << "new component...." << endl;
 		for (int i = 0; i < pruned.size(); ++i)
 		{
 			vector<int> new_scc{};
@@ -337,10 +337,10 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int> &nodes, map<int, int> &ty
 				int el = pruned[i][j];
 				auto it = types.begin();
 				std::advance(it, el);
-				cout << it->first << "  ";
+				// cout << it->first << "  ";
 				new_scc.push_back(it->first);
 			}
-			cout << endl;
+			// cout << endl;
 			SCC_types.push_back(new_scc);
 		}
 	}
