@@ -5091,9 +5091,11 @@ pair<double, double> CellularPotts::momenta(void)
     // cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
   }
 
+  total_speed /= speeds.size();
+
   if (par.print_fitness)
   {
-    cout << "Total magntitude: " << total_speed << "   Total variance: " << total_variance << endl;
+    cout << "Average magntitude: " << total_speed << "   Total variance: " << total_variance << endl;
   }
 
   pair<double, double> toreturn = {total_speed, total_variance};
@@ -5252,15 +5254,15 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
     sort(max_rads.begin(), max_rads.end());
     int maxr_it = floor(double(max_rads.size()) * 0.8);
     double max_radius = max_rads[maxr_it];
-    cout << "MAX RADIUS: " << max_radius << endl;
-    for (auto i : max_rads)
-      cout << i << "  ";
-    cout << endl;
+    // cout << "MAX RADIUS: " << max_radius << endl;
+    // for (auto i : max_rads)
+    //   cout << i << "  ";
+    // cout << endl;
 
 
     
     int n_circles=5;
-    int n_angles=8;
+    int n_angles=10;
 
     vector<double> radii_bins{};
     vector<double> theta_bins{};
@@ -5334,7 +5336,7 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
       {
         avg_m += j;
         circle_mean += j;
-        cout << i + 1 << "  " << j << endl;
+        // cout << i + 1 << "  " << j << endl;
       }
       avg_m /= n_angles;
       for (double& j : rings[i])
@@ -5345,17 +5347,17 @@ vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs
       // get index of disperal
       circle_variance /= circle_mean;
       total_variance += circle_variance;
-      cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+      // cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
     }
+
+    total_speed /= speeds.size();
 
     if (par.print_fitness)
     {
-      cout << "Total magntitude: " << total_speed << "   Total variance: " << total_variance << endl;
+      cout << "Average magntitude: " << total_speed << "   Total variance: " << total_variance << endl;
     }
     pair<double, double> result = {total_speed, total_variance};
     scc_mags.push_back(result);
-
-
 
 
 
