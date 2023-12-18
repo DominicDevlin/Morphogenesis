@@ -70,7 +70,7 @@ TIMESTEP
 
 
 // function that simulates a population for a single evolutionary step. 
-void process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, int org_number)
+vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -79,22 +79,18 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
   Dish* dishes = new Dish[par.n_orgs];
 
 
-
-
   // run organisms in parallel. 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for 
   for (int i=0; i < par.n_orgs; ++i)  
   {
 
-
-    dishes[i].CPM->set_num(org_number + i + 1);
+    dishes[i].CPM->set_num(i + 1);
     // does init block above.
     dishes[i].Init();
 
-
     dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
-
+    
     for (int t=0;t<par.mcs;++t)
     {
 
@@ -108,15 +104,7 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
       
       // record initial expression state. This occurs before any time step updates. 
       if (par.gene_record && t == 100)
-      {
         dishes[i].CPM->record_GRN();
-        if (par.flush_cells)
-        {
-          dishes[i].CPM->SetAllStates();
-          dishes[i].PDEfield->FlushGrid();
-        }
-      }
-        
       
       // programmed cell division section
       if (t < par.end_program)
@@ -234,13 +222,14 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
   }
 
 
+
   int count = 0;
   for (int i=0; i < par.n_orgs; ++i)  
   {
 
     ++count;
 
-    string fname = "org" + to_string(org_number);
+    string fname = "org" + to_string(count);
 
 
     dishes[i].CPM->set_datafile(fname);
@@ -403,7 +392,6 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
         outfile << endl;
         outfile << moment[n].first << '\t' << moment[n].second << endl;
       }
-      outfile << endl;
 
       
 
@@ -439,8 +427,8 @@ int main(int argc, char *argv[]) {
   par.randomise=false;
   par.gene_output=false;
   par.gene_record=true;
-  // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.output_sizes = true;
+  // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   
   Parameter();
 
@@ -489,43 +477,18 @@ int main(int argc, char *argv[]) {
   }
 
   file.close();
-  vector<vector<double>> pconcs;
-  if (par.flush_cells)
-  {
-    ifstream file("proteins.txt");
-    string line;
-    while (getline(file, line)) 
-    {
-      stringstream ss(line);
-      vector<double> concs{};
-      double value;
-      while (ss >> value)
-      {
-        concs.push_back(value);
-      }
-      pconcs.push_back(concs);
-    }
-  }
-
 
   vector<bool> start_p = { 0, 0, 0, 0 };
   vector<vector<bool>> polarities{};
   for (vector<vector<int>> i : genomes)
   {
     polarities.push_back(start_p);
-  }
-
-  par.n_orgs = 10;
-  int count=1;
-  for (vector<vector<int>> i : genomes)
-  {
-    if (par.flush_cells)
-      par.single_states = pconcs[count-1];
-    vector<vector<vector<int>>> replays(par.n_orgs, i);
-    process_population(replays, polarities, count);
-    ++count;
 
   }
+  par.n_orgs = genomes.size();
+  process_population(genomes, polarities);
+
+
 
 
   

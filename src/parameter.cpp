@@ -208,8 +208,14 @@
     single_states = { 0.993102, 0.993099, 0.993102, 0.00487713, 0.000158774, 0.993102, 0.993102, 0.000131714, 0.0267844, 0.993102, 0.993102, 6.54622e-20, 0.993102, 0.993102, 0.993092, 0.00190562, 8.55565e-12, 3.16191e-13, 0.0418941, 0.0447275, 0.993101, 0.993102, 8.79463e-05, 0.00149896, 0.00149416, 9.32838e-05, 0.000136595, 1.14078, 1.13798, 1.14077,  };
 
     // start all cells from "single state" initial condition
-    flush_cells = false;
+    flush_cells = true;
 
+    // limit morphogen to amount (prevents differentiation in some ex vivo organisms)
+    limit_morph = true;
+    limit_amount = 1.;
+
+    // print list of concentrations, one for each cell type (used for future input)
+    print_type_concentrations = true;
 
     // when to collect fitness
     fitness_begin = 0.9;
