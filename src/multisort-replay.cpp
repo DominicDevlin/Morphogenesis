@@ -70,7 +70,7 @@ TIMESTEP
 
 
 // function that simulates a population for a single evolutionary step. 
-vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols)
+void process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, int org_number)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -87,7 +87,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   {
 
 
-    dishes[i].CPM->set_num(i+1);
+    dishes[i].CPM->set_num(org_number + i + 1);
     // does init block above.
     dishes[i].Init();
 
@@ -106,7 +106,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
       
       // record initial expression state. This occurs before any time step updates. 
-      if (par.gene_output && t == 100)
+      if (par.gene_record && t == 100)
         dishes[i].CPM->record_GRN();
       
       // programmed cell division section
@@ -127,7 +127,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           dishes[i].CPM->update_network(t);
           dishes[i].AverageChemCell(); 
           
-          if (par.gene_output)
+          if (par.gene_record)
             dishes[i].CPM->record_GRN();    
 
           // speed up initial PDE diffusion
@@ -145,7 +145,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         {
           dishes[i].CPM->update_network(t);
           dishes[i].AverageChemCell(); 
-          if (par.gene_output)
+          if (par.gene_record)
           {
             dishes[i].CPM->record_GRN();
             dishes[i].CPM->CountTypesTime();
@@ -161,6 +161,10 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         if (par.velocities)
         {
           dishes[i].CPM->RecordMasses();
+        }
+        if (par.output_sizes)
+        {
+          dishes[i].CPM->RecordSizes();
         }
 
 
@@ -228,10 +232,11 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
     ++count;
 
-    string fname = "org" + to_string(count);
+    string fname = "org" + to_string(org_number);
 
 
     dishes[i].CPM->set_datafile(fname);
+    par.data_file = fname;
 
     // string command = "mkdir " + fname;
     // system(command.c_str());
@@ -240,23 +245,20 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     else
       cout << "Directory created." << endl;   
 
-
-
-    if (par.velocities)
-      dishes[i].CPM->CellVelocities();
-
-
+  
     if (par.output_gamma)
       dishes[i].CPM->OutputGamma();
 
-    dishes[i].CPM->print_cell_GRN();
 
 
-    // dishes[i].CPM->TypeFitness2();
-    // dishes[i].CPM->get_fitness();
+    // if (par.umap)
+
+    dishes[i].CPM->get_fitness();
 
     map<int, int> phens = dishes[i].CPM->get_phenotype_time();
     map<int, int> types = dishes[i].CPM->get_AdultTypes();  
+
+
     
     map<pair<int,int>,int> edge_tally{};
     
@@ -272,42 +274,52 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       dishes[i].CPM->set_switches(edge_tally);
     }
 
+    vector<vector<int>> scc;
+    if (par.velocities)
+    {
+      par.node_threshold = 0;
+      par.prune_edges = true;
+      map<int,int>subcomps{};
+      Graph ungraph(types.size());
+      subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+      scc = ungraph.GetComps(types, 600);
+      for (auto n : scc)
+      {
+          cout << "component: ";
+          for (int j : n)
+          {
+              cout << j << "  ";
+          }
+          cout << std::endl;
+      }     
+    }
+
+
+
+
     if (par.potency_edges)
     {
       // entire program is run from ungraph now
       map<int,int>subcomps{};
-      if (cycling)
+      Graph ungraph(types.size());
+      subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+      scc = ungraph.GetComps(types, 500);
+      for (auto n : scc)
       {
-        Graph ungraph(phens.size());
-        subcomps = ungraph.CreateUnGraph(phens, phens, edge_tally, 1, true);          
-      }
-      else
-      {
-        for (auto i : phens)
+        cout << "component: ";
+        for (int j : n)
         {
-          cout << i.first << " " << i.second << endl;
+            cout << j << "  ";
         }
-        for (auto i : types)
-        {
-          cout << i.first << " " << i.second << endl;
-        }
-        for (auto i : edge_tally)
-        {
-          cout << i.first.first << "  " << i.first.second << " " << i.second << endl;
-        }
-        cout << phens.size() << "  " << types.size() << "  " << edge_tally.size() << endl;
-
-        Graph ungraph(types.size());
-        subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-        cout << subcomps.size() << endl;
+        cout << std::endl;
       }
 
-
-      if (par.gene_output)
+      if (par.gene_record)
       {
         ofstream outfile;
-        string switch_out = fname + "/potency.dat";
+        string switch_out = par.data_file + "/potency.dat";
         outfile.open(switch_out, ios::app);
+
         for (auto kv : subcomps)
         {
           outfile << "Component number: " << kv.first;
@@ -318,26 +330,89 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         }
         outfile.close();
       }
+
+
       
+      ofstream outnet;
+      string netw = par.data_file + "/network.txt";
+      outnet.open(netw, ios::app);
+      for (int g=0;g<par.n_genes;++g)
+      {
+        if (g == 0)
+          outnet << "{ ";
+        for (int j=0;j<par.n_activators;++j)
+        {
+          if (j==0)
+            outnet << "{ " << par.start_matrix[g][j] << ", ";
+          else if (j==par.n_activators-1)
+            outnet << par.start_matrix[g][j] << " }, ";
+          else 
+            outnet << par.start_matrix[g][j] << ", ";
+        }
+        if (g == par.n_genes -1)
+          outnet << "}" << endl;
+      }
+
+      outnet << endl << "Seed is: " << endl << par.pickseed;
+      outnet.close();
     }
-    else
+
+
+    
+    // if (par.velocities)
+    // {
+    //   pair<double,double> moment{};
+    //   // dishes[i].CPM->CellVelocities();
+    //   moment = dishes[i].CPM->momenta();
+    //   string var_name = "momenta-data.dat";
+    //   ofstream outfile;
+    //   outfile.open(var_name, ios::app);
+
+    //   outfile << moment.first << '\t' << moment.second << endl;
+
+    //   outfile.close();  
+    // }
+
+    if (par.velocities)
     {
+      vector<pair<double,double>> moment{};
+      // dishes[i].CPM->CellVelocities();
+      moment = dishes[i].CPM->scc_momenta(scc);
+      string var_name = fname + "/momenta-data.dat";
+      ofstream outfile;
+      outfile.open(var_name, ios::app);
 
-      // Graph newgraph(phens.size());
-      // newgraph.CreateDiGraph(phens, types, edge_start, edge_end);
 
-      // cout << "Having a look at the undirected graph...." << endl;
-      Graph ungraph(phens.size());
-      map<int,int> subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+      for (int n = 0; n < scc.size(); ++n)
+      {
+        for (int j : scc[n])
+        {
+            outfile << j << "  ";
+        }
+        outfile << endl;
+        outfile << moment[n].first << '\t' << moment[n].second << endl;
+      }
+
+      
+
+      outfile.close();  
     }
 
+
+
+
+
+
+      
+    // dishes[i].CPM->SpecialVelocity();
+    if (par.record_directions)
+    {
+      dishes[i].CPM->Directionality();
+      // dishes[i].CPM->SingleCellDirection();
+    }
 
   }
-
-
-
-
-
+  delete[] dishes;
 
 }
 
@@ -350,9 +425,10 @@ int main(int argc, char *argv[]) {
   par.contours=false;
   par.print_fitness=true;
   par.randomise=false;
-  par.gene_output=true;
+  par.gene_output=false;
   par.gene_record=true;
-  par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
+  // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
+  par.output_sizes = true;
   
   Parameter();
 
@@ -407,11 +483,17 @@ int main(int argc, char *argv[]) {
   for (vector<vector<int>> i : genomes)
   {
     polarities.push_back(start_p);
+  }
+
+  par.n_orgs = 16;
+  int count=1;
+  for (vector<vector<int>> i : genomes)
+  {
+    vector<vector<vector<int>>> replays(par.n_orgs, i);
+    process_population(replays, polarities, count);
+    ++count;
 
   }
-  par.n_orgs = genomes.size();
-  process_population(genomes, polarities);
-
 
 
 

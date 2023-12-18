@@ -12,7 +12,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-TARGET = sorting
+TARGET = multisort-replay
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 
 message( $$MAINFILE )
@@ -33,7 +33,7 @@ HEADERS += ca.h \
            random.h \
            sqr.h \
            sticky.h \
-       	   crash.h \
+	   crash.h \
 	   warning.h \ 
 	   storage.h \
 	   fft.h \

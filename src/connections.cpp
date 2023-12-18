@@ -10,30 +10,28 @@ using namespace std;
 
 #define NIL -1
 
-
 Graph::Graph(int V)
 {
 	this->V = V;
 	adj = new list<int>[V];
 }
 
-Graph::~Graph() 
-{ 
+Graph::~Graph()
+{
 	delete[] adj;
 	components.clear();
 	UnComponents.clear();
-	OneComp.clear(); 
+	OneComp.clear();
 }
 
-
-void Graph::addEdge(int v, int w) 
-{ 
-	adj[v].push_back(w); 
+void Graph::addEdge(int v, int w)
+{
+	adj[v].push_back(w);
 }
 
 void Graph::addUnEdge(int v, int w)
 {
-	adj[v].push_back(w); 
+	adj[v].push_back(w);
 	adj[w].push_back(v);
 }
 
@@ -50,7 +48,7 @@ void Graph::addUnEdge(int v, int w)
 // stackMember[] --> bit/index array for faster check
 // whether
 //				 a node is in stack
-void Graph::SCCUtil(int u, int disc[], int low[], stack<int>* st, bool stackMember[])
+void Graph::SCCUtil(int u, int disc[], int low[], stack<int> *st, bool stackMember[])
 {
 	// A static variable is used for simplicity, we can
 	// avoid use of static variable by passing a pointer.
@@ -63,11 +61,13 @@ void Graph::SCCUtil(int u, int disc[], int low[], stack<int>* st, bool stackMemb
 
 	// Go through all vertices adjacent to this
 	list<int>::iterator i;
-	for (i = adj[u].begin(); i != adj[u].end(); ++i) {
+	for (i = adj[u].begin(); i != adj[u].end(); ++i)
+	{
 		int v = *i; // v is current adjacent of 'u'
 
 		// If v is not visited yet, then recur for it
-		if (disc[v] == -1) {
+		if (disc[v] == -1)
+		{
 			SCCUtil(v, disc, low, st, stackMember);
 
 			// Check if the subtree rooted with 'v' has a
@@ -87,20 +87,22 @@ void Graph::SCCUtil(int u, int disc[], int low[], stack<int>* st, bool stackMemb
 
 	// head node found, pop the stack and print an SCC
 	int w = 0; // To store stack extracted vertices
-  vector<int> new_comp;
-	if (low[u] == disc[u]) {
-		while (st->top() != u) {
+	vector<int> new_comp;
+	if (low[u] == disc[u])
+	{
+		while (st->top() != u)
+		{
 			w = (int)st->top();
 			// cout << w << " ";
-      new_comp.push_back(w);
+			new_comp.push_back(w);
 			stackMember[w] = false;
 			st->pop();
 		}
 		w = (int)st->top();
 		// cout << w << "\n";
 		new_comp.push_back(w);
-    components.push_back(new_comp);
-    new_comp.clear();
+		components.push_back(new_comp);
+		new_comp.clear();
 		stackMember[w] = false;
 		st->pop();
 	}
@@ -109,13 +111,14 @@ void Graph::SCCUtil(int u, int disc[], int low[], stack<int>* st, bool stackMemb
 // The function to do DFS traversal. It uses SCCUtil()
 void Graph::SCC()
 {
-	int* disc = new int[V];
-	int* low = new int[V];
-	bool* stackMember = new bool[V];
-	stack<int>* st = new stack<int>();
+	int *disc = new int[V];
+	int *low = new int[V];
+	bool *stackMember = new bool[V];
+	stack<int> *st = new stack<int>();
 
 	// Initialize disc and low, and stackMember arrays
-	for (int i = 0; i < V; i++) {
+	for (int i = 0; i < V; i++)
+	{
 		disc[i] = NIL;
 		low[i] = NIL;
 		stackMember[i] = false;
@@ -128,18 +131,14 @@ void Graph::SCC()
 			SCCUtil(i, disc, low, st, stackMember);
 }
 
-
-
-
 // Method to print connected components in an
-// undirected graph. Needed to test whether there are stems. 
+// undirected graph. Needed to test whether there are stems.
 // void Graph::connectedComponents()
 // {
 //     // Mark all the vertices as not visited
 //     bool* visited = new bool[V];
 //     for (int v = 0; v < V; v++)
 //         visited[v] = false;
- 
 
 //     for (int v = 0; v < V; v++) {
 //         if (visited[v] == false) {
@@ -161,7 +160,7 @@ void Graph::SCC()
 //     visited[v] = true;
 //     cout << v << " ";
 // 		OneComp.push_back(v);
- 
+
 //     // Recur for all the vertices
 //     // adjacent to this vertex
 //     list<int>::iterator i;
@@ -174,57 +173,52 @@ void Graph::SCC()
 // connected components in an undirected graph
 int Graph::NumberOfconnectedComponents(vector<vector<int>> &disconGroups)
 {
- 
-    // Mark all the vertices as not visited
-    bool* visited = new bool[V];
 
+	// Mark all the vertices as not visited
+	bool *visited = new bool[V];
 
-    // To store the number of connected components
-    int count = 0;
-    for (int v = 0; v < V; v++)
-        visited[v] = false;
- 
-    for (int v = 0; v < V; v++) {
-        if (visited[v] == false) 
-				{
-						vector<int> group;
-            DFSUtil(v, visited, group);
-            count += 1;
-						disconGroups.push_back(group);
-        }
-    }
- 
-    return count;
+	// To store the number of connected components
+	int count = 0;
+	for (int v = 0; v < V; v++)
+		visited[v] = false;
+
+	for (int v = 0; v < V; v++)
+	{
+		if (visited[v] == false)
+		{
+			vector<int> group;
+			DFSUtil(v, visited, group);
+			count += 1;
+			disconGroups.push_back(group);
+		}
+	}
+
+	return count;
 }
- 
+
 void Graph::DFSUtil(int v, bool visited[], vector<int> &group)
 {
- 
-    // Mark the current node as visited
-		if (find(group.begin(), group.end(), v) == group.end())
-		{
-			group.push_back(v);
-		}
 
+	// Mark the current node as visited
+	if (find(group.begin(), group.end(), v) == group.end())
+	{
+		group.push_back(v);
+	}
 
-    visited[v] = true;
-		vector<vector<int>> disconGroups;
- 
-    // Recur for all the vertices
-    // adjacent to this vertex
-    list<int>::iterator i;
- 
-    for (i = adj[v].begin(); i != adj[v].end(); ++i)
-        if (!visited[*i])
-          DFSUtil(*i, visited, group);
+	visited[v] = true;
+	vector<vector<int>> disconGroups;
+
+	// Recur for all the vertices
+	// adjacent to this vertex
+	list<int>::iterator i;
+
+	for (i = adj[v].begin(); i != adj[v].end(); ++i)
+		if (!visited[*i])
+			DFSUtil(*i, visited, group);
 }
 
-
-
-
-
 // Depracated
-int CalculateThreshold(vector<int>& sizes, double scale=1.)
+int CalculateThreshold(vector<int> &sizes, double scale = 1.)
 {
 	double threshold{};
 	for (int i : sizes)
@@ -236,22 +230,18 @@ int CalculateThreshold(vector<int>& sizes, double scale=1.)
 	threshold = threshold * par.node_percent * scale;
 	threshold = floor(threshold);
 
-	// new threshold is going to be flat number 
+	// new threshold is going to be flat number
 	// 10 cells * (12100 - 8000)/40 *2 = 2040
 
 	return (int)(threshold);
 }
 
-
-
-
-vector<vector<int>> Graph::CreateDiGraph(map<int, int>& nodes, map<int,int>& types, vector<int> start, vector<int> end, double scale, bool cycling)
+vector<vector<int>> Graph::CreateDiGraph(map<int, int> &nodes, map<int, int> &types, vector<int> start, vector<int> end, double scale, bool cycling)
 {
 	vector<int> state_sizes{};
-  vector<int> state_values{};
+	vector<int> state_values{};
 
-	
-	// state values to numbers. 
+	// state values to numbers.
 	if (par.potency_edges)
 	{
 		for (auto i : types)
@@ -276,11 +266,10 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int>& nodes, map<int,int>& typ
 		}
 	}
 
-
 	// int threshold = CalculateThreshold(state_sizes, scale);
 	// cout << "THRESHOLD IS: " << threshold << endl;
 
-	// replace state values with the new set of numbers. 
+	// replace state values with the new set of numbers.
 
 	for (int i = 0; i < start.size(); ++i)
 	{
@@ -298,7 +287,7 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int>& nodes, map<int,int>& typ
 		{
 			cerr << "Error creating graph!\n";
 			// cout << "Not Working Edge: " << start[i] << "  " << end[i] << endl;
-		} 
+		}
 	}
 	if (pruned.size())
 		cout << "error in function call" << endl;
@@ -306,6 +295,12 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int>& nodes, map<int,int>& typ
 	// create SCC. This creates all the components stored in "components"
 	this->SCC();
 
+	// for (auto i : components)
+	// {
+	// 	for (auto j : i)
+	// 		cout << "PRINTING " << j << " ";
+	// 	cout << endl;
+	// }
 
 	// prune SCC to exclude transients
 	for (int i = 0; i < components.size(); ++i)
@@ -314,7 +309,7 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int>& nodes, map<int,int>& typ
 		for (int j = 0; j < components[i].size(); ++j)
 		{
 			// check if node is big enough i.e. not a transient
-			if (cycling && state_sizes[components[i][j]] > par.node_threshold*3)
+			if (cycling && state_sizes[components[i][j]] > par.node_threshold * 3)
 			{
 				new_list.push_back(components[i][j]);
 			}
@@ -326,22 +321,27 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int>& nodes, map<int,int>& typ
 		if (new_list.size() > 0)
 		{
 			pruned.push_back(new_list);
-		}		
+		}
 	}
+
+	vector<vector<int>> SCC_types{};
 
 	if (par.print_fitness && pruned.size() > 0)
 	{
-		cout << "PRINTING PRUNED COMPONENTS...." << endl;
+		// cout << "new component...." << endl;
 		for (int i = 0; i < pruned.size(); ++i)
 		{
+			vector<int> new_scc{};
 			for (int j = 0; j < pruned[i].size(); ++j)
 			{
 				int el = pruned[i][j];
 				auto it = types.begin();
 				std::advance(it, el);
-				cout << it->first << "  ";
+				// cout << it->first << "  ";
+				new_scc.push_back(it->first);
 			}
-			cout << endl;
+			// cout << endl;
+			SCC_types.push_back(new_scc);
 		}
 	}
 	if (pruned.size() == 1)
@@ -353,28 +353,23 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int>& nodes, map<int,int>& typ
 		strongly_connected = false;
 	}
 
-	return pruned;
-
+	return SCC_types;
 }
-
-
-
 
 bool Graph::StronglyConnected()
 {
 	return strongly_connected;
 }
 
-
-double Graph::rescale(map<int,int> &types, map<int,int> &new_types)
+double Graph::rescale(map<int, int> &types, map<int, int> &new_types)
 {
 	// calculate total time
-	int ttime=0;
+	int ttime = 0;
 	for (auto &i : types)
 	{
 		ttime += i.second;
 	}
-	int subtime=0;
+	int subtime = 0;
 	for (auto &i : new_types)
 	{
 		subtime += i.second;
@@ -383,38 +378,36 @@ double Graph::rescale(map<int,int> &types, map<int,int> &new_types)
 	return ratio;
 }
 
-
 // removes bidirectional edges for undirected graph. Function is not needed.
-void PruneBiEdges(vector<int>& start, vector<int>& end)
+void PruneBiEdges(vector<int> &start, vector<int> &end)
 {
-  // get a pair 
-  for (int i = 0; i < start.size(); ++i)
-  {
-    int ender = start[i];
-    int starter = end[i];
+	// get a pair
+	for (int i = 0; i < start.size(); ++i)
+	{
+		int ender = start[i];
+		int starter = end[i];
 
-    for (int j = i + 1; j < start.size(); ++j)
-    {
-      if (starter == start[j] && ender == end[j])
-      {
-        auto it1 = start.begin() + j;
-        auto it2 = end.begin() + j;
+		for (int j = i + 1; j < start.size(); ++j)
+		{
+			if (starter == start[j] && ender == end[j])
+			{
+				auto it1 = start.begin() + j;
+				auto it2 = end.begin() + j;
 
-        *it1 = move(start.back());
-        *it2 = move(end.back());
-        start.pop_back();
-        end.pop_back();
-      }
-    }
-  }
+				*it1 = move(start.back());
+				*it2 = move(end.back());
+				start.pop_back();
+				end.pop_back();
+			}
+		}
+	}
 }
 
-
-void PruneEdges(map<pair<int,int>,int> &tally, int n_orgs)
+void PruneEdges(map<pair<int, int>, int> &tally, int n_orgs)
 {
 	for (auto it = tally.begin(); it != tally.end();)
 	{
-		if (it->second < n_orgs * 2)
+		if (it->second < n_orgs * par.prune_amount)
 		{
 			// cout << "Erased edge: " << it->first.first << " " << it->first.second << " " << it->second << endl;
 			it = tally.erase(it);
@@ -426,15 +419,11 @@ void PruneEdges(map<pair<int,int>,int> &tally, int n_orgs)
 	}
 }
 
-
-
-
-map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, map<pair<int,int>,int>& tally, int n_orgs, bool cycling)
+map<int, int> Graph::CreateUnGraph(map<int, int> &nodes, map<int, int> &types, map<pair<int, int>, int> &tally, int n_orgs, bool cycling)
 {
 	vector<int> state_sizes{};
-  	vector<int> state_values{};
+	vector<int> state_values{};
 
-	
 	if (par.prune_edges)
 	{
 		PruneEdges(tally, n_orgs);
@@ -446,14 +435,14 @@ map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, ma
 	// 	cout << i.first << endl;
 	// }
 
-
-	// state values to numbers. 
+	// state values to numbers.
 	if (par.potency_edges)
 	{
 		for (auto i : types)
 		{
 			state_sizes.push_back(types[i.first]);
 			state_values.push_back(i.first);
+			// cout << i.first << " " << i.second << endl;
 		}
 	}
 	else
@@ -472,7 +461,7 @@ map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, ma
 		}
 	}
 
-	// replace state values with the new set of numbers. 
+	// replace state values with the new set of numbers.
 	for (auto &i : tally)
 	{
 		auto f1 = find(state_values.begin(), state_values.end(), i.first.first);
@@ -488,7 +477,7 @@ map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, ma
 		{
 			cerr << "Error creating graph!\n";
 			cout << "Missing edge is: " << i.first.first << "  " << i.first.second << "  " << i.second << endl;
-		} 
+		}
 	}
 
 	vector<vector<int>> disconGroups{};
@@ -498,14 +487,13 @@ map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, ma
 	if (par.print_fitness)
 	{
 		cout << "Number of connected components: " << val << endl;
-
 	}
 
 	// now we find if there are weakly connected components within each group:
 
-	// we need to create subsets of nodes and types for each group of discongroup. 
-	// Then have to find the edges that are specifically involved with those nodes... 
-	map<int,int> toreturn{};
+	// we need to create subsets of nodes and types for each group of discongroup.
+	// Then have to find the edges that are specifically involved with those nodes...
+	map<int, int> toreturn{};
 
 	int counter = 0;
 	for (vector<int> i : disconGroups)
@@ -527,7 +515,6 @@ map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, ma
 		}
 		double resc = rescale(types, new_types);
 
-
 		vector<int> new_start{};
 		vector<int> new_end{};
 		for (auto key : new_types)
@@ -543,49 +530,62 @@ map<int,int> Graph::CreateUnGraph(map<int, int>& nodes, map<int, int>& types, ma
 		}
 		Graph subgraph(new_types.size());
 		vector<vector<int>> subcomps = subgraph.CreateDiGraph(new_nodes, new_types, new_start, new_end, resc, cycling);
-		
 		for (auto i : subcomps)
 		{
-			for (auto j : i)
-			{
-				cout << j << "  ";
-			}
-			cout << endl;			
+			pruned.push_back(i);
 		}
+
+		// for (auto i : subcomps)
+		// {
+		// 	for (auto j : i)
+		// 	{
+		// 		cout << j << "  ";
+		// 	}
+		// 	cout << endl;
+		// }
 
 		// cout << "subcount done with size " << subcomps.size() << endl;
 
 		if (subcomps.size() > 0)
 			toreturn[counter] = subcomps.size();
 
-		
 		++counter;
-
 	}
 
-
 	// we make a map with each component, and value number of weakly connected components (0 = SC, 1 + = weakly connected)
-
 	return toreturn;
-
 }
 
+vector<vector<int>> Graph::GetComps(map<int, int> types, int threshold)
+{
 
-
-
-
-
-
-
+	vector<vector<int>> comps;
+	if (threshold > 0)
+	{
+		for (auto i : pruned)
+		{
+			int sumt{};
+			for (auto j : i)
+			{
+				sumt += types[j];
+			}
+			if (sumt > threshold)
+			{
+				comps.push_back(i);
+			}
+		}
+	}
+	return comps;
+}
 
 void Graph::PrintComponents()
 {
-    for (auto i : components)
-    {
-        for (int j : i)
-        {
-            cout << j << "  ";
-        }
-        cout << std::endl;
-    }
+	for (auto i : components)
+	{
+		for (int j : i)
+		{
+			cout << j << "  ";
+		}
+		cout << std::endl;
+	}
 }

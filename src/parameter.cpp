@@ -40,7 +40,7 @@
     mcs = 12100;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
 
@@ -53,13 +53,13 @@
     // gene record needs to always be on to test network connectivity. 
     gene_record = true;
     // include regulatory proteins in the state space 
-    max_statespace = false;
+    max_statespace = true;
 
     //for umap
     umap = false;
 
     // record velocities for all cells
-    velocities = false;
+    velocities = true;
     record_directions = false;
 
     // record cell sizes
@@ -89,17 +89,25 @@
 
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
     n_replicates = 2;
-    // edges and nodes only at end of simulation.
+    // edges and nodes only at end of simulation (always true).
     potency_edges = true;
-    // what mcs to start measuring adult types & differentiation. set to 8000 for all results
-    adult_begins = 8000;
-    // prune tiny edges (<1 per org) from graph ( we keep this to false )
-    prune_edges = false;
+    // what mcs to start measuring adult types & differentiation. set to 6000 for all results
+    adult_begins = 6000;
+
     // scramble cells
     scramble = false;
     // flat threshold for nodes
-    node_threshold = int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
+    node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
+
+    // prune tiny edges (<1 per org) from graph ( we keep this to false )
+    prune_edges = true;
+    
+    prune_amount = 6;
+
+    cycle_check = false;
+
     // DEPRACATED - prune nodes below this percent. Should probably set this as a minimum value (i.e. 10 cells equivalent)
+    // using node threshold above
     node_percent = 0.03;
 
 /*Conditions for evolution */
@@ -155,8 +163,7 @@
     //set specific colours
     set_colours = true;
     use_colour_index = true;
-    colour_index = { {16385999, 71}, {6100523, 54}, {14288559, 74}, {14288815, 39}, {6160043, 6}, {5900207, 73}, {6109099, 31}, {6143915, 18}, {16385775, 41}, {16385711, 63}, {16385967, 58}, {6137771, 30}, {6100907, 33}, {6141483, 61}, {16385743, 46}, {14223275, 47}, {6156203, 37}, {6096811, 278}, {14485419, 53}, {16451503, 45}, {6139819, 29}, {6160299, 279}, {49940207, 55}, {5826219, 68}, {5801899, 70}, {6096427, 57}, {14354351, 38}, {49942223, 282}, {6143531, 9}, {49940175, 281}, {6105003, 32}, {5818027, 67}, {49940174, 283}, {6141867, 25}, {16385742, 284}, {6159915, 280}, {16386031, 48}, {5916335, 66}, {6104619, 72}, {16451567, 50}, {5834667, 34}, {49940463, 56}, {5826475, 69}, {49940431, 59}, {5899951, 65}, {16387791, 60}, {5965743, 36}, {5965487, 64}, };
-
+    colour_index = { {109256, 114}, {43682, 24}, {101307, 150}, {107210, 177}, {43770, 31}, {99015, 107}, {43712, 146}, {101291, 170}, {43736, 192}, {33703, 179}, {99055, 158}, {41710, 193}, {107242, 167}, {109274, 156}, {107263, 185}, {41604, 20}, {41863, 141}, {41674, 181}, {98951, 90}, {109290, 147}, {43658, 163}, {43754, 26}, {43726, 183}, {109258, 153}, {109195, 188}, {109311, 274}, {109306, 37}, {109483, 187}, {109291, 190}, {41600, 9}, {41602, 103}, {107138, 195}, {41606, 29}, {99271, 96}, {33671, 269}, {33411, 105}, {99295, 271}, {107142, 172}, {41670, 151}, {107202, 144}, {33415, 82}, {115711, 272}, {41607, 35}, {109272, 86}, {99239, 148}, {99247, 116}, {109499, 178}, {101371, 139}, {43722, 157}, {33670, 175}, {33543, 268}, {41862, 171}, {43691, 174}, {109250, 189}, {117759, 275}, {115710, 106}, {99327, 276}, {109248, 194}, {35715, 149}, {117503, 273}, {101374, 143}, {107470, 191}, {99215, 34}, {107208, 196}, {99207, 270}, {107486, 102}, {99231, 180}, {101119, 64}, {109567, 83}, {101375, 17}, {107262, 169}, {109294, 173}, {41603, 38}, {99279, 58}, {125695, 101}, {109566, 73}, {101311, 113}, {109310, 54}, {43651, 39}, {109259, 45}, {43714, 127}, {35459, 115}, {43650, 99}, {109563, 137}, {101283, 176}, {43648, 10}, {109307, 46}, {109227, 108}, {107207, 184}, {99079, 155}, {41859, 152}, {123647, 186}, {41605, 55}, {99263, 168}, {107518, 104}, {125951, 111}, {115455, 109}, {33667, 277}, {99326, 11}, {43659, 182}, {43738, 161}, {115454, 110}, {99071, 159}, {33539, 162}, };
 
 
 
@@ -196,10 +203,12 @@
 
     // print single cell proteins
     single_cell = false;
-    single_type = 1312;
+    // the phenotype number to return
+    single_type = 115075;
     // turn all cells into this state
-    single_states = { 0.990603, 0.993102, 0.0570518, 0.993098, 0.021564, 0.993102, 0.017056, 0.993098, 0.993102, 0.993101, 0.993101, 0.000382512, 3.45036e-09, 0.0118121, 0.123374, 0.993102, 0.00601417, 0.993102, 0.993102, 0.993057, 0.017056, 0.993102, 0.000261081, 6.82379e-05, 0.000326122, 0.00104705, 9.83476e-05, 0.9979, 1.11559, 0.129037,  };
+    single_states = { 0.993102, 0.993099, 0.993102, 0.00487713, 0.000158774, 0.993102, 0.993102, 0.000131714, 0.0267844, 0.993102, 0.993102, 6.54622e-20, 0.993102, 0.993102, 0.993092, 0.00190562, 8.55565e-12, 3.16191e-13, 0.0418941, 0.0447275, 0.993101, 0.993102, 8.79463e-05, 0.00149896, 0.00149416, 9.32838e-05, 0.000136595, 1.14078, 1.13798, 1.14077,  };
 
+    // start all cells from "single state" initial condition
     flush_cells = false;
 
 

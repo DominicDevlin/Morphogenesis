@@ -123,6 +123,8 @@ public:
     ycens = src.ycens;
     vel_phens = src.vel_phens;
 
+    time_created = src.time_created;
+
 
     gamma_list = src.gamma_list;
     mass_list = src.mass_list;
@@ -206,6 +208,8 @@ public:
     phenotype = src.phenotype;
     switches = src.switches;
     long_switches = src.switches;
+
+    time_created = src.time_created;
 
     stemness = src.stemness;
     shrinker = src.shrinker;
@@ -905,9 +909,9 @@ private:
       pair<int, int> newt = {phenotype, time};
       div_time.push_back(newp);
       div_phen.push_back(newt);
-      time_created = xcens.size();
       // cout << "division recorded with phenotype: " << phenotype << endl;
     }
+    time_created = time;
 
   }
 

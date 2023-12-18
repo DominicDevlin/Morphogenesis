@@ -309,6 +309,10 @@ public:
 
   void Directionality();
 
+  vector<pair<double, double>> scc_momenta(vector<vector<int>> sccs);
+
+  pair<double, double> momenta(void);
+
   void SingleCellDirection();
 
   void RecordSizes();

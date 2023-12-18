@@ -16,6 +16,6 @@ module load Qt5/5.12.3-GCCcore-9.2.0
 qmake
 make
 module load LegacySystemLibs/7
-./evolution 
+./multisort-replay
 
 ## to output images on the cluster, prepend the output with "xvfb-run". e.g. "xvfb-run ./evolution"

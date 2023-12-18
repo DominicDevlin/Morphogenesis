@@ -46,6 +46,8 @@ public:
 	vector<vector<int>> CreateDiGraph(map<int, int>& nodes, map<int, int>& diffs, vector<int> start, vector<int> end, double scale = 1., bool cycling = false);
 
 	void PrintComponents();
+
+	vector<vector<int>> GetComps(map<int,int> types, int threshold=0);
 	
   ~Graph();
 

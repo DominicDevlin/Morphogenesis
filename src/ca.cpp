@@ -3953,8 +3953,8 @@ void CellularPotts::SetColours()
   // map<int, int> colours = {{103043, 236}, {102915, 237}, {103171, 238}, {104319, 239}, {104307, 240}};
 
 
-  map<int, int> colours = {{51331, 103}, {103235, 91}, {103171, 12}, {51699, 88}, 
-  {105227, 29}, {18443, 37}, {103234, 27}, {51339, 81}}; // this is for jellyfish
+  // map<int, int> colours = {{51331, 103}, {103235, 91}, {103171, 12}, {51699, 88}, 
+  // {105227, 29}, {18443, 37}, {103234, 27}, {51339, 81}}; // this is for jellyfish
 
   // map<int,int> colours = {{93571, 81}, {23919, 6}, {23811, 73}, {19843, 102}, {19911, 4}}; // this is for megamind
 
@@ -3963,8 +3963,8 @@ void CellularPotts::SetColours()
   // map<int,int> colours = {{119675, 45}, {110595, 143},{115579, 84},{45059, 71}, {127867, 88}}; // this is for shield
 
 
-  // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, 
-  // {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom
+  // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, {25601, 286}, {25602, 287}, {16134, 289}, {11907, 290},
+  // {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}, {31747, 285}, {25603, 288}}; // this is for mushroom
 
   // map<int,int> colours = {{6096811, 278}, {6160299, 279}, {6159915, 280}, {49940175, 281},
   // {49942223, 282}, {49940174, 283}, {16385742, 284}}; // this is for waffle
@@ -3975,7 +3975,7 @@ void CellularPotts::SetColours()
   // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom-old
 
 
-  // map<int,int> colours = {{91137, 256}, {25601, 257}, {27651, 258}, {31747, 259}, {25603, 260}, {25602, 261}, {11266, 262}, {16130, 263}, {16186, 264}, {16314, 265}, {11962, 266}, {11906, 267}}; // this is for mushroom
+  map<int,int> colours = {{91137, 256}, {25601, 257}, {27651, 258}, {31747, 259}, {25603, 260}, {25602, 261}, {11266, 262}, {16130, 263}, {16186, 264}, {16314, 265}, {11962, 266}, {11906, 267}}; // this is for mushroom
 
 
   // map<int,int> colours = {{129287, 49}, {129295, 102}, {129293, 81}, {129039, 160}, 
@@ -4770,6 +4770,9 @@ void CellularPotts::CellVelocities()
       vector<int>& velp = c->get_velphens();
       int init_time = c->get_time_created();
 
+
+
+
       int s = xm.size();
 
       for (int i = 500; i < s; ++i)
@@ -4832,14 +4835,585 @@ void CellularPotts::CellVelocities()
 
 
 
+
+
+
+
+
+
+
+pair<double, double> CellularPotts::momenta(void)
+{
+  vector<double> max_rads{};
+  vector<double> r_values{};
+  vector<double> theta_values{};
+
+
+  vector<double> speeds{};
+  vector<double> vectors{};
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    
+    if (c->AliveP())
+    {
+      // string var_name = data_file + "/momenta-data-" + to_string(c - cell->begin());
+      // ofstream outfile;
+      // outfile.open(var_name, ios::app);
+
+      vector<double>& xm = c->get_xcens();
+      vector<double>& ym = c->get_ycens();
+      vector<int>& velp = c->get_velphens();
+      vector<double>& sizes = c->GetMassList();
+      int s = xm.size();
+      int init_time = c->get_time_created();
+      int cell_origin=INT_MAX;
+      int x_origin=xm[250];
+      int y_origin=ym[250];
+
+      double max_cell_r=0;
+
+      // for (int i = 500 + init_time; i < s; ++i)
+      // {
+
+      //   double xpos = xm[i-250];
+      //   double ypos = ym[i-250];
+
+      //   double xrel = xpos-x_origin;
+      //   double yrel = ypos-y_origin;
+
+      //   double check_r = sqrt(pow(xrel,2) + pow(yrel,2));
+      //   if (check_r > max_cell_r)
+      //   {
+      //     max_cell_r = check_r;
+      //   }
+      // }
+
+      for (int i = 500 + init_time; i < s; ++i)
+      { 
+        // we want displacement from a while ago to account for back and forth motion
+        int t = velp[i-250];
+
+        
+        double x = xm[i-500];
+        double y = ym[i-500];
+        double x1 = xm[i];
+        double y1 = ym[i];
+
+
+        double len = sqrt(pow(x1-x,2) + pow(y1-y,2));
+
+
+        double angle = atan2(y1-y, x1-x);
+        angle = angle * (180.0 / M_PI);
+
+        // lets take the type in the middle as the relevant type
+        double csize = sizes[i-250];
+        double total = csize * len;
+        // this is magnitude of momentum and angle of momentum in degrees on interval -180 to 180
+        speeds.push_back(total);
+        vectors.push_back(angle);
+
+        double xpos = xm[i-250];
+        double ypos = ym[i-250];
+
+        double xrel = xpos-x_origin;
+        double yrel = ypos-y_origin;
+        // outfile << xrel << '\t' << yrel << endl;
+
+        // atan2 returns on interval (-pi to +pi)
+        double theta = atan2(yrel, xrel);
+        // converty to interval (0 to 2pi)
+        if (theta < 0)
+          theta = theta + 2*M_PI;
+        // theta = fmod(theta + 2*M_PI, 2 * M_PI);
+        theta_values.push_back(theta);
+
+        // normalise by radius so that its a number between 0 and 1
+        double check_r = sqrt(pow(xrel,2) + pow(yrel,2));
+        // cout << check_r << endl;
+        r_values.push_back(check_r);
+        if (check_r > max_cell_r)
+        {
+          max_cell_r = check_r;
+        }
+      }
+      // outfile.close();
+      if (max_cell_r > 0)
+        max_rads.push_back(max_cell_r);
+    }
+  }
+  
+
+  // string var_name = data_file + "/directions.dat" ;
+  // ofstream outfile;
+  // outfile.open(var_name, ios::app);
+
+  // int s = speeds.size();
+  // for (int i=0;i<s;++i)
+  // {
+  //   outfile << vectors[i] << '\t'  << speeds[i] << endl;
+  // }
+  // outfile.close();
+  sort(max_rads.begin(), max_rads.end());
+
+  int maxr_it = floor(double(max_rads.size()) * 0.8);
+  double max_radius = max_rads[maxr_it];
+  // cout << "MAX RADIUS: " << max_radius << endl;
+  // for (auto i : max_rads)
+  //   cout << i << "  ";
+  // cout << endl;
+  int n_circles=5;
+  int n_angles=10;
+
+  vector<double> radii_bins{};
+  vector<double> theta_bins{};
+
+
+
+  // double area_between = M_PI * radius * radius / n_circles;
+
+  for (int n = 1; n < n_circles+1; ++n) 
+  {
+    double newr = n*(max_radius / n_circles); // sqrt(n * area_between / M_PI);
+    // double newr = double(n) / double(n_circles); // sqrt(n * area_between / M_PI);
+    radii_bins.push_back(newr);
+  }
+
+  for (int n = 1; n < n_angles + 1; ++n)
+  {
+    double newtheta = (2 * M_PI / n_angles) * n;
+    theta_bins.push_back(newtheta);
+  }
+
+  vector<double> theta_mags(n_angles, 0.0);
+  vector<vector<double>> rings(n_circles, theta_mags);
+
+  vector<int> theta_m(n_angles, 0);
+  vector<vector<int>> ring_counter(n_circles, theta_m);
+
+  double total_speed{};
+
+  for (size_t i = 0; i < r_values.size(); ++i) 
+  {
+    for (int j = 0; j < n_circles; ++j) 
+    {
+      if (r_values[i] < radii_bins[j]) 
+      {
+        for (int k = 0; k < n_angles;++k)
+        {
+          if (theta_values[i] < theta_bins[k])
+          {
+            rings[j][k] += speeds[i];
+            total_speed += speeds[i];
+            ring_counter[j][k]+=1;
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  for (int j = 0; j < n_circles; ++j) 
+  {
+    for (int k = 0; k < n_angles;++k)
+    {
+      if (ring_counter[j][k])
+        rings[j][k] /= ring_counter[j][k];
+    }
+  }
+
+
+
+  double total_variance{};
+  // nowe need to calculate the variance on bins across theta.
+  for (int i = 0; i < n_circles; ++i)
+  {
+    double circle_mean=0;
+    double circle_variance{};
+    double avg_m{};
+    for (double& j : rings[i])
+    {
+      avg_m += j;
+      circle_mean += j;
+      // cout << i + 1 << "  " << j << endl;
+    }
+    avg_m /= n_angles;
+    for (double& j : rings[i])
+    {
+      circle_variance += pow(j-avg_m, 2);
+    } 
+    circle_variance /= n_angles;
+    // get index of disperal
+    circle_variance /= circle_mean;
+    total_variance += circle_variance;
+    // cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+  }
+
+  total_speed /= speeds.size();
+
+  if (par.print_fitness)
+  {
+    cout << "Average magntitude: " << total_speed << "   Total variance: " << total_variance << endl;
+  }
+
+  pair<double, double> toreturn = {total_speed, total_variance};
+  
+  return toreturn;
+}
+
+
+
+
+
+vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs)
+{
+
+  // automatic method to separate speeds into components
+  vector<pair<double,double>> scc_mags{};
+
+  for (vector<int> scc : sccs)
+  {
+
+    vector<double> max_rads{};
+    vector<double> r_values{};
+    vector<double> theta_values{};
+  
+    vector<double> speeds{};
+    vector<double> vectors{};
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        // when the cell first appears in the SCC
+
+
+        vector<double>& xm = c->get_xcens();
+        vector<double>& ym = c->get_ycens();
+        vector<int>& velp = c->get_velphens();
+        vector<double>& sizes = c->GetMassList();
+        int s = xm.size();
+        int init_time = c->get_time_created();
+
+        int cell_origin=INT_MAX;
+        int x_origin=xm[250];
+        int y_origin=ym[250];
+
+        double max_cell_r=0;
+
+        // first find when the cell lineage entered the SCC to set original position of cell
+        for (int i = 500; i < s; ++i)
+        {
+          int t = velp[i-250];
+          if (find(scc.begin(), scc.end(), t) == scc.end())
+          {
+            continue;
+          }
+          else
+          {
+            x_origin = xm[i-250];
+            y_origin = ym[i-250];
+            break;
+          }
+        }
+
+
+        for (int i = 500 + init_time; i < s; ++i)
+        {
+          // we want displacement from a while ago to account for back and forth motion
+          int t = velp[i-250];
+
+          if (find(scc.begin(), scc.end(), t) == scc.end())
+          {
+            continue;
+          }
+          else
+          {
+            if (i < cell_origin)
+            {
+              cell_origin = i;
+            }
+              
+            double x = xm[i-500];
+            double y = ym[i-500];
+            double x1 = xm[i];
+            double y1 = ym[i];
+
+            double len = sqrt(pow(x1-x,2) + pow(y1-y,2));
+
+
+            double angle = atan2(y1-y, x1-x);
+            angle = angle * (180.0 / M_PI);
+
+            // lets take the type in the middle as the relevant type
+            double csize = sizes[i-250];
+            double total = csize * len;
+
+            speeds.push_back(total);
+            vectors.push_back(angle);
+
+
+            double xpos = xm[i-250];
+            double ypos = ym[i-250];
+
+            double xrel = xpos-x_origin;
+            double yrel = ypos-y_origin;
+
+            // atan2 returns on interval (-pi to +pi)
+            double theta = atan2(yrel, xrel);
+            // converty to interval (0 to 2pi)
+            if (theta < 0)
+              theta = theta + 2*M_PI;
+            theta_values.push_back(theta);
+
+            double check_r = sqrt(pow(xrel,2) + pow(yrel,2));
+            r_values.push_back(check_r);
+            if (check_r > max_cell_r)
+            {
+              max_cell_r = check_r;
+            }
+
+          }
+        }
+        if (max_cell_r > 0)
+          max_rads.push_back(max_cell_r);
+      }
+    }
+    // string var_name = data_file + "/directions.dat" ;
+    // ofstream outfile;
+    // outfile.open(var_name, ios::app);
+
+    // int s = speeds.size();
+    // for (int i=0;i<s;++i)
+    // {
+    //   outfile << vectors[i] << '\t'  << speeds[i] << endl;
+    // }
+    // outfile.close();
+
+    string var_name = data_file + "/component-momenta.dat" ;
+    ofstream outfile;
+    outfile.open(var_name, ios::app);
+
+    for (int i : scc)
+    {
+      outfile << i << " ";
+    }
+    outfile << endl;
+
+    if (par.print_fitness)
+    {
+      for (int i : scc)
+      {
+        cout << i << " ";
+      }
+      cout << endl;      
+    }
+
+    sort(max_rads.begin(), max_rads.end());
+    int maxr_it = floor(double(max_rads.size()) * 0.8);
+    double max_radius = max_rads[maxr_it];
+    // cout << "MAX RADIUS: " << max_radius << endl;
+    // for (auto i : max_rads)
+    //   cout << i << "  ";
+    // cout << endl;
+
+
+    
+    int n_circles=5;
+    int n_angles=10;
+
+    vector<double> radii_bins{};
+    vector<double> theta_bins{};
+
+    // max radius is too large because boundary is inconsistent. Use 0.95*r
+    // max_radius *= 0.8;
+
+    // double area_between = M_PI * radius * radius / n_circles;
+
+    for (int n = 1; n < n_circles+1; ++n) 
+    {
+      double newr = n*(max_radius / n_circles); // sqrt(n * area_between / M_PI);
+      radii_bins.push_back(newr);
+    }
+
+    for (int n = 1; n < n_angles + 1; ++n)
+    {
+      double newtheta = (2 * M_PI / n_angles) * n;
+      theta_bins.push_back(newtheta);
+    }
+
+    vector<double> theta_mags(n_angles, 0.0);
+    vector<vector<double>> rings(n_circles, theta_mags);
+
+    vector<int> theta_m(n_angles, 0);
+    vector<vector<int>> ring_counter(n_circles, theta_m);
+
+    double total_speed{};
+
+    for (size_t i = 0; i < r_values.size(); ++i) 
+    {
+      for (int j = 0; j < n_circles; ++j) 
+      {
+        if (r_values[i] < radii_bins[j]) 
+        {
+          // cout << r_values[i] << endl;
+          for (int k = 0; k < n_angles;++k)
+          {
+            if (theta_values[i] < theta_bins[k])
+            {
+              rings[j][k] += speeds[i];
+              total_speed += speeds[i];
+              ring_counter[j][k]+=1;
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    for (int j = 0; j < n_circles; ++j) 
+    {
+      for (int k = 0; k < n_angles;++k)
+      {
+        if (ring_counter[j][k])
+          rings[j][k] /= ring_counter[j][k];
+      }
+    }
+
+
+
+    double total_variance{};
+    // nowe need to calculate the variance on bins across theta.
+    for (int i = 0; i < n_circles; ++i)
+    {
+      double circle_mean=0;
+      double circle_variance{};
+      double avg_m{};
+      for (double& j : rings[i])
+      {
+        avg_m += j;
+        circle_mean += j;
+        // cout << i + 1 << "  " << j << endl;
+      }
+      avg_m /= n_angles;
+      for (double& j : rings[i])
+      {
+        circle_variance += pow(j-avg_m, 2);
+      } 
+      circle_variance /= n_angles;
+      // get index of disperal
+      circle_variance /= circle_mean;
+      total_variance += circle_variance;
+      // cout << "circle variance for ring: " << i + 1 << " is: " << circle_variance << endl;
+    }
+
+    total_speed /= speeds.size();
+
+    if (par.print_fitness)
+    {
+      cout << "Average magntitude: " << total_speed << "   Total variance: " << total_variance << endl;
+    }
+    pair<double, double> result = {total_speed, total_variance};
+    scc_mags.push_back(result);
+
+
+
+
+
+    // i have vectors and speeds.. Want to distribute them to 36 bins, and measure anistropy by squaring the bins around mean to get variance. 
+    // convert to radians
+    for (auto&d : vectors)
+    {
+      d = d * M_PI / 180.0;
+      if (d < 0)
+      {
+        d = d + 2*M_PI;
+      }
+    }
+    double cosval = 0.0, sinval = 0.0;
+    double xmag = 0.0, ymag = 0.0;  
+
+    for (size_t i = 0; i < speeds.size(); ++i) 
+    {
+      cosval += speeds[i] * std::cos(vectors[i]);
+      sinval += speeds[i] * std::sin(vectors[i]);
+      xmag += speeds[i] * std::cos(vectors[i]);
+      ymag += speeds[i] * std::sin(vectors[i]);
+    }
+
+    // average angle
+    double avg = std::atan2(sinval, cosval);
+    avg = fmod(avg +2*M_PI, 2 * M_PI);
+    // cout << avg << endl;
+
+    // get magnitude by converting back to cartesian, adding all x and y then getting magnitude
+    // this is momentum (where time = 500 mcs).
+    double mr = std::sqrt(std::pow(xmag, 2) + std::pow(ymag, 2)) / vectors.size();
+    // cout << mr << endl;
+
+    int num_bins = 36;
+    std::vector<double> bin_edges(num_bins + 1);
+    double bin_size = 2 * M_PI / num_bins;
+    for (int i = 0; i <= num_bins; ++i) 
+    {
+      bin_edges[i] = i * bin_size;
+    }
+    std::vector<double> magnitude(num_bins, 0.0);
+
+    for (size_t i = 0; i < vectors.size(); ++i) 
+    {
+      // cout << vectors[i] << endl;
+      for (int j = 0; j < num_bins; ++j) {
+        if (vectors[i] < bin_edges[j + 1]) 
+        {
+          magnitude[j] += speeds[i];
+          break;
+        }
+      }
+    }
+
+    // average momentium in each direction
+    double avg_moment{};
+    for (auto& m : magnitude) 
+    {
+      m /= vectors.size();
+      avg_moment+=m;
+    }
+    double integral = avg_moment;
+    avg_moment /= num_bins;
+
+    double m_var{};
+    for (auto&m : magnitude)
+    {
+      m_var += pow(m-avg_moment, 2);
+    }
+    m_var /= num_bins;
+    // cout << m_var << endl;
+
+    outfile << "direction in radians: " << avg << " with magnitude: " << mr << endl;
+    outfile << "growth: " << integral << endl;
+    outfile << "variance: " << m_var << endl;
+    // outfile << "TOTAL VARIANCE: " << total_variance << endl;
+    outfile << endl;
+    outfile.close();
+  }
+
+  
+  return scc_mags;
+
+}
+
+
+
 void CellularPotts::Directionality()
 {
 
   // manual method to separate speeds into components
   vector<double> speeds{};
   vector<double> vectors{};
-
-
 
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
@@ -4874,11 +5448,11 @@ void CellularPotts::Directionality()
         double total = csize * len;
 
 
-        // if (t > 114000 && t < 118000)
-        // {
-        //   speeds.push_back(total);
-        //   vectors.push_back(angle);
-        // }
+        if (t > 114000 && t < 118000)
+        {
+          speeds.push_back(total);
+          vectors.push_back(angle);
+        }
 
 
         // if (t > 123000 && t < 123500)
@@ -4922,11 +5496,11 @@ void CellularPotts::Directionality()
         //   vectors.push_back(angle);
         // }   
 
-        if ((t > 6000000 && t < 6500000))
-        {
-          speeds.push_back(total);
-          vectors.push_back(angle);
-        }                
+        // if ((t > 6000000 && t < 6500000))
+        // {
+        //   speeds.push_back(total);
+        //   vectors.push_back(angle);
+        // }                
         // if ((t > 40000000 && t < 50000000) || (t > 16000000 && t < 16500000))
         // {
         //   speeds.push_back(total);
@@ -4947,7 +5521,7 @@ void CellularPotts::Directionality()
     }
   }
 
-  string var_name = data_file + "/stem-directions.dat";
+  string var_name = data_file + "/directions.dat";
   ofstream outfile;
   outfile.open(var_name, ios::app);
 
@@ -4959,9 +5533,81 @@ void CellularPotts::Directionality()
   outfile.close();
 
 
+  // i have vectors and speeds.. Want to distribute them to 36 bins, and measure anistropy by squaring the bins. 
+
+  // convert to radians
+  for (auto&d : vectors)
+  {
+    d = d * M_PI / 180.0;
+    if (d < 0)
+    {
+      d = d + 2*M_PI;
+    }
+  }
+  double cosval = 0.0, sinval = 0.0;
+  double xmag = 0.0, ymag = 0.0;  
+
+  for (size_t i = 0; i < speeds.size(); ++i) 
+  {
+    cosval += speeds[i] * std::cos(vectors[i]);
+    sinval += speeds[i] * std::sin(vectors[i]);
+    xmag += speeds[i] * std::cos(vectors[i]);
+    ymag += speeds[i] * std::sin(vectors[i]);
+  }
+
+  // average angle
+  double avg = std::atan2(sinval, cosval);
+  avg = fmod(avg +2*M_PI, 2 * M_PI);
+  
+  cout << avg << endl;
+
+  // get magnitude by converting back to cartesian, adding all x and y then getting magnitude
+  // this is momentum (where time = 500 mcs).
+  double mr = std::sqrt(std::pow(xmag, 2) + std::pow(ymag, 2)) / vectors.size();
+  cout << mr << endl;
+
+  int num_bins = 36;
+  std::vector<double> bin_edges(num_bins + 1);
+  double bin_size = 2 * M_PI / num_bins;
+  for (int i = 0; i <= num_bins; ++i) 
+  {
+    bin_edges[i] = i * bin_size;
+  }
+  std::vector<double> magnitude(num_bins, 0.0);
+
+  for (size_t i = 0; i < vectors.size(); ++i) 
+  {
+    // cout << vectors[i] << endl;
+    for (int j = 0; j < num_bins; ++j) {
+      if (vectors[i] < bin_edges[j + 1]) 
+      {
+        magnitude[j] += speeds[i];
+        break;
+      }
+    }
+  }
+
+  // average momentium in each direction
+  double avg_moment{};
+  for (auto& m : magnitude) 
+  {
+    m /= vectors.size();
+    avg_moment+=m;
+    cout << m << endl;
+  }
+  avg_moment /= num_bins;
+
+  double m_var{};
+  for (auto&m : magnitude)
+  {
+    m_var += pow(m-avg_moment, 2);
+  }
+  m_var /= num_bins;
+  cout << m_var << endl;
 
 
 }
+
 
 
 void CellularPotts::SetAllStates()

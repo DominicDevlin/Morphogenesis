@@ -81,7 +81,7 @@ INIT
     CPM->start_network(par.start_matrix, par.start_polarity);
 
     par.print_fitness = true;
-    par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
+    par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
 
     if (par.set_colours)
     {
@@ -277,15 +277,6 @@ TIMESTEP {
 
     if (t == par.mcs - 1)
     {
-      if (par.velocities)
-        dish->CPM->CellVelocities();
-
-      // dish->CPM->SpecialVelocity();
-      if (par.record_directions)
-      {
-        dish->CPM->Directionality();
-        // dish->CPM->SingleCellDirection();
-      }
 
 
       if (par.output_gamma)
@@ -308,7 +299,7 @@ TIMESTEP {
       
       // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)
       bool cycling = dish->CPM->CycleCheck();
-      if (cycling)
+      if (cycling && par.cycle_check)
       {
         cout << "There is cycling!!" << endl;
         dish->CPM->set_long_switches(edge_tally);
@@ -318,11 +309,32 @@ TIMESTEP {
         dish->CPM->set_switches(edge_tally);
       }
 
+      vector<vector<int>> scc;
+      if (par.velocities)
+      {
+        par.node_threshold = 0;
+        par.prune_edges = true;
+        map<int,int>subcomps{};
+        Graph ungraph(types.size());
+        subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+        scc = ungraph.GetComps(types, 500);
+        for (auto i : scc)
+        {
+            cout << "component: ";
+            for (int j : i)
+            {
+                cout << j << "  ";
+            }
+            cout << std::endl;
+        }
+      }
+
+
       if (par.potency_edges)
       {
         // entire program is run from ungraph now
         map<int,int>subcomps{};
-        if (cycling)
+        if (cycling && par.cycle_check)
         {
           Graph ungraph(phens.size());
           subcomps = ungraph.CreateUnGraph(phens, phens, edge_tally, 1, true);          
@@ -330,9 +342,12 @@ TIMESTEP {
         else
         {
           Graph ungraph(types.size());
+          par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 20);
+          par.prune_edges = false;
           subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-        }
+          vector<vector<int>> result = ungraph.GetComps(types);
 
+        }
 
         if (par.gene_output)
         {
@@ -354,7 +369,6 @@ TIMESTEP {
       }
       else
       {
-
         // Graph newgraph(phens.size());
         // newgraph.CreateDiGraph(phens, types, edge_start, edge_end);
 
@@ -389,6 +403,21 @@ TIMESTEP {
         outnet.close();
       }
 
+
+
+      if (par.velocities)
+      {
+        // dish->CPM->CellVelocities();
+        // dish->CPM->scc_momenta(scc);
+        dish->CPM->momenta();
+      }
+        
+      // dish->CPM->SpecialVelocity();
+      if (par.record_directions)
+      {
+        dish->CPM->Directionality();
+        // dish->CPM->SingleCellDirection();
+      }
    
 
     }
@@ -462,7 +491,7 @@ TIMESTEP {
     }
 
     // for removing cells. 
-    if (t == 10000)
+    if (t == 12000)
     {
       // dish->CPM->DestroyCellsByRadius(34.);
       // dish->CPM->DestroyCellsByPhenotype(31747, true);
