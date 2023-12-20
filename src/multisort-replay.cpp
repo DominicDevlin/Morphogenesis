@@ -508,14 +508,16 @@ int main(int argc, char *argv[]) {
   }
 
 
+  par.n_orgs = 10;
+
   vector<bool> start_p = { 0, 0, 0, 0 };
   vector<vector<bool>> polarities{};
-  for (vector<vector<int>> i : genomes)
+  for (int i=0;i<par.n_orgs;++i)
   {
     polarities.push_back(start_p);
   }
 
-  par.n_orgs = 10;
+
   int count=1;
   for (vector<vector<int>> i : genomes)
   {

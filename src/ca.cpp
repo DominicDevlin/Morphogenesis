@@ -4924,6 +4924,10 @@ pair<double, double> CellularPotts::momenta(void)
   vector<double> r_values{};
   vector<double> theta_values{};
 
+  // string var_name = data_file + "/momenta-data.dat";// + to_string(c - cell->begin());
+  // ofstream outfile;
+  // outfile.open(var_name, ios::app);
+
 
   vector<double> speeds{};
   vector<double> vectors{};
@@ -4933,9 +4937,7 @@ pair<double, double> CellularPotts::momenta(void)
     
     if (c->AliveP())
     {
-      // string var_name = data_file + "/momenta-data-" + to_string(c - cell->begin());
-      // ofstream outfile;
-      // outfile.open(var_name, ios::app);
+
 
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
