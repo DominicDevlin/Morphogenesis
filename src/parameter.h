@@ -150,6 +150,13 @@ class Parameter {
   int single_type;
   vector<double> single_states;
   bool flush_cells;
+
+  bool print_type_concentrations;
+
+  bool output_init_concs;
+
+  bool limit_morph;
+  double limit_amount;
   
   bool max_statespace;
 

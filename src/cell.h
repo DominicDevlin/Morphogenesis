@@ -700,6 +700,11 @@ private:
     for (int i=0; i<par.n_diffusers;++i)
     {
       diffs[i] = diffs[i] / (double)(area);
+      if (par.limit_morph)
+      {
+        if (diffs[i] > par.limit_amount)
+          diffs[i] = par.limit_amount;
+      }
       genes[i] = diffs[i];
     }
   }

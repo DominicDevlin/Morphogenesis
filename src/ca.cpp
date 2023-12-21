@@ -3360,6 +3360,56 @@ void CellularPotts::set_long_switches(map<pair<int,int>,int>& tally)
 
 
 
+
+void CellularPotts::OutputInitConcs()
+{
+  
+  string fnamen = data_file + "/conc";
+
+  if (mkdir(data_file.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;  
+
+
+
+  vector<vector<double>> type_proteins{};
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    int count = 0;
+    if (c->AliveP())
+    {
+      
+      vector<vector<double>>& gene_history = c->get_history();
+      vector<double> protein_list{};
+      for (unsigned int i=0;i<gene_history.size();++i)
+      {
+        protein_list.push_back(gene_history[i].back());
+      }
+      type_proteins.push_back(protein_list);
+    }
+  }
+
+  ofstream outfile;
+  string var_name = data_file + "/type-proteins.dat";
+  outfile.open(var_name, ios::app);
+  for (size_t i=0;i<type_proteins.size();++i)
+  {
+    outfile << "{ ";
+    for (double j : type_proteins[i])
+    {
+      outfile << j << ", ";
+    }
+    outfile << " };" << endl << endl;
+  }
+}
+
+
+
+
+
+
 void CellularPotts::cell_concentrations()
 {
   string fnamen = data_file + "/conc";
@@ -3376,7 +3426,8 @@ void CellularPotts::cell_concentrations()
 
   // vector<int> col_index{};
 
-
+  vector<int> type_check_list{};
+  vector<vector<double>> type_proteins{};
   vector<Cell>::iterator c;
   for ((c=cell->begin(), c++); c!=cell->end(); c++)
   {
@@ -3459,6 +3510,20 @@ void CellularPotts::cell_concentrations()
         // outfile.close();
       }
 
+      if (par.print_type_concentrations)
+      {
+        if (find(type_check_list.begin(), type_check_list.end(), c->GetPhenotype())==type_check_list.end())
+        {
+          type_check_list.push_back(c->GetPhenotype());
+          vector<vector<double>>& gene_history = c->get_history();
+          vector<double> protein_list{};
+          for (unsigned int i=0;i<gene_history.size();++i)
+          {
+            protein_list.push_back(gene_history[i].back());
+          }
+          type_proteins.push_back(protein_list);
+        }
+      }
 
       if (par.single_cell && par.single_type == c->GetPhenotype())
       {
@@ -3475,6 +3540,27 @@ void CellularPotts::cell_concentrations()
       }
     }
   }
+  if (par.print_type_concentrations)
+  {
+    ofstream outfile;
+    string var_name = data_file + "/type-proteins.dat";
+    outfile.open(var_name, ios::app);
+    for (size_t i=0;i<type_proteins.size();++i)
+    {
+      outfile << type_check_list[i] << endl;
+      for (double j : type_proteins[i])
+      {
+        outfile << j << '\t';
+      }
+      outfile << endl << endl;
+    }
+
+    // for (auto i : type_proteins)
+    // {
+
+    // }
+  }
+
 }
 
 
@@ -4848,6 +4934,10 @@ pair<double, double> CellularPotts::momenta(void)
   vector<double> r_values{};
   vector<double> theta_values{};
 
+  // string var_name = data_file + "/momenta-data.dat";// + to_string(c - cell->begin());
+  // ofstream outfile;
+  // outfile.open(var_name, ios::app);
+
 
   vector<double> speeds{};
   vector<double> vectors{};
@@ -4857,9 +4947,7 @@ pair<double, double> CellularPotts::momenta(void)
     
     if (c->AliveP())
     {
-      // string var_name = data_file + "/momenta-data-" + to_string(c - cell->begin());
-      // ofstream outfile;
-      // outfile.open(var_name, ios::app);
+
 
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();

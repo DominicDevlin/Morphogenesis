@@ -145,6 +145,8 @@ TIMESTEP {
       if (par.gene_output)
         dish->CPM->record_GRN();
 
+      if (par.output_init_concs)
+        dish->CPM->OutputInitConcs();
     }
       
     

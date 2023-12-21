@@ -202,14 +202,24 @@
     count_bud_cells = false;
 
     // print single cell proteins
-    single_cell = false;
+    single_cell = true;
     // the phenotype number to return
-    single_type = 115075;
+    single_type = 51699;
     // turn all cells into this state
-    single_states = { 0.993102, 0.993099, 0.993102, 0.00487713, 0.000158774, 0.993102, 0.993102, 0.000131714, 0.0267844, 0.993102, 0.993102, 6.54622e-20, 0.993102, 0.993102, 0.993092, 0.00190562, 8.55565e-12, 3.16191e-13, 0.0418941, 0.0447275, 0.993101, 0.993102, 8.79463e-05, 0.00149896, 0.00149416, 9.32838e-05, 0.000136595, 1.14078, 1.13798, 1.14077,  };
+    single_states = { 0.25, 0.000618156, 0.25, 2.63265e-21, 0.25, 0.748882, 0.748882, 0.748264, 0.748882, 1.27727e-12, 0.25, 0.25, 0.000618156, 1.27727e-12, 1.27727e-12, 1.27727e-12, 0.25, 0.25, 0.000618156, 0.25, 0.25, 5.42631e-30, 0.000618156, 0.25, 0.000618156, 0.000618156, 0.25, 0, 0, 0,  };
 
     // start all cells from "single state" initial condition
-    flush_cells = false;
+    flush_cells = true;
+
+    // limit morphogen to amount (prevents differentiation in some ex vivo organisms)
+    limit_morph = false;
+    limit_amount = 0.05;
+
+    // print list of concentrations, one for each cell type (used for future input)
+    print_type_concentrations = false;
+
+    // print initial cell protein concentrations
+    output_init_concs = false;
 
 
     // when to collect fitness
