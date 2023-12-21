@@ -147,6 +147,8 @@ class Parameter {
 
   bool print_type_concentrations;
 
+  bool output_init_concs;
+
   bool limit_morph;
   double limit_amount;
   

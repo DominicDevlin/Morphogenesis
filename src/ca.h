@@ -313,6 +313,8 @@ public:
 
   pair<double, double> momenta(void);
 
+  void OutputInitConcs();
+
   void SingleCellDirection();
 
   void RecordSizes();
