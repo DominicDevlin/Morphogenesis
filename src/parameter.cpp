@@ -83,7 +83,8 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, -2, 0, 0, 0, 0, 0, 1, 2 }, { 0, 0, 0, 0, 1, 0, 1, 0, -1 }, { 0, -1, 1, -1, -1, 2, 0, 1, -2 }, { -2, 0, 1, 1, 2, 0, 0, 0, -2 }, { 1, 0, 1, 0, -1, -1, 2, 0, 0 }, { 2, 0, 1, -1, 0, 0, 0, 0, 0 }, { 1, 0, 2, 1, -1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, -1, 0, 0, 0 }, { 0, 0, -2, 0, 1, 1, -1, 0, 0 }, { 0, 1, -1, 0, 2, -1, 0, -1, 1 }, { 0, 2, -2, 1, 0, 0, 1, 0, 0 }, { 1, -1, 0, 1, -1, 1, 0, 2, 1 }, { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, { -1, 0, 1, 0, 0, -1, 0, -1, 1 }, { -2, 1, 0, 0, 0, 0, 0, 0, -1 }, { 0, 1, 0, -1, 0, 0, 0, 0, -1 }, { -1, 0, 0, 0, 0, 1, 0, 0, 1 }, { 1, 0, -1, -1, 0, 1, -1, 1, 0 }, { 0, 0, 0, 0, 2, 0, -1, 0, 1 }, { 2, -1, 1, 0, 0, 0, 0, 1, 2 }, { 0, -1, 0, 0, 2, 1, 0, 0, 0 }, { 0, 1, 1, 0, 1, -2, 0, 0, -1 }, { -1, 0, 2, 1, -2, 0, 1, -1, 0 }, { -1, -1, 0, 1, 0, 0, 0, 1, 0 }, { -1, -1, 0, 1, 0, -1, 0, 1, 0 }, { -1, -1, -2, 1, 0, 0, 0, 0, 0 }, { 1, 0, -2, -1, 0, 1, 0, 1, 0 }, };
+    start_matrix = { { 1, 0, 0, 0, 0, 1, 0, 1, 0 }, { 0, 1, -1, 1, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 1, -2, 0, -1 }, { 1, 1, 0, 1, -1, 1, 1, -1, 0 }, { 1, 0, 0, 0, 0, 0, 0, -1, 0 }, { 0, 1, 2, 1, 0, 1, -1, -1, -1 }, { 0, 0, 0, 1, 0, 0, 0, 0, 1 }, { -1, -1, 0, 0, 0, 0, 0, 1, -1 }, { 0, 0, 0, 1, 0, 0, 0, 0, 1 }, { 1, 1, 0, 0, -1, -1, 0, 0, 0 }, { -1, 0, 1, 0, 1, 0, 0, 0, 1 }, { 2, -1, 1, -1, 0, 1, -1, 0, 0 }, { 2, 1, -1, 0, 0, 0, 0, 0, -1 }, { 0, -2, 0, 1, 0, 0, 0, -2, 0 }, { 0, 1, 0, 1, 0, 2, 0, 1, 0 }, { 2, 0, -1, 0, 0, 0, 0, 1, 0 }, { -2, 0, 0, 1, 1, -2, 1, 0, -1 }, { 0, 2, 0, 0, 0, -1, 1, 0, 2 }, { 2, 0, 0, 0, 1, 0, 1, 1, 0 }, { -1, 0, -2, 0, 0, 0, -2, -2, 0 }, { -1, 0, 0, 0, -2, 0, 0, 0, 1 }, { 0, 0, -1, 0, 0, 0, 0, 0, -1 }, { 0, -1, 1, 0, 0, -2, 1, 2, 0 }, { -2, -1, 0, 1, 1, -1, 0, 0, 0 }, { 0, 0, 1, 0, 0, 0, -2, 0, 1 }, { 0, -1, 0, 1, 0, -1, 0, -1, 0 }, { 0, -1, 0, 0, 0, 0, 0, 0, 1 }, };
+
 
 
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
@@ -98,8 +99,8 @@
     // flat threshold for nodes
     node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
 
-    // prune tiny edges (<1 per org) from graph ( we keep this to false )
-    prune_edges = true;
+    // prune tiny edges (<1 per org) from graph ( we keep this to false for classification, but true for separating stem and differentiated or nearly stem where necessary)
+    prune_edges = false;
     
     prune_amount = 6;
 
@@ -201,14 +202,14 @@
     count_bud_cells = false;
 
     // print single cell proteins
-    single_cell = true;
+    single_cell = false;
     // the phenotype number to return
     single_type = 51699;
     // turn all cells into this state
     single_states = { 0.25, 0.000618156, 0.25, 2.63265e-21, 0.25, 0.748882, 0.748882, 0.748264, 0.748882, 1.27727e-12, 0.25, 0.25, 0.000618156, 1.27727e-12, 1.27727e-12, 1.27727e-12, 0.25, 0.25, 0.000618156, 0.25, 0.25, 5.42631e-30, 0.000618156, 0.25, 0.000618156, 0.000618156, 0.25, 0, 0, 0,  };
 
     // start all cells from "single state" initial condition
-    flush_cells = true;
+    flush_cells = false;
 
     // limit morphogen to amount (prevents differentiation in some ex vivo organisms)
     limit_morph = false;
