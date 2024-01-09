@@ -69,7 +69,7 @@
     output_gamma = false;
 
     // read genomes from file
-    file_genomes = false;
+    file_genomes = true;
 
     //for storing images
     store = true;
