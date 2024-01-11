@@ -516,7 +516,8 @@ int main(int argc, char *argv[])
           networks.push_back(par.start_matrix);
           polarities.push_back(start_p);
       }
-      process_population(networks, polarities);  
+      vector<double> fitness = process_population(networks, polarities);  
+      print_fitness(fitness);
   }
 
 
