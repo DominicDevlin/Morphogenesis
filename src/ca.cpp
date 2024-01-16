@@ -5194,11 +5194,11 @@ pair<double, double> CellularPotts::momenta(void)
 
 
 
-
+// automatic method to separate speeds into components
 vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs)
 {
 
-  // automatic method to separate speeds into components
+
   vector<pair<double,double>> scc_mags{};
 
   for (vector<int> scc : sccs)
@@ -5838,10 +5838,101 @@ void CellularPotts::SingleCellDirection()
   }
   outfile.close();
 
+}
 
 
+
+
+// we want position when cell leaves an SCC relative to the average position of cells in that SCC
+
+// automatic method to separate speeds into components
+void CellularPotts::diff_anisotropy(vector<vector<int>> sccs)
+{
+  int count = 0;
+  for (vector<int> scc : sccs)
+  {
+    vector<double> x_points{};
+    vector<double> y_points{};
+    // can reconstruct the center of mass of scc with all cell center of mass
+    // but need to calculate separately for every time step
+
+    for (int i = 0; i < par.mcs-par.end_program;i+=par.update_freq)
+    {
+
+      double scc_xcen=0;
+      double scc_ycen=0;
+      int mass=0;
+
+      vector<Cell>::iterator c;
+      for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+      {
+        if (c->AliveP())
+        {
+          vector<int>& velp = c->get_velphens();
+          if (find(scc.begin(), scc.end(), velp[i]) != scc.end())
+          {
+            vector<double>& xm = c->get_xcens();
+            vector<double>& ym = c->get_ycens();
+            vector<double>& sizes = c->GetMassList();
+            int x = xm[i];
+            int y = ym[i];
+            int size = sizes[i];
+            scc_xcen += x * size;
+            scc_ycen += y * size;
+            mass += size;
+          
+          }
+
+        }
+      }
+      if (mass > 0)
+      {
+        // calculate center
+        scc_xcen = scc_xcen / mass;
+        scc_ycen = scc_ycen / mass;
+        cout << mass << "  " << scc_xcen << "  " << scc_ycen << endl;
+
+
+        for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+        {
+          if (c->AliveP())
+          {
+            vector<double>& xm = c->get_xcens();
+            vector<double>& ym = c->get_ycens();
+            vector<int>& velp = c->get_velphens();
+
+            if ((find(scc.begin(), scc.end(), velp[i-par.update_freq]) != scc.end()) && (find(scc.begin(), scc.end(), velp[i]) == scc.end()))
+            {
+              double xdiff = scc_xcen - xm[i];
+              double ydiff = scc_ycen - ym[i];
+              // POSITION AND ANGLE RELATIVE TO BUD COM
+              x_points.push_back(xdiff);
+              y_points.push_back(ydiff);
+            }
+          }
+        }
+      }
+
+
+
+    }
+    ++count;
+    string var_name = data_file + "/differentiation-anisotropy-" + to_string(count) + ".dat";
+    ofstream outfile;
+    outfile.open(var_name, ios::app);
+
+    for (int i=0;i<x_points.size();++i)
+    {
+      outfile << x_points[i] << '\t'  << y_points[i] << endl;
+    }
+    outfile.close();
+
+  }
 
 }
+
+
+
 
 
 
