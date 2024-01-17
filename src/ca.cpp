@@ -1818,8 +1818,8 @@ void CellularPotts::CellGrowthAndDivision(int time)
           // // divide all cells on the rare case that there area is too large. 
           // if (count == par.n_stem || area > (double)(par.div_threshold) * 1.5) 
           // {
-            which_cells[c->Sigma()]=true;
-            cell_division++;
+          which_cells[c->Sigma()]=true;
+          cell_division++;
 
           // }
         }
@@ -5848,9 +5848,12 @@ void CellularPotts::SingleCellDirection()
 // automatic method to separate speeds into components
 void CellularPotts::diff_anisotropy(vector<vector<int>> sccs)
 {
+  
   int count = 0;
   for (vector<int> scc : sccs)
   {
+    vector<bool> which_cells{};
+    which_cells.resize(cell->size());
     vector<double> x_points{};
     vector<double> y_points{};
     // can reconstruct the center of mass of scc with all cell center of mass
@@ -5890,32 +5893,48 @@ void CellularPotts::diff_anisotropy(vector<vector<int>> sccs)
         // calculate center
         scc_xcen = scc_xcen / mass;
         scc_ycen = scc_ycen / mass;
-        cout << mass << "  " << scc_xcen << "  " << scc_ycen << endl;
+        // cout << mass << "  " << scc_xcen << "  " << scc_ycen << endl;
 
-
+        // WARNING THIS CODE DOES NOT WORK PROPERLY!!
         for ( (c=cell->begin(), c++);c!=cell->end();c++) 
         {
-          if (c->AliveP())
+          if (c->AliveP() && (which_cells[c - cell->begin()] == false))
           {
             vector<double>& xm = c->get_xcens();
             vector<double>& ym = c->get_ycens();
             vector<int>& velp = c->get_velphens();
-
-            if ((find(scc.begin(), scc.end(), velp[i-par.update_freq]) != scc.end()) && (find(scc.begin(), scc.end(), velp[i]) == scc.end()))
+            int scc_count = 0;
+            if ((find(scc.begin(), scc.end(), velp[i]) != scc.end()))// && (find(scc.begin(), scc.end(), velp[i]) == scc.end()))
             {
-              double xdiff = scc_xcen - xm[i];
-              double ydiff = scc_ycen - ym[i];
-              // POSITION AND ANGLE RELATIVE TO BUD COM
-              x_points.push_back(xdiff);
-              y_points.push_back(ydiff);
+              for (auto check : sccs)
+              {
+                bool to_break=false;
+                for (int x = i; x < i+800; x+=40)
+                {
+                  if ((scc_count != count) && (find(check.begin(), check.end(), velp[x]) != check.end()))
+                  {
+                    double xdiff = scc_xcen - xm[i];
+                    double ydiff = scc_ycen - ym[i];
+                    // POSITION AND ANGLE RELATIVE TO BUD COM
+                    x_points.push_back(xdiff);
+                    y_points.push_back(ydiff);
+                    cout << count << "  " << scc_count << "  " << c - cell->begin() << "  " << velp[i] << "  " << velp[x] << "  " << xdiff << "  " << ydiff << endl;
+                    int val = distance(cell->begin(), c);
+                    which_cells[val] = true;
+                    to_break = true;
+                    break;
+                  }
+                }
+                if (to_break = true)
+                  break;
+                ++scc_count;
+              }
             }
           }
         }
       }
-
-
-
     }
+
     ++count;
     string var_name = data_file + "/differentiation-anisotropy-" + to_string(count) + ".dat";
     ofstream outfile;
@@ -5928,8 +5947,98 @@ void CellularPotts::diff_anisotropy(vector<vector<int>> sccs)
     outfile.close();
 
   }
-
 }
+
+
+// output where divisions occur for each SCC relative to SCC center
+void CellularPotts::division_anisotropy(vector<vector<int>> sccs)
+{
+  
+  int count = 0;
+  for (vector<int> scc : sccs)
+  {
+    vector<bool> which_cells{};
+    which_cells.resize(cell->size());
+    vector<double> x_points{};
+    vector<double> y_points{};
+    // can reconstruct the center of mass of scc with all cell center of mass
+    // but need to calculate separately for every time step
+
+    for (int i = 0; i < par.mcs-par.end_program;++i)
+    {
+
+      double scc_xcen=0;
+      double scc_ycen=0;
+      int mass=0;
+
+      vector<Cell>::iterator c;
+      for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+      {
+        if (c->AliveP())
+        {
+          vector<int>& velp = c->get_velphens();
+          if (find(scc.begin(), scc.end(), velp[i]) != scc.end())
+          {
+            vector<double>& xm = c->get_xcens();
+            vector<double>& ym = c->get_ycens();
+            vector<double>& sizes = c->GetMassList();
+            int x = xm[i];
+            int y = ym[i];
+            int size = sizes[i];
+            scc_xcen += x * size;
+            scc_ycen += y * size;
+            mass += size;
+          
+          }
+
+        }
+      }
+      if (mass > 0)
+      {
+        // calculate center
+        scc_xcen = scc_xcen / mass;
+        scc_ycen = scc_ycen / mass;
+        // cout << mass << "  " << scc_xcen << "  " << scc_ycen << endl;
+
+        // WARNING THIS CODE DOES NOT WORK PROPERLY!!
+        for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+        {
+          if (c->AliveP())
+          {
+            vector<double>& xm = c->get_xcens();
+            vector<double>& ym = c->get_ycens();
+            vector<int>& velp = c->get_velphens();
+            vector<int>& div_times = c->get_mass_div_time();
+
+            if ((find(scc.begin(), scc.end(), velp[i]) != scc.end()) && find(div_times.begin(), div_times.end(), i) != div_times.end())
+            {
+              double xdiff = scc_xcen - xm[i];
+              double ydiff = scc_ycen - ym[i];
+              // POSITION AND ANGLE RELATIVE TO BUD COM
+              x_points.push_back(xdiff);
+              y_points.push_back(ydiff);
+
+            }
+          }
+        }
+      }
+    }
+
+    ++count;
+    string var_name = data_file + "/division-anisotropy-" + to_string(count) + ".dat";
+    ofstream outfile;
+    outfile.open(var_name, ios::app);
+
+    for (int i=0;i<x_points.size();++i)
+    {
+      outfile << x_points[i] << '\t'  << y_points[i] << endl;
+    }
+    outfile.close();
+
+  }
+}
+
+
 
 
 

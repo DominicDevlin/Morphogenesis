@@ -412,7 +412,8 @@ TIMESTEP {
         // dish->CPM->CellVelocities();
         // dish->CPM->scc_momenta(scc);
         dish->CPM->momenta();
-        dish->CPM->diff_anisotropy(scc);
+        // dish->CPM->diff_anisotropy(scc);
+        dish->CPM->division_anisotropy(scc);
       }
         
       // dish->CPM->SpecialVelocity();

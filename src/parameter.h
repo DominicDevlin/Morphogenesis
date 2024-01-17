@@ -149,6 +149,8 @@ class Parameter {
 
   bool output_init_concs;
 
+  bool division_anisotropy;
+
   bool limit_morph;
   double limit_amount;
   
