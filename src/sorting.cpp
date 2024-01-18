@@ -413,7 +413,8 @@ TIMESTEP {
         // dish->CPM->scc_momenta(scc);
         dish->CPM->momenta();
         // dish->CPM->diff_anisotropy(scc);
-        dish->CPM->division_anisotropy(scc);
+        if (par.division_anisotropy)
+          dish->CPM->division_anisotropy(scc);
       }
         
       // dish->CPM->SpecialVelocity();
@@ -602,8 +603,10 @@ TIMESTEP {
       dish->Plot(this);
       if (t>par.end_program && par.contours)
       {
-        dish->PDEfield->ContourPlot(this,1,7);
-        dish->PDEfield->ContourPlot(this,0,5);
+        
+        dish->PDEfield->ContourPlot(this,0,293);
+        dish->PDEfield->ContourPlot(this,2,292);
+        dish->PDEfield->ContourPlot(this,1,291);
       }
       
       EndScene();
