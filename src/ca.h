@@ -313,6 +313,10 @@ public:
 
   pair<double, double> momenta(void);
 
+  void diff_anisotropy(vector<vector<int>> sccs);
+
+  void division_anisotropy(vector<vector<int>> sccs);
+
   void OutputInitConcs();
 
   void SingleCellDirection();

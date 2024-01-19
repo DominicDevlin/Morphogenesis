@@ -124,6 +124,7 @@ void Cell::CellBirth(Cell &mother_cell) {
   mass_list = mother_cell.mass_list;
   time_created = mother_cell.time_created;
 
+
   for (int i=0;i<par.n_diffusers;i++)
   {
     diffs[i]=mother_cell.diffs[i];

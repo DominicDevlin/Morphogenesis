@@ -1818,8 +1818,8 @@ void CellularPotts::CellGrowthAndDivision(int time)
           // // divide all cells on the rare case that there area is too large. 
           // if (count == par.n_stem || area > (double)(par.div_threshold) * 1.5) 
           // {
-            which_cells[c->Sigma()]=true;
-            cell_division++;
+          which_cells[c->Sigma()]=true;
+          cell_division++;
 
           // }
         }
@@ -4055,13 +4055,13 @@ void CellularPotts::SetColours()
   // map<int,int> colours = {{6096811, 278}, {6160299, 279}, {6159915, 280}, {49940175, 281},
   // {49942223, 282}, {49940174, 283}, {16385742, 284}}; // this is for waffle
 
-  // map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
-  // {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
+  map<int,int> colours = {{108034, 252}, {123107, 254}, {123011, 253}, {123043, 255}, 
+  {107010, 249}, {115075, 250}, {107651, 251}}; // fungi
   
   // map<int,int> colours = {{25600, 107}, {28160, 88}, {32256, 25}, {91136, 56}, {15914, 66}, {15874, 85}, {11947, 22}, {11907, 103}, {16130, 66}, {16186, 118}}; // this is for mushroom-old
 
 
-  map<int,int> colours = {{91137, 256}, {25601, 257}, {27651, 258}, {31747, 259}, {25603, 260}, {25602, 261}, {11266, 262}, {16130, 263}, {16186, 264}, {16314, 265}, {11962, 266}, {11906, 267}}; // this is for mushroom
+  // map<int,int> colours = {{91137, 256}, {25601, 257}, {27651, 258}, {31747, 259}, {25603, 260}, {25602, 261}, {11266, 262}, {16130, 263}, {16186, 264}, {16314, 265}, {11962, 266}, {11906, 267}}; // this is for mushroom
 
 
   // map<int,int> colours = {{129287, 49}, {129295, 102}, {129293, 81}, {129039, 160}, 
@@ -5154,11 +5154,11 @@ pair<double, double> CellularPotts::momenta(void)
 
 
 
-
+// automatic method to separate speeds into components
 vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs)
 {
 
-  // automatic method to separate speeds into components
+
   vector<pair<double,double>> scc_mags{};
 
   for (vector<int> scc : sccs)
@@ -5798,10 +5798,210 @@ void CellularPotts::SingleCellDirection()
   }
   outfile.close();
 
-
-
-
 }
+
+
+
+
+// we want position when cell leaves an SCC relative to the average position of cells in that SCC
+
+// automatic method to separate speeds into components
+void CellularPotts::diff_anisotropy(vector<vector<int>> sccs)
+{
+  
+  int count = 0;
+  for (vector<int> scc : sccs)
+  {
+    vector<bool> which_cells{};
+    which_cells.resize(cell->size());
+    vector<double> x_points{};
+    vector<double> y_points{};
+    // can reconstruct the center of mass of scc with all cell center of mass
+    // but need to calculate separately for every time step
+
+    for (int i = 0; i < par.mcs-par.end_program;i+=par.update_freq)
+    {
+
+      double scc_xcen=0;
+      double scc_ycen=0;
+      int mass=0;
+
+      vector<Cell>::iterator c;
+      for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+      {
+        if (c->AliveP())
+        {
+          vector<int>& velp = c->get_velphens();
+          if (find(scc.begin(), scc.end(), velp[i]) != scc.end())
+          {
+            vector<double>& xm = c->get_xcens();
+            vector<double>& ym = c->get_ycens();
+            vector<double>& sizes = c->GetMassList();
+            int x = xm[i];
+            int y = ym[i];
+            int size = sizes[i];
+            scc_xcen += x * size;
+            scc_ycen += y * size;
+            mass += size;
+          
+          }
+
+        }
+      }
+      if (mass > 0)
+      {
+        // calculate center
+        scc_xcen = scc_xcen / mass;
+        scc_ycen = scc_ycen / mass;
+        // cout << mass << "  " << scc_xcen << "  " << scc_ycen << endl;
+
+        // WARNING THIS CODE DOES NOT WORK PROPERLY!!
+        for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+        {
+          if (c->AliveP() && (which_cells[c - cell->begin()] == false))
+          {
+            vector<double>& xm = c->get_xcens();
+            vector<double>& ym = c->get_ycens();
+            vector<int>& velp = c->get_velphens();
+            int scc_count = 0;
+            if ((find(scc.begin(), scc.end(), velp[i]) != scc.end()))// && (find(scc.begin(), scc.end(), velp[i]) == scc.end()))
+            {
+              for (auto check : sccs)
+              {
+                bool to_break=false;
+                for (int x = i; x < i+800; x+=40)
+                {
+                  if ((scc_count != count) && (find(check.begin(), check.end(), velp[x]) != check.end()))
+                  {
+                    double xdiff = scc_xcen - xm[i];
+                    double ydiff = scc_ycen - ym[i];
+                    // POSITION AND ANGLE RELATIVE TO BUD COM
+                    x_points.push_back(xdiff);
+                    y_points.push_back(ydiff);
+                    cout << count << "  " << scc_count << "  " << c - cell->begin() << "  " << velp[i] << "  " << velp[x] << "  " << xdiff << "  " << ydiff << endl;
+                    int val = distance(cell->begin(), c);
+                    which_cells[val] = true;
+                    to_break = true;
+                    break;
+                  }
+                }
+                if (to_break = true)
+                  break;
+                ++scc_count;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    ++count;
+    string var_name = data_file + "/differentiation-anisotropy-" + to_string(count) + ".dat";
+    ofstream outfile;
+    outfile.open(var_name, ios::app);
+
+    for (int i=0;i<x_points.size();++i)
+    {
+      outfile << x_points[i] << '\t'  << y_points[i] << endl;
+    }
+    outfile.close();
+
+  }
+}
+
+
+// output where divisions occur for each SCC relative to SCC center
+void CellularPotts::division_anisotropy(vector<vector<int>> sccs)
+{
+  
+  int count = 0;
+  for (vector<int> scc : sccs)
+  {
+    vector<bool> which_cells{};
+    which_cells.resize(cell->size());
+    vector<double> x_points{};
+    vector<double> y_points{};
+    // can reconstruct the center of mass of scc with all cell center of mass
+    // but need to calculate separately for every time step
+
+    for (int i = 0; i < par.mcs-par.end_program;++i)
+    {
+
+      double scc_xcen=0;
+      double scc_ycen=0;
+      int mass=0;
+
+      vector<Cell>::iterator c;
+      for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+      {
+        if (c->AliveP())
+        {
+          vector<int>& velp = c->get_velphens();
+          if (find(scc.begin(), scc.end(), velp[i]) != scc.end())
+          {
+            vector<double>& xm = c->get_xcens();
+            vector<double>& ym = c->get_ycens();
+            vector<double>& sizes = c->GetMassList();
+            int x = xm[i];
+            int y = ym[i];
+            int size = sizes[i];
+            scc_xcen += x * size;
+            scc_ycen += y * size;
+            mass += size;
+          
+          }
+
+        }
+      }
+      if (mass > 0)
+      {
+        // calculate center
+        scc_xcen = scc_xcen / mass;
+        scc_ycen = scc_ycen / mass;
+        // cout << mass << "  " << scc_xcen << "  " << scc_ycen << endl;
+
+        // WARNING THIS CODE DOES NOT WORK PROPERLY!!
+        for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+        {
+          if (c->AliveP())
+          {
+            vector<double>& xm = c->get_xcens();
+            vector<double>& ym = c->get_ycens();
+            vector<int>& velp = c->get_velphens();
+            vector<int>& div_times = c->get_mass_div_time();
+
+            if ((find(scc.begin(), scc.end(), velp[i]) != scc.end()) && find(div_times.begin(), div_times.end(), i) != div_times.end())
+            {
+              double xdiff = scc_xcen - xm[i];
+              double ydiff = scc_ycen - ym[i];
+              // POSITION AND ANGLE RELATIVE TO BUD COM
+              x_points.push_back(xdiff);
+              y_points.push_back(ydiff);
+
+            }
+          }
+        }
+      }
+    }
+
+    ++count;
+    string var_name = data_file + "/division-anisotropy-" + to_string(count) + ".dat";
+    ofstream outfile;
+    outfile.open(var_name, ios::app);
+
+    for (int i=0;i<x_points.size();++i)
+    {
+      outfile << x_points[i] << '\t'  << y_points[i] << endl;
+    }
+    outfile.close();
+
+  }
+}
+
+
+
+
+
 
 
 

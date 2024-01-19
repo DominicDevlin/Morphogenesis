@@ -560,19 +560,16 @@ vector<vector<int>> Graph::GetComps(map<int, int> types, int threshold)
 {
 
 	vector<vector<int>> comps;
-	if (threshold > 0)
+	for (auto i : pruned)
 	{
-		for (auto i : pruned)
+		int sumt{};
+		for (auto j : i)
 		{
-			int sumt{};
-			for (auto j : i)
-			{
-				sumt += types[j];
-			}
-			if (sumt > threshold)
-			{
-				comps.push_back(i);
-			}
+			sumt += types[j];
+		}
+		if (sumt > threshold)
+		{
+			comps.push_back(i);
 		}
 	}
 	return comps;

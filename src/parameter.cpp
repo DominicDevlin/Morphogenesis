@@ -58,7 +58,7 @@
     //for umap
     umap = false;
 
-    // record velocities for all cells
+    // record momenta for all cells
     velocities = true;
     record_directions = false;
 
@@ -99,8 +99,8 @@
     // flat threshold for nodes
     node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
 
-    // prune tiny edges (<1 per org) from graph ( we keep this to false )
-    prune_edges = true;
+    // prune tiny edges (<1 per org) from graph ( we keep this to false for classification, but true for separating stem and differentiated or nearly stem where necessary)
+    prune_edges = false;
     
     prune_amount = 6;
 
@@ -162,15 +162,17 @@
 
     //set specific colours
     set_colours = true;
-    use_colour_index = true;
+    use_colour_index = false;
     colour_index = { {109256, 114}, {43682, 24}, {101307, 150}, {107210, 177}, {43770, 31}, {99015, 107}, {43712, 146}, {101291, 170}, {43736, 192}, {33703, 179}, {99055, 158}, {41710, 193}, {107242, 167}, {109274, 156}, {107263, 185}, {41604, 20}, {41863, 141}, {41674, 181}, {98951, 90}, {109290, 147}, {43658, 163}, {43754, 26}, {43726, 183}, {109258, 153}, {109195, 188}, {109311, 274}, {109306, 37}, {109483, 187}, {109291, 190}, {41600, 9}, {41602, 103}, {107138, 195}, {41606, 29}, {99271, 96}, {33671, 269}, {33411, 105}, {99295, 271}, {107142, 172}, {41670, 151}, {107202, 144}, {33415, 82}, {115711, 272}, {41607, 35}, {109272, 86}, {99239, 148}, {99247, 116}, {109499, 178}, {101371, 139}, {43722, 157}, {33670, 175}, {33543, 268}, {41862, 171}, {43691, 174}, {109250, 189}, {117759, 275}, {115710, 106}, {99327, 276}, {109248, 194}, {35715, 149}, {117503, 273}, {101374, 143}, {107470, 191}, {99215, 34}, {107208, 196}, {99207, 270}, {107486, 102}, {99231, 180}, {101119, 64}, {109567, 83}, {101375, 17}, {107262, 169}, {109294, 173}, {41603, 38}, {99279, 58}, {125695, 101}, {109566, 73}, {101311, 113}, {109310, 54}, {43651, 39}, {109259, 45}, {43714, 127}, {35459, 115}, {43650, 99}, {109563, 137}, {101283, 176}, {43648, 10}, {109307, 46}, {109227, 108}, {107207, 184}, {99079, 155}, {41859, 152}, {123647, 186}, {41605, 55}, {99263, 168}, {107518, 104}, {125951, 111}, {115455, 109}, {33667, 277}, {99326, 11}, {43659, 182}, {43738, 161}, {115454, 110}, {99071, 159}, {33539, 162}, };
 
+    //record location of cell divisions
+    division_anisotropy = true;
 
 
     // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
     // NOTE - MUST RUN with tag: "-platform offscreen" when using cluster (there is no display).
     overlap_images = false;
-    overlap_orgs = 60;
+    overlap_orgs = 10;
     // true = compare different genomes, false = compare same genomes
     between_org_overlap = false;
     // do translations
@@ -202,13 +204,13 @@
     count_bud_cells = false;
 
     // print single cell proteins
-    single_cell = true;
+    single_cell = false;
     // the phenotype number to return
-    single_type = 51699;
+    single_type = 123107;
     // turn all cells into this state
-    single_states = { 0.25, 0.000618156, 0.25, 2.63265e-21, 0.25, 0.748882, 0.748882, 0.748264, 0.748882, 1.27727e-12, 0.25, 0.25, 0.000618156, 1.27727e-12, 1.27727e-12, 1.27727e-12, 0.25, 0.25, 0.000618156, 0.25, 0.25, 5.42631e-30, 0.000618156, 0.25, 0.000618156, 0.000618156, 0.25, 0, 0, 0,  };
+    single_states = { 0.00278718, 3.49837e-32, 4.16419e-06, 0.993102, 0.993102, 4.26058e-09, 0.993101, 0.00236115, 0.674178, 0.992634, 0.993101, 0.584039, 0.993102, 0.993102, 0.992415, 0.993102, 6.58944e-12, 0.00219153, 0.00223177, 6.53641e-12, 1.37808e-20, 0.993101, 0.565769, 0.586879, 3.95508e-09, 3.77006e-09, 0.00227086, 0.00735439, 8.5477e-11, 0.00261829,  };
 
-    // start all cells from "single state" initial condition
+    // start all cells from "single state" initial condition for ex vivo
     flush_cells = true;
 
     // limit morphogen to amount (prevents differentiation in some ex vivo organisms)

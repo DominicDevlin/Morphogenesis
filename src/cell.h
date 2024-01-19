@@ -224,6 +224,7 @@ public:
     mass_list = src.mass_list;
 
 
+
     diffs = new double[par.n_diffusers];
 
     for (int i=0;i<par.n_diffusers;i++)
@@ -902,8 +903,20 @@ private:
   }
 
 
+  inline vector<double>& get_div_x()
+  {
+    return div_x_cen;
+  }
 
+  inline vector<double>& get_div_y()
+  {
+    return div_y_cen;
+  }
 
+  inline vector<int>& get_mass_div_time()
+  {
+    return mass_div_time;
+  }
 
 
   inline void RecordDivision(int time)
@@ -917,6 +930,13 @@ private:
       // cout << "division recorded with phenotype: " << phenotype << endl;
     }
     time_created = time;
+    
+    if (par.division_anisotropy && time > par.end_program)
+    {
+      div_x_cen.push_back(xcens.back());
+      div_y_cen.push_back(ycens.back());
+      mass_div_time.push_back(xcens.size());
+    }
 
   }
 
@@ -1085,6 +1105,10 @@ protected:
   vector<double> ycens;
   vector<int> vel_phens;
   int time_created=0;
+
+  vector<double> div_x_cen;
+  vector<double> div_y_cen;
+  vector<int> mass_div_time;
 
 
   vector<tuple<int,int, uint64_t>> switches;

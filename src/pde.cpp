@@ -146,7 +146,7 @@ void PDE::ContourPlot(Graphics *g, int l, int colour) {
   // http://astronomy.swin.edu.au/~pbourke/projection/conrec
 
   // number of contouring levels
-  int nc = 10;
+  int nc = 4;
 
   // A one dimensional array z(0:nc-1) that saves as a list of the contour levels in increasing order.   
   double *z=(double *)malloc(nc*sizeof(double));
