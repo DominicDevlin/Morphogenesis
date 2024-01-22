@@ -85,14 +85,12 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     dishes[i].Init();
   }
 
-
   // run organisms in parallel. 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for 
   for (int i=0; i < par.n_orgs; ++i)  
   {
     int t;
-
     dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
 
 
@@ -460,7 +458,7 @@ int main(int argc, char *argv[])
 
         }      
 
-        if (row.size() == 9)
+        if (row.size() == par.n_activators)
         {
           genome.push_back(row);
           row.clear();
@@ -470,6 +468,8 @@ int main(int argc, char *argv[])
       genomes.push_back(genome);
 
     }
+
+    cout << "genomes read in" << endl;
 
     file.close();
 

@@ -2116,7 +2116,6 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
       i.resize(par.n_activators);
   }
   
-
   if (par.randomise)
   {
     randomise_network();
@@ -2127,6 +2126,8 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
     {
       for (int j = 0; j < par.n_activators; ++j)
       { 
+        // cout << i+1 << "  " << j+1 << endl;
+        // cout << "matrix: " << start_matrix[i][j] << endl;
         matrix[i][j] = start_matrix[i][j]; 
       }
     }
@@ -2135,7 +2136,6 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
       polarity[i] = start_pol[i];
     }      
   } //set matrix to input, either from simulation or par.set_matrix
-
 
   vector<double> new_g;
   vector<double> new_d;
@@ -2165,6 +2165,7 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
       }
     }
   }
+
 }
 
 

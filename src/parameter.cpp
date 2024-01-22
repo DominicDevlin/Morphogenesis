@@ -69,7 +69,7 @@
     output_gamma = false;
 
     // read genomes from file
-    file_genomes = false;
+    file_genomes = true;
 
     //for storing images
     store = true;
@@ -83,7 +83,7 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { -2, 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0, -1 }, { 0, -2, 1, 0, 1, 1 }, { 1, 1, 0, 1, -1, 1 }, { 0, -2, 0, 1, 1, 0 }, { 0, 0, -1, -1, 1, 1 }, { 0, -1, 0, -1, 0, 1 }, { 0, -1, 0, 1, -1, 1 }, { 1, 1, 1, -1, 0, -1 }, { 0, -1, 0, -1, 1, 0 }, { -1, 0, -1, 0, 1, 0 }, { 0, 0, 2, 2, 0, -2 }, };
+    start_matrix = { { 1, 1, 0, -2, 0, 1 }, { 0, 2, -1, 2, 0, 2 }, { 0, 0, -1, 1, 0, -2 }, { 0, 2, 2, 0, -1, 1 }, { 0, -1, 0, 1, 0, 2 }, { 0, 2, -1, 0, -1, 0 }, { -1, -1, 0, -1, 0, 1 }, { 1, 0, 0, 1, 1, 1 }, { 2, 2, 0, 0, 0, 0 }, { 1, 2, 1, 0, -1, -1 }, { 0, 0, 0, 0, 1, -1 }, { 0, 0, 0, 0, 1, -1 }, };
     
 
 
@@ -172,7 +172,7 @@
     // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
     // NOTE - MUST RUN with tag: "-platform offscreen" when using cluster (there is no display).
     overlap_images = false;
-    overlap_orgs = 10;
+    overlap_orgs = 60;
     // true = compare different genomes, false = compare same genomes
     between_org_overlap = false;
     // do translations
@@ -256,7 +256,7 @@
 
     // gene network parameters
     
-    n_lockandkey = 4; // number of lock = keys, stored in separate vector for ease
+    n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
     n_locks = n_lockandkey / 2; // must be half lockandkey. 
     
     //adding new medium genes to release constraint on keys
