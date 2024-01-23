@@ -333,6 +333,7 @@ public:
 
   void ColourCells();
 
+  void ConstructSheet(int x, int y);
 
   // returns colour at this site
   int SiteColour(int x, int y);
