@@ -490,9 +490,7 @@ TIMESTEP {
 
     if (par.convert_cells && par.convert_time == t)
     {
-      cout << "here" << endl;
-      dish->CPM->ConvertToStem(par.convert_x,par.convert_y,par.convert_size,115075, dish->PDEfield, true, 50); 
-      cout << "here" << endl;
+      dish->CPM->ConvertToStem(par.convert_x,par.convert_y,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius); 
     }
 
 
@@ -524,7 +522,7 @@ TIMESTEP {
 
 
     //cerr << "Done\n";
-    if (par.graphics && t%par.screen_freq==0)// !(t%par.screen_freq)) 
+    if (par.graphics && t%10==0)// !(t%par.screen_freq)) 
     {
       
       BeginScene();

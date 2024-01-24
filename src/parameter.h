@@ -87,6 +87,8 @@ class Parameter {
   int convert_y;
   vector<double>  convert_states;
   int convert_size;
+  int convert_to_type;
+  int clear_radius;
 
 
   bool file_genomes;

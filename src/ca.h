@@ -264,7 +264,7 @@ public:
 
   void DestroyCellsByRadius(double rad);
 
-  void ConvertToStem(int xloc, int yloc, int rad, int type, PDE *field, bool clear=false, int clear_rad=0);
+  int ConvertToStem(int xloc, int yloc, int rad, int type, PDE *field, bool clear=false, int clear_rad=0);
 
   void IntroduceMorphogen(int num);
 

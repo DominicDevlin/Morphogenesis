@@ -1282,10 +1282,14 @@ void CellularPotts::ConstructSheet(int xm, int ym)
   for (int x=1;x<sizex-1;x++)
     for (int y=1;y<sizey-1;y++)
     {
-      if (x < xm && y < ym)
+      // if (x < xm && y < ym)
+      // {
+      //   sigma[x][y] = 1;
+      // }
+      if (x < 175 && y > 75 + x)
       {
         sigma[x][y] = 1;
-      }
+      }     
     }
 
 }
@@ -4536,7 +4540,7 @@ void CellularPotts::DestroyCellsByRadius(double rad)
 
 
 
-void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *field, bool clear, int clear_rad)
+int CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *field, bool clear, int clear_rad)
 {
   if (clear_rad == 0)
     clear_rad = rad;
@@ -4559,7 +4563,10 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
       int m=0;
       int morphn;
       if (i < par.n_diffusers)
+      {
         diffusers.push_back(par.convert_states[i]);
+        genes.push_back(par.convert_states[i+par.n_genes]);
+      }
       else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
         genes.push_back(par.convert_states[i]);
       else if (i < par.n_genes - par.n_locks - par.n_mediums)
@@ -4579,11 +4586,12 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
       }   
       else
       {
-        morph_conc[morphn] = par.convert_states[i];
+        morph_conc.push_back(par.convert_states[i]);
         ++morphn;
       }
-
+      // cout << genes.size() << " " <<  locks.size() << " " <<  keys.size() << " " <<  meds.size() << " " <<  morph_conc.size() << " " <<  endl;
     }
+
   }
   else
   {
@@ -4594,7 +4602,6 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
       {
         c->Phenotype();
         int phen = c->GetPhenotype();
-        cout << phen << endl;
         if (phen == type)
         {
           // get morphogen concentration at that point. 
@@ -4604,7 +4611,6 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
           locks = c->get_locks();
           keys = c->get_keys();
           meds = c->get_medp();
-
           break;
         }
       }
@@ -4612,14 +4618,14 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
     if (stem_sig==0)
     {
       cout << "ERROR - NO CELL WITH THAT IDENTITY FOUND" << endl;
+      return 0;
     }
-
 
     //get morphogen concentration at site of cell
     for (int x=1;x<sizex;x++)
       for (int y=1;y<sizey;y++)
       {
-        if (sigma[x][y] == stem_sig)
+        if (x>1 && y > 1 && x < sizex-1 && y < sizey-1 && sigma[x][y] == stem_sig)
         {
           for (int n=0;n<par.n_diffusers;++n)
           {
@@ -4629,7 +4635,6 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
       }
   }
 
-  
   // set all cells in the differentiated area to the stem cell identity (NEED TO INCLDUE X AND Y)
 
   vector<int> cell_stack{};
@@ -4668,26 +4673,9 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
             field->setValue(n,x,y, morph_conc[n]);
             morph_conc[n] = field->Sigma(n,x,y);
           }
-
         }
 
-  // for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  // {
-  //   if (c->AliveP())
-  //   {
-  //     c->set_genes(genes);
-  //     c->set_diffusers(diffusers);
-  //     c->set_locks(locks);
-  //     c->set_keys(keys);
-  //     c->set_meds(meds);
-    
-  //   }    
-  // }
-
-  
-  
-
-
+  return 0;
 }
 
 
