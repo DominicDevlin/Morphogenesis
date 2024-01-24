@@ -37,10 +37,10 @@
     //basic grid parameters. 
     sizex = 250;
     sizey = 250;
-    mcs = 12100;
+    mcs = 18100;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
 
@@ -75,7 +75,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=1370678184773597213;
+    pickseed=14464003847258394511;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -167,7 +167,7 @@
     colour_index = { {6100523, 44}, {6141483, 62}, {49940431, 64}, {6160043, 7}, {6137387, 65}, {6137771, 38}, {6160299, 279}, {49940207, 54}, {6100907, 34}, {16451503, 47}, {14485419, 52}, {6096811, 278}, {6156203, 41}, {49942223, 282}, {6096427, 51}, {14354351, 39}, {14223275, 48}, {16385743, 50}, {6159915, 280}, {16386031, 49}, {6143531, 12}, {49940175, 281}, {6109099, 33}, {6139819, 32}, {6104619, 66}, {16451567, 53}, {5834667, 36}, {49940463, 55}, {49940174, 283}, {6105003, 35}, {16385967, 45}, {16385742, 284}, {6141867, 27}, {6096555, 63}, {14354415, 46}, {16387791, 59}, {16385775, 42}, {6143915, 19}, };
 
     //record location of cell divisions
-    division_anisotropy = true;
+    division_anisotropy = false;
 
 
     // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
@@ -205,29 +205,29 @@
     count_bud_cells = false;
 
     // print single cell proteins
-    single_cell = true;
+    single_cell = false;
     // the phenotype number to return
-    single_type = 115075;
+    single_type = 123107;
     // start all cells from "single state" initial condition for ex vivo
-    flush_cells = false;
+    flush_cells = true;
    // turn all cells into this state at beginning of development
-    flush_states = { 2.18779e-26, 0.993102, 0.993102, 1.82541e-13, 0.0728872, 0.993102, 0.993102, 0.993072, 0.993102, 0.993102, 0.993101, 4.3137e-22, 0.993102, 0.0728817, 0.993102, 0.993102, 0.993101, 0.993102, 0.993102, 5.9708e-23, 0.993102, 0.0175083, 7.71379e-05, 7.92569e-16, 1.82414e-13, 0.00245538, 2.41828e-06, 3.18828e-06, 1.1655, 1.16549,  };
+    flush_states = { 0.993102, 1.64698e-17, 0.993102, 0.993102, 0.000304264, 1.32348e-17, 7.60632e-13, 2.02772e-21, 0.993102, 0.993102, 7.55209e-13, 6.83557e-13, 0.993102, 0.993102, 0.000302259, 0.993102, 0.00231852, 1.71435e-21, 0.993101, 0.993102, 0.00242462, 5.82804e-12, 1.84748e-21, 5.85878e-12, 5.8244e-12, 5.53231e-12, 3.00727e-22, 1.09727, 0.00221704, 1.09726,  };
 
 
     // convert cells at certain time point
-    convert_cells = false;
+    convert_cells = true;
     convert_time = 3000;
     choose_alive_cell = false;
     convert_x = 80;
     convert_y = 170;
-    convert_size = 35;
-    clear_radius = 55;
-    convert_states = { 0.99306, 0.993102, 0.00350772, 0.993096, 0.00166671, 0.993098, 0.0178981, 0.993098, 0.993102, 0.993102, 0.993094, 0.000320817, 7.5884e-10, 0.0095002, 0.0156613, 0.993102, 0.000499445, 0.993102, 0.993102, 0.992778, 0.0178981, 0.993097, 0.00666444, 0.000871827, 0.00698729, 0.0189148, 0.00175694, 0.807553, 0.884002, 0.0783293,  };
+    convert_size = 25;
+    clear_radius = 40;
+    convert_states = { 0.00289074, 2.95394e-32, 4.73742e-06, 0.993102, 0.993102, 4.00988e-09, 0.993101, 0.00231804, 0.678508, 0.992729, 0.993101, 0.542056, 0.993102, 0.993102, 0.992443, 0.993102, 6.89652e-12, 0.00205639, 0.00223481, 6.97606e-12, 1.37808e-20, 0.993101, 0.512162, 0.538056, 3.55936e-09, 3.39506e-09, 0.00218893, 0.0127123, 6.26531e-11, 0.00402398,  };
     convert_to_type = 97539;
 
 
     // used to make a sheet of cells. Use in combination with flush_cells and convert cells
-    make_sheet=false;
+    make_sheet=true;
     sheetx=250;
     sheety=100;
 

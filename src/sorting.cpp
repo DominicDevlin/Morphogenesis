@@ -418,7 +418,7 @@ TIMESTEP {
       {
         // dish->CPM->CellVelocities();
         // dish->CPM->scc_momenta(scc);
-        dish->CPM->momenta();
+        // dish->CPM->momenta();
         // dish->CPM->diff_anisotropy(scc);
         if (par.division_anisotropy)
           dish->CPM->division_anisotropy(scc);
@@ -522,7 +522,7 @@ TIMESTEP {
 
 
     //cerr << "Done\n";
-    if (par.graphics && t%10==0)// !(t%par.screen_freq)) 
+    if (par.graphics && t%5==0)// !(t%par.screen_freq)) 
     {
       
       BeginScene();
@@ -601,7 +601,7 @@ TIMESTEP {
     }
   
     // storage function. 
-    if (par.store && !(t%par.storage_stride)) {
+    if (par.store && !(t%par.storage_stride) || t == 3041) {
       char fname[200];
       sprintf(fname,"%s/extend%07d.png",par.datadir,t);
     
