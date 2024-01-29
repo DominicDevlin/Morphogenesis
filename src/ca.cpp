@@ -5625,13 +5625,17 @@ void CellularPotts::Directionality()
         double total = csize * len;
 
 
-        if (t > 114000 && t < 118000)
+        // if (t > 114000 && t < 118000)
+        // {
+        //   speeds.push_back(total);
+        //   vectors.push_back(angle);
+        // }
+
+        if ((t > 60000 && t < 65000))
         {
           speeds.push_back(total);
           vectors.push_back(angle);
         }
-
-
         // if (t > 123000 && t < 123500)
         // {
         //   speeds.push_back(total);
@@ -5736,7 +5740,7 @@ void CellularPotts::Directionality()
   double avg = std::atan2(sinval, cosval);
   avg = fmod(avg +2*M_PI, 2 * M_PI);
   
-  cout << avg << endl;
+  // cout << avg << endl;
 
   // get magnitude by converting back to cartesian, adding all x and y then getting magnitude
   // this is momentum (where time = 500 mcs).

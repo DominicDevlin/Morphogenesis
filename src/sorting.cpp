@@ -601,7 +601,8 @@ TIMESTEP {
     }
   
     // storage function. 
-    if (par.store && !(t%par.storage_stride) || t == 3041) {
+    if (par.store && !(t%par.storage_stride))//  || t == 3041) 
+    {
       char fname[200];
       sprintf(fname,"%s/extend%07d.png",par.datadir,t);
     
