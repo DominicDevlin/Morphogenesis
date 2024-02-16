@@ -1269,11 +1269,6 @@ void CellularPotts::xyCellDivision(int id, bool direction, int t)
 
 
 
-
-
-
-
-
 /**! Fill the plane with initial cells 
  \return actual amount of cells (some are not draw due to overlap) */
 int CellularPotts::ThrowInCells(int n,int cellsize) {
@@ -1340,6 +1335,51 @@ int CellularPotts::ThrowInCells(int n,int cellsize) {
 } 
 
   
+
+// Function to fill grid with cell. 
+void CellularPotts::FillGrid()
+{
+  for (int x=1;x<sizex-1;x++)
+    for (int y=1;y<sizey-1;y++) 
+    {
+      sigma[x][y]=1;
+    }
+}
+
+
+
+//split sheet into cells
+void CellularPotts::FractureSheet()
+{
+  vector<bool> which_cells(cell->size());
+  bool dividing = true;
+
+  while (dividing)
+  {
+    dividing = false;
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        int area = c->Area();      
+        if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+        {
+
+          dividing = true;
+          which_cells[c->Sigma()]=true;
+
+        }
+      }
+    }
+    DivideCells(which_cells);
+  }
+}
+
+
+
+
+
 int CellularPotts::GrowInCells(int n_cells, int cell_size, double subfield) {
 
   
