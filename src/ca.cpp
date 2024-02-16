@@ -336,6 +336,13 @@ int CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE *PD
 			       - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
 
 
+
+  // double Pconst=1;
+  // /* Perimeter constraint */
+  // if (sxyp == MEDIUM)
+  //   DH += (int)(Pconst *  (1. - 2. * (double) ( (*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) ));
+
+
   /* Chemotaxis */
   // if (PDEfield && (par.vecadherinknockout || (sxyp==0 || sxy==0))) {
     
@@ -348,32 +355,32 @@ int CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE *PD
   //     DH-=DDH;
   //   }
   // }
-  // double lambda2=0; 
-  // if (tsteps > par.end_program)
-  //   lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
+  double lambda2=0; 
+  if (tsteps > par.end_program)
+    lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
 
-  // // const double lambda_r=(*cell)[sxy].get_lambda_2();
+  // const double lambda_r=(*cell)[sxy].get_lambda_2();
   
-  // /* Length constraint */
-  // // sp is expanding cell, s is retracting cell  
-  // if ( sxyp == MEDIUM ) {
-  //   DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-	// 	       - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-	// 		      (*cell)[sxy].TargetLength()) ));
+  /* Length constraint */
+  // sp is expanding cell, s is retracting cell  
+  if ( sxyp == MEDIUM ) {
+    DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+		       - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+			      (*cell)[sxy].TargetLength()) ));
     
-  // }
-  // else if ( sxy == MEDIUM ) {
-  //   DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-	// 		 -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
+  }
+  else if ( sxy == MEDIUM ) {
+    DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+			 -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
     
-  // }
-  // else {
-  //   DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-	// 	     -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
-	// 	    ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-	// 	      - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-	// 		     (*cell)[sxy].TargetLength()) )) );
-  // }
+  }
+  else {
+    DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+		     -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
+		    ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+		      - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+			     (*cell)[sxy].TargetLength()) )) );
+  }
 
   
   return DH;
@@ -1380,18 +1387,20 @@ void CellularPotts::FillGrid()
 //split sheet into cells
 void CellularPotts::FractureSheet()
 {
-  vector<bool> which_cells(cell->size());
+  
   bool dividing = true;
 
   while (dividing)
   {
+    vector<bool> which_cells(cell->size());
     dividing = false;
     vector<Cell>::iterator c;
     for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
       if (c->AliveP())
       {
-        int area = c->Area();      
+        int area = c->Area();  
+        cout << area << endl;    
         if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
         {
 
@@ -1401,7 +1410,8 @@ void CellularPotts::FractureSheet()
         }
       }
     }
-    DivideCells(which_cells);
+    if (dividing)
+      DivideCells(which_cells);
   }
 }
 
@@ -1465,37 +1475,43 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int o
   }
 
   // Do Eden growth for a number of time steps
-  {for (int i=0;i<cell_size;i++) {
+  {for (int i=0;i<cell_size;i++) 
+  {
     for (int x=1;x<sizex-1;x++)
-      for (int y=1;y<sizey-1;y++) {
+      for (int y=1;y<sizey-1;y++) 
+      {
 	
-	if (sigma[x][y]==0) {
-	  // take a random neighbour
-	  int xyp=(int)(8*RANDOM(s_val)+1);
-	  int xp = nx[xyp]+x;
-	  int yp = ny[xyp]+y;
-	  int kp;
-	  //  NB removing this border test yields interesting effects :-)
-	  // You get a ragged border, which you may like!
-	  if ((kp=sigma[xp][yp])!=-1)
-	    if (kp>(cellnum-n_cells))
-	      new_sigma[x][y]=kp;
-	    else
-	      new_sigma[x][y]=0;
-	  else
-	    new_sigma[x][y]=0;
-	  
-	} else {
-	  new_sigma[x][y]=sigma[x][y];
-	}
+        if (sigma[x][y]==0) {
+          // take a random neighbour
+          int xyp=(int)(8*RANDOM(s_val)+1);
+          int xp = nx[xyp]+x;
+          int yp = ny[xyp]+y;
+          int kp;
+          //  NB removing this border test yields interesting effects :-)
+          // You get a ragged border, which you may like!
+          if ((kp=sigma[xp][yp])!=-1)
+            if (kp>(cellnum-n_cells))
+              new_sigma[x][y]=kp;
+            else
+              new_sigma[x][y]=0;
+          else
+            new_sigma[x][y]=0;
+          
+        } else {
+          new_sigma[x][y]=sigma[x][y];
+        }
       }
     
     // copy sigma to new_sigma, but do not touch the border!
-	  {  for (int x=1;x<sizex-1;x++) {
-      for (int y=1;y<sizey-1;y++) {
-	sigma[x][y]=new_sigma[x][y];
-      }
+	{for (int x=1;x<sizex-1;x++) 
+  {
+    for (int y=1;y<sizey-1;y++) 
+    {
+	    sigma[x][y]=new_sigma[x][y];
+      if (sigma[x][y]!=0)
+        cout << x << " " << y << " " << sigma[x][y] << endl;
     }
+  }
   }}}
   free(new_sigma[0]);
   free(new_sigma);

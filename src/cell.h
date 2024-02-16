@@ -317,7 +317,8 @@ public:
   Length constraint is documented in Merks et al. 2006, Dev. Biol. 
   */
   inline double TargetLength() const {
-    return target_length;
+    return 60;
+    // return target_length;
   }
 
   //! Set the Cell's target length

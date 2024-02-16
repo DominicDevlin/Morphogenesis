@@ -154,10 +154,10 @@ TIMESTEP {
     if (t < par.end_program)
     {
 
-      if (t % par.div_freq == 0 && t <= par.div_end)
-      {
-        dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
-      }
+      // if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
+      // {
+      //   dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
+      // }
      
       if (t >= par.begin_network && t % par.update_freq == 0)
       {
@@ -218,27 +218,12 @@ TIMESTEP {
         dish->CPM->RecordSizes();
       }
 
-      // if (par.gene_record)
-      // {
-      //   dish->CPM->RecordTypes();
-      // }
-
-      // if (par.gene_record && t > par.adult_begins)
-      // {
-      //   dish->CPM->RecordAdultTypes();
-      // }
-
       for (int r=0;r<par.pde_its;r++) 
       {
         dish->PDEfield->Secrete(dish->CPM);
         dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
       }
 
-      // print individual chemical concentrations. 
-      // if (t % 100 == 0 && t > par.end_program)
-      // {
-      //   dish->PDEfield->print_concentrations(dish->CPM);
-      // }
 
       dish->CPM->CellGrowthAndDivision(t);
     }
@@ -333,48 +318,6 @@ TIMESTEP {
       dish->CPM->PrintColours();
     }
 
-    // if (t==8000)
-    // {
-    //   dish->PDEfield->PrintAxisConcentrations(true, 120);
-    // }
-
-
-    if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
-      dish->CPM->swap_cells();
-
-
-    // for spawning a lot of morphogen at a specific point, or changing cell types + morphogen
-    if (t == 6998)
-    {
-      // dish->CPM->ConvertToStem(125,95,40,11907, dish->PDEfield, true, 45);
-
-      // dish->CPM->ConvertToStem(140,125,25,123107, dish->PDEfield, true); // - did 6998 for fungi to create figure
-
-
-      // dish->CPM->ConvertToStem(140,125,35,107651, dish->PDEfield, true, 60);  // fungi trash
-      // dish->CPM->ConvertToStem(140,125,25,115075, dish->PDEfield, true, 50); 
-
-
-
-      // dish->IntroduceMorphogen(1, 120, 90);
-    }
-
-    // for removing cells. 
-    if (t == 12000)
-    {
-      // dish->CPM->DestroyCellsByRadius(34.);
-      // dish->CPM->DestroyCellsByPhenotype(31747, true);
-      // dish->CPM->DestroyCellsByPhenotype(51699, true, 51331, 51339);
-      // dish->CPM->DestroyCellsByPhenotype(103234, true, 103235, 103171);
-      // dish->CPM->DestroyCellsByMorphogen(1, 0.15);
-      // dish->CPM->DestroyCellsByMorphogen(2, 0.2);
-      // dish->CPM->DestroyCellsByPhenotype(23811, true, 23919); //, 93571);
-      // dish->CPM->DestroyCellsByPhenotype(23811, true, 23919); //, 93571);
-      // dish->CPM->DestroyCellsByPhenotype(111357, true);
-      // dish->CPM->DestroyCellsByPhenotype(25600, false, 28160, 32256, 91136);
-
-      // dish->CPM->DestroyCellsByPhenotype(129287, true, 129295, 129293, 64771);
-    }
 
 
   

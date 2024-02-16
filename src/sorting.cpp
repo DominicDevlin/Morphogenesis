@@ -68,7 +68,6 @@ INIT
       
     else
       CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
-    cout << "HERE" << endl;
     CPM->ConstructInitCells(*this);
     if (par.velocities)
       par.output_sizes = true;
