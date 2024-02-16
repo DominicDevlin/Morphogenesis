@@ -135,7 +135,7 @@ TIMESTEP {
     static Info *info=new Info(*dish, *this);
     
     // record initial expression state. This occurs before any time step updates. 
-    if (t == 100)
+    if (t == 1)
     {
       if (par.flush_cells)
       {
@@ -151,41 +151,41 @@ TIMESTEP {
       
     
     // programmed cell division section
-    if (t < par.end_program)
-    {
+    // if (t < par.end_program)
+    // {
 
-      // if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
-      // {
-      //   dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
-      // }
+    //   // if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
+    //   // {
+    //   //   dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
+    //   // }
      
-      if (t >= par.begin_network && t % par.update_freq == 0)
-      {
+    //   if (t >= par.begin_network && t % par.update_freq == 0)
+    //   {
 
-        dish->CPM->update_network(t);
-        dish->AverageChemCell(); 
+    //     dish->CPM->update_network(t);
+    //     dish->AverageChemCell(); 
         
-        if (par.gene_output)
-          dish->CPM->record_GRN();   
+    //     if (par.gene_output)
+    //       dish->CPM->record_GRN();   
 
-        // nop point recording velocities here?
-        // if (par.velocities)
-        // {
-        //   dish->CPM->RecordMasses();
-        // }
-        if (par.output_gamma)
-          dish->CPM->RecordGamma(); 
+    //     // nop point recording velocities here?
+    //     // if (par.velocities)
+    //     // {
+    //     //   dish->CPM->RecordMasses();
+    //     // }
+    //     if (par.output_gamma)
+    //       dish->CPM->RecordGamma(); 
 
-        // speed up initial PDE diffusion
-        for (int r=0;r<par.program_its;r++) 
-        {
-          dish->PDEfield->Secrete(dish->CPM);
-          dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
-        } 
+    //     // speed up initial PDE diffusion
+    //     // for (int r=0;r<par.program_its;r++) 
+    //     // {
+    //     //   dish->PDEfield->Secrete(dish->CPM);
+    //     //   dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+    //     // } 
    
-      }
-    }
-    else
+    //   }
+    // }
+    // else
     {
       if (t % par.update_freq == 0)
       {
@@ -218,14 +218,14 @@ TIMESTEP {
         dish->CPM->RecordSizes();
       }
 
-      for (int r=0;r<par.pde_its;r++) 
-      {
-        dish->PDEfield->Secrete(dish->CPM);
-        dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
-      }
+      // for (int r=0;r<par.pde_its;r++) 
+      // {
+      //   dish->PDEfield->Secrete(dish->CPM);
+      //   dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+      // }
 
 
-      dish->CPM->CellGrowthAndDivision(t);
+      // dish->CPM->CellGrowthAndDivision(t);
     }
     dish->CPM->AmoebaeMove(t);
 
@@ -252,11 +252,16 @@ TIMESTEP {
     {
 
 
+
       if (par.output_gamma)
         dish->CPM->OutputGamma();
 
       if (par.output_sizes)
+      {
         dish->CPM->OutputSizes();
+        dish->CPM->MeanSquareDisplacement();
+      }
+        
 
       // if (par.umap)
       dish->CPM->ColourIndex();
@@ -320,16 +325,21 @@ TIMESTEP {
 
 
 
-  
+    // par.n_screen_freq=1000;
+    int freq = 100;
     //cerr << "Done\n";
-    if (par.graphics && t%par.n_screen_freq==0)// !(t%par.screen_freq)) 
+    if (par.graphics && t%freq==0)// !(t%par.screen_freq)) 
     {
       
       BeginScene();
       ClearImage();
 
       // Plot the dish. 
-      dish->Plot(this);
+      if (t < 600)
+        dish->Plot(this);
+      else
+        dish->CPM->DrawDisplacement(this);
+    
       
       // static vector<array<int,2>> perim;
       // static vector<int> pcells;
@@ -448,8 +458,9 @@ int main(int argc, char *argv[]) {
   
 	try 
   {
-    par.sizex=100;
-    par.sizey=100;
+    par.sizex=150;
+    par.sizey=150;
+    par.end_program=0;
 
 #ifdef QTGRAPHICS
     QApplication a(argc, argv);

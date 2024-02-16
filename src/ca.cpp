@@ -355,31 +355,35 @@ int CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE *PD
   //     DH-=DDH;
   //   }
   // }
-  double lambda2=0; 
-  if (tsteps > par.end_program)
-    lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
+  
+  // if (tsteps > par.end_program)
+  //   lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
 
   // const double lambda_r=(*cell)[sxy].get_lambda_2();
   
   /* Length constraint */
   // sp is expanding cell, s is retracting cell  
-  if ( sxyp == MEDIUM ) {
-    DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-		       - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-			      (*cell)[sxy].TargetLength()) ));
-    
+  if (par.lambda2>0)
+  {
+    double lambda2=par.lambda2; 
+    if ( sxyp == MEDIUM ) {
+      DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+            - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+              (*cell)[sxy].TargetLength()) ));
+      
+    }
+    else if ( sxy == MEDIUM ) {
+      DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+        -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
+      
+    }
+    else {
+      DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+          -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
+          ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+            - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+            (*cell)[sxy].TargetLength()) )) );
   }
-  else if ( sxy == MEDIUM ) {
-    DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-			 -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
-    
-  }
-  else {
-    DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-		     -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
-		    ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-		      - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-			     (*cell)[sxy].TargetLength()) )) );
   }
 
   
@@ -1400,7 +1404,6 @@ void CellularPotts::FractureSheet()
       if (c->AliveP())
       {
         int area = c->Area();  
-        cout << area << endl;    
         if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
         {
 
@@ -1508,8 +1511,6 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int o
     for (int y=1;y<sizey-1;y++) 
     {
 	    sigma[x][y]=new_sigma[x][y];
-      if (sigma[x][y]!=0)
-        cout << x << " " << y << " " << sigma[x][y] << endl;
     }
   }
   }}}
@@ -5033,7 +5034,123 @@ void CellularPotts::CellVelocities()
 
 
 
+// Trace lines of cell movement over simulation
+void CellularPotts::DrawDisplacement(Graphics *g)
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      vector<double>& xm = c->get_xcens();
+      vector<double>& ym = c->get_ycens();
 
+
+      int s = xm.size();
+
+      for (int i = par.waiting_time; i < s;)
+      {
+        
+        // we want displacement from a while ago to account for back and forth motion
+        double x = xm[i-par.waiting_time]*2;
+        double y = ym[i-par.waiting_time]*2;
+        double x1 = xm[i]*2;
+        double y1 = ym[i]*2;
+
+        // draw line
+        // if (abs(y1-y) < 200 && abs(x1-x) < 200)
+        g->Line(x,y,x1,y1,c->sigma);
+
+        // calculate displacement.
+        
+        i+=par.waiting_time;
+      }
+    }
+  }
+
+}
+
+void CellularPotts::MeanSquareDisplacement()
+{
+  string var_name = data_file + "/meansqauredisplacement.dat"; 
+  ofstream outfile;
+  outfile.open(var_name, ios::app);  
+  int timer=0;
+  for (int i = par.equilibriate; i < par.mcs;++i)
+  {
+    double msd = 0;
+    int count = 0;
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+      if (c->AliveP())
+      {
+        vector<double>& xm = c->get_xcens();
+        vector<double>& ym = c->get_ycens();
+        {
+          
+          // we want displacement from a while ago to account for back and forth motion
+          double x = xm[par.equilibriate];
+          double y = ym[par.equilibriate];
+          double x1 = xm[i];
+          double y1 = ym[i];
+
+          // calculate displacement.
+          int sqd = pow(x-x1,2)+pow(y-y1,2);
+          msd+=sqd;
+          ++count;
+          
+        }
+      }
+
+    msd /= count;
+
+
+    outfile << timer << "\t" << msd << endl;
+    
+    ++timer;
+  }
+  outfile.close();
+
+
+
+}
+
+
+
+vector<vector<double>> CellularPotts::ReturnMSD()
+{
+  vector<vector<double>> displacements;
+  string var_name = data_file + "/meansqauredisplacement.dat"; 
+  ofstream outfile;
+  outfile.open(var_name, ios::app);  
+  int timer = 0;
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    if (c->AliveP())
+    {
+      vector<double> cdp;
+      double msd = 0;
+      int count = 0;
+
+      vector<double>& xm = c->get_xcens();
+      vector<double>& ym = c->get_ycens();
+      double x = xm[1000];
+      double y = ym[1000];
+      for (int i = 1000; i < par.mcs;++i)
+      {
+        // we want displacement from a while ago to account for back and forth motion
+        double x1 = xm[i];
+        double y1 = ym[i];
+
+        // calculate displacement.
+        double sqd = pow(x-x1,2)+pow(y-y1,2);
+        cdp.push_back(sqd);          
+      }
+      displacements.push_back(cdp);
+    }
+  return displacements;
+
+}
 
 
 

@@ -37,10 +37,10 @@
     //basic grid parameters. 
     sizex = 250;
     sizey = 250;
-    mcs = 12100;
+    mcs = 10000;
 
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
     contours = false;
 
@@ -58,7 +58,7 @@
     //for umap
     umap = false;
 
-    // record momenta for all cells
+    // record momenta for all cells etc
     velocities = true;
     record_directions = true;
 
@@ -169,6 +169,10 @@
     //record location of cell divisions
     division_anisotropy = false;
 
+    //waiting time
+    waiting_time = 2000;
+    equilibriate = 1000;
+
 
     // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
     // NOTE - MUST RUN with tag: "-platform offscreen" when using cluster (there is no display).
@@ -189,7 +193,7 @@
     T = 3;
     target_length = 0;
     lambda = 0.5;
-    lambda2 = 0.1;
+    lambda2 = 0;
 
 
     // DEPRACATED: let all cells be capable of cell division. MUST BE FALSE FOR stem cell evolution testing. False promotes stem cell evolution?
@@ -207,11 +211,20 @@
     // print single cell proteins
     single_cell = false;
     // the phenotype number to return
-    single_type = 123107;
+    single_type = 350;
     // start all cells from "single state" initial condition for ex vivo
-    flush_cells = false;
+    flush_cells = true;
    // turn all cells into this state at beginning of development
-    flush_states = { 0.993102, 1.64698e-17, 0.993102, 0.993102, 0.000304264, 1.32348e-17, 7.60632e-13, 2.02772e-21, 0.993102, 0.993102, 7.55209e-13, 6.83557e-13, 0.993102, 0.993102, 0.000302259, 0.993102, 0.00231852, 1.71435e-21, 0.993101, 0.993102, 0.00242462, 5.82804e-12, 1.84748e-21, 5.85878e-12, 5.8244e-12, 5.53231e-12, 3.00727e-22, 1.09727, 0.00221704, 1.09726,  };
+    
+    // this is 1539
+    // flush_states = { 9.6374e-10, 0.0110909, 0.318513, 7.98113e-06, 1, 0.999999, 1.545e-06, 0.999997, 0.998667, 0.00247287, 0.22671, 1.10332e-07, 0.0074267, 0.0931137, 0.367756,  };
+
+    // 1667
+    // flush_states = { 9.65167e-10, 0.00259831, 0.316311, 1.6187e-06, 0.999999, 0.999999, 1.5393e-06, 0.999999, 0.99865, 0.0024727, 0.783776, 9.151e-09, 4.87705e-05, 0.0028173, 0.374495,  };
+
+    // 350
+    flush_states = { 0.00257984, 0.999963, 0.984348, 0.999627, 1, 0.00134286, 1.71767e-10, 0.000456947, 0.000453149, 0.999383, 3.44441e-07, 0.99981, 0.0657675, 0.974001, 0.779872,  };
+
 
 
     // convert cells at certain time point
@@ -374,7 +387,7 @@
     vecadherinknockout = false;
     extensiononly = false;
     chemotaxis = 0;
-    border_energy = 100;
+    border_energy = 1;//1000
     periodic_boundaries = false;
 
     // PDE field parameters. I have defined separate rates for each diffuser, however they are the same for now.

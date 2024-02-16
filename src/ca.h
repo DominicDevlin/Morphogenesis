@@ -337,6 +337,13 @@ public:
 
   void FractureSheet();
 
+  void DrawDisplacement(Graphics *g);
+
+  void MeanSquareDisplacement();
+
+  vector<vector<double>> ReturnMSD();
+
+
 
   void ConstructSheet(int x, int y);
 

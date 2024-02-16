@@ -534,7 +534,7 @@ void PDE::FlushGrid()
       for (int y=1;y<sizey-1;y++) 
       {
         // inside cells with diffuser on (secrete + decay)
-        sigma[n][x][y] = par.flush_states[n];
+        sigma[n][x][y] = par.flush_states[n+par.n_genes];
       }
   }
 }

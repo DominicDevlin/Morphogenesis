@@ -317,7 +317,7 @@ public:
   Length constraint is documented in Merks et al. 2006, Dev. Biol. 
   */
   inline double TargetLength() const {
-    return 60;
+    return sqrt(area);
     // return target_length;
   }
 
