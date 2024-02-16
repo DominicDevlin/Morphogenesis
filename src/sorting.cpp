@@ -60,9 +60,16 @@ INIT
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
-    CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
+    if (par.make_sheet)
+    {
+      CPM->ConstructSheet(par.sheetx,par.sheety);
+      par.divisions = 6;
+    }
+      
+    else
+      CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
+    cout << "HERE" << endl;
     CPM->ConstructInitCells(*this);
-
     if (par.velocities)
       par.output_sizes = true;
     
@@ -168,7 +175,7 @@ TIMESTEP {
       // if (t%par.div_freq==200 && t > par.begin_movement)
       //   dish->CPM->Programmed_Division();
 
-      if (t % par.div_freq == 0 && t <= par.div_end)
+      if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
       {
         dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
       }
@@ -206,8 +213,8 @@ TIMESTEP {
       if (t % par.update_freq == 0)
       {
         dish->CPM->update_network(t);
-        if (par.noise && t > par.noise_start)
-          dish->CPM->add_noise();
+        // if (par.noise && t > par.noise_start)
+          // dish->CPM->add_noise();
           
         dish->AverageChemCell(); 
         if (par.gene_output)
@@ -480,18 +487,19 @@ TIMESTEP {
 
 
     // for spawning a lot of morphogen at a specific point, or changing cell types + morphogen
+
+    if (par.convert_cells && par.convert_time == t)
+    {
+      dish->CPM->ConvertToStem(par.convert_x,par.convert_y,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius); 
+    }
+
+
     if (t == 6998)
     {
       // dish->CPM->ConvertToStem(125,95,40,11907, dish->PDEfield, true, 45);
-
       // dish->CPM->ConvertToStem(140,125,25,123107, dish->PDEfield, true); // - did 6998 for fungi to create figure
-
-
       // dish->CPM->ConvertToStem(140,125,35,107651, dish->PDEfield, true, 60);  // fungi trash
       // dish->CPM->ConvertToStem(140,125,25,115075, dish->PDEfield, true, 50); 
-
-
-
       // dish->IntroduceMorphogen(1, 120, 90);
     }
 
@@ -513,9 +521,8 @@ TIMESTEP {
     }
 
 
-  
     //cerr << "Done\n";
-    if (par.graphics && t%par.n_screen_freq==0)// !(t%par.screen_freq)) 
+    if (par.graphics && t%5==0)// !(t%par.screen_freq)) 
     {
       
       BeginScene();
@@ -594,7 +601,8 @@ TIMESTEP {
     }
   
     // storage function. 
-    if (par.store && !(t%par.storage_stride)) {
+    if (par.store && !(t%par.storage_stride))//  || t == 3041) 
+    {
       char fname[200];
       sprintf(fname,"%s/extend%07d.png",par.datadir,t);
     

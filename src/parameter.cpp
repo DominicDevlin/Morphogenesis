@@ -40,7 +40,7 @@
     mcs = 12100;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
 
@@ -60,7 +60,7 @@
 
     // record momenta for all cells
     velocities = true;
-    record_directions = false;
+    record_directions = true;
 
     // record cell sizes
     output_sizes = false;
@@ -92,7 +92,7 @@
     // edges and nodes only at end of simulation (always true).
     potency_edges = true;
     // what mcs to start measuring adult types & differentiation. set to 6000 for all results
-    adult_begins = 6000;
+    adult_begins = 8000;
 
     // scramble cells
     scramble = false;
@@ -142,7 +142,8 @@
     size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     n_init_cells = 1;
     divisions = 0;
-    
+
+
     // gene network update frequency
     update_freq = 40;
 
@@ -162,8 +163,8 @@
 
     //set specific colours
     set_colours = true;
-    use_colour_index = false;
-    colour_index = { {109256, 114}, {43682, 24}, {101307, 150}, {107210, 177}, {43770, 31}, {99015, 107}, {43712, 146}, {101291, 170}, {43736, 192}, {33703, 179}, {99055, 158}, {41710, 193}, {107242, 167}, {109274, 156}, {107263, 185}, {41604, 20}, {41863, 141}, {41674, 181}, {98951, 90}, {109290, 147}, {43658, 163}, {43754, 26}, {43726, 183}, {109258, 153}, {109195, 188}, {109311, 274}, {109306, 37}, {109483, 187}, {109291, 190}, {41600, 9}, {41602, 103}, {107138, 195}, {41606, 29}, {99271, 96}, {33671, 269}, {33411, 105}, {99295, 271}, {107142, 172}, {41670, 151}, {107202, 144}, {33415, 82}, {115711, 272}, {41607, 35}, {109272, 86}, {99239, 148}, {99247, 116}, {109499, 178}, {101371, 139}, {43722, 157}, {33670, 175}, {33543, 268}, {41862, 171}, {43691, 174}, {109250, 189}, {117759, 275}, {115710, 106}, {99327, 276}, {109248, 194}, {35715, 149}, {117503, 273}, {101374, 143}, {107470, 191}, {99215, 34}, {107208, 196}, {99207, 270}, {107486, 102}, {99231, 180}, {101119, 64}, {109567, 83}, {101375, 17}, {107262, 169}, {109294, 173}, {41603, 38}, {99279, 58}, {125695, 101}, {109566, 73}, {101311, 113}, {109310, 54}, {43651, 39}, {109259, 45}, {43714, 127}, {35459, 115}, {43650, 99}, {109563, 137}, {101283, 176}, {43648, 10}, {109307, 46}, {109227, 108}, {107207, 184}, {99079, 155}, {41859, 152}, {123647, 186}, {41605, 55}, {99263, 168}, {107518, 104}, {125951, 111}, {115455, 109}, {33667, 277}, {99326, 11}, {43659, 182}, {43738, 161}, {115454, 110}, {99071, 159}, {33539, 162}, };
+    use_colour_index = true;
+    colour_index = { {63587, 21}, {31235, 39}, {8707, 25}, {61443, 16}, {12803, 9}, {63539, 38}, {64003, 22}, {63555, 23}, {30723, 32}, {12801, 18}, {45571, 12}, {43523, 34}, {63603, 24}, {63491, 17}, {63607, 19}, {63523, 40}, {14339, 31}, {61955, 14}, {47107, 33}, {74241, 37}, {47619, 27}, {107011, 29}, {41475, 30}, {74243, 28}, {14851, 26}, {107009, 36}, };
 
     //record location of cell divisions
     division_anisotropy = false;
@@ -207,11 +208,29 @@
     single_cell = false;
     // the phenotype number to return
     single_type = 123107;
-    // turn all cells into this state
-    single_states = { 0.00278718, 3.49837e-32, 4.16419e-06, 0.993102, 0.993102, 4.26058e-09, 0.993101, 0.00236115, 0.674178, 0.992634, 0.993101, 0.584039, 0.993102, 0.993102, 0.992415, 0.993102, 6.58944e-12, 0.00219153, 0.00223177, 6.53641e-12, 1.37808e-20, 0.993101, 0.565769, 0.586879, 3.95508e-09, 3.77006e-09, 0.00227086, 0.00735439, 8.5477e-11, 0.00261829,  };
-
     // start all cells from "single state" initial condition for ex vivo
     flush_cells = false;
+   // turn all cells into this state at beginning of development
+    flush_states = { 0.993102, 1.64698e-17, 0.993102, 0.993102, 0.000304264, 1.32348e-17, 7.60632e-13, 2.02772e-21, 0.993102, 0.993102, 7.55209e-13, 6.83557e-13, 0.993102, 0.993102, 0.000302259, 0.993102, 0.00231852, 1.71435e-21, 0.993101, 0.993102, 0.00242462, 5.82804e-12, 1.84748e-21, 5.85878e-12, 5.8244e-12, 5.53231e-12, 3.00727e-22, 1.09727, 0.00221704, 1.09726,  };
+
+
+    // convert cells at certain time point
+    convert_cells = false;
+    convert_time = 3000;
+    choose_alive_cell = false;
+    convert_x = 80;
+    convert_y = 170;
+    convert_size = 25;
+    clear_radius = 40;
+    convert_states = { 0.00289074, 2.95394e-32, 4.73742e-06, 0.993102, 0.993102, 4.00988e-09, 0.993101, 0.00231804, 0.678508, 0.992729, 0.993101, 0.542056, 0.993102, 0.993102, 0.992443, 0.993102, 6.89652e-12, 0.00205639, 0.00223481, 6.97606e-12, 1.37808e-20, 0.993101, 0.512162, 0.538056, 3.55936e-09, 3.39506e-09, 0.00218893, 0.0127123, 6.26531e-11, 0.00402398,  };
+    convert_to_type = 97539;
+
+
+    // used to make a sheet of cells. Use in combination with flush_cells and convert cells
+    make_sheet=false;
+    sheetx=250;
+    sheety=100;
+
 
     // limit morphogen to amount (prevents differentiation in some ex vivo organisms)
     limit_morph = false;
@@ -439,10 +458,8 @@
 
     // storing images.
     storage_stride = 500;
-    // for some reason this isn't working.
+    // for some reason this isn't working. Hard code in sorting if necessary. 
     screen_freq = 200;
-    // using a new one until I figure out why
-    n_screen_freq = 100;
 
 
     datadir = strdup("data_film");

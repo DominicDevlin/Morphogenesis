@@ -784,6 +784,12 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
   }
 }
 
+
+
+
+
+
+
 void CellularPotts::MeasureCellSizes(void) {
   
   // Clean areas of all cells, including medium
@@ -1266,6 +1272,29 @@ void CellularPotts::xyCellDivision(int id, bool direction, int t)
         }
   }
 }
+
+
+
+
+
+void CellularPotts::ConstructSheet(int xm, int ym)
+{    
+  for (int x=1;x<sizex-1;x++)
+    for (int y=1;y<sizey-1;y++)
+    {
+      // if (x < xm && y < ym)
+      // {
+      //   sigma[x][y] = 1;
+      // }
+      if (x < 175 && y > 75 + x)
+      {
+        sigma[x][y] = 1;
+      }     
+    }
+
+}
+
+
 
 
 
@@ -4517,7 +4546,7 @@ void CellularPotts::DestroyCellsByRadius(double rad)
 
 
 
-void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *field, bool clear, int clear_rad)
+int CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *field, bool clear, int clear_rad)
 {
   if (clear_rad == 0)
     clear_rad = rad;
@@ -4529,52 +4558,88 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
   vector<double> locks;
   vector<double> keys;
   vector<double> meds;
-
-
-  // need to grab the identity of a stem cell
-  vector<Cell>::iterator c;
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      c->Phenotype();
-      int phen = c->GetPhenotype();
-      cout << phen << endl;
-      if (phen == type)
-      {
-        // get morphogen concentration at that point. 
-        stem_sig = c->Sigma();
-        genes = c->get_genes();
-        diffusers = c->get_diffusers(); 
-        locks = c->get_locks();
-        keys = c->get_keys();
-        meds = c->get_medp();
-
-        break;
-      }
-    }
-  }
-  if (stem_sig==0)
-  {
-    cout << "ERROR - NO CELL WITH THAT IDENTITY FOUND" << endl;
-  }
-
   vector<double> morph_conc(3);
-
-  //get morphogen concentration at site of cell
-  for (int x=1;x<sizex;x++)
-    for (int y=1;y<sizey;y++)
+  // need to grab the identity of a stem cell
+  if (!par.choose_alive_cell)
+  {
+    for (int i=0;i<par.convert_states.size();++i)
     {
-      if (sigma[x][y] == stem_sig)
+      int j=0;
+      int k=0;
+      int m=0;
+      int morphn;
+      if (i < par.n_diffusers)
       {
-        for (int n=0;n<par.n_diffusers;++n)
+        diffusers.push_back(par.convert_states[i]);
+        genes.push_back(par.convert_states[i+par.n_genes]);
+      }
+      else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
+        genes.push_back(par.convert_states[i]);
+      else if (i < par.n_genes - par.n_locks - par.n_mediums)
+      {
+        locks.push_back(par.convert_states[i]);
+        ++j;
+      }
+      else if (i < par.n_genes - par.n_mediums)
+      {
+        keys.push_back(par.convert_states[i]);
+        ++k;
+      }
+      else if (i < par.n_genes) 
+      {
+        meds.push_back(par.convert_states[i]);
+        ++m;
+      }   
+      else
+      {
+        morph_conc.push_back(par.convert_states[i]);
+        ++morphn;
+      }
+      // cout << genes.size() << " " <<  locks.size() << " " <<  keys.size() << " " <<  meds.size() << " " <<  morph_conc.size() << " " <<  endl;
+    }
+
+  }
+  else
+  {
+    vector<Cell>::iterator c;
+    for ((c=cell->begin(), c++); c!=cell->end(); c++)
+    {
+      if (c->AliveP())
+      {
+        c->Phenotype();
+        int phen = c->GetPhenotype();
+        if (phen == type)
         {
-          morph_conc[n] = field->Sigma(n,x,y);
+          // get morphogen concentration at that point. 
+          stem_sig = c->Sigma();
+          genes = c->get_genes();
+          diffusers = c->get_diffusers(); 
+          locks = c->get_locks();
+          keys = c->get_keys();
+          meds = c->get_medp();
+          break;
         }
       }
     }
+    if (stem_sig==0)
+    {
+      cout << "ERROR - NO CELL WITH THAT IDENTITY FOUND" << endl;
+      return 0;
+    }
 
-
+    //get morphogen concentration at site of cell
+    for (int x=1;x<sizex;x++)
+      for (int y=1;y<sizey;y++)
+      {
+        if (x>1 && y > 1 && x < sizex-1 && y < sizey-1 && sigma[x][y] == stem_sig)
+        {
+          for (int n=0;n<par.n_diffusers;++n)
+          {
+            morph_conc[n] = field->Sigma(n,x,y);
+          }
+        }
+      }
+  }
 
   // set all cells in the differentiated area to the stem cell identity (NEED TO INCLDUE X AND Y)
 
@@ -4583,20 +4648,24 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
   for (int x = xloc-rad;x < xloc + rad;++x)
     for (int y = yloc-rad;y<yloc +rad;++y)
     {
-      if (sigma[x][y])
+      if ((x>1 && y > 1 && x < sizex-1 && y < sizey-1))
       {
-        auto it = find(cell_stack.begin(), cell_stack.end(), sigma[x][y]);
-        if (it == cell_stack.end())
+        if (sigma[x][y])
         {
-          (*cell)[sigma[x][y]].set_genes(genes);
-          (*cell)[sigma[x][y]].set_diffusers(diffusers);
-          (*cell)[sigma[x][y]].set_locks(locks);
-          (*cell)[sigma[x][y]].set_keys(keys);
-          (*cell)[sigma[x][y]].set_genes(genes);
+          auto it = find(cell_stack.begin(), cell_stack.end(), sigma[x][y]);
+          if (it == cell_stack.end())
+          {
+            (*cell)[sigma[x][y]].set_genes(genes);
+            (*cell)[sigma[x][y]].set_diffusers(diffusers);
+            (*cell)[sigma[x][y]].set_locks(locks);
+            (*cell)[sigma[x][y]].set_keys(keys);
+            (*cell)[sigma[x][y]].set_genes(genes);
 
-          cell_stack.push_back(sigma[x][y]);
+            cell_stack.push_back(sigma[x][y]);
+          }
         }
       }
+
 
     }
   // if clearing, wash the morphogen concentration on that part of the grid
@@ -4605,29 +4674,14 @@ void CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fi
       for (int y = yloc-clear_rad;y<yloc +clear_rad;++y)
         for (int n=0;n<par.n_diffusers;++n)
         {
-          field->setValue(n,x,y, morph_conc[n]);
-          morph_conc[n] = field->Sigma(n,x,y);
+          if (x>1 && y > 1 && x < sizex-1 && y < sizey-1)
+          {
+            field->setValue(n,x,y, morph_conc[n]);
+            morph_conc[n] = field->Sigma(n,x,y);
+          }
         }
 
-
-
-  // for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  // {
-  //   if (c->AliveP())
-  //   {
-  //     c->set_genes(genes);
-  //     c->set_diffusers(diffusers);
-  //     c->set_locks(locks);
-  //     c->set_keys(keys);
-  //     c->set_meds(meds);
-    
-  //   }    
-  // }
-
-  
-  
-
-
+  return 0;
 }
 
 
@@ -5577,13 +5631,17 @@ void CellularPotts::Directionality()
         double total = csize * len;
 
 
-        if (t > 114000 && t < 118000)
+        // if (t > 114000 && t < 118000)
+        // {
+        //   speeds.push_back(total);
+        //   vectors.push_back(angle);
+        // }
+
+        if ((t > 60000 && t < 65000))
         {
           speeds.push_back(total);
           vectors.push_back(angle);
         }
-
-
         // if (t > 123000 && t < 123500)
         // {
         //   speeds.push_back(total);
@@ -5688,7 +5746,7 @@ void CellularPotts::Directionality()
   double avg = std::atan2(sinval, cosval);
   avg = fmod(avg +2*M_PI, 2 * M_PI);
   
-  cout << avg << endl;
+  // cout << avg << endl;
 
   // get magnitude by converting back to cartesian, adding all x and y then getting magnitude
   // this is momentum (where time = 500 mcs).
@@ -5746,15 +5804,15 @@ void CellularPotts::SetAllStates()
   for (int i=0;i<par.gene_vector_size;++i)
   {
     if (i<par.n_diffusers)
-      new_d.push_back(par.single_states[i]);
+      new_d.push_back(par.flush_states[i]);
 
-    new_g.push_back(par.single_states[i]);
+    new_g.push_back(par.flush_states[i]);
     
   }
 
   for (int i=0;i<par.n_diffusers;++i)
   {
-    new_g[i] = par.single_states[par.n_genes + i];
+    new_g[i] = par.flush_states[par.n_genes + i];
   }
 
   vector<Cell>::iterator c;

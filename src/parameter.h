@@ -62,6 +62,9 @@ class Parameter {
   int sizex;
   int sizey;
   int divisions;
+  bool make_sheet;
+  int sheetx;
+  int sheety;
   int mcs;
   int evs;
   int rseed;
@@ -76,6 +79,16 @@ class Parameter {
   char * datadir;
   double tlength1;
   double tlength2;
+
+  bool convert_cells;
+  bool choose_alive_cell;
+  int convert_time;
+  int convert_x;
+  int convert_y;
+  vector<double>  convert_states;
+  int convert_size;
+  int convert_to_type;
+  int clear_radius;
 
 
   bool file_genomes;
@@ -148,7 +161,7 @@ class Parameter {
 
   bool single_cell;
   int single_type;
-  vector<double> single_states;
+  vector<double> flush_states;
   bool flush_cells;
 
   bool print_type_concentrations;

@@ -522,7 +522,7 @@ int main(int argc, char *argv[]) {
   for (vector<vector<int>> i : genomes)
   {
     if (par.flush_cells)
-      par.single_states = pconcs[count-1];
+      par.flush_states = pconcs[count-1];
     vector<vector<vector<int>>> replays(par.n_orgs, i);
     process_population(replays, polarities, count);
     ++count;
