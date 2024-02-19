@@ -324,9 +324,11 @@ TIMESTEP {
     }
 
 
-
+    int freq = 10;
     // par.n_screen_freq=1000;
-    int freq = 100;
+    if (par.draw_paths)
+      freq = 100;
+    
     //cerr << "Done\n";
     if (par.graphics && t%freq==0)// !(t%par.screen_freq)) 
     {
@@ -335,10 +337,11 @@ TIMESTEP {
       ClearImage();
 
       // Plot the dish. 
-      if (t < 600)
-        dish->Plot(this);
-      else
+      if (par.draw_paths && t > 600)
         dish->CPM->DrawDisplacement(this);
+      else 
+        dish->Plot(this);
+        
     
       
       // static vector<array<int,2>> perim;
@@ -417,7 +420,13 @@ TIMESTEP {
     
       BeginScene();
       ClearImage();    
-      dish->Plot(this);
+
+      // Plot the dish. 
+      if (par.draw_paths && t > 600)
+        dish->CPM->DrawDisplacement(this);
+      else 
+        dish->Plot(this);
+
       if (t>par.end_program && par.contours)
       {
         

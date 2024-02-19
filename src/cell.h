@@ -300,7 +300,7 @@ public:
   Called from CellularPotts::DeltaH.
   **/
   // int EnergyDifference(Cell &cell2) const;
-  int EnergyDifference(Cell &cell2); // DOM CHANGED TO NON-CONST
+  double EnergyDifference(Cell &cell2); // DOM CHANGED TO NON-CONST
 
   //! Return Cell's actual area.
   inline int Area() const {
@@ -718,13 +718,13 @@ private:
 
 
 
-  int CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 );
+  double CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 );
 
-  int CalculateJwithMed(void);
+  double CalculateJwithMed(void);
 
   // static vector<bool> spare;
 
-  int CalculateJfromMed(vector<bool>& medp2);
+  double CalculateJfromMed(vector<bool>& medp2);
 
 
   inline void set_lambda_2(double l)
@@ -802,7 +802,8 @@ private:
   {
     xcens.push_back(xcen);
     ycens.push_back(ycen);
-    vel_phens.push_back(phenotype);
+    if (par.gene_output)
+      vel_phens.push_back(phenotype);
 
   }
 
@@ -1072,7 +1073,7 @@ protected:
 
   int c_type{2};
 
-  int EnDif(Cell &cell2);
+  double EnDif(Cell &cell2);
 
 
   // static int maxsigma; // the last cell identity number given out, Dom removed

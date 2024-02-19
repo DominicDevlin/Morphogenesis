@@ -138,10 +138,10 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
           dishes[i].CPM->RecordMasses();
         }
 
-        if (par.output_sizes)
-        {
-          dishes[i].CPM->RecordSizes();
-        }
+        // if (par.output_sizes)
+        // {
+        //   dishes[i].CPM->RecordSizes();
+        // }
 
         // for (int r=0;r<par.pde_its;r++) 
         // {
@@ -166,6 +166,12 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
         cell_displacements.push_back(i);
     }
   }
+
+  if (mkdir(par.data_file.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;
+
   string var_name = par.data_file + "/meansqauredisplacement.dat"; 
   ofstream outfile;
   outfile.open(var_name, ios::app);  
@@ -205,7 +211,7 @@ int main(int argc, char *argv[]) {
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.output_sizes = true;
-  par.mcs=40000;
+  par.mcs=1000;
   par.sizex=150;
   par.sizey=150;
   par.end_program=0;
@@ -213,7 +219,7 @@ int main(int argc, char *argv[]) {
 
 
 
-  par.n_orgs = 10;
+  par.n_orgs = 16;
 
   vector<bool> start_p = {0, 0, 0, 0};
 

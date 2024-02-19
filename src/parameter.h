@@ -73,6 +73,7 @@ class Parameter {
   int storage_stride;
   bool graphics;
   bool contours;
+  bool draw_paths;
   bool screen_freq;
   bool n_screen_freq;
   bool store;
@@ -146,11 +147,11 @@ class Parameter {
   int * med_table;
 
 
-  int minJ;
-  int maxJ;
-  int minM;
-  int interval1;
-  int interval2;
+  double minJ;
+  double maxJ;
+  double minM;
+  double interval1;
+  double interval2;
 
   int div_threshold;
   int gthresh;

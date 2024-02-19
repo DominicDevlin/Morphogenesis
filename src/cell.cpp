@@ -231,7 +231,7 @@ void Cell::ConstructorBody(int settau) {
 
 
 // return energies for programmed stage of development
-int Cell::EnDif(Cell &cell2)
+double Cell::EnDif(Cell &cell2)
 { 
   
   if (sigma==cell2.sigma) 
@@ -248,7 +248,7 @@ int Cell::EnDif(Cell &cell2)
 
 
 // return energies by calculating lock & key products switched on by cells. 
-int Cell::EnergyDifference(Cell &cell2)
+double Cell::EnergyDifference(Cell &cell2)
 { 
   if (sigma==cell2.sigma) 
     return 0;
@@ -272,9 +272,9 @@ int Cell::EnergyDifference(Cell &cell2)
 // }
 
 
-int Cell::CalculateJfromMed(vector<bool>& medp2)
+double Cell::CalculateJfromMed(vector<bool>& medp2)
 {
-  int Jval = 0;
+  double Jval = 0;
   for (int i = 0; i < par.n_mediums; ++i)
   {
     Jval += medp2[i]*par.med_table[i]; // medp2[i] * 4
@@ -285,9 +285,9 @@ int Cell::CalculateJfromMed(vector<bool>& medp2)
 }
 
 // higher J means less binding with medium
-int Cell::CalculateJwithMed()
+double Cell::CalculateJwithMed()
 {
-  int Jval = 0;
+  double Jval = 0;
   for (int i = 0; i < par.n_mediums; ++i)
   {
     
@@ -298,7 +298,7 @@ int Cell::CalculateJwithMed()
 }
 
 
-int Cell::CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 )
+double Cell::CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 )
 {
   int score=0;
 
@@ -307,7 +307,7 @@ int Cell::CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 )
     score += ( keys_bool[i] != lock2[i] )?1:0; // (( keys_bool[i] == lock2[i] )?1:0) * par.med_table[i];
     score += ( key2[i] != locks_bool[i] )?1:0; // (( key2[i] == locks_bool[i] )?1:0) * par.med_table[i];
   }
-  int J = par.maxJ - par.interval2 * score; 
+  double J = par.maxJ - par.interval2 * score; 
   // perfect score is 10 (all locks and keys match). 
   //  int J = 4 + (int)( 8. - 8 * ((double)score / par.n_lockandkey)); //4 10 10     20-16 
   return J; 
