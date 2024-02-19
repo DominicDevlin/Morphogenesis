@@ -40,11 +40,11 @@
     mcs = 40000;
 
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
-    draw_paths = false;
+    draw_paths = true;
 
     // Generate a random genome
     randomise = false;
@@ -215,17 +215,17 @@
     // the phenotype number to return
     single_type = 350;
     // start all cells from "single state" initial condition for ex vivo
-    flush_cells = false;
+    flush_cells = true;
    // turn all cells into this state at beginning of development
     
     // this is 1539
     // flush_states = { 9.6374e-10, 0.0110909, 0.318513, 7.98113e-06, 1, 0.999999, 1.545e-06, 0.999997, 0.998667, 0.00247287, 0.22671, 1.10332e-07, 0.0074267, 0.0931137, 0.367756,  };
 
     // 1667
-    flush_states = { 9.65167e-10, 0.00259831, 0.316311, 1.6187e-06, 0.999999, 0.999999, 1.5393e-06, 0.999999, 0.99865, 0.0024727, 0.783776, 9.151e-09, 4.87705e-05, 0.0028173, 0.374495,  };
+    // flush_states = { 9.65167e-10, 0.00259831, 0.316311, 1.6187e-06, 0.999999, 0.999999, 1.5393e-06, 0.999999, 0.99865, 0.0024727, 0.783776, 9.151e-09, 4.87705e-05, 0.0028173, 0.374495,  };
 
     // 350
-    // flush_states = { 0.00257984, 0.999963, 0.984348, 0.999627, 1, 0.00134286, 1.71767e-10, 0.000456947, 0.000453149, 0.999383, 3.44441e-07, 0.99981, 0.0657675, 0.974001, 0.779872,  };
+    flush_states = { 0.00257984, 0.999963, 0.984348, 0.999627, 1, 0.00134286, 1.71767e-10, 0.000456947, 0.000453149, 0.999383, 3.44441e-07, 0.99981, 0.0657675, 0.974001, 0.779872,  };
 
 
 
