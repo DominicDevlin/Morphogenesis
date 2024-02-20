@@ -362,17 +362,11 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
     // make temperature lower for division section
-    dishes[i].CPM->CopyProb(par.eT);
-    par.T = par.eT;
+    dishes[i].CPM->CopyProb(par.T);
 
     // run simulation for single organism for mcs montecarlo steps.
     for (t=0;t<par.mcs;t++) 
     {
-      if (t == par.end_program)
-      {
-        dishes[i].CPM->CopyProb(par.lT); // normal temperature for normal development timing. 
-        par.T = par.lT;
-      } 
       // PROGRAMMED CELL DIVISION SECTION
       if (t < par.end_program)
       {

@@ -102,11 +102,6 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
 
     for (t = 0; t < par.mcs; t++)
     {
-      if (t == par.end_program)
-      {
-        dishes[i].CPM->CopyProb(par.lT); // normal temperature for normal development timing.
-        par.T = par.lT;
-      }
 
       // record initial expression state. This occurs before any time step updates. 
       if (t == 0)
@@ -128,8 +123,6 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
             dishes[i].CPM->add_noise();
             
           dishes[i].AverageChemCell(); 
-
- 
 
         }
         
@@ -153,7 +146,6 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
         // dish->CPM->CellGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
-
     }
   }
 
@@ -172,12 +164,19 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
   else
     cout << "Directory created." << endl;
 
-  string var_name = par.data_file + "/meansqauredisplacement.dat"; 
+  // string sTemp = to_string(par.T);
+  // string sJ = to_string(par.minJ);
+
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(1) << par.T << "-" << par.minJ;
+  string s = stream.str();
+
+  string var_name = par.data_file + "/msd" + s + ".dat"; 
   ofstream outfile;
   outfile.open(var_name, ios::app);  
 
-  int timer = 0;
-  for (auto j=0;j<par.mcs-par.equilibriate;++j)
+  int timer = 1;
+  for (auto j=0;j<par.mcs-par.equilibriate-1;++j)
   {
     double msd=0;
     int n = 0;
@@ -187,13 +186,14 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
       msd += cell_displacements[i][j];
       ++n;
     }
-    outfile << timer << "\t" << msd/((double)n) << endl;
-      
+    // outfile << timer << "\t" << msd/((double)n) << endl;
+    outfile << msd/((double)n) << endl;
+
     ++timer;
   }
 
-
   outfile.close();
+  delete[] dishes;
 
 }
 
@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.output_sizes = true;
-  par.mcs=1000;
+  par.mcs=100000 + par.equilibriate;
   par.sizex=150;
   par.sizey=150;
   par.end_program=0;
@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
 
 
 
-  par.n_orgs = 16;
+  par.n_orgs = 40;
 
   vector<bool> start_p = {0, 0, 0, 0};
 
@@ -231,8 +231,27 @@ int main(int argc, char *argv[]) {
     networks.push_back(par.start_matrix);
     polarities.push_back(start_p);
   }
+  
+  vector<double> Jlist;
+  double jump = 0.4;
+  int n_trials = 20;
+  for (int i = 0; i < n_trials; ++i)
+  {
+    double J = 1. + jump*i;
+    Jlist.push_back(J);
+  }
+  
+  for (int i = 0; i < n_trials; ++i)
+  {
+    par.minJ = Jlist[i];
+    // difference between maximum and minimum cell J
+    par.interval1 = par.maxJ-par.minJ;
+    // addition of J for each lock and key pair
+    par.interval2 = par.interval1 / (double)par.n_lockandkey;
+    process_population(networks, polarities);
+  }
 
-  process_population(networks, polarities);
+  
 
 
   

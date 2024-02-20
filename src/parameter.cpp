@@ -37,10 +37,10 @@
     //basic grid parameters. 
     sizex = 250;
     sizey = 250;
-    mcs = 40000;
+    mcs = 12100;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -173,7 +173,7 @@
 
     //waiting time
     waiting_time = 2000;
-    equilibriate = 1000;
+    equilibriate = 2000;
 
 
     // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
@@ -188,19 +188,8 @@
     nt_intervals = 5;
 
 
-
-    // Basic Cellular Potts parameters
-    eT = 3; // temperature during programmed divisions 
-    lT = 3; // temperature during development
-    T = 3;
-    target_length = 0;
-    lambda = 0.5;
-    lambda2 = 0;
-
-
     // DEPRACATED: let all cells be capable of cell division. MUST BE FALSE FOR stem cell evolution testing. False promotes stem cell evolution?
     all_divide = true;
-
 
     //name of data file
     data_file = "org-data";
@@ -215,7 +204,7 @@
     // the phenotype number to return
     single_type = 350;
     // start all cells from "single state" initial condition for ex vivo
-    flush_cells = true;
+    flush_cells = false;
    // turn all cells into this state at beginning of development
     
     // this is 1539
@@ -264,6 +253,14 @@
     fitness_typerate = 100;
     
 
+    // Basic Cellular Potts parameters
+    // eT = 3; // temperature during programmed divisions 
+    // lT = 3; // temperature during development
+    T = 0.5;
+    target_length = 0;
+    lambda = 0.5;
+    lambda2 = 0;
+
 
     // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
     tlength1 = 3;
@@ -276,7 +273,7 @@
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
     
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
-    gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
+    gthresh = 1; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     shrink = -16;
     s_shrink = -16;
     shrink_on = false;
@@ -312,11 +309,11 @@
     n_MF = 2;
 
     //min J if all cell-cell are paired
-    minJ = 4;
+    minJ = 1;
     // max J if all cell-cell are not paired
-    maxJ = 20;
+    maxJ = 5;
     // min J with medium if all proteins are on
-    minM = 6;
+    minM = 1;
 
     // difference between maximum and minimum cell J
     interval1 = maxJ-minJ;

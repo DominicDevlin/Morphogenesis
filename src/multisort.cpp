@@ -94,13 +94,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     for (int t=0;t<par.mcs;++t)
     {
 
-      if (t == par.end_program)
-      {
-        dishes[i].CPM->CopyProb(par.lT);
-        par.T = par.lT;
-          
-      }
-
       
       // record initial expression state. This occurs before any time step updates. 
       if (par.gene_record && t == 100)

@@ -121,15 +121,8 @@ TIMESTEP {
     { 
       cout << "calling init" << endl;
       dish->Init();
-      dish->CPM->CopyProb(par.eT);
-      par.T = par.eT;
+      dish->CPM->CopyProb(par.T);
       
-    }
-    if (t == par.end_program)
-    {
-      dish->CPM->CopyProb(par.lT);
-      par.T = par.lT;
-        
     }
 
     static Info *info=new Info(*dish, *this);

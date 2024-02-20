@@ -554,7 +554,7 @@ public:
 
 private:
   void IndexShuffle(void);
-  int DeltaH(int x,int y, int xp, int yp, int tsteps, PDE *PDEfield=0);
+  double DeltaH(int x,int y, int xp, int yp, int tsteps, PDE *PDEfield=0);
   bool Probability(int DH);
   void ConvertSpin(int x,int y,int xp,int yp);
   void SprayMedium(void);

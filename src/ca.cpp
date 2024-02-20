@@ -256,9 +256,9 @@ double sat(double x) {
 
 }
   
-int CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE *PDEfield)       
+double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE *PDEfield)       
 {
-  int DH = 0;
+  double DH = 0;
   int i, sxy, sxyp;
   int neighsite;
 
@@ -530,7 +530,7 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
         if (!ConnectivityPreservedP(x,y)) 
           H_diss=par.conn_diss;
         
-        int D_H=DeltaH(x,y,xp,yp, tsteps, PDEfield);
+        double D_H=DeltaH(x,y,xp,yp, tsteps, PDEfield);
         
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
@@ -5120,9 +5120,7 @@ void CellularPotts::MeanSquareDisplacement()
 vector<vector<double>> CellularPotts::ReturnMSD()
 {
   vector<vector<double>> displacements;
-  string var_name = data_file + "/meansqauredisplacement.dat"; 
-  ofstream outfile;
-  outfile.open(var_name, ios::app);  
+
   int timer = 0;
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
@@ -5134,9 +5132,9 @@ vector<vector<double>> CellularPotts::ReturnMSD()
 
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
-      double x = xm[1000];
-      double y = ym[1000];
-      for (int i = 1000; i < par.mcs;++i)
+      double x = xm[par.equilibriate];
+      double y = ym[par.equilibriate];
+      for (int i = par.equilibriate+1; i < par.mcs;++i)
       {
         // we want displacement from a while ago to account for back and forth motion
         double x1 = xm[i];
