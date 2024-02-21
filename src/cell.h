@@ -802,9 +802,6 @@ private:
   {
     xcens.push_back(xcen);
     ycens.push_back(ycen);
-    if (par.gene_output)
-      vel_phens.push_back(phenotype);
-
   }
 
   inline vector<double>& get_xcens()

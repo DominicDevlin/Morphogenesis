@@ -35,8 +35,8 @@
   Parameter::Parameter()
   {
     //basic grid parameters. 
-    sizex = 250;
-    sizey = 250;
+    sizex = 150;
+    sizey = 150;
     mcs = 12100;
 
     // show on screen
@@ -62,7 +62,7 @@
 
     // record momenta for all cells etc
     velocities = true;
-    record_directions = true;
+    record_directions = false;
 
     // record cell sizes
     output_sizes = false;
@@ -211,10 +211,10 @@
     // flush_states = { 9.6374e-10, 0.0110909, 0.318513, 7.98113e-06, 1, 0.999999, 1.545e-06, 0.999997, 0.998667, 0.00247287, 0.22671, 1.10332e-07, 0.0074267, 0.0931137, 0.367756,  };
 
     // 1667
-    // flush_states = { 9.65167e-10, 0.00259831, 0.316311, 1.6187e-06, 0.999999, 0.999999, 1.5393e-06, 0.999999, 0.99865, 0.0024727, 0.783776, 9.151e-09, 4.87705e-05, 0.0028173, 0.374495,  };
+    flush_states = { 9.65167e-10, 0.00259831, 0.316311, 1.6187e-06, 0.999999, 0.999999, 1.5393e-06, 0.999999, 0.99865, 0.0024727, 0.783776, 9.151e-09, 4.87705e-05, 0.0028173, 0.374495,  };
 
     // 350
-    flush_states = { 0.00257984, 0.999963, 0.984348, 0.999627, 1, 0.00134286, 1.71767e-10, 0.000456947, 0.000453149, 0.999383, 3.44441e-07, 0.99981, 0.0657675, 0.974001, 0.779872,  };
+    // flush_states = { 0.00257984, 0.999963, 0.984348, 0.999627, 1, 0.00134286, 1.71767e-10, 0.000456947, 0.000453149, 0.999383, 3.44441e-07, 0.99981, 0.0657675, 0.974001, 0.779872,  };
 
 
 
@@ -256,7 +256,7 @@
     // Basic Cellular Potts parameters
     // eT = 3; // temperature during programmed divisions 
     // lT = 3; // temperature during development
-    T = 0.5;
+    T = 3;
     target_length = 0;
     lambda = 0.5;
     lambda2 = 0;
@@ -311,9 +311,9 @@
     //min J if all cell-cell are paired
     minJ = 1;
     // max J if all cell-cell are not paired
-    maxJ = 5;
+    maxJ = 20;
     // min J with medium if all proteins are on
-    minM = 1;
+    minM = 6;
 
     // difference between maximum and minimum cell J
     interval1 = maxJ-minJ;

@@ -4874,31 +4874,178 @@ bool CellularPotts::CheckShape()
 
 void CellularPotts::SetCellCenters()
 {
-  map<int, double> xvals;
-  map <int, double> yvals;
-
+  map<int, double> xvals{};
+  map <int, double> yvals{};
 
   // get center of mass for all cells. Probably faster than searching through the vector every time! Turn this into function
-  for (int x=1;x<sizex;++x)
-    for (int y=1;y<sizey;++y)
-    {
-      if (sigma[x][y] > 0)
-      {
-        xvals[sigma[x][y]] += x;
-        yvals[sigma[x][y]] += y;
-      }
-    }
-  int count=1;
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  if (!par.periodic_boundaries)
   {
-    if (c->AliveP())
+    for (int x=1;x<sizex;++x)
+      for (int y=1;y<sizey;++y)
+      {
+        if (sigma[x][y] > 0)
+        {
+          xvals[sigma[x][y]] += x;
+          yvals[sigma[x][y]] += y;
+        }
+      }
+    int count=1;
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
-      xvals[count] = xvals[count] / double(c->Area());
-      yvals[count] = yvals[count] / double(c->Area());
-
+      if (c->AliveP())
+      {
+        xvals[count] = xvals[count] / double(c->Area());
+        yvals[count] = yvals[count] / double(c->Area());
+      }
+      ++count;
     }
-    ++count;
+  }
+  else
+  {
+    map<int, double> xvals_px{};
+
+    map<int, double> yvals_py{};
+
+    map<int, double> xvals_pz{};
+    map<int, double> yvals_pz{}; 
+
+    map<int, double> xvals_pzz{};
+    map<int, double> yvals_pzz{};   
+
+
+    int ncells = (int)cell->size();
+    vector<int> maxcellx(ncells, 0);
+    vector<int> maxcelly(ncells, 0);
+    vector<int> mincellx(ncells, sizex);
+    vector<int> mincelly(ncells, sizey);
+    for (int x=1;x<sizex;++x)
+      for (int y=1;y<sizey;++y)
+      {
+        if (sigma[x][y] > 0)
+        {
+          // crosses no boundary case
+          xvals[sigma[x][y]] += x;
+          yvals[sigma[x][y]] += y;
+
+          // crosses x boundary case
+          if (x < sizex / 4)
+            xvals_px[sigma[x][y]] += (x + sizex);
+          else if (x > (3 * sizex) / 4)
+            xvals_px[sigma[x][y]] += x;
+
+          // crosses y boundary case
+          if (y < sizey / 4)
+            yvals_py[sigma[x][y]] += (y + sizey);
+          else if (y > 3 * sizex / 4)
+            yvals_py[sigma[x][y]] += y;
+
+
+          // croseses both boundaries case
+          if (x < sizex / 4 && y < sizey / 4)
+          {
+            xvals_pz[sigma[x][y]] += (x + sizex);
+            yvals_pz[sigma[x][y]] += (y + sizey);
+          }
+
+          if (x > (3 * sizex) / 4 && y < sizey / 4)
+          {
+            xvals_pzz[sigma[x][y]] += (x);
+            yvals_pzz[sigma[x][y]] += (y+sizey);
+          }
+          else if (y > (3 * sizey) / 4 && x < sizex / 4)
+          {
+            xvals_pzz[sigma[x][y]] += (x+sizex);
+            yvals_pzz[sigma[x][y]] += (y);
+          }
+          else if (y > (3 * sizey) / 4 &&  x > (3 * sizex) / 4)
+          {
+            xvals_pzz[sigma[x][y]] += (x);
+            yvals_pzz[sigma[x][y]] += (y);            
+          }
+
+          if (x > maxcellx[sigma[x][y]])
+            maxcellx[sigma[x][y]] = x;
+          if (x < mincellx[sigma[x][y]])
+            mincellx[sigma[x][y]] = x;
+          if (y > maxcelly[sigma[x][y]])
+            maxcelly[sigma[x][y]] = y;
+          if (y < mincelly[sigma[x][y]])
+            mincelly[sigma[x][y]] = y;           
+        }
+      }  
+
+    int count=1;
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+
+        int xwidth = abs(maxcellx[count] - mincellx[count]);
+        int ywidth = abs(maxcelly[count] - mincelly[count]);
+        if (xwidth > 100 && ywidth > 100)
+        {
+          double xcen{};
+          double ycen{};
+
+
+          xcen += xvals_pz[count];
+          ycen += yvals_pz[count];
+
+          xcen += xvals_pzz[count];
+          ycen += yvals_pzz[count];  
+
+          xvals[count] = xcen / double(c->Area());    
+          yvals[count] = ycen / double(c->Area());
+
+          // if (c->sigma == 5)
+          // {
+          //   // cout << xvals[count] << '\t' << yvals[count] << '\t'  << xvals_px[count] << '\t' << yvals_py[count] << '\t' << xvals_px[count] << endl; 
+          //   cout << xvals[count] << '\t' << yvals[count] << endl;
+          // }
+
+          if (xvals[count] > sizex)
+            xvals[count] -= sizex;
+
+          if (yvals[count] > sizey)
+            yvals[count] -= sizey;  
+        }
+        else if (xwidth > 100)
+        {
+          double xcen = xvals_px[count];
+          double ycen = yvals[count];
+ 
+          xvals[count] = xcen / double(c->Area());    
+          yvals[count] = ycen / double(c->Area());
+
+          if (xvals[count] > sizex)
+            xvals[count] -= sizex;
+
+        }
+        else if (ywidth > 100)
+        {
+          double xcen = xvals[count];
+          double ycen = yvals_py[count];
+ 
+          xvals[count] = xcen / double(c->Area());    
+          yvals[count] = ycen / double(c->Area());      
+
+          if (yvals[count] > sizey)
+            yvals[count] -= sizey;      
+        }
+        else
+        {
+          xvals[count] = xvals[count] / double(c->Area());
+          yvals[count] = yvals[count] / double(c->Area());
+        }
+
+
+
+
+      }
+      ++count;
+    }
   }
 
   // give each cell its x and y coords
@@ -4906,19 +5053,23 @@ void CellularPotts::SetCellCenters()
   for (iter = xvals.begin(); iter != xvals.end(); iter++)
   {
     (*cell)[iter->first].set_xcen(iter->second);
-    // cout << iter->first << " : " << iter->second << endl;
+    // cout << "xvals: " << iter->first << " : " << iter->second << endl;
   }
   for (iter = yvals.begin(); iter != yvals.end(); iter++)
   {
     (*cell)[iter->first].set_ycen(iter->second);
-    //cout << iter->first << " : " << iter->second << endl;
+    // cout << "yvals: " << iter->first << " : " << iter->second << endl;
   }
+
+
+
 
 }
 
 void CellularPotts::RecordMasses()
 {
   SetCellCenters();
+
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
   {
@@ -5045,21 +5196,87 @@ void CellularPotts::DrawDisplacement(Graphics *g)
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
 
-
       int s = xm.size();
 
       for (int i = par.waiting_time; i < s;)
       {
         
         // we want displacement from a while ago to account for back and forth motion
-        double x = xm[i-par.waiting_time]*2;
-        double y = ym[i-par.waiting_time]*2;
-        double x1 = xm[i]*2;
-        double y1 = ym[i]*2;
+        double x1 = xm[i-par.waiting_time]*2;
+        double y1 = ym[i-par.waiting_time]*2;
+        double x2 = xm[i]*2;
+        double y2 = ym[i]*2;
 
-        // draw line
-        // if (abs(y1-y) < 200 && abs(x1-x) < 200)
-        g->Line(x,y,x1,y1,c->sigma);
+        
+        
+        if (abs(x2-x1) > sizex / 2 && abs(y2-y1) > sizey / 2)
+        {
+          if (x1 > x2 && y1 > y2)
+          {
+            g->Line(x1,y1,x2+sizex*2,y2+sizey*2,c->sigma);
+            g->Line(x1-sizex*2,y1-sizey*2,x2,y2,c->sigma);
+          }
+          else if (x1 > x2)
+          {
+            g->Line(x1,y1,x2+sizex*2,y2-sizey*2,c->sigma);
+            g->Line(x1-sizex*2,y1+sizey*2,x2,y2,c->sigma);
+          }
+          else if (y1 > y2)
+          {
+            g->Line(x1,y1,x2-sizex*2,y2+sizey*2,c->sigma);
+            g->Line(x1+sizex*2,y1-sizey*2,x2,y2,c->sigma);
+          }
+          else
+          {
+            g->Line(x1,y1,x2-sizex*2,y2-sizey*2,c->sigma);
+            g->Line(x1+sizex*2,y1+sizey*2,x2,y2,c->sigma);
+          }
+        }
+        else if (abs(x2-x1) > sizex / 2)
+        {
+          if (x1 > x2)
+          {
+            g->Line(x1,y1,x2+sizex*2,y2,c->sigma);
+            g->Line(x1-sizex*2,y1,x2,y2,c->sigma);
+          }
+          else
+          {
+            g->Line(x1,y1,x2-sizex*2,y2,c->sigma);
+            g->Line(x1+sizex*2,y1,x2,y2,c->sigma);            
+          }
+        }
+        else if (abs(y2-y1) > sizey / 2)
+        {
+          if (y1 > y2)
+          {
+            g->Line(x1,y1,x2,y2+sizey*2,c->sigma);
+            g->Line(x1,y1-sizey*2,x2,y2,c->sigma);
+          }
+          else
+          {
+            g->Line(x1,y1,x2,y2-sizey*2,c->sigma);
+            g->Line(x1,y1+sizey*2,x2,y2,c->sigma);            
+          }
+        }
+        else
+        {
+          g->Line(x1,y1,x2,y2,c->sigma);
+        }    
+
+        // if ((abs(x2-x1) < sizex / 2) && (abs(y2-y1) < sizey / 2))
+        // {
+          
+        //   // cout << x1 << '\t' << x2 << '\t' << y1 << '\t' << y2 << endl; 
+        //   // if (abs(x2-x1) > 30)
+        //   // {
+        //   //   cout << "CELL SIGMA: " << c->sigma << endl;
+        //   //   cout << x1 << '\t' << x2 << '\t' << y1 << '\t' << y2 << endl; 
+        //   // }
+          
+
+        // }
+        
+
 
         // calculate displacement.
         
@@ -5093,11 +5310,25 @@ void CellularPotts::MeanSquareDisplacement()
           double y = ym[par.equilibriate];
           double x1 = xm[i];
           double y1 = ym[i];
+          if (!par.periodic_boundaries)
+          {
+            // calculate displacement.
+            double sqd = pow(x-x1,2)+pow(y-y1,2);
+            msd+=sqd;
+            ++count;
+          }
+          else
+          {
+            double dx = abs(x-x1);
+            double dy = abs(y-y1);
 
-          // calculate displacement.
-          int sqd = pow(x-x1,2)+pow(y-y1,2);
-          msd+=sqd;
-          ++count;
+            dx = min(dx, sizex-dx);
+            dy = min(dy, sizey-dy);
+            double sqd = pow(x-x1,2)+pow(y-y1,2);
+            msd+=sqd;
+            ++count;
+          }
+
           
         }
       }
@@ -5119,7 +5350,10 @@ void CellularPotts::MeanSquareDisplacement()
 
 vector<vector<double>> CellularPotts::ReturnMSD()
 {
-  vector<vector<double>> displacements;
+  vector<vector<double>> displacements{};
+
+  vector<int> xbound_crossings(cell->size()+1, 0);
+  vector<int> ybound_crossings(cell->size()+1, 0);
 
   int timer = 0;
   vector<Cell>::iterator c;
@@ -5139,10 +5373,44 @@ vector<vector<double>> CellularPotts::ReturnMSD()
         // we want displacement from a while ago to account for back and forth motion
         double x1 = xm[i];
         double y1 = ym[i];
+        if (!par.periodic_boundaries)
+        {
+          // calculate displacement.
+          double sqd = pow(x-x1,2)+pow(y-y1,2);
+          cdp.push_back(sqd);     
+        }
+        else
+        {
+          double x0=xm[i-1];
+          double y0=ym[i-1];
 
-        // calculate displacement.
-        double sqd = pow(x-x1,2)+pow(y-y1,2);
-        cdp.push_back(sqd);          
+          // check if crossed boundaries
+          double dx = abs(x1-x0);
+          double dy = abs(y1-y0);
+
+          if (dx > sizex/2)
+          {
+            //crossed x boundary going right
+            if (x1 < x0)
+              xbound_crossings[c->sigma] += 1;
+            else
+              xbound_crossings[c->sigma] -= 1;
+          }
+          // do same for y
+          if (dy > sizey/2)
+          {
+            //crossed y boundary going right
+            if (y1 < y0)
+              ybound_crossings[c->sigma] += 1;
+            else
+              ybound_crossings[c->sigma] -= 1;
+          }
+          double xdist = abs(xbound_crossings[c->sigma])*sizex + x1 - x;
+          double ydist = abs(xbound_crossings[c->sigma])*sizey + y1 - y;
+
+          double sqd = pow(xdist,2)+pow(ydist,2);
+          cdp.push_back(sqd);
+        }
       }
       displacements.push_back(cdp);
     }
@@ -5882,7 +6150,7 @@ void CellularPotts::Directionality()
   // get magnitude by converting back to cartesian, adding all x and y then getting magnitude
   // this is momentum (where time = 500 mcs).
   double mr = std::sqrt(std::pow(xmag, 2) + std::pow(ymag, 2)) / vectors.size();
-  cout << mr << endl;
+  // cout << mr << endl;
 
   int num_bins = 36;
   std::vector<double> bin_edges(num_bins + 1);
@@ -5911,7 +6179,7 @@ void CellularPotts::Directionality()
   {
     m /= vectors.size();
     avg_moment+=m;
-    cout << m << endl;
+    // cout << m << endl;
   }
   avg_moment /= num_bins;
 
@@ -5921,7 +6189,7 @@ void CellularPotts::Directionality()
     m_var += pow(m-avg_moment, 2);
   }
   m_var /= num_bins;
-  cout << m_var << endl;
+  // cout << m_var << endl;
 
 
 }

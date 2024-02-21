@@ -146,6 +146,8 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
         // dish->CPM->CellGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
+      if (t%5000==0)
+        cout << t << endl;
     }
   }
 
@@ -187,7 +189,7 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
       ++n;
     }
     // outfile << timer << "\t" << msd/((double)n) << endl;
-    outfile << msd/((double)n) << endl;
+    outfile << (msd)/((double)n) << endl;
 
     ++timer;
   }
@@ -212,14 +214,16 @@ int main(int argc, char *argv[]) {
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.output_sizes = true;
   par.mcs=100000 + par.equilibriate;
-  par.sizex=150;
-  par.sizey=150;
+  par.sizex=200;
+  par.sizey=200;
   par.end_program=0;
   Parameter();
 
+  par.periodic_boundaries = true;
+  par.flush_cells = true;
 
 
-  par.n_orgs = 40;
+  par.n_orgs = 30;
 
   vector<bool> start_p = {0, 0, 0, 0};
 

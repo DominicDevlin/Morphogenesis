@@ -79,8 +79,6 @@ INIT
     CPM->SetRandomTypes();
 
     CPM->start_network(par.start_matrix, par.start_polarity);
-
-    par.print_fitness = true;
     par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
 
     if (par.set_colours)
@@ -232,13 +230,6 @@ TIMESTEP {
         cout << "Directory created." << endl;  
       dish->CPM->print_cell_GRN();
     }
-
-
-    // fitness stuff
-    if (t > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
-    {
-      dish->CPM->update_fitness();
-    }
     
 
     if (t == par.mcs - 1)
@@ -285,14 +276,12 @@ TIMESTEP {
       // dish->CPM->SpecialVelocity();
       if (par.record_directions)
       {
-        dish->CPM->Directionality();
+        // dish->CPM->Directionality();
         // dish->CPM->SingleCellDirection();
       }
    
 
     }
-
-
    
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
@@ -460,9 +449,11 @@ int main(int argc, char *argv[]) {
   
 	try 
   {
-    par.sizex=150;
-    par.sizey=150;
+    // par.sizex=150;
+    // par.sizey=150;
     par.end_program=0;
+    par.periodic_boundaries = true;
+    par.flush_cells = true;
 
 #ifdef QTGRAPHICS
     QApplication a(argc, argv);
