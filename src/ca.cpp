@@ -5207,79 +5207,66 @@ void CellularPotts::DrawDisplacement(Graphics *g)
         double x2 = xm[i]*2;
         double y2 = ym[i]*2;
 
-        
-        
-        if (abs(x2-x1) > sizex / 2 && abs(y2-y1) > sizey / 2)
-        {
-          if (x1 > x2 && y1 > y2)
-          {
-            g->Line(x1,y1,x2+sizex*2,y2+sizey*2,c->sigma);
-            g->Line(x1-sizex*2,y1-sizey*2,x2,y2,c->sigma);
-          }
-          else if (x1 > x2)
-          {
-            g->Line(x1,y1,x2+sizex*2,y2-sizey*2,c->sigma);
-            g->Line(x1-sizex*2,y1+sizey*2,x2,y2,c->sigma);
-          }
-          else if (y1 > y2)
-          {
-            g->Line(x1,y1,x2-sizex*2,y2+sizey*2,c->sigma);
-            g->Line(x1+sizex*2,y1-sizey*2,x2,y2,c->sigma);
-          }
-          else
-          {
-            g->Line(x1,y1,x2-sizex*2,y2-sizey*2,c->sigma);
-            g->Line(x1+sizex*2,y1+sizey*2,x2,y2,c->sigma);
-          }
-        }
-        else if (abs(x2-x1) > sizex / 2)
-        {
-          if (x1 > x2)
-          {
-            g->Line(x1,y1,x2+sizex*2,y2,c->sigma);
-            g->Line(x1-sizex*2,y1,x2,y2,c->sigma);
-          }
-          else
-          {
-            g->Line(x1,y1,x2-sizex*2,y2,c->sigma);
-            g->Line(x1+sizex*2,y1,x2,y2,c->sigma);            
-          }
-        }
-        else if (abs(y2-y1) > sizey / 2)
-        {
-          if (y1 > y2)
-          {
-            g->Line(x1,y1,x2,y2+sizey*2,c->sigma);
-            g->Line(x1,y1-sizey*2,x2,y2,c->sigma);
-          }
-          else
-          {
-            g->Line(x1,y1,x2,y2-sizey*2,c->sigma);
-            g->Line(x1,y1+sizey*2,x2,y2,c->sigma);            
-          }
-        }
-        else
+        if (!par.periodic_boundaries)
         {
           g->Line(x1,y1,x2,y2,c->sigma);
-        }    
-
-        // if ((abs(x2-x1) < sizex / 2) && (abs(y2-y1) < sizey / 2))
-        // {
-          
-        //   // cout << x1 << '\t' << x2 << '\t' << y1 << '\t' << y2 << endl; 
-        //   // if (abs(x2-x1) > 30)
-        //   // {
-        //   //   cout << "CELL SIGMA: " << c->sigma << endl;
-        //   //   cout << x1 << '\t' << x2 << '\t' << y1 << '\t' << y2 << endl; 
-        //   // }
-          
-
-        // }
-        
-
-
-        // calculate displacement.
-        
+        }
+        else
+        {        
+          if (abs(x2-x1) > sizex / 2 && abs(y2-y1) > sizey / 2)
+          {
+            if (x1 > x2 && y1 > y2)
+            {
+              g->Line(x1,y1,x2+sizex*2,y2+sizey*2,c->sigma);
+              g->Line(x1-sizex*2,y1-sizey*2,x2,y2,c->sigma);
+            }
+            else if (x1 > x2)
+            {
+              g->Line(x1,y1,x2+sizex*2,y2-sizey*2,c->sigma);
+              g->Line(x1-sizex*2,y1+sizey*2,x2,y2,c->sigma);
+            }
+            else if (y1 > y2)
+            {
+              g->Line(x1,y1,x2-sizex*2,y2+sizey*2,c->sigma);
+              g->Line(x1+sizex*2,y1-sizey*2,x2,y2,c->sigma);
+            }
+            else
+            {
+              g->Line(x1,y1,x2-sizex*2,y2-sizey*2,c->sigma);
+              g->Line(x1+sizex*2,y1+sizey*2,x2,y2,c->sigma);
+            }
+          }
+          else if (abs(x2-x1) > sizex / 2)
+          {
+            if (x1 > x2)
+            {
+              g->Line(x1,y1,x2+sizex*2,y2,c->sigma);
+              g->Line(x1-sizex*2,y1,x2,y2,c->sigma);
+            }
+            else
+            {
+              g->Line(x1,y1,x2-sizex*2,y2,c->sigma);
+              g->Line(x1+sizex*2,y1,x2,y2,c->sigma);            
+            }
+          }
+          else if (abs(y2-y1) > sizey / 2)
+          {
+            if (y1 > y2)
+            {
+              g->Line(x1,y1,x2,y2+sizey*2,c->sigma);
+              g->Line(x1,y1-sizey*2,x2,y2,c->sigma);
+            }
+            else
+            {
+              g->Line(x1,y1,x2,y2-sizey*2,c->sigma);
+              g->Line(x1,y1+sizey*2,x2,y2,c->sigma);            
+            }
+          }
+          else
+          {
+            g->Line(x1,y1,x2,y2,c->sigma);
+          }    
+        }
         i+=par.waiting_time;
       }
     }
