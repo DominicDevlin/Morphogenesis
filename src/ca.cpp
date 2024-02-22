@@ -4348,6 +4348,76 @@ void CellularPotts::PrintTypesTime(bool prune)
 
 
 
+void CellularPotts::Vectorfield()
+{
+  int i = 500;
+  int interval = 1000;
+  vector<vector<double>> xdata{};
+  vector<vector<double>> ydata{};
+
+  for (; i < par.mcs-par.end_program;i+=interval)
+  {
+    cout << i << endl;
+
+    vector<double> xpoint{};
+    vector<double> ypoint{};
+
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        vector<double>& xm = c->get_xcens();
+        vector<double>& ym = c->get_ycens();
+
+      
+        // we want displacement from a while ago to account for back and forth motion
+        double x2 = xm[i];
+        double y2 = ym[i];
+
+        xpoint.push_back(x2);
+        ypoint.push_back(y2);
+
+        
+      }
+    }
+    xdata.push_back(xpoint);
+    ydata.push_back(ypoint);
+  }
+
+  string var_name = data_file + "/xvector-data.dat";
+  ofstream outfile;
+  outfile.open(var_name, ios::app);
+
+  for (vector<double>& i : xdata)
+  {
+    for (double &j : i)
+    {
+      outfile << j << '\t';
+    }
+    outfile << endl;
+  }
+  
+  outfile.close();
+
+  var_name = data_file + "/yvector-data.dat";
+  outfile.open(var_name, ios::app);
+
+  for (vector<double>& i : ydata)
+  {
+    for (double &j : i)
+    {
+      outfile << j << '\t';
+    }
+    outfile << endl;
+  }
+
+  outfile.close();
+
+}
+
+
+
 
 
 

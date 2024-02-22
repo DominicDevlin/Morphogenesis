@@ -342,6 +342,7 @@ public:
 
   vector<int> OrganismTypes(int start);
 
+  void Vectorfield();
 
 
 

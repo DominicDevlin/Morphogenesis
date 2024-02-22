@@ -292,7 +292,11 @@ TIMESTEP {
         dish->CPM->OutputGamma();
 
       if (par.output_sizes)
+      {
         dish->CPM->OutputSizes();
+        dish->CPM->Vectorfield();
+      }
+        
 
       // if (par.umap)
       dish->CPM->ColourIndex();
