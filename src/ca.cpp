@@ -5293,7 +5293,7 @@ void CellularPotts::MeanSquareDisplacement()
   ofstream outfile;
   outfile.open(var_name, ios::app);  
   int timer=0;
-  for (int i = par.equilibriate; i < par.mcs;++i)
+  for (int i = par.equilibriate+1; i < par.mcs;++i)
   {
     double msd = 0;
     int count = 0;
@@ -5405,9 +5405,29 @@ vector<vector<double>> CellularPotts::ReturnMSD()
             else
               ybound_crossings[c->sigma] -= 1;
           }
-          double xdist = abs(xbound_crossings[c->sigma])*sizex + x1 - x;
-          double ydist = abs(xbound_crossings[c->sigma])*sizey + y1 - y;
 
+          double xdist{};
+          double ydist{};
+
+          // calculate x distance including x crossings
+          if (xbound_crossings[c->sigma] > 0)
+          {
+            xdist = abs(xbound_crossings[c->sigma])*sizex + x1 - x;
+          }
+          else
+          {
+            xdist = abs(xbound_crossings[c->sigma])*sizex + x - x1;
+          }
+
+          // calculate u distance including u crossings
+          if (ybound_crossings[c->sigma] > 0)
+          {
+            ydist = abs(ybound_crossings[c->sigma])*sizey + y1 - y;
+          }
+          else
+          {
+            ydist = abs(ybound_crossings[c->sigma])*sizey + y - y1;
+          }
           double sqd = pow(xdist,2)+pow(ydist,2);
           cdp.push_back(sqd);
         }

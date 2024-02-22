@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.output_sizes = true;
-  par.mcs=100000 + par.equilibriate;
+  par.mcs=10000 + par.equilibriate;
   par.sizex=200;
   par.sizey=200;
   par.end_program=0;
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
   par.flush_cells = true;
 
 
-  par.n_orgs = 30;
+  par.n_orgs = 20;
 
   vector<bool> start_p = {0, 0, 0, 0};
 
