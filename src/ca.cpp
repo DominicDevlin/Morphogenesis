@@ -4350,15 +4350,13 @@ void CellularPotts::PrintTypesTime(bool prune)
 
 void CellularPotts::Vectorfield()
 {
-  int i = 500;
-  int interval = 1000;
+  int i = 0;
+  int interval = 1;
   vector<vector<double>> xdata{};
   vector<vector<double>> ydata{};
 
   for (; i < par.mcs-par.end_program;i+=interval)
   {
-    cout << i << endl;
-
     vector<double> xpoint{};
     vector<double> ypoint{};
 
