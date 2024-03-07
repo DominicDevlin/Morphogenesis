@@ -303,6 +303,9 @@ TIMESTEP {
       cout << "x center: " << center[0] << "   y center: " << center[1] << endl;
 
       dish->CPM->PrintColours();
+
+      dish->CPM->prop_success();
+
     }
 
 

@@ -146,6 +146,9 @@ class Parameter {
   int n_locks;
   int * med_table;
 
+  bool recordcopies;
+  int mintype;
+  int maxtype;
 
   double minJ;
   double maxJ;

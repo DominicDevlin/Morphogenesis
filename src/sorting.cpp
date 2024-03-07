@@ -57,6 +57,7 @@ INIT
 {
   try 
   {
+    par.mcs = 12100;
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
@@ -466,6 +467,8 @@ TIMESTEP {
       cout << "x center: " << center[0] << "   y center: " << center[1] << endl;
 
       dish->CPM->PrintColours();
+
+      dish->CPM->prop_success();
     }
 
     // if (t==8000)

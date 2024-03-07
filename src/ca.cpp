@@ -386,7 +386,6 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
   }
   }
 
-  
   return DH;
 }
 
@@ -426,7 +425,7 @@ void CellularPotts::ConvertSpin(int x,int y,int xp,int yp)
 
 
 /** PUBLIC **/
-int CellularPotts::CopyvProb(int DH,  double stiff) {
+int CellularPotts::CopyvProb(double DH,  double stiff) {
 
   double dd; 
   int s;
@@ -434,11 +433,14 @@ int CellularPotts::CopyvProb(int DH,  double stiff) {
   if (DH<=-s) 
     return 2;
   
+  // we are slowing down sim by dong on the fly probabilities so that we can do doubles. 
+  dd=exp( -( (double)(DH+s)/par.T ));
+
   // if DH becomes extremely large, calculate probability on-the-fly
-  if (DH+s > BOLTZMANN-1)
-    dd=exp( -( (double)(DH+s)/par.T ));
-  else
-    dd=copyprob[DH+s]; 
+  // if (DH+s > BOLTZMANN-1)
+  //   dd=exp( -( (double)(DH+s)/par.T ));
+  // else
+  //   dd=copyprob[DH+s]; 
 
   if (RANDOM(s_val)<dd) 
     return 1; 
@@ -513,8 +515,11 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
 	      kp=sigma[xp][yp];
     }
 
-    
-    
+    int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+    int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+
+
+
     // test for border state (relevant only if we do not use 
     // periodic boundaries)
     if (kp!=-1) 
@@ -532,10 +537,30 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
         
         double D_H=DeltaH(x,y,xp,yp, tsteps, PDEfield);
         
+        dH_tally += D_H;
+
+
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
           ConvertSpin( x,y,xp,yp );
-          SumDH+=D_H;
+          
+          if (par.recordcopies)
+          {
+            if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+            {
+              ++flip_true;
+              SumDH+=D_H;
+            }
+          }
+          
+        }
+        else
+        {
+          if (par.recordcopies)
+            if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+            {
+              ++flip_false;
+            }
         }
         // if (Probability(D_H)) 
         // {

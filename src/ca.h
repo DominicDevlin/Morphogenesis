@@ -345,6 +345,15 @@ public:
 
 
 
+  inline double prop_success()
+  {
+    cout << "Successes: " << flip_true << "  Fails: " << flip_false << endl;
+    cout << "percent: " << double(flip_true) / double(flip_true + flip_false) << "  average dH: " << dH_tally / double(flip_true + flip_false) << endl;
+    double val = double(flip_true) / double(flip_true + flip_false);
+    return val;
+  }
+
+
   void ConstructSheet(int x, int y);
 
   // returns colour at this site
@@ -558,7 +567,7 @@ private:
   bool Probability(int DH);
   void ConvertSpin(int x,int y,int xp,int yp);
   void SprayMedium(void);
-  int CopyvProb(int DH,  double stiff);
+  int CopyvProb(double DH,  double stiff);
   void FreezeAmoebae(void);
   void MeasureCellSizes(void);
   void MeasureCellSize(Cell &c);
@@ -623,6 +632,13 @@ private:
   vector<int> som_cell_list;
   vector<double> type_fitness_list;
   vector<double> shape_fitness_list;
+
+
+  long flip_true{};
+  long flip_false{};
+  long dH_tally{};
+
+
 
 
   vector<map<int,int>> TypeCounts;

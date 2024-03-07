@@ -35,9 +35,9 @@
   Parameter::Parameter()
   {
     //basic grid parameters. 
-    sizex = 150;
-    sizey = 150;
-    mcs = 50000;
+    sizex = 250;
+    sizey = 250;
+    mcs = 15000;
 
     // show on screen
     graphics = false;
@@ -144,6 +144,12 @@
     size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     n_init_cells = 1;
     divisions = 0;
+
+
+    // record copies
+    recordcopies = true;
+    mintype = 100;
+    maxtype = 4000;
 
 
     // gene network update frequency
@@ -273,7 +279,7 @@
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
     
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
-    gthresh = 1; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
+    gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     shrink = -16;
     s_shrink = -16;
     shrink_on = false;
