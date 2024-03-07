@@ -347,9 +347,10 @@ public:
 
   inline double prop_success()
   {
-    cout << "Successes: " << flip_true << "  Fails: " << flip_false << endl;
-    cout << "percent: " << double(flip_true) / double(flip_true + flip_false) << "  average dH: " << dH_tally / double(flip_true + flip_false) << endl;
+    // cout << "Successes: " << flip_true << "  Fails: " << flip_false << endl;
     double val = double(flip_true) / double(flip_true + flip_false);
+    cout << "percent: " << val << "  average dH: " << dH_tally / double(flip_true + flip_false) << "  average neg dH: " << dH_neg / double(flip_true) << endl;
+    
     return val;
   }
 
@@ -636,7 +637,8 @@ private:
 
   long flip_true{};
   long flip_false{};
-  long dH_tally{};
+  double dH_tally{};
+  double dH_neg{};
 
 
 

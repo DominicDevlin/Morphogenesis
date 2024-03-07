@@ -148,8 +148,8 @@
 
     // record copies
     recordcopies = true;
-    mintype = 100;
-    maxtype = 4000;
+    mintype = 1300;
+    maxtype = 2000;
 
 
     // gene network update frequency
@@ -315,7 +315,7 @@
     n_MF = 2;
 
     //min J if all cell-cell are paired
-    minJ = 4;
+    minJ = 3;
     // max J if all cell-cell are not paired
     maxJ = 20;
     // min J with medium if all proteins are on

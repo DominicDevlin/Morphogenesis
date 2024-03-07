@@ -538,7 +538,8 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
         double D_H=DeltaH(x,y,xp,yp, tsteps, PDEfield);
         
         dH_tally += D_H;
-
+        if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+          cout << D_H << endl;
 
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
@@ -550,6 +551,7 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
             {
               ++flip_true;
               SumDH+=D_H;
+              dH_neg+=D_H;
             }
           }
           
