@@ -301,7 +301,7 @@ void PDE::Diffuse(int repeat)
   // boundaries right now)
   
   const double dt=par.dt;
-  const double dx2=par.dx*par.dx;
+  const double dx2= par.dx*par.dx;
 
   for (int r=0;r<repeat;r++) 
   {
