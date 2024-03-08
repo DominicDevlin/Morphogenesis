@@ -103,6 +103,22 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     // run simulation for single organism for mcs montecarlo steps.
     for (t=0;t<par.mcs;t++) 
     {
+
+      // manipulation
+      if (t == 100)
+      {
+        if (par.flush_cells)
+        {
+          dishes[i].CPM->SetAllStates();
+          dishes[i].PDEfield->FlushGrid();
+        }
+      }
+      if (par.convert_cells && par.convert_time == t)
+      {
+        dishes[i].CPM->ConvertToStem(par.convert_x,par.convert_y,par.convert_size,par.convert_to_type, dishes[i].PDEfield, true, par.clear_radius); 
+      }
+
+
       if (t == par.end_program)
       {
         dishes[i].CPM->CopyProb(par.lT); // normal temperature for normal development timing. 

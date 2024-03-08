@@ -142,6 +142,7 @@ class Parameter {
 
   bool insert_randoms;
 
+
   int n_diffusers;
   int n_locks;
   int med_table[5] = {5,4,3,2,1};
