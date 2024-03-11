@@ -35,8 +35,8 @@
   Parameter::Parameter()
   {
     //basic grid parameters. 
-    sizex = 300;
-    sizey = 300;
+    sizex = 250;
+    sizey = 250;
     mcs = 12100;
 
     // show on screen
