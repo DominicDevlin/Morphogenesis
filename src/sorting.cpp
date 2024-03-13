@@ -68,7 +68,6 @@ INIT
       
     else
       CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
-    cout << "HERE" << endl;
     CPM->ConstructInitCells(*this);
     if (par.velocities)
       par.output_sizes = true;
@@ -524,6 +523,9 @@ TIMESTEP {
       // dish->CPM->DestroyCellsByPhenotype(129287, true, 129295, 129293, 64771);
     }
 
+    static bool c1 = false;
+    static bool c2 = false;
+    static bool c3 = false;
 
     //cerr << "Done\n";
     if (par.graphics && t%5==0)// !(t%par.screen_freq)) 
@@ -551,9 +553,7 @@ TIMESTEP {
       //   // dish->CPM->DrawPerimeter(this, pcells);
       // }
 
-      static bool c1 = false;
-      static bool c2 = false;
-      static bool c3 = false;
+
       // static bool c4 = false;
 
       if (t>0 && t % par.begin_network == 0)
@@ -613,12 +613,22 @@ TIMESTEP {
       BeginScene();
       ClearImage();    
       dish->Plot(this);
+
       if (t>par.end_program && par.contours)
       {
-        
-        dish->PDEfield->ContourPlot(this,0,293);
-        dish->PDEfield->ContourPlot(this,2,292);
-        dish->PDEfield->ContourPlot(this,1,291);
+        c1 = dish->PDEfield->CheckSecreting(0);
+        c2 = dish->PDEfield->CheckSecreting(1);
+        if (par.n_diffusers > 2)
+        {
+          c3 = dish->PDEfield->CheckSecreting(2);
+          // c4 = dish->PDEfield->CheckSecreting(3);
+        }
+        if (c1)
+          dish->PDEfield->ContourPlot(this,0,293);
+        if (c2)
+          dish->PDEfield->ContourPlot(this,1,291);
+        if (c3)
+          dish->PDEfield->ContourPlot(this,2,292);
       }
       
       EndScene();
