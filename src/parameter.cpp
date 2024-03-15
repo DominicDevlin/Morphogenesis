@@ -37,7 +37,7 @@
     //basic grid parameters. 
     sizex = 250;
     sizey = 250;
-    mcs = 20000;
+    mcs = 12100;
 
     // show on screen
     graphics = false;
@@ -76,7 +76,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=14464003847258394511;
+    pickseed=0;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -84,8 +84,8 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, 2, 0, 0, 0, 0, 1, 0 }, { 0, -2, 2, -2, 0, 1, 0, 0, -2 }, { 0, 0, 1, -1, 0, 0, 0, 1, 1 }, { 0, 0, 0, 2, 0, 0, 0, -1, 1 }, { 0, 0, -1, 1, 0, 0, 1, -1, 0 }, { 1, 1, -1, -2, 2, 0, 0, 1, -1 }, { 0, 1, -1, 0, 0, 2, 1, 0, 0 }, { 0, 0, -1, -1, 0, 0, 1, 0, 0 }, { 2, -1, 0, 0, 1, -1, 0, 1, -1 }, { 2, 1, 0, 0, 0, 1, 0, 1, 1 }, { -1, 1, 0, 0, -1, 0, 2, 1, 0 }, { -1, -1, 0, 1, 0, 0, 0, 0, -1 }, { 1, 1, 1, 1, 2, -2, 1, 0, 0 }, { 1, 0, 2, 0, 2, 2, 0, 0, 0 }, { -1, 0, 0, 0, -1, 1, 1, 0, 1 }, { 1, -1, 0, 2, 1, 0, 0, -2, -1 }, { 1, -1, -1, 0, -1, 0, 0, 1, 0 }, { -1, 0, 0, -1, 1, 0, 0, 0, 0 }, { 0, 1, 0, 1, -1, -1, 0, -2, 0 }, { 1, 0, 0, 1, 0, 1, -2, 0, 0 }, { 0, 0, 0, 0, -2, 1, 0, 0, 0 }, { 0, 0, 0, -1, 0, 0, 2, -2, 0 }, { -2, 0, 1, 0, 0, 0, 1, 0, -1 }, { -2, 0, 2, 0, 1, 0, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, 0, 1, -1 }, { 0, -1, 0, 0, 0, 1, 0, 0, -1 }, { 0, 1, -2, 0, 0, 1, 0, 0, 0 }, };
-    
+    start_matrix = { { -1, 0, 2, 0, 0, 1, 1, -1, -2 }, { 1, 0, 0, 1, 1, 0, 1, -2, 0 }, { 0, 1, -1, -1, -2, 1, 0, 1, 0 }, { 0, 0, 0, -1, 0, 0, -2, 0, 1 }, { 0, 0, 0, 2, 1, 0, -1, 0, 0 }, { 0, -2, 1, 0, 0, 1, 0, 1, 0 }, { -1, 1, -1, -1, 0, 0, -1, 0, 1 }, { 0, 1, 1, -1, -1, 0, 0, 0, 0 }, { 0, -2, 1, 2, 1, 0, -2, 0, -1 }, { -1, 0, 0, 0, 1, 0, 1, 0, 2 }, { 0, 2, 0, 0, -1, -1, 0, 0, 0 }, { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, { 1, 0, 0, 0, 0, -1, 0, 1, 0 }, { 1, 0, 0, 0, 0, 0, 0, 1, 0 }, { 0, 0, 1, 0, -2, 0, 0, 0, 0 }, { 2, -1, 0, 0, 0, -2, 0, -2, 0 }, { 0, 0, -1, 0, 1, 0, 0, 0, 1 }, { 1, 0, -1, 0, 0, 1, 1, 1, 1 }, { -2, 0, -1, -2, 1, 0, 0, -2, 1 }, { 1, 1, -1, 0, 0, 0, 0, -2, 2 }, { 0, 0, 0, 0, 1, -1, 0, -2, 0 }, { 0, 0, 2, 1, 0, -1, 0, 1, 0 }, { 0, -1, -1, 1, 1, 1, 0, 0, 0 }, { 0, -1, 0, 1, 1, 1, 0, 2, -2 }, { 0, -1, -1, 0, 1, -2, 0, 0, 1 }, { 0, -1, -1, -1, 1, -2, 0, 0, -2 }, { 0, 0, 0, -1, -1, 0, 0, 0, 0 }, };
+
 
 
 
@@ -102,7 +102,7 @@
     // flat threshold for nodes
     node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
 
-    // prune tiny edges (<1 per org) from graph ( we keep this to false for classification, but true for separating stem and differentiated or nearly stem where necessary)
+    // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
     prune_edges = false;
     
     prune_amount = 6;
@@ -211,15 +211,15 @@
     // print single cell proteins
     single_cell = false;
     // the phenotype number to return
-    single_type = 123107;
+    single_type = 116896;
     // start all cells from "single state" initial condition for ex vivo
-    flush_cells = true;
+    flush_cells = false;
    // turn all cells into this state at beginning of development
-    flush_states = { 0.993102, 1.64698e-17, 0.993102, 0.993102, 0.000304264, 1.32348e-17, 7.60632e-13, 2.02772e-21, 0.993102, 0.993102, 7.55209e-13, 6.83557e-13, 0.993102, 0.993102, 0.000302259, 0.993102, 0.00231852, 1.71435e-21, 0.993101, 0.993102, 0.00242462, 5.82804e-12, 1.84748e-21, 5.85878e-12, 5.8244e-12, 5.53231e-12, 3.00727e-22, 1.09727, 0.00221704, 1.09726,  };
+    flush_states = { 0.992166, 6.1959e-14, 0.993102, 0.00234412, 0.00285422, 0.993102, 7.28959e-12, 0.993102, 1.66823e-05, 6.50609e-10, 0.00135078, 0.99281, 0.993002, 0.993102, 0.992759, 8.51561e-29, 1.99097e-09, 0.993102, 4.74283e-24, 6.57192e-16, 2.06755e-23, 0.993102, 5.66047e-05, 0.993102, 9.75969e-27, 9.75124e-27, 0.00221364, 0.748441, 0.49563, 0.691497,  };
 
 
     // convert cells at certain time point to square with radius as shown (radius is half length of square).
-    convert_cells = true;
+    convert_cells = false;
     convert_time = 3000;
     choose_alive_cell = false;
     convert_x = 80;
@@ -233,14 +233,17 @@
 
 
     // used to make a sheet of cells. Use in combination with flush_cells and convert cells
-    make_sheet=true;
+    make_sheet=false;
     sheetx=250;
     sheety=100;
 
 
     // limit morphogen to amount (prevents differentiation in some ex vivo organisms)
     limit_morph = false;
-    limit_amount = 0.05;
+    limit_amount = 0.5;
+
+
+    hold_morph_constant = false;
 
     // print list of concentrations, one for each cell type (used for future input)
     print_type_concentrations = false;

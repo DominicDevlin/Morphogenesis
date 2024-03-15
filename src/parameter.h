@@ -167,6 +167,9 @@ class Parameter {
 
   bool limit_morph;
   double limit_amount;
+
+  bool hold_morph_constant;
+
   
   bool max_statespace;
 
