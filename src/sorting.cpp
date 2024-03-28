@@ -611,7 +611,7 @@ TIMESTEP {
     
       BeginScene();
       ClearImage();    
-      dish->Plot(this);
+      // dish->Plot(this);
 
       if (t>par.end_program && par.contours)
       {
