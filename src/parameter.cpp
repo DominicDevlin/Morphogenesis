@@ -315,7 +315,7 @@
     n_MF = 2;
 
     //min J if all cell-cell are paired
-    minJ = 3;
+    minJ = 4;
     // max J if all cell-cell are not paired
     maxJ = 20;
     // min J with medium if all proteins are on
