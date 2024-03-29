@@ -186,8 +186,8 @@
 
     // Basic Cellular Potts parameters
     eT = 3; // temperature during programmed divisions 
-    lT = 2.5; // temperature during development
-    T = 2.5;
+    lT = 3; // temperature during development
+    T = 3;
     target_length = 0;
     lambda = 0.5;
     lambda2 = 0.1;
