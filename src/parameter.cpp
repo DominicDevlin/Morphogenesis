@@ -40,7 +40,7 @@
     mcs = 15000;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -85,8 +85,8 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, -2, 2, -1, 1 }, { 1, 1, 0, 0, 1, -1 }, { 0, 0, -2, 0, 2, -1 }, { 2, 1, -1, 1, 0, 0 }, { 1, 1, 0, 1, 0, 1 }, { 0, 0, 0, -1, 0, 1 }, { 0, 0, -1, -2, 0, 0 }, { 0, -1, 0, -1, 0, 1 }, { 0, 0, -1, -2, -1, 2 }, { 0, 0, 0, 1, 0, 0 }, { -1, -2, 1, 0, 0, 0 }, { -2, 2, 1, 2, -2, 1 }, };
-    
+    start_matrix = { { 0, 0, 1, 0, 0, 2 }, { 1, -1, 1, 2, 0, -2 }, { 1, 0, 0, 0, 0, 2 }, { 2, 0, -2, -1, 2, -1 }, { 0, 2, 0, 2, 0, 0 }, { 1, -2, 2, -1, 0, -1 }, { 1, 1, 0, 0, -1, 0 }, { 0, 1, 0, 0, 1, 0 }, { 0, 1, 1, 0, 0, -1 }, { 1, 0, 0, -1, -2, 0 }, { 0, -1, -1, 1, 0, 1 }, { -1, -1, 0, 1, 0, 1 }, };
+
 
 
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
