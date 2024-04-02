@@ -344,6 +344,9 @@ public:
 
   void Vectorfield();
 
+  //Output norm on cell proteins for all cells. 
+  void OutputProteinNorms();
+
 
 
   // personal random numbers for xoshiro RNG (each grid has its own state)

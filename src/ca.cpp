@@ -5079,6 +5079,48 @@ void CellularPotts::CellVelocities()
 
 
 
+void CellularPotts::OutputProteinNorms()
+{
+  // we want to output x location, y location and norm
+
+  string var_name = "protein-norms.dat"; 
+  ofstream outfile;
+  outfile.open(var_name, ios::app);  
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      vector<double> state;
+      vector<vector<double>>& recordings = c->get_history();
+      for (int i = 3; i < par.n_genes; ++i)
+        state.push_back(recordings[i].back());
+
+      cout << state.size() << endl;
+
+      double norm{};
+
+      for (double &i : state)
+      {
+        norm += pow(i,2);
+      }
+
+      norm = sqrt(norm);
+
+      vector<double>& xcens = c->get_xcens();
+      vector<double>& ycens = c->get_ycens();
+      int xloc = int(xcens.back());
+      int yloc = int(ycens.back());
+
+      outfile << xloc << '\t' << yloc << '\t' << norm << endl;
+
+    }
+  }
+  outfile.close();      
+}
+
+
 
 
 
