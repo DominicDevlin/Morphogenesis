@@ -478,11 +478,12 @@ TIMESTEP {
       dish->CPM->PrintColours();
     }
 
-    if (t==9000)
-    {
-      dish->PDEfield->PrintAxisConcentrations(true, 120);
-      dish->CPM->OutputProteinNorms();
-    }
+    // used to create morphogen stuff
+    // if (t==9000)
+    // {
+    //   dish->PDEfield->PrintAxisConcentrations(true, 120);
+    //   dish->CPM->OutputProteinNorms();
+    // }
 
 
     if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
