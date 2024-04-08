@@ -37,7 +37,7 @@
     //basic grid parameters. 
     sizex = 250;
     sizey = 250;
-    mcs = 20100;
+    mcs = 12100;
 
     // show on screen
     graphics = false;
@@ -216,7 +216,7 @@
 
 
     // convert cells at certain time point to square with radius as shown (radius is half length of square).
-    convert_cells = true;
+    convert_cells = false;
     convert_time = 3000;
     choose_alive_cell = false;
     convert_x = 45;
@@ -230,7 +230,7 @@
 
 
     // used to make a sheet of cells. Use in combination with flush_cells and convert cells
-    make_sheet=true;
+    make_sheet=false;
     sheetx=250;
     sheety=100;
     triangle_x=175;

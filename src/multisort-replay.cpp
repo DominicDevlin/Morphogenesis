@@ -508,7 +508,7 @@ int main(int argc, char *argv[]) {
   }
 
 
-  par.n_orgs = 1;
+  par.n_orgs = 10;
 
   vector<bool> start_p = { 0, 0, 0, 0 };
   vector<vector<bool>> polarities{};
