@@ -65,6 +65,8 @@ class Parameter {
   bool make_sheet;
   int sheetx;
   int sheety;
+  int triangle_x;
+  int triangle_y;
   int mcs;
   int evs;
   int rseed;

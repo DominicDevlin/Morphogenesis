@@ -1286,7 +1286,9 @@ void CellularPotts::ConstructSheet(int xm, int ym)
       // {
       //   sigma[x][y] = 1;
       // }
-      if (x < 175 && y > 75 + x)
+
+      // this makes a triangle
+      if (x < par.triangle_x && y > par.triangle_y + x)
       {
         sigma[x][y] = 1;
       }     
@@ -4615,11 +4617,11 @@ int CellularPotts::ConvertToStem(int xloc, int yloc, int rad, int type, PDE *fie
   // x and y is center, rad is going to be the length (we will just make a square)
 
   int stem_sig{};
-  vector<double> genes;
-  vector<double> diffusers;
-  vector<double> locks;
-  vector<double> keys;
-  vector<double> meds;
+  vector<double> genes{};
+  vector<double> diffusers{};
+  vector<double> locks{};
+  vector<double> keys{};
+  vector<double> meds{};
   vector<double> morph_conc(3);
   // need to grab the identity of a stem cell
   if (!par.choose_alive_cell)
