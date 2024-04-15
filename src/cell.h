@@ -703,6 +703,7 @@ private:
       {
         if (diffs[i] > par.limit_amount)
           diffs[i] = par.limit_amount;
+        
       }
       genes[i] = diffs[i];
     }
