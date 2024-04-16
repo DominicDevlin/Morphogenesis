@@ -251,8 +251,12 @@ TIMESTEP {
       // }
       for (int r=0;r<par.pde_its;r++) 
       {
-        dish->PDEfield->Secrete(dish->CPM);
-        dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+        if (!par.hold_morph_constant)
+        {
+          dish->PDEfield->Secrete(dish->CPM);
+          dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+        }
+
       }
 
       // print individual chemical concentrations. 

@@ -188,8 +188,11 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
 
         for (int r=0;r<par.pde_its;r++) 
         {
-          dishes[i].PDEfield->Secrete(dishes[i].CPM);
-          dishes[i].PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+          if (!par.hold_morph_constant)
+          {
+            dishes[i].PDEfield->Secrete(dishes[i].CPM);
+            dishes[i].PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+          }
         }
 
         // print individual chemical concentrations. 
