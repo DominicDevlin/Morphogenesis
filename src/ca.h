@@ -343,6 +343,8 @@ public:
 
   vector<vector<double>> ReturnMSD();
 
+  void ShapeIndex();
+
 
 
   inline double prop_success()
