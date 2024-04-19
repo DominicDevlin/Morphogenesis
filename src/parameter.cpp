@@ -40,7 +40,7 @@
     mcs = 15000;
 
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -62,10 +62,10 @@
 
     // record momenta for all cells etc
     velocities = true;
-    record_directions = false;
+    record_directions = true;
 
     // record cell sizes
-    output_sizes = false;
+    output_sizes = true;
 
     // record gamma parameter
     output_gamma = false;
@@ -85,7 +85,8 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, 1, 0, 0, 2 }, { 1, -1, 1, 2, 0, -2 }, { 1, 0, 0, 0, 0, 2 }, { 2, 0, -2, -1, 2, -1 }, { 0, 2, 0, 2, 0, 0 }, { 1, -2, 2, -1, 0, -1 }, { 1, 1, 0, 0, -1, 0 }, { 0, 1, 0, 0, 1, 0 }, { 0, 1, 1, 0, 0, -1 }, { 1, 0, 0, -1, -2, 0 }, { 0, -1, -1, 1, 0, 1 }, { -1, -1, 0, 1, 0, 1 }, };
+    start_matrix = { { 1, 0, 0, -2, 1, 0, -1, 1, -1 }, { 0, 2, 1, 1, 0, 0, 0, 0, 0 }, { -1, 0, 0, 0, 0, 2, 0, 0, 0 }, { 0, 0, 2, 0, 0, 0, 1, 0, 0 }, { 1, 1, 0, 1, 1, -1, -1, -1, 0 }, { 0, -2, -1, -1, 1, 0, 0, 0, 1 }, { 0, -1, 0, -1, 0, 1, 0, -1, 0 }, { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 2, 2, 0, -1, 0 }, { 1, 0, -1, 1, 0, 0, 0, 0, 0 }, { 1, 1, 2, 0, 0, 0, 0, 0, -1 }, { 0, 0, 0, 0, -2, 2, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, -1, 1, 0 }, { 1, 1, -1, 0, 1, 0, 1, 1, 1 }, { 0, 1, -1, 1, -1, 0, 0, 0, 0 }, { -2, 0, 1, 0, 2, 1, 0, -1, -1 }, { 0, 0, 0, 0, 0, -1, 0, 0, 0 }, { 0, 1, 2, 0, -1, 2, 1, 1, -1 }, { 1, 1, 0, 0, -2, 0, 0, 0, -2 }, { 0, 0, 0, 0, 0, 0, 1, 0, 1 }, { 2, -2, -1, -1, 0, -1, -1, 2, 1 }, { -2, 0, 0, -1, 1, 0, 1, 1, 1 }, { -1, 0, 0, 0, -1, 0, 0, 2, 1 }, { 0, 0, -2, 2, 0, 0, 0, 0, 0 }, { 0, -1, 1, 0, 0, 0, 0, 2, 0 }, { 0, -1, 0, 1, 0, 0, 0, 2, 0 }, { 0, 0, -1, 0, 1, -2, 0, 1, 0 }, };
+
 
 
 
@@ -101,7 +102,7 @@
     // flat threshold for nodes
     node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
 
-    // prune tiny edges (<1 per org) from graph ( we keep this to false for classification, but true for separating stem and differentiated or nearly stem where necessary)
+    // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
     prune_edges = false;
     
     prune_amount = 6;
@@ -172,7 +173,8 @@
     //set specific colours
     set_colours = true;
     use_colour_index = true;
-    colour_index = { {63587, 21}, {31235, 39}, {8707, 25}, {61443, 16}, {12803, 9}, {63539, 38}, {64003, 22}, {63555, 23}, {30723, 32}, {12801, 18}, {45571, 12}, {43523, 34}, {63603, 24}, {63491, 17}, {63607, 19}, {63523, 40}, {14339, 31}, {61955, 14}, {47107, 33}, {74241, 37}, {47619, 27}, {107011, 29}, {41475, 30}, {74243, 28}, {14851, 26}, {107009, 36}, };
+    colour_index = { {115179, 48}, {123010, 45}, {123011, 253}, {115587, 41}, {106627, 20}, {115123, 10}, {106626, 32}, {124035, 31}, {107650, 35}, {108034, 252}, {115151, 26}, {123043, 255}, {107651, 251}, {115075, 250}, {107010, 249}, {123779, 36}, {115079, 33}, {108163, 42}, {123267, 28}, {115087, 29}, {124291, 34}, {124803, 37}, {115127, 16}, {108162, 40}, {115183, 30}, {115199, 21}, {119095, 6}, {123107, 254}, {115083, 25}, {124547, 39}, {115107, 43}, {115135, 22}, {107138, 38}, {114999, 12}, };
+
 
     //record location of cell divisions
     division_anisotropy = false;
@@ -185,7 +187,7 @@
     // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
     // NOTE - MUST RUN with tag: "-platform offscreen" when using cluster (there is no display).
     overlap_images = false;
-    overlap_orgs = 60;
+    overlap_orgs = 10;
     // true = compare different genomes, false = compare same genomes
     between_org_overlap = false;
     // do translations
@@ -206,48 +208,46 @@
     count_bud_cells = false;
 
     // print single cell proteins
-    single_cell = false;
+    single_cell = true;
     // the phenotype number to return
-    single_type = 350;
+    single_type = 123107;
     // start all cells from "single state" initial condition for ex vivo
-    flush_cells = false;
+    flush_cells = true;
    // turn all cells into this state at beginning of development
-    
-    // this is 1539
-    // flush_states = { 9.6374e-10, 0.0110909, 0.318513, 7.98113e-06, 1, 0.999999, 1.545e-06, 0.999997, 0.998667, 0.00247287, 0.22671, 1.10332e-07, 0.0074267, 0.0931137, 0.367756,  };
-
-    // 1667
-    flush_states = { 9.65167e-10, 0.00259831, 0.316311, 1.6187e-06, 0.999999, 0.999999, 1.5393e-06, 0.999999, 0.99865, 0.0024727, 0.783776, 9.151e-09, 4.87705e-05, 0.0028173, 0.374495,  };
-
-    // 350
-    // flush_states = { 0.00257984, 0.999963, 0.984348, 0.999627, 1, 0.00134286, 1.71767e-10, 0.000456947, 0.000453149, 0.999383, 3.44441e-07, 0.99981, 0.0657675, 0.974001, 0.779872,  };
+    flush_states = { 0.993102, 1.64698e-17, 0.993102, 0.993102, 0.000304264, 1.32348e-17, 7.60632e-13, 2.02772e-21, 0.993102, 0.993102, 7.55209e-13, 6.83557e-13, 0.993102, 0.993102, 0.000302259, 0.993102, 0.00231852, 1.71435e-21, 0.993101, 0.993102, 0.00242462, 5.82804e-12, 1.84748e-21, 5.85878e-12, 5.8244e-12, 5.53231e-12, 3.00727e-22, 1.09727, 0.00221704, 1.09726,  };
 
 
-
-    // convert cells at certain time point
+    // convert cells at certain time point to square with radius as shown (radius is half length of square).
     convert_cells = false;
     convert_time = 3000;
     choose_alive_cell = false;
-    convert_x = 80;
-    convert_y = 170;
+    convert_x = 45;
+    convert_y = 125;
     convert_size = 25;
     clear_radius = 40;
-    convert_states = { 0.00289074, 2.95394e-32, 4.73742e-06, 0.993102, 0.993102, 4.00988e-09, 0.993101, 0.00231804, 0.678508, 0.992729, 0.993101, 0.542056, 0.993102, 0.993102, 0.992443, 0.993102, 6.89652e-12, 0.00205639, 0.00223481, 6.97606e-12, 1.37808e-20, 0.993101, 0.512162, 0.538056, 3.55936e-09, 3.39506e-09, 0.00218893, 0.0127123, 6.26531e-11, 0.00402398,  };
     convert_to_type = 97539;
+    convert_states = { 0.00289074, 2.95394e-32, 4.73742e-06, 0.993102, 0.993102, 4.00988e-09, 0.993101, 0.00231804, 0.678508, 0.992729, 0.993101, 0.542056, 0.993102, 0.993102, 0.992443, 0.993102, 6.89652e-12, 0.00205639, 0.00223481, 6.97606e-12, 1.37808e-20, 0.993101, 0.512162, 0.538056, 3.55936e-09, 3.39506e-09, 0.00218893, 0.0127123, 6.26531e-11, 0.00402398,  };
+
+   
 
 
     // used to make a sheet of cells. Use in combination with flush_cells and convert cells
     make_sheet=false;
     sheetx=250;
     sheety=100;
+    triangle_x=175;
+    triangle_y=75;
 
 
     // limit morphogen to amount (prevents differentiation in some ex vivo organisms)
     limit_morph = false;
-    limit_amount = 0.05;
+    limit_amount = 0.8;
+
+
+    hold_morph_constant = true;
 
     // print list of concentrations, one for each cell type (used for future input)
-    print_type_concentrations = false;
+    print_type_concentrations = true;
 
     // print initial cell protein concentrations
     output_init_concs = false;
@@ -409,7 +409,7 @@
 
     saturation = 0;
     dt = 1.0;
-    dx = 1/((double)sizex);
+    dx = double(1)/double(250);// 1/((double)sizex);
     pde_its = 1;
 
     diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 

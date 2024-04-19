@@ -243,11 +243,14 @@ TIMESTEP {
       // {
       //   dish->CPM->RecordAdultTypes();
       // }
-
       for (int r=0;r<par.pde_its;r++) 
       {
-        dish->PDEfield->Secrete(dish->CPM);
-        dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+        if (!par.hold_morph_constant)
+        {
+          dish->PDEfield->Secrete(dish->CPM);
+          dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+        }
+
       }
 
       // print individual chemical concentrations. 
@@ -285,7 +288,11 @@ TIMESTEP {
         dish->CPM->OutputGamma();
 
       if (par.output_sizes)
+      {
         dish->CPM->OutputSizes();
+        dish->CPM->Vectorfield();
+      }
+        
 
       // if (par.umap)
       dish->CPM->ColourIndex();
@@ -471,9 +478,11 @@ TIMESTEP {
       dish->CPM->prop_success();
     }
 
-    // if (t==8000)
+    // used to create morphogen stuff
+    // if (t==9000)
     // {
     //   dish->PDEfield->PrintAxisConcentrations(true, 120);
+    //   dish->CPM->OutputProteinNorms();
     // }
 
 
@@ -485,7 +494,8 @@ TIMESTEP {
 
     if (par.convert_cells && par.convert_time == t)
     {
-      dish->CPM->ConvertToStem(par.convert_x,par.convert_y,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius); 
+      dish->CPM->ConvertToStem(par.convert_x,par.convert_y,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius);
+      dish->CPM->ConvertToStem(100,230,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius);  
     }
 
 
@@ -515,6 +525,9 @@ TIMESTEP {
       // dish->CPM->DestroyCellsByPhenotype(129287, true, 129295, 129293, 64771);
     }
 
+    static bool c1 = false;
+    static bool c2 = false;
+    static bool c3 = false;
 
     //cerr << "Done\n";
     if (par.graphics && t%5==0)// !(t%par.screen_freq)) 
@@ -542,9 +555,7 @@ TIMESTEP {
       //   // dish->CPM->DrawPerimeter(this, pcells);
       // }
 
-      static bool c1 = false;
-      static bool c2 = false;
-      static bool c3 = false;
+
       // static bool c4 = false;
 
       if (t>0 && t % par.begin_network == 0)
@@ -604,12 +615,22 @@ TIMESTEP {
       BeginScene();
       ClearImage();    
       dish->Plot(this);
+
       if (t>par.end_program && par.contours)
       {
-        
-        dish->PDEfield->ContourPlot(this,0,293);
-        dish->PDEfield->ContourPlot(this,2,292);
-        dish->PDEfield->ContourPlot(this,1,291);
+        c1 = dish->PDEfield->CheckSecreting(0);
+        c2 = dish->PDEfield->CheckSecreting(1);
+        if (par.n_diffusers > 2)
+        {
+          c3 = dish->PDEfield->CheckSecreting(2);
+          // c4 = dish->PDEfield->CheckSecreting(3);
+        }
+        if (c1)
+          dish->PDEfield->ContourPlot(this,0,293);
+        if (c2)
+          dish->PDEfield->ContourPlot(this,1,291);
+        if (c3)
+          dish->PDEfield->ContourPlot(this,2,292);
       }
       
       EndScene();

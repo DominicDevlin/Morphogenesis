@@ -70,7 +70,7 @@ TIMESTEP
 
 
 // function that simulates a population for a single evolutionary step. 
-vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols)
+void process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -390,13 +390,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
       outfile.close();  
     }
-
-
-
-
-
-
-      
+     
     // dishes[i].CPM->SpecialVelocity();
     if (par.record_directions)
     {
@@ -404,8 +398,49 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       // dishes[i].CPM->SingleCellDirection();
     }
 
+    if (par.store)
+    {
+      string name = par.data_file + "/final_pic.png";
+      char* nname = new char[name.size() + 1];
+      strcpy(nname, name.c_str());
+
+      #ifdef QTGRAPHICS
+          
+      QtGraphics g(par.sizex*2,par.sizey*2);
+    
+      char fname[200];
+      sprintf(fname, nname,par.datadir);
+
+      g.BeginScene();
+      g.ClearImage();    
+
+      dishes[i].CPM->Plot(&g);
+
+      g.EndScene();
+
+      g.Write(fname);
+
+      #endif
+
+      delete[] nname;
+
+    }
   }
   delete[] dishes;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
 
@@ -413,6 +448,11 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 // Main function
 int main(int argc, char *argv[]) {
 
+
+#ifdef QTGRAPHICS
+  if (par.store)
+    QApplication* a = new QApplication(argc, argv);
+#endif
   
   par.graphics=false;
   par.contours=false;

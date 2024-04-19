@@ -65,6 +65,8 @@ class Parameter {
   bool make_sheet;
   int sheetx;
   int sheety;
+  int triangle_x;
+  int triangle_y;
   int mcs;
   int evs;
   int rseed;
@@ -142,6 +144,7 @@ class Parameter {
 
   bool insert_randoms;
 
+
   int n_diffusers;
   int n_locks;
   int * med_table;
@@ -176,6 +179,9 @@ class Parameter {
 
   bool limit_morph;
   double limit_amount;
+
+  bool hold_morph_constant;
+
   
   bool max_statespace;
 

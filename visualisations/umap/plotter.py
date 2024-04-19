@@ -22,8 +22,8 @@ sns.set(context="paper", style="white")
 
 source_df = pd.read_csv("cdata.csv")
 
-
-data = source_df.iloc[:, :27].values.astype(np.float32)
+# 17 rows for phenotype, 27 when transcription factors are included
+data = source_df.iloc[:, :17].values.astype(np.float32)
 target = source_df["class"].values
 
 
@@ -45,39 +45,44 @@ for i in target:
 
 color_key = {
 '0'  : "#4c719e",
-'4' : "#0000fe",
-'5' : "#ff00ff",
-'6' : "#00ffff",
 '7' : "#00ff00",
-'8' : "#555555",
-'9' : "#c67171",
 '12' : "#7171c6",
-'13' : "#8e388e",
-'14' : "#388e8e",
-'15' : "#aaaaaa",
-'16' : "#4c719e",
-'17' : "#495b5b",
-'18' : "#232b2b",
 '19' : "#a4adad",
-'20' : "#00375b",
-'21' : "#7391a5",
-'22' : "#ffbf00",
-'23' : "#001828",
-'24' : "#99913a",
-'25' : "#c1c1c1",
-'26' : "#272727",
-'256' : "#262626",
-'257' : "#e99a27",
-'258' : "#8d378d",
-'259' : "#78eb4a",
-'260' : "#485af2",
-'261' : "#f0d67c",
-'262' : "#00fefe",
-'263' : "#c0c0c0",
-'264' : "#ce72ed",
-'265' : "#a3acff",
-'266' : "#70c570",
-'267' : "#ff4600",
+'27' : "#e8e8e8",
+'32' : "#5680ab",
+'33' : "#e2d0d0",
+'34' : "#664e4e",
+'35' : "#d5d5d5",
+'36' : "#999999",
+'38' : "#d6d6d6",
+'39' : "#adadad",
+'41' : "#737373",
+'42' : "#4c4c4c",
+'44' : "#efefef",
+'45' : "#8de38d",
+'46' : "#9b9b9b",
+'47' : "#86e3e3",
+'48' : "#9c9c9c",
+'49' : "#bfbfbf",
+'50' : "#838383",
+'51' : "#353535",
+'52' : "#b00000",
+'53' : "#212121",
+'54' : "#085b08",
+'55' : "#bbbbbb",
+'59' : "#161616",
+'62' : "#929292",
+'63' : "#7d7d7d",
+'64' : "#0000b0",
+'65' : "#005b00",
+'66' : "#6920ac",
+'278' : "#45b9bc",
+'279' : "#c2b23b",
+'280' : "#70c570",
+'281' : "#c4639c",
+'282' : "#ff9800",
+'283' : "#727272",
+'284' : "#48b5ff",
 }
 
 colours = []
@@ -87,7 +92,7 @@ for i in target:
 
 
 
-reducer = umap.UMAP(random_state=42, n_neighbors=50, min_dist=0.5)
+reducer = umap.UMAP(random_state=42, n_neighbors=50, min_dist=0.3)
 embedding = reducer.fit_transform(data)
 
 

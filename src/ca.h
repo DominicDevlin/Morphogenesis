@@ -312,6 +312,9 @@ public:
 
   vector<pair<double, double>> scc_momenta(vector<vector<int>> sccs);
 
+
+  vector<pair<double, double>> scc_polar_momenta(vector<vector<int>> sccs);
+
   pair<double, double> momenta(void);
 
   void diff_anisotropy(vector<vector<int>> sccs);
@@ -376,6 +379,10 @@ public:
 
   vector<int> OrganismTypes(int start);
 
+  void Vectorfield();
+
+  //Output norm on cell proteins for all cells. 
+  void OutputProteinNorms();
 
 
 
