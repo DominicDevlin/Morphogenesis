@@ -35,12 +35,12 @@
   Parameter::Parameter()
   {
     //basic grid parameters. 
-    sizex = 200;
-    sizey = 200;
-    mcs = 15000;
+    sizex = 150;
+    sizey = 150;
+    mcs = 10100;
 
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -62,7 +62,7 @@
 
     // record momenta for all cells etc
     velocities = true;
-    record_directions = true;
+    record_directions = false;
 
     // record cell sizes
     output_sizes = true;
@@ -72,6 +72,9 @@
 
     // read genomes from file
     file_genomes = true;
+
+    //record shape index of cells
+    record_shape = false;
 
     //for storing images
     store = true;
@@ -85,7 +88,7 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 1, 0, 0, -2, 1, 0, -1, 1, -1 }, { 0, 2, 1, 1, 0, 0, 0, 0, 0 }, { -1, 0, 0, 0, 0, 2, 0, 0, 0 }, { 0, 0, 2, 0, 0, 0, 1, 0, 0 }, { 1, 1, 0, 1, 1, -1, -1, -1, 0 }, { 0, -2, -1, -1, 1, 0, 0, 0, 1 }, { 0, -1, 0, -1, 0, 1, 0, -1, 0 }, { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 2, 2, 0, -1, 0 }, { 1, 0, -1, 1, 0, 0, 0, 0, 0 }, { 1, 1, 2, 0, 0, 0, 0, 0, -1 }, { 0, 0, 0, 0, -2, 2, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, -1, 1, 0 }, { 1, 1, -1, 0, 1, 0, 1, 1, 1 }, { 0, 1, -1, 1, -1, 0, 0, 0, 0 }, { -2, 0, 1, 0, 2, 1, 0, -1, -1 }, { 0, 0, 0, 0, 0, -1, 0, 0, 0 }, { 0, 1, 2, 0, -1, 2, 1, 1, -1 }, { 1, 1, 0, 0, -2, 0, 0, 0, -2 }, { 0, 0, 0, 0, 0, 0, 1, 0, 1 }, { 2, -2, -1, -1, 0, -1, -1, 2, 1 }, { -2, 0, 0, -1, 1, 0, 1, 1, 1 }, { -1, 0, 0, 0, -1, 0, 0, 2, 1 }, { 0, 0, -2, 2, 0, 0, 0, 0, 0 }, { 0, -1, 1, 0, 0, 0, 0, 2, 0 }, { 0, -1, 0, 1, 0, 0, 0, 2, 0 }, { 0, 0, -1, 0, 1, -2, 0, 1, 0 }, };
+    start_matrix = { { 0, 0, -2, 2, -1, 1 }, { 1, 1, 0, 0, 1, -1 }, { 0, 0, -2, 0, 2, -1 }, { 2, 1, -1, 1, 0, 0 }, { 1, 1, 0, 1, 0, 1 }, { 0, 0, 0, -1, 0, 1 }, { 0, 0, -1, -2, 0, 0 }, { 0, -1, 0, -1, 0, 1 }, { 0, 0, -1, -2, -1, 2 }, { 0, 0, 0, 1, 0, 0 }, { -1, -2, 1, 0, 0, 0 }, { -2, 2, 1, 2, -2, 1 }, };
 
 
 
@@ -148,9 +151,9 @@
 
 
     // record copies
-    recordcopies = true;
-    mintype = 1300;
-    maxtype = 2000;
+    // recordcopies = true;
+    // mintype = 1300;
+    // maxtype = 2000;
 
 
     // gene network update frequency
@@ -210,11 +213,11 @@
     // print single cell proteins
     single_cell = true;
     // the phenotype number to return
-    single_type = 123107;
+    single_type = 350;
     // start all cells from "single state" initial condition for ex vivo
     flush_cells = true;
    // turn all cells into this state at beginning of development
-    flush_states = { 0.993102, 1.64698e-17, 0.993102, 0.993102, 0.000304264, 1.32348e-17, 7.60632e-13, 2.02772e-21, 0.993102, 0.993102, 7.55209e-13, 6.83557e-13, 0.993102, 0.993102, 0.000302259, 0.993102, 0.00231852, 1.71435e-21, 0.993101, 0.993102, 0.00242462, 5.82804e-12, 1.84748e-21, 5.85878e-12, 5.8244e-12, 5.53231e-12, 3.00727e-22, 1.09727, 0.00221704, 1.09726,  };
+    flush_states = { 4.64542e-09, 1, 0.692659, 1, 1, 5.10909e-12, 6.54489e-28, 3.35757e-22, 1.34902e-36, 0.999999, 1.72289e-16, 1, 6.20555e-07, 1.16941, 0.829774,  };
 
 
     // convert cells at certain time point to square with radius as shown (radius is half length of square).
@@ -244,7 +247,7 @@
     limit_amount = 0.8;
 
 
-    hold_morph_constant = true;
+    hold_morph_constant = false;
 
     // print list of concentrations, one for each cell type (used for future input)
     print_type_concentrations = true;
@@ -315,9 +318,9 @@
     n_MF = 2;
 
     //min J if all cell-cell are paired
-    minJ = 4;
+    minJ = 1;
     // max J if all cell-cell are not paired
-    maxJ = 20;
+    maxJ = 3;
     // min J with medium if all proteins are on
     minM = 6;
 

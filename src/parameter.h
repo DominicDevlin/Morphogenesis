@@ -254,6 +254,7 @@ class Parameter {
 
   double morphogen_dose;
 
+  bool record_shape;
 
   int div1;
   int div2;

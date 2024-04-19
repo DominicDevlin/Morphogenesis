@@ -57,7 +57,6 @@ INIT
 {
   try 
   {
-    par.mcs = 12100;
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
@@ -283,7 +282,6 @@ TIMESTEP {
     if (t == par.mcs - 1)
     {
 
-
       if (par.output_gamma)
         dish->CPM->OutputGamma();
 
@@ -302,8 +300,6 @@ TIMESTEP {
       map<int, int> phens = dish->CPM->get_phenotype_time();
       map<int, int> types = dish->CPM->get_AdultTypes();  
 
-
-      
       map<pair<int,int>,int> edge_tally{};
       
       // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)
@@ -413,7 +409,6 @@ TIMESTEP {
       }
 
 
-
       if (par.velocities)
       {
         // dish->CPM->CellVelocities();
@@ -431,33 +426,13 @@ TIMESTEP {
         // dish->CPM->SingleCellDirection();
       }
    
-
     }
 
 
-    // BELOW IS THINGS WHICH DONT HAVE AN ASSOCIATED PARAMETER
-
-    if (t == 12000)
-    {
-      // fft test;
-      // test.AllocateGrid(par.sizex, par.sizey);
-      // test.ImportGrid(dish->CPM->ReturnGrid());//, dish->CPM);
-      // test.PolarTransform();
-      // test.PolarToOutput();
-
-      // test.ShiftGrid(test.GetPolar(), 8);
-
-      // test.PolarToOutput("polar-shift.png");
-
-      // test.ReflectGrid(test.GetPolar());
-      // test.PolarToOutput("polar3.png");
-
-    }
-    
+     
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
-
 
       dish->CPM->print_random_cell();
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
@@ -475,7 +450,7 @@ TIMESTEP {
 
       dish->CPM->PrintColours();
 
-      dish->CPM->prop_success();
+      // dish->CPM->prop_success();
     }
 
     // used to create morphogen stuff
@@ -502,9 +477,6 @@ TIMESTEP {
     if (t == 6998)
     {
       // dish->CPM->ConvertToStem(125,95,40,11907, dish->PDEfield, true, 45);
-      // dish->CPM->ConvertToStem(140,125,25,123107, dish->PDEfield, true); // - did 6998 for fungi to create figure
-      // dish->CPM->ConvertToStem(140,125,35,107651, dish->PDEfield, true, 60);  // fungi trash
-      // dish->CPM->ConvertToStem(140,125,25,115075, dish->PDEfield, true, 50); 
       // dish->IntroduceMorphogen(1, 120, 90);
     }
 
@@ -512,18 +484,28 @@ TIMESTEP {
     if (t == 12000)
     {
       // dish->CPM->DestroyCellsByRadius(34.);
-      // dish->CPM->DestroyCellsByPhenotype(31747, true);
-      // dish->CPM->DestroyCellsByPhenotype(51699, true, 51331, 51339);
-      // dish->CPM->DestroyCellsByPhenotype(103234, true, 103235, 103171);
-      // dish->CPM->DestroyCellsByMorphogen(1, 0.15);
-      // dish->CPM->DestroyCellsByMorphogen(2, 0.2);
-      // dish->CPM->DestroyCellsByPhenotype(23811, true, 23919); //, 93571);
-      // dish->CPM->DestroyCellsByPhenotype(23811, true, 23919); //, 93571);
-      // dish->CPM->DestroyCellsByPhenotype(111357, true);
-      // dish->CPM->DestroyCellsByPhenotype(25600, false, 28160, 32256, 91136);
-
-      // dish->CPM->DestroyCellsByPhenotype(129287, true, 129295, 129293, 64771);
     }
+
+    if (t == 12000)
+    {
+      // fft test;
+      // test.AllocateGrid(par.sizex, par.sizey);
+      // test.ImportGrid(dish->CPM->ReturnGrid());//, dish->CPM);
+      // test.PolarTransform();
+      // test.PolarToOutput();
+
+      // test.ShiftGrid(test.GetPolar(), 8);
+
+      // test.PolarToOutput("polar-shift.png");
+
+      // test.ReflectGrid(test.GetPolar());
+      // test.PolarToOutput("polar3.png");
+
+    }
+
+
+
+
 
     static bool c1 = false;
     static bool c2 = false;

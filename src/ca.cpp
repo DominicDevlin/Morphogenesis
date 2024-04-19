@@ -403,19 +403,25 @@ bool CellularPotts::Probability(int DH)
 void CellularPotts::ConvertSpin(int x,int y,int xp,int yp)
 {
   int tmpcell;
-  if ( (tmpcell=sigma[x][y]) ) { // if tmpcell is not MEDIUM
+  if ( (tmpcell=sigma[x][y]) ) 
+  { // if tmpcell is not MEDIUM
     (*cell)[tmpcell].DecrementArea();
     (*cell)[tmpcell].RemoveSiteFromMoments(x,y);
+
+      
         
-    if (!(*cell)[tmpcell].Area()) {
+    if (!(*cell)[tmpcell].Area()) 
+    {
       (*cell)[tmpcell].Apoptose();
       // cerr << "Cell " << tmpcell << " apoptosed\n";
     }
   }
   
-  if ( (tmpcell=sigma[xp][yp]) ) {// if tmpcell is not MEDIUM
+  if ( (tmpcell=sigma[xp][yp]) ) 
+  {// if tmpcell is not MEDIUM
     (*cell)[tmpcell].IncrementArea();
     (*cell)[tmpcell].AddSiteToMoments(x,y);
+      
     
   }
   sigma[x][y] = sigma[xp][yp];
@@ -475,7 +481,8 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
 
   loop=(sizex-2)*(sizey-2);
  
-  for (int i=0;i<loop;i++) {  
+  for (int i=0;i<loop;i++) 
+  {  
     // take a random site
     int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
     int x = xy%(sizex-2)+1;
@@ -515,8 +522,8 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
 	      kp=sigma[xp][yp];
     }
 
-    int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
-    int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+    // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+    // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
 
 
 
@@ -537,33 +544,33 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
         
         double D_H=DeltaH(x,y,xp,yp, tsteps, PDEfield);
         
-        dH_tally += D_H;
+        // dH_tally += D_H;
         // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
         //   cout << D_H << endl;
 
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
           ConvertSpin( x,y,xp,yp );
-          
-          if (par.recordcopies)
-          {
-            if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
-            {
-              ++flip_true;
-              SumDH+=D_H;
-              dH_neg+=D_H;
-            }
-          }
-          
         }
-        else
-        {
-          if (par.recordcopies)
-            if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
-            {
-              ++flip_false;
-            }
-        }
+        //   if (par.recordcopies)
+        //   {
+        //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+        //     {
+        //       ++flip_true;
+        //       SumDH+=D_H;
+        //       dH_neg+=D_H;
+        //     }
+        //   }
+          
+        // }
+        // else
+        // {
+        //   if (par.recordcopies)
+        //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+        //     {
+        //       ++flip_false;
+        //     }
+        // }
         // if (Probability(D_H)) 
         // {
         //   ConvertSpin( x,y,xp,yp );
@@ -1039,7 +1046,7 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
   if ( !(which_cells.size()==0 || which_cells.size()>=cell->size()) ) {
     throw "In CellularPotts::DivideCells, Too few elements in vector<int> which_cells.";
   }
-
+  vector<int> divided_cells{};
   
   /* division */
   {
@@ -1433,7 +1440,7 @@ void CellularPotts::FractureSheet()
       if (c->AliveP())
       {
         int area = c->Area();  
-        if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+        if (area>par.div_threshold)
         {
 
           dividing = true;
@@ -5568,44 +5575,20 @@ vector<vector<double>> CellularPotts::ReturnMSD()
 
 
 
+void CellularPotts::initVolume()
+{
+  cellVolumeList.clear();
+  cellPerimeterList.clear();
+  for (int x=0;x<sizex;++x)
+    for (int y=0;y<sizey;++y)
+    {
+      int n = sigma[x][y];
+      if (n>0)
+        cellVolumeList[n].insert(std::make_pair(x,y));
+    }
+}
 
 
-
-// void measureCells()
-// {
-//     double cellAnisotropy[numCells+1];
-//     for(int cell=1;cell<=numCells;cell++)
-//         cellAnisotropy[cell]=measureAnisotropy(cell);
-
-//     for(int n=0;n<4;n++){
-//         avg[n]=0.0;
-//         dev[n]=0.0;
-//     }
-//     for(int cell=1;cell<=numCells;cell++){
-//         avg[0]+=cellVolumeList[cell].size();
-//         avg[1]+=cellPerimeterList[cell].size();
-//         avg[2]+=cellAnisotropy[cell];
-//         avg[3]+=static_cast<double>(cellPerimeterList[cell].size()*cellPerimeterList[cell].size())/static_cast<double>(cellVolumeList[cell].size());
-//     }
-//     for(int n=0;n<4;n++)
-//         avg[n]/=numCells;
-  
-//     for(int cell=1;cell<=numCells;cell++){
-//         dev[0]+=(cellVolumeList[cell].size()-avg[0])*(cellVolumeList[cell].size()-avg[0]);
-//         dev[1]+=(cellPerimeterList[cell].size()-avg[1])*(cellPerimeterList[cell].size()-avg[1]);
-//         dev[2]+=(cellAnisotropy[cell]-avg[2])*(cellAnisotropy[cell]-avg[2]);
-//         dev[3]+=(static_cast<double>(cellPerimeterList[cell].size()*cellPerimeterList[cell].size())/static_cast<double>(cellVolumeList[cell].size()))*((static_cast<double>(cellPerimeterList[cell].size()*cellPerimeterList[cell].size())/static_cast<double>(cellVolumeList[cell].size()))-avg[3]);
-//     }
-//     for(int n=0;n<4;n++) {
-//         dev[n]/=(numCells);
-//         dev[n]=sqrt(dev[n]);
-//     }
-//     return;
-// }
-
-// double avg[4];
-// double dev[4];
-// int numCells=10;
 
 void CellularPotts::removeVolume(int i, int j, int celln)
 {
@@ -5627,22 +5610,21 @@ void CellularPotts::addVolume(int i, int j, int celln)
 }
 
 
-
-
-// MUST BE DONE AFTER ADJUSTING VOLUMES
-void CellularPotts::adjustPerimeters( int celln )
+// MUST BE DONE AFTER ADJUSTING VOLUMES and divisions
+void CellularPotts::adjustPerimeters()
 {
 
 	// shorter way to do this: see if any of the chunk sites need to be added to the perimeter
 	// run through all old perimeter sites and if they no longer need to be part of the perimeter, erase them from cellPerimeterList
-
-	if( celln != 0 )
+  for (auto n : cellVolumeList)
   {
+    int celln = n.first;
 		cellPerimeterList[celln].clear();
     for( std::set< std::pair<int, int> >::const_iterator it = cellVolumeList[celln].begin(); it!= cellVolumeList[celln].end(); ++it)
     {
       int i = it->first;
       int j = it->second;
+      // cout << i << '\t' << j << '\t' << celln << '\t' << sigma[i][j] << endl;
       if(sigma[i][j] != celln )
           printf("\nproblem, we have a cell site that thinks it's not in the cell: (%d, %d)", i, j);
 
@@ -5662,23 +5644,20 @@ void CellularPotts::adjustPerimeters( int celln )
 /*** Measure anisotropy ***/
 
 
-double CellularPotts::measureAnisotropy()
+vector<double> CellularPotts::measureAnisotropy()
 {
-
-
 
   /*
     Go through every pair of perimeter spins, find the pair
     which are furthest apart, and record their positions.
   */
 
-  int ncells = cell->size();
-
   vector<double>shape_index{};
 
 
-  for (int n = 1; n < ncells;++n)
+  for (auto each : cellVolumeList)
   {
+    int n = each.first;
     int    i,j,xi,xf,yi,yf,dx,dy,s;
     int    dist,distmax,distind[4];
     double slope,error;
@@ -5810,18 +5789,27 @@ double CellularPotts::measureAnisotropy()
       ani = sqrt((double)distmax/(double)(dx*dx+dy*dy));
 
     shape_index.push_back(ani);
+    // cout << ani << endl;
   }
+  double avg=0;
+  double max=0;
+  double min=100;
+  for (double i : shape_index)
+  {
+    avg+=i;
+    if (i>max){max=i;}
+    if (i<min){min=i;}
+
+
+  }
+  avg /= shape_index.size();
+  cout << avg << '\t' << max << '\t' << min << endl;
+
+
+
+  return shape_index;
 
 }
-
-
-
-
-
-
-
-
-
 
 
 

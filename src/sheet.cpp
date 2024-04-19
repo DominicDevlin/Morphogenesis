@@ -73,7 +73,10 @@ INIT
     //   CPM->DivideCells();
     // }
 
+
     CPM->FractureSheet();
+
+
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
@@ -138,6 +141,16 @@ TIMESTEP {
 
       if (par.output_init_concs)
         dish->CPM->OutputInitConcs();
+
+      // if (par.record_shape)
+      //   dish->CPM->initVolume();
+    }
+
+    if (t > 100 && t % 20 == 0)
+    {
+      dish->CPM->initVolume();
+      dish->CPM->adjustPerimeters();
+      dish->CPM->measureAnisotropy();
     }
       
     
@@ -304,7 +317,7 @@ TIMESTEP {
 
       dish->CPM->PrintColours();
 
-      dish->CPM->prop_success();
+      // dish->CPM->prop_success();
 
     }
 

@@ -354,20 +354,24 @@ public:
   void addVolume(int i, int j, int celln);
 
   // must be done after adjusting volumes
-  void adjustPerimeters(int celln);
+  void adjustPerimeters();
 
-  double measureAnisotropy();
+  
+  vector<double> measureAnisotropy();
+
+  void initVolume();
 
 
 
-  inline double prop_success()
-  {
-    // cout << "Successes: " << flip_true << "  Fails: " << flip_false << endl;
-    double val = double(flip_true) / double(flip_true + flip_false);
-    cout << "percent: " << val << "  average dH: " << dH_tally / double(flip_true + flip_false) << "  average neg dH: " << dH_neg / double(flip_true) << endl;
+
+  // inline double prop_success()
+  // {
+  //   // cout << "Successes: " << flip_true << "  Fails: " << flip_false << endl;
+  //   double val = double(flip_true) / double(flip_true + flip_false);
+  //   cout << "percent: " << val << "  average dH: " << dH_tally / double(flip_true + flip_false) << "  average neg dH: " << dH_neg / double(flip_true) << endl;
     
-    return val;
-  }
+  //   return val;
+  // }
 
 
   void ConstructSheet(int x, int y);
@@ -655,10 +659,10 @@ private:
   vector<double> shape_fitness_list;
 
 
-  long flip_true{};
-  long flip_false{};
-  double dH_tally{};
-  double dH_neg{};
+  // long flip_true{};
+  // long flip_false{};
+  // double dH_tally{};
+  // double dH_neg{};
 
 
 
