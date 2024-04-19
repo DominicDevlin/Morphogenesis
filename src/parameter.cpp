@@ -35,8 +35,8 @@
   Parameter::Parameter()
   {
     //basic grid parameters. 
-    sizex = 250;
-    sizey = 250;
+    sizex = 200;
+    sizey = 200;
     mcs = 15000;
 
     // show on screen
@@ -44,7 +44,7 @@
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
-    draw_paths = true;
+    draw_paths = false;
 
     // Generate a random genome
     randomise = false;

@@ -36,6 +36,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include "cell.h"
 #include <array>
 #include <map>
+#include <set>
 
 class Dish;
 
@@ -610,7 +611,8 @@ protected:
 
   int **outside;
 
-
+  std::map<int, std::set< std::pair<int, int>>> cellVolumeList;
+  std::map<int, std::set< std::pair<int, int>>> cellPerimeterList;
 
 
   
@@ -652,8 +654,7 @@ private:
   double dH_neg{};
 
 
-  std::map< int, std::set< std::pair<int, int> > > cellVolumeList;
-  std::map< int, std::set< std::pair<int, int> > > cellPerimeterList;
+
 
   vector<map<int,int>> TypeCounts;
 

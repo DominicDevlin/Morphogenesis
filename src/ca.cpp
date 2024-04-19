@@ -5548,144 +5548,156 @@ void CellularPotts::adjustPerimeters( int celln )
 /*** Measure anisotropy ***/
 
 
-double measureAnisotropy(int cell)
+double CellularPotts::measureAnisotropy()
 {
 
-  int    i,j,xi,xf,yi,yf,dx,dy,s;
-  int    dist,distmax,distind[4];
-  double slope,error;
+
 
   /*
     Go through every pair of perimeter spins, find the pair
     which are furthest apart, and record their positions.
   */
 
-  distmax=0;
+  int ncells = cell->size();
 
-  for(std::set< std::pair<int, int> >::const_iterator it1 = cellPerimeterList[cell].begin(); it1!=cellPerimeterList[cell].end(); ++it1){
-	  xi = it1->first;
-	  yi = it1->second;
+  vector<double>shape_index{};
 
-	  for(std::set< std::pair<int, int> >::const_iterator it2 = cellPerimeterList[cell].begin(); it2!=cellPerimeterList[cell].end(); ++it2){
-      xf = it2->first;
-      yf = it2->second;
-      dx=xf-xi-N*(int)floor((float)(xf-xi)/(float)N+0.499);
-      dy=yf-yi-N*(int)floor((float)(yf-yi)/(float)N+0.499);
-      dist=dx*dx+dy*dy;
-      if(dist>distmax){
-        distmax=dist;
-        distind[0]=xi;
-        distind[1]=xf;
-        distind[2]=yi;
-        distind[3]=yf;
+
+  for (int n = 1; n < ncells;++n)
+  {
+    int    i,j,xi,xf,yi,yf,dx,dy,s;
+    int    dist,distmax,distind[4];
+    double slope,error;
+    distmax=0;
+    for(std::set< std::pair<int, int> >::const_iterator it1 = cellPerimeterList[n].begin(); it1!=cellPerimeterList[n].end(); ++it1){
+      xi = it1->first;
+      yi = it1->second;
+
+      for(std::set< std::pair<int, int> >::const_iterator it2 = cellPerimeterList[n].begin(); it2!=cellPerimeterList[n].end(); ++it2){
+        xf = it2->first;
+        yf = it2->second;
+        dx=xf-xi-sizex*(int)floor((float)(xf-xi)/(float)sizex+0.499);
+        dy=yf-yi-sizey*(int)floor((float)(yf-yi)/(float)sizex+0.499);
+        dist=dx*dx+dy*dy;
+        if(dist>distmax){
+          distmax=dist;
+          distind[0]=xi;
+          distind[1]=xf;
+          distind[2]=yi;
+          distind[3]=yf;
+        }
       }
-
-
     }
-  }
 
-  xi=distind[0];
-  xf=distind[1];
-  yi=distind[2];
-  yf=distind[3];
+    xi=distind[0];
+    xf=distind[1];
+    yi=distind[2];
+    yf=distind[3];
 
-  /*
-     Find the midpoint.
-  */
+    /*
+      Find the midpoint.
+    */
 
-  dx = (xf-xi)-N*(int)floor((float)(xf-xi)/(float)N+0.499);
-  dy = (yf-yi)-N*(int)floor((float)(yf-yi)/(float)N+0.499);
+    dx = (xf-xi)-sizex*(int)floor((float)(xf-xi)/(float)sizex+0.499);
+    dy = (yf-yi)-sizey*(int)floor((float)(yf-yi)/(float)sizey+0.499);
 
-  int xm=(N+xi+dx/2)%N;
-  int ym=(N+yi+dy/2)%N;
+    int xm=(sizex+xi+dx/2)%sizex;
+    int ym=(sizey+yi+dy/2)%sizey;
 
-  /*
-    Calculate the slope of the line perpendicular to
-    the line between our two perimeter spins.
-  */
+    /*
+      Calculate the slope of the line perpendicular to
+      the line between our two perimeter spins.
+    */
 
-  if(dy!=0)
-    slope = -1.0*(double)dx/(double)dy;
-  else
-    slope = 2.0*(double)N;
+    if(dy!=0)
+      slope = -1.0*(double)dx/(double)dy;
+    else
+      slope = 2.0*(double)sizey;
 
-  if(slope>=0.0)
-    s=1;
-  else
-    s=-1;
+    if(slope>=0.0)
+      s=1;
+    else
+      s=-1;
 
-  /*
-    Start at the midpoint, and go out along the perpendicular
-    until you find something not in the cell.
-  */
+    /*
+      Start at the midpoint, and go out along the perpendicular
+      until you find something not in the cell.
+    */
 
-  xi = xm;
-  yi = ym;
-  error = fabs(slope);
+    xi = xm;
+    yi = ym;
+    error = fabs(slope);
 
-  if(lattice[xi][yi][0]!=cell)
-    goto donei;
-
-  while(1){
-    if(lattice[xi][yi][0]!=cell){
-      xi=(N+xi-1)%N;
+    if(sigma[xi][yi]!=n)
       goto donei;
-    }
-    while(error>0.5){
-      yi=(N+yi+s)%N;
-      error-=1.0;
-      if(lattice[xi][yi][0]!=cell){
-        yi=(N+yi-s)%N;
+
+    while(1)
+    {
+      if(sigma[xi][yi]!=n)
+      {
+        xi=(sizex+xi-1)%sizex;
         goto donei;
       }
+      while(error>0.5)
+      {
+        yi=(sizey+yi+s)%sizey;
+        error-=1.0;
+        if(sigma[xi][yi]!=n)
+        {
+          yi=(sizey+yi-s)%sizey;
+          goto donei;
+        }
+      }
+      xi=(xi+1)%sizex;
+      error+=fabs(slope);
     }
-    xi=(xi+1)%N;
-    error+=fabs(slope);
-  }
 
-  donei:
+    donei:
 
-  xf = xm;
-  yf = ym;
-  error = fabs(slope);
+    xf = xm;
+    yf = ym;
+    error = fabs(slope);
 
-  if(lattice[xf][yf][0]!=cell)
-    goto donef;
-
-  while(1){
-    if(lattice[xf][yf][0]!=cell){
-      xf=(xf+1)%N;
+    if(sigma[xf][yf]!=n)
       goto donef;
-    }
-    while(error>0.5){
-      yf=(N+yf-s)%N;
-      error-=1.0;
-      if(lattice[xf][yf][0]!=cell){
-        yf=(N+yf+s)%N;
+
+    while(1){
+      if(sigma[xf][yf]!=n)
+      {
+        xf=(xf+1)%sizex;
         goto donef;
       }
+      while(error>0.5)
+      {
+        yf=(sizey+yf-s)%sizey;
+        error-=1.0;
+        if(sigma[xf][yf]!=n)
+        {
+          yf=(sizey+yf+s)%sizey;
+          goto donef;
+        }
+      }
+      xf=(sizex+xf-1)%sizex;
+      error+=fabs(slope);
     }
-    xf=(N+xf-1)%N;
-    error+=fabs(slope);
+
+    donef:
+
+    // Find the length of the perpendicular line.
+
+    dx = xf-xi-sizex*(int)floor((float)(xf-xi)/(float)sizex+0.5);
+    dy = yf-yi-sizex*(int)floor((float)(yf-yi)/(float)sizex+0.5);
+
+    double ani;
+
+    if(dx==0 && dy==0)
+      ani = (double)distmax;
+    else
+      ani = sqrt((double)distmax/(double)(dx*dx+dy*dy));
+
+    shape_index.push_back(ani);
   }
 
-  donef:
-
-  // Find the length of the perpendicular line.
-
-  dx = xf-xi-N*(int)floor((float)(xf-xi)/(float)N+0.5);
-  dy = yf-yi-N*(int)floor((float)(yf-yi)/(float)N+0.5);
-
-  // Return
-
-  double ani;
-
-  if(dx==0 && dy==0)
-    ani = (double)distmax;
-  else
-    ani = sqrt((double)distmax/(double)(dx*dx+dy*dy));
-
-  return ani;
 }
 
 
