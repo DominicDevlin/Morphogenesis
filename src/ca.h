@@ -345,6 +345,15 @@ public:
 
   void ShapeIndex();
 
+  void removeVolume(int i, int j, int celln);
+
+  void addVolume(int i, int j, int celln);
+
+  // must be done after adjusting volumes
+  void adjustPerimeters(int celln);
+
+  double measureAnisotropy();
+
 
 
   inline double prop_success()
@@ -643,7 +652,8 @@ private:
   double dH_neg{};
 
 
-
+  std::map< int, std::set< std::pair<int, int> > > cellVolumeList;
+  std::map< int, std::set< std::pair<int, int> > > cellPerimeterList;
 
   vector<map<int,int>> TypeCounts;
 

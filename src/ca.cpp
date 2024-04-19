@@ -5459,37 +5459,90 @@ double dev[4];
 int numCells=10;
 
 
-void measureCells()
-{
-    double cellAnisotropy[numCells+1];
-    for(int cell=1;cell<=numCells;cell++)
-        cellAnisotropy[cell]=measureAnisotropy(cell);
+// void measureCells()
+// {
+//     double cellAnisotropy[numCells+1];
+//     for(int cell=1;cell<=numCells;cell++)
+//         cellAnisotropy[cell]=measureAnisotropy(cell);
 
-    for(int n=0;n<4;n++){
-        avg[n]=0.0;
-        dev[n]=0.0;
-    }
-    for(int cell=1;cell<=numCells;cell++){
-        avg[0]+=cellVolumeList[cell].size();
-        avg[1]+=cellPerimeterList[cell].size();
-        avg[2]+=cellAnisotropy[cell];
-        avg[3]+=static_cast<double>(cellPerimeterList[cell].size()*cellPerimeterList[cell].size())/static_cast<double>(cellVolumeList[cell].size());
-    }
-    for(int n=0;n<4;n++)
-        avg[n]/=numCells;
+//     for(int n=0;n<4;n++){
+//         avg[n]=0.0;
+//         dev[n]=0.0;
+//     }
+//     for(int cell=1;cell<=numCells;cell++){
+//         avg[0]+=cellVolumeList[cell].size();
+//         avg[1]+=cellPerimeterList[cell].size();
+//         avg[2]+=cellAnisotropy[cell];
+//         avg[3]+=static_cast<double>(cellPerimeterList[cell].size()*cellPerimeterList[cell].size())/static_cast<double>(cellVolumeList[cell].size());
+//     }
+//     for(int n=0;n<4;n++)
+//         avg[n]/=numCells;
   
-    for(int cell=1;cell<=numCells;cell++){
-        dev[0]+=(cellVolumeList[cell].size()-avg[0])*(cellVolumeList[cell].size()-avg[0]);
-        dev[1]+=(cellPerimeterList[cell].size()-avg[1])*(cellPerimeterList[cell].size()-avg[1]);
-        dev[2]+=(cellAnisotropy[cell]-avg[2])*(cellAnisotropy[cell]-avg[2]);
-        dev[3]+=(static_cast<double>(cellPerimeterList[cell].size()*cellPerimeterList[cell].size())/static_cast<double>(cellVolumeList[cell].size()))*((static_cast<double>(cellPerimeterList[cell].size()*cellPerimeterList[cell].size())/static_cast<double>(cellVolumeList[cell].size()))-avg[3]);
-    }
-    for(int n=0;n<4;n++) {
-        dev[n]/=(numCells);
-        dev[n]=sqrt(dev[n]);
-    }
-    return;
+//     for(int cell=1;cell<=numCells;cell++){
+//         dev[0]+=(cellVolumeList[cell].size()-avg[0])*(cellVolumeList[cell].size()-avg[0]);
+//         dev[1]+=(cellPerimeterList[cell].size()-avg[1])*(cellPerimeterList[cell].size()-avg[1]);
+//         dev[2]+=(cellAnisotropy[cell]-avg[2])*(cellAnisotropy[cell]-avg[2]);
+//         dev[3]+=(static_cast<double>(cellPerimeterList[cell].size()*cellPerimeterList[cell].size())/static_cast<double>(cellVolumeList[cell].size()))*((static_cast<double>(cellPerimeterList[cell].size()*cellPerimeterList[cell].size())/static_cast<double>(cellVolumeList[cell].size()))-avg[3]);
+//     }
+//     for(int n=0;n<4;n++) {
+//         dev[n]/=(numCells);
+//         dev[n]=sqrt(dev[n]);
+//     }
+//     return;
+// }
+
+
+
+void CellularPotts::removeVolume(int i, int j, int celln)
+{
+  if(celln!=0)
+  {
+      
+	  std::set< std::pair<int,int> >::iterator it = cellVolumeList[celln].find( std::make_pair(i,j) );
+	  if( it != cellVolumeList[celln].end() )
+		  cellVolumeList[celln].erase( it );
+  }
+  return;
 }
+
+void CellularPotts::addVolume(int i, int j, int celln)
+{
+  if(celln!=0)
+	  cellVolumeList[celln].insert( std::make_pair(i,j) );
+  return;
+}
+
+
+
+
+// MUST BE DONE AFTER ADJUSTING VOLUMES
+void CellularPotts::adjustPerimeters( int celln )
+{
+
+	// shorter way to do this: see if any of the chunk sites need to be added to the perimeter
+	// run through all old perimeter sites and if they no longer need to be part of the perimeter, erase them from cellPerimeterList
+
+	if( celln != 0 )
+  {
+		cellPerimeterList[celln].clear();
+    for( std::set< std::pair<int, int> >::const_iterator it = cellVolumeList[celln].begin(); it!= cellVolumeList[celln].end(); ++it)
+    {
+      int i = it->first;
+      int j = it->second;
+      if(sigma[i][j] != celln )
+          printf("\nproblem, we have a cell site that thinks it's not in the cell: (%d, %d)", i, j);
+
+      // accounting for periodic boundaries
+      if( sigma[i][j]!=sigma[(i+1)%sizex][j] || sigma[i][j]!=sigma[i][(j+1)%sizey] ||
+          sigma[i][j]!=sigma[(sizex+i-1)%sizex][j] || sigma[i][j]!=sigma[i][(sizey+j-1)%sizey] )
+      {
+        cellPerimeterList[celln].insert( std::make_pair(i, j) );
+      }
+    }
+	}
+}
+
+
 
 /*******************************************************************************/
 /*** Measure anisotropy ***/
