@@ -5454,9 +5454,7 @@ vector<vector<double>> CellularPotts::ReturnMSD()
 
 
 
-double avg[4];
-double dev[4];
-int numCells=10;
+
 
 
 // void measureCells()
@@ -5491,7 +5489,9 @@ int numCells=10;
 //     return;
 // }
 
-
+// double avg[4];
+// double dev[4];
+// int numCells=10;
 
 void CellularPotts::removeVolume(int i, int j, int celln)
 {
