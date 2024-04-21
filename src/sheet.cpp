@@ -146,11 +146,23 @@ TIMESTEP {
       //   dish->CPM->initVolume();
     }
 
-    if (t > 100 && t % 20 == 0)
+    if (t % 1000 == 0 && t > 0)
     {
       dish->CPM->initVolume();
       dish->CPM->adjustPerimeters();
-      dish->CPM->measureAnisotropy();
+      vector<double> tperims = dish->CPM->TruePerimeters();
+      vector<double> volumes = dish->CPM->GetVolumes();
+
+      double avg{};
+      for (int i = 0; i < tperims.size(); ++i)
+      {
+        cout << tperims.size() << '\t' << volumes.size() << endl;
+        double sindex = tperims[i] / sqrt(volumes[i]);
+        // cout << i << '\t';
+        avg+=sindex;
+      }
+      avg/=tperims.size();
+      cout << endl << avg << endl;
     }
       
     

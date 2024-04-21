@@ -5578,7 +5578,6 @@ vector<vector<double>> CellularPotts::ReturnMSD()
 void CellularPotts::initVolume()
 {
   cellVolumeList.clear();
-  cellPerimeterList.clear();
   for (int x=0;x<sizex;++x)
     for (int y=0;y<sizey;++y)
     {
@@ -5586,6 +5585,16 @@ void CellularPotts::initVolume()
       if (n>0)
         cellVolumeList[n].insert(std::make_pair(x,y));
     }
+}
+
+vector<double> CellularPotts::GetVolumes()
+{
+  vector<double> vlist{};
+  for (auto celln : cellVolumeList)
+  {
+    vlist.push_back(double(celln.second.size()));
+  }
+  return vlist;
 }
 
 
@@ -5616,27 +5625,131 @@ void CellularPotts::adjustPerimeters()
 
 	// shorter way to do this: see if any of the chunk sites need to be added to the perimeter
 	// run through all old perimeter sites and if they no longer need to be part of the perimeter, erase them from cellPerimeterList
+  cellPerimeterList.clear();
   for (auto n : cellVolumeList)
   {
     int celln = n.first;
-		cellPerimeterList[celln].clear();
+		// cellPerimeterList[celln].clear();
     for( std::set< std::pair<int, int> >::const_iterator it = cellVolumeList[celln].begin(); it!= cellVolumeList[celln].end(); ++it)
     {
-      int i = it->first;
-      int j = it->second;
+      int x = it->first;
+      int y = it->second;
       // cout << i << '\t' << j << '\t' << celln << '\t' << sigma[i][j] << endl;
-      if(sigma[i][j] != celln )
-          printf("\nproblem, we have a cell site that thinks it's not in the cell: (%d, %d)", i, j);
+      if(sigma[x][y] != celln )
+          printf("\nproblem, we have a cell site that thinks it's not in the cell: (%d, %d)", x, y);
 
-      // accounting for periodic boundaries
-      if( sigma[i][j]!=sigma[(i+1)%sizex][j] || sigma[i][j]!=sigma[i][(j+1)%sizey] ||
-          sigma[i][j]!=sigma[(sizex+i-1)%sizex][j] || sigma[i][j]!=sigma[i][(sizey+j-1)%sizey] )
+      for (int i=1;i<=n_nb;i++) 
       {
-        cellPerimeterList[celln].insert( std::make_pair(i, j) );
+        int xp2,yp2;
+        xp2=x+nx[i]; yp2=y+ny[i];
+        if (par.periodic_boundaries)
+        {
+          // since we are asynchronic, we cannot just copy the borders once 
+          // every MCS
+          
+          if (xp2<=0)
+            xp2=sizex-2+xp2;
+          if (yp2<=0)
+            yp2=sizey-2+yp2;
+          if (xp2>=sizex-1)
+            xp2=xp2-sizex+2;
+          if (yp2>=sizey-1)
+            yp2=yp2-sizey+2;
+        
+          // neighsite=sigma[xp2][yp2];
+          if (sigma[x][y]!=sigma[xp2][yp2])  
+          {
+            cellPerimeterList[celln].insert( std::make_pair(x, y) );
+            break;
+          }
+        }
+        else
+        {
+          if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+          {
+            // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+            continue;
+          }
+          else if (sigma[x][y]!=sigma[xp2][yp2])  
+          {
+            cellPerimeterList[celln].insert( std::make_pair(x, y) );
+            break;
+          }
+        } 
       }
     }
 	}
 }
+
+
+vector<double> CellularPotts::TruePerimeters()
+{
+  //  See Magno et al (2015) BMC biophysics for correction factor.
+  int neigh_level=2; // (using n_nb)
+  double correction=3.;
+
+  vector<double> toreturn;
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      int perim_length{};
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+              continue;
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          } 
+        }
+      }
+      double correted_perim = perim_length / correction; 
+      toreturn.push_back(correted_perim);      
+    }
+  }  
+  return toreturn;
+}
+
+
 
 
 
@@ -5672,7 +5785,8 @@ vector<double> CellularPotts::measureAnisotropy()
         dx=xf-xi-sizex*(int)floor((float)(xf-xi)/(float)sizex+0.499);
         dy=yf-yi-sizey*(int)floor((float)(yf-yi)/(float)sizex+0.499);
         dist=dx*dx+dy*dy;
-        if(dist>distmax){
+        if(dist>distmax)
+        {
           distmax=dist;
           distind[0]=xi;
           distind[1]=xf;

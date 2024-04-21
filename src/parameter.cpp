@@ -318,9 +318,9 @@
     n_MF = 2;
 
     //min J if all cell-cell are paired
-    minJ = 1;
+    minJ = 4;
     // max J if all cell-cell are not paired
-    maxJ = 3;
+    maxJ = 20;
     // min J with medium if all proteins are on
     minM = 6;
 
@@ -386,7 +386,7 @@
     /// Dom has deprecated. 
     Jtable = strdup("J.dat");
 
-    // keep this at 2-3
+    // keep this at 2= moore neighbourhood. 2 used in simulations. 
     neighbours = 2;
     // high value ensures cells are never broken apart by copy attempts.
     conn_diss = 2000;

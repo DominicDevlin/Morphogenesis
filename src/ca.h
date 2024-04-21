@@ -356,6 +356,10 @@ public:
   // must be done after adjusting volumes
   void adjustPerimeters();
 
+ vector<double> TruePerimeters();
+
+ vector<double> GetVolumes();
+
   
   vector<double> measureAnisotropy();
 
