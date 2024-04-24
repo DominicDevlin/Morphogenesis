@@ -37,10 +37,10 @@
     //basic grid parameters. 
     sizex = 150;
     sizey = 150;
-    mcs = 10100;
+    mcs = 12100;
 
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -318,9 +318,9 @@
     n_MF = 2;
 
     //min J if all cell-cell are paired
-    minJ = 4;
+    minJ = 10;
     // max J if all cell-cell are not paired
-    maxJ = 20;
+    maxJ = 10;
     // min J with medium if all proteins are on
     minM = 6;
 

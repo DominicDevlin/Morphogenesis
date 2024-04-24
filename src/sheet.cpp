@@ -156,7 +156,6 @@ TIMESTEP {
       double avg{};
       for (int i = 0; i < tperims.size(); ++i)
       {
-        cout << tperims.size() << '\t' << volumes.size() << endl;
         double sindex = tperims[i] / sqrt(volumes[i]);
         // cout << i << '\t';
         avg+=sindex;
