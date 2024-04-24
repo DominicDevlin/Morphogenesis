@@ -1073,6 +1073,9 @@ protected:
 
   double EnDif(Cell &cell2);
 
+  double SheetDif(Cell &cell2);
+
+
 
   // static int maxsigma; // the last cell identity number given out, Dom removed
   double fitness{};

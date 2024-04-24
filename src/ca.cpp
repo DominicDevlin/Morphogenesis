@@ -305,7 +305,9 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
       // UP TO HERE!
       // DH += (*cell)[sxyp].CalculateJfromKeyLock((*cell)[neighsite].get_locks_bool(), (*cell)[neighsite].get_keys_bool()) 
       // - 
-      if (tsteps < par.end_program)
+      if (par.sheet)
+        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite]) - (*cell)[sxy].SheetDif((*cell)[neighsite]);
+      else if (tsteps < par.end_program)
         DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
       else
         DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
@@ -1848,112 +1850,102 @@ double CellularPotts::Compactness(double *res_compactness, double *res_area, dou
 
 void CellularPotts::CellGrowthAndDivision(int time) 
 {
-  if (CountCells() < par.max_cells)
-  {
-    vector<bool> which_cells(cell->size());
+  vector<bool> which_cells(cell->size());
+
+  int cell_division=0;
   
-    int cell_division=0;
-    
-    vector<Cell>::iterator c;
-    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
     {
-      if (c->AliveP())
+      // if (c->Area()==1)
+      // {
+      //   int sig = c->Sigma();
+      //   for (int i=0;i<sizex;i++)
+      //     for (int j=0;j<sizey;j++)
+      //     {
+      //       if (sigma[i][j]==sig)
+      //       {
+      //         sigma[i][j]==0;
+      //       }
+      //     }
+      //     c->Apoptose();
+      //     cout << "apoptosing new way" << endl;
+      // }
+
+      int TA = c->TargetArea();
+      int area = c->Area();
+      int gthresh = par.gthresh;
+      int sthresh=par.shrink;
+
+      // if (c->get_stem())
+      //   gthresh = par.stem_gthresh;
+      // else
+      //   gthresh = par.gthresh;
+
+      if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
       {
-        // if (c->Area()==1)
-        // {
-        //   int sig = c->Sigma();
-        //   for (int i=0;i<sizex;i++)
-        //     for (int j=0;j<sizey;j++)
-        //     {
-        //       if (sigma[i][j]==sig)
-        //       {
-        //         sigma[i][j]==0;
-        //       }
-        //     }
-        //     c->Apoptose();
-        //     cout << "apoptosing new way" << endl;
-        // }
-
-        int TA = c->TargetArea();
-        int area = c->Area();
-        int gthresh = par.gthresh;
-        int sthresh;
-
-        // if (c->get_stem())
-        //   gthresh = par.stem_gthresh;
-        // else
-        //   gthresh = par.gthresh;
-
-        if (c->get_shrink())
-          sthresh = par.s_shrink;
-        else
-          sthresh = par.shrink;
-
-
-
-        if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
+        int count= area-TA; //area-TA;
+        while (count>0)
         {
-          int count= area-TA; //area-TA;
-          while (count>0)
-          {
-            c->IncrementTargetArea();
-            --count;
-          }
-        }
-        else if ( (area-TA)<sthresh ) 
-        {
-          int count=TA-area;
-          while (c->TargetArea() > 0 && count > 0)
-          {
-            c->DecrementTargetArea();
-            --count;
-          }
-        }
-        else if (area < 3)
-        {
-          c->SetTargetArea(0);
-          c->set_lambda(100);
-        }
-        // else if (area > (double)(par.div_threshold) * 1.1)
-        // {
-        //   c->DecrementTargetArea();
-        // }   
-        
-        if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
-        {
-          
-          // int count=0;
-          // if (!par.all_divide)
-          // {
-          //   vector<double> &genes = c->get_genes();
-
-          //   int i = par.n_diffusers + par.n_MF;
-          //   int k = i + par.n_stem;
-          //   while (i < k)
-          //   {
-          //     if (genes[i] > 0.5)
-          //       ++count;
-          //     ++i;
-          //   }
-          // }
-          // // only divide cells if they have stem cell genes on
-          // // divide all cells on the rare case that there area is too large. 
-          // if (count == par.n_stem || area > (double)(par.div_threshold) * 1.5) 
-          // {
-          which_cells[c->Sigma()]=true;
-          cell_division++;
-
-          // }
+          c->IncrementTargetArea();
+          --count;
         }
       }
+      else if ( (area-TA)<sthresh ) 
+      {
+        int count=TA-area;
+        while (c->TargetArea() > 0 && count > 0)
+        {
+          c->DecrementTargetArea();
+          --count;
+        }
+      }
+      else if (area < 3)
+      {
+        c->SetTargetArea(0);
+        c->set_lambda(100);
+      }
+      // else if (area > (double)(par.div_threshold) * 1.1)
+      // {
+      //   c->DecrementTargetArea();
+      // }   
+      
+      if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+      {
+        
+        // int count=0;
+        // if (!par.all_divide)
+        // {
+        //   vector<double> &genes = c->get_genes();
+
+        //   int i = par.n_diffusers + par.n_MF;
+        //   int k = i + par.n_stem;
+        //   while (i < k)
+        //   {
+        //     if (genes[i] > 0.5)
+        //       ++count;
+        //     ++i;
+        //   }
+        // }
+        // // only divide cells if they have stem cell genes on
+        // // divide all cells on the rare case that there area is too large. 
+        // if (count == par.n_stem || area > (double)(par.div_threshold) * 1.5) 
+        // {
+        which_cells[c->Sigma()]=true;
+        cell_division++;
+
+        // }
+      }
     }
-    // Divide scheduled cells
-    if (cell_division) 
-    {
-      DivideCells(which_cells, time);
-    }
-    //Function that partitions the TF by polarity (mother, daughter, neither) is in divide cells 
   }
+  // Divide scheduled cells
+  if (cell_division) 
+  {
+    DivideCells(which_cells, time);
+  }
+  //Function that partitions the TF by polarity (mother, daughter, neither) is in divide cells  
 }
 
 
@@ -2075,6 +2067,7 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene)
 
 void CellularPotts::Programmed_Division(void)
 {
+
   vector<bool> to_divide = divide_vector();
   int n_cells = CountCells();
   
@@ -2093,7 +2086,6 @@ void CellularPotts::Programmed_Division(void)
       }
     }
     xyCellDivision(id, true);
-
     vector<vector<int>> middles;
 
     for ( (i=cell->begin(),i++); i!=cell->end(); i++)
@@ -2109,7 +2101,7 @@ void CellularPotts::Programmed_Division(void)
   else if (n_cells < 4)
   {
     // DivideCells(to_divide);  
-    
+
     vector<int> id_list{};
     vector<Cell>::iterator i; 
     for ( (i=cell->begin(),i++); i!=cell->end(); i++)

@@ -34,6 +34,11 @@
 
   Parameter::Parameter()
   {
+    //basic grid parameters. 
+    sizex = 150;
+    sizey = 150;
+    mcs = 12100;
+
     // show on screen
     graphics = true;
     // show morphogen gradients
@@ -68,9 +73,6 @@
     // read genomes from file
     file_genomes = true;
 
-    //name of data file
-    data_file = "org-data";
-
     //record shape index of cells
     record_shape = false;
 
@@ -84,34 +86,225 @@
     // KEEP THIS TO FALSE FOR EVOLUTION
     print_fitness = true; 
 
+
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
     start_matrix = { { 0, 0, -2, 2, -1, 1 }, { 1, 1, 0, 0, 1, -1 }, { 0, 0, -2, 0, 2, -1 }, { 2, 1, -1, 1, 0, 0 }, { 1, 1, 0, 1, 0, 1 }, { 0, 0, 0, -1, 0, 1 }, { 0, 0, -1, -2, 0, 0 }, { 0, -1, 0, -1, 0, 1 }, { 0, 0, -1, -2, -1, 2 }, { 0, 0, 0, 1, 0, 0 }, { -1, -2, 1, 0, 0, 0 }, { -2, 2, 1, 2, -2, 1 }, };
 
 
+/* sheet related parameters */
+    sheet=false;
+    sheet_J = 2;
 
-/* Cellular Potts parameters */
-    sizex = 150;
-    sizey = 150;
-    mcs = 3100;
+    //waiting time
+    waiting_time = 2000;
+    equilibriate = 2000;
+
+
+
+
+    n_orgs = 60; // should be multiple of 4, 60 used for evolution
+    n_replicates = 2;
+    // edges and nodes only at end of simulation (always true).
+    potency_edges = true;
+    // what mcs to start measuring adult types & differentiation. set to 6000 for all results
+    adult_begins = 8000;
+
+    // scramble cells
+    scramble = false;
+    // flat threshold for nodes
+    node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
+
+    // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
+    prune_edges = false;
+    
+    prune_amount = 6;
+
+    cycle_check = false;
+
+    // DEPRACATED - prune nodes below this percent. Should probably set this as a minimum value (i.e. 10 cells equivalent)
+    // using node threshold above
+    node_percent = 0.03;
+
+/*Conditions for evolution */
+    // select for movement of cells towards one side of the boundary.
+    asymmetry_selection = false; 
+    asym_only = false;
+    swap_selection = 240.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
+    // start from a certain network
+    growth_selection=false;
+    elongation_selection = false;
+    starter = false;
+    
+    
+    start_n = { { 0, -1, 0, 0, 2, -1 }, { 0, 0, 2, 0, 0, 0 }, { 0, 0, 1, 2, 0, 2 }, { -1, 0, -1, 1, 0, 0 }, { -1, 0, 2, 1, 0, 0 }, { -1, -2, 2, 2, 1, 0 }, { 0, 0, 0, 0, 0, 0 }, { -1, 0, 0, -1, 0, 0 }, { -1, 2, 1, 0, 2, 0 }, { -1, 0, 2, 0, -1, 0 }, { -1, 0, 0, 0, 0, 0 }, { 2, 1, 0, -1, 1, -1 }, { 1, -2, 0, 2, 1, 1 }, { -2, 0, 0, 2, 2, 0 }, { 1, 0, -1, 0, 1, 0 }, { 1, 0, -1, 0, 0, 1 }, { 1, -2, -1, 0, -1, -1 }, { 0, 0, 0, -1, 0, 1 }, { 0, 1, 1, 0, 0, 1 }, { 0, 2, 0, 2, -1, -1 }, { 0, -1, -1, 2, 0, 1 }, { 1, -1, 0, 1, 0, 0 }, { 1, 0, 0, -2, 0, 0 }, { 1, 0, 0, 1, 1, -1 }, };
+
+    evo_pics = false;
+    pic_gen_interval = 100;
+  
+
+    evs = 10000;
+    insert_randoms = true;
+    n_mutations = 1;
+    // mut rate for gene network
+    mut_rate = 0.5;
+    // mutation rate for polarities
+    polm_rate = 0.2;
+    n_pred = n_orgs / 2;
+
+
+    // init params for organisms
+    target_area = 4900;
+    size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
+    n_init_cells = 1;
+    divisions = 0;
+
+
+    // record copies
+    // recordcopies = true;
+    // mintype = 1300;
+    // maxtype = 2000;
+
+
+    // gene network update frequency
+    update_freq = 40;
+
+    //programmed division parameters
+    end_program = 1600;
+    begin_network = 75;
+    div_freq = 50;
+    // begin_movement=1200;
+    program_its = 8; // we are doing more PDE iterations during the program. 
+    div_end = 250;
+
+    // add noise to regulatory network 
+    noise = false;
+    // noise amount
+    noise_dose=0.1;
+    noise_start = 6500;
+
+    //set specific colours
+    set_colours = true;
+    use_colour_index = true;
+    colour_index = { {115179, 48}, {123010, 45}, {123011, 253}, {115587, 41}, {106627, 20}, {115123, 10}, {106626, 32}, {124035, 31}, {107650, 35}, {108034, 252}, {115151, 26}, {123043, 255}, {107651, 251}, {115075, 250}, {107010, 249}, {123779, 36}, {115079, 33}, {108163, 42}, {123267, 28}, {115087, 29}, {124291, 34}, {124803, 37}, {115127, 16}, {108162, 40}, {115183, 30}, {115199, 21}, {119095, 6}, {123107, 254}, {115083, 25}, {124547, 39}, {115107, 43}, {115135, 22}, {107138, 38}, {114999, 12}, };
+
+
+    //record location of cell divisions
+    division_anisotropy = false;
+
+    //waiting time
+    waiting_time = 2000;
+    equilibriate = 2000;
+
+
+    // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
+    // NOTE - MUST RUN with tag: "-platform offscreen" when using cluster (there is no display).
+    overlap_images = false;
+    overlap_orgs = 10;
+    // true = compare different genomes, false = compare same genomes
+    between_org_overlap = false;
+    // do translations
+    translation = true;
+    t_interval = 10;
+    nt_intervals = 5;
+
+
+    // DEPRACATED: let all cells be capable of cell division. MUST BE FALSE FOR stem cell evolution testing. False promotes stem cell evolution?
+    all_divide = true;
+
+    //name of data file
+    data_file = "org-data";
+
+    //count stem and differentiated cells
+    stem_counts = false;
+
+    count_bud_cells = false;
+
+    // print single cell proteins
+    single_cell = true;
+    // the phenotype number to return
+    single_type = 350;
+    // start all cells from "single state" initial condition for ex vivo
+    flush_cells = true;
+   // turn all cells into this state at beginning of development
+    flush_states = { 4.64542e-09, 1, 0.692659, 1, 1, 5.10909e-12, 6.54489e-28, 3.35757e-22, 1.34902e-36, 0.999999, 1.72289e-16, 1, 6.20555e-07, 1.16941, 0.829774,  };
+
+
+    // convert cells at certain time point to square with radius as shown (radius is half length of square).
+    convert_cells = false;
+    convert_time = 3000;
+    choose_alive_cell = false;
+    convert_x = 45;
+    convert_y = 125;
+    convert_size = 25;
+    clear_radius = 40;
+    convert_to_type = 97539;
+    convert_states = { 0.00289074, 2.95394e-32, 4.73742e-06, 0.993102, 0.993102, 4.00988e-09, 0.993101, 0.00231804, 0.678508, 0.992729, 0.993101, 0.542056, 0.993102, 0.993102, 0.992443, 0.993102, 6.89652e-12, 0.00205639, 0.00223481, 6.97606e-12, 1.37808e-20, 0.993101, 0.512162, 0.538056, 3.55936e-09, 3.39506e-09, 0.00218893, 0.0127123, 6.26531e-11, 0.00402398,  };
+
+   
+
+
+    // used to make a sheet of cells. Use in combination with flush_cells and convert cells
+    make_sheet=false;
+    sheetx=250;
+    sheety=100;
+    triangle_x=175;
+    triangle_y=75;
+
+
+    // limit morphogen to amount (prevents differentiation in some ex vivo organisms)
+    limit_morph = false;
+    limit_amount = 0.8;
+
+
+    hold_morph_constant = false;
+
+    // print list of concentrations, one for each cell type (used for future input)
+    print_type_concentrations = true;
+
+    // print initial cell protein concentrations
+    output_init_concs = false;
+
+
+    // when to collect fitness
+    fitness_begin = 0.9;
+    // frequency of time steps fitness is collected
+    fitness_typerate = 100;
+    
+
+    // Basic Cellular Potts parameters
+    // eT = 3; // temperature during programmed divisions 
+    // lT = 3; // temperature during development
     T = 3;
     target_length = 0;
     lambda = 0.5;
     lambda2 = 0;
+
+
+    // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
+    tlength1 = 3;
+    tlength2 = 2;
+
+
+    //growing and dividng
+    max_cells = 500;
     div_threshold = 100;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
-  
+    
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     shrink = -16;
+    s_shrink = -16;
     shrink_on = false;
-    periodic_boundaries = false;
-    // keep this at 2= moore neighbourhood. 2 used in simulations. 
-    neighbours = 2;
-    // high value ensures cells are never broken apart by copy attempts.
-    conn_diss = 2000;
 
-/* adhesion params */
-   
+
+    // Number of morphogens, Does changes depending on sim
+    n_diffusers = 3;
+
+    // enzymes that can break down the morphogen
+    enzymes = false;
+
+    // gene network parameters
+    
     n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
     n_locks = n_lockandkey / 2; // must be half lockandkey. 
     
@@ -129,17 +322,14 @@
 
     // number of transcription factors.
     n_TF = 1; 
-
-    // morphogens
-    n_diffusers = 3;
     
     n_length_genes = 0;
     n_MF = 2;
 
     //min J if all cell-cell are paired
-    minJ = 4;
+    minJ = 10;
     // max J if all cell-cell are not paired
-    maxJ = 20;
+    maxJ = 10;
     // min J with medium if all proteins are on
     minM = 6;
 
@@ -148,11 +338,17 @@
     // addition of J for each lock and key pair
     interval2 = interval1 / (double)n_lockandkey;
 
+
     // number of genes. All gene types must sum to this value (except if using morphogenwave, then activators is +1).
     n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers); 
+
     n_activators = n_diffusers + n_TF+n_MF; //number of genes that can activate network (<= n_genes)
+
+    
     n_functional = n_lockandkey + n_length_genes + n_mediums;
+
     gene_vector_size = n_diffusers + n_TF + n_length_genes +n_MF + n_gr + n_in + shrink_on + (enzymes * n_diffusers);
+
     // location of target length genes in genome. 
     tloc1 = n_diffusers + n_MF + n_TF;
     tloc2 = tloc1+1;
@@ -161,200 +357,8 @@
 
     e1_loc=shrink_loc+1;
     e2_loc=e1_loc+1;
-    e1_loc=shrink_loc+1;
-    e2_loc=e1_loc+1;
 
 
-/* sheet related parameters */
-    sheet=false;
-    sheet_J = 8;
-
-    //waiting time
-    waiting_time = 2000;
-    equilibriate = 2000;
-
-
-
-/* differentiation parameters */
-
-    // edges and nodes only at end of simulation (always true).
-    potency_edges = true;
-    // what mcs to start measuring adult types & differentiation. set to 6000 for all results
-    adult_begins = 8000;
-
-    // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
-    prune_edges = false;
-    prune_amount = 6;
-
-    cycle_check = false;
-
-    // flat threshold for nodes
-    node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
-
-    // DEPRACATED - prune nodes below this percent. Should probably set this as a minimum value (i.e. 10 cells equivalent)
-    // using node threshold above
-    node_percent = 0.03;
-
-    cycle_size = 8; // number of past states held by a cell for determining cell types. Selecting against cycling cell types. 
-    cycle_threshold = 1; // Dom thinks it is okay to increase this from 2 to 3.  Change back if needed.   
-
-
-
-/*Conditions for evolution */
-    // select for movement of cells towards one side of the boundary.
-    asymmetry_selection = false; 
-    asym_only = false;
-    swap_selection = 240.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
-    // start from a certain network
-    growth_selection=false;
-    elongation_selection = false;
-    starter = false;
-    n_orgs = 60; // should be multiple of 4, 60 used for evolution
-
-    start_n = { { 0, -1, 0, 0, 2, -1 }, { 0, 0, 2, 0, 0, 0 }, { 0, 0, 1, 2, 0, 2 }, { -1, 0, -1, 1, 0, 0 }, { -1, 0, 2, 1, 0, 0 }, { -1, -2, 2, 2, 1, 0 }, { 0, 0, 0, 0, 0, 0 }, { -1, 0, 0, -1, 0, 0 }, { -1, 2, 1, 0, 2, 0 }, { -1, 0, 2, 0, -1, 0 }, { -1, 0, 0, 0, 0, 0 }, { 2, 1, 0, -1, 1, -1 }, { 1, -2, 0, 2, 1, 1 }, { -2, 0, 0, 2, 2, 0 }, { 1, 0, -1, 0, 1, 0 }, { 1, 0, -1, 0, 0, 1 }, { 1, -2, -1, 0, -1, -1 }, { 0, 0, 0, -1, 0, 1 }, { 0, 1, 1, 0, 0, 1 }, { 0, 2, 0, 2, -1, -1 }, { 0, -1, -1, 2, 0, 1 }, { 1, -1, 0, 1, 0, 0 }, { 1, 0, 0, -2, 0, 0 }, { 1, 0, 0, 1, 1, -1 }, };
-
-    evo_pics = false;
-    pic_gen_interval = 100;
-  
-    evs = 10000;
-    insert_randoms = true;
-    n_mutations = 1;
-    // mut rate for gene network
-    mut_rate = 0.5;
-    // mutation rate for polarities
-    polm_rate = 0.2;
-    n_pred = n_orgs / 2;
-    min_contig = 25;
-
-    // when to collect fitness
-    fitness_begin = 0.9;
-    // frequency of time steps fitness is collected
-    fitness_typerate = 100;
-
-
-
-/* init conditions and so forth */
-    // init params for organisms
-    target_area = 4900;
-    size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
-    n_init_cells = 1;
-    divisions = 0;
-
-    //programmed division parameters
-    end_program = 1600;
-    begin_network = 75;
-    div_freq = 50;
-    // begin_movement=1200;
-    program_its = 8; // we are doing more PDE iterations during the program. 
-    div_end = 250;
-
-/* GRN */
-    update_freq = 40;
-
-    // add noise to regulatory network 
-    noise = false;
-    // noise amount
-    noise_dose=0.1;
-    noise_start = 6500;
-
-    theta = -0.3;
-    delta_t = 0.25;
-    d_rate = 1;
-
-    // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
-    tlength1 = 3;
-    tlength2 = 2;
-
-
-
-
-
-
-
-    // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
-    // NOTE - MUST RUN with tag: "-platform offscreen" when using cluster (there is no display).
-    overlap_images = false;
-    overlap_orgs = 10;
-    // true = compare different genomes, false = compare same genomes
-    between_org_overlap = false;
-    // do translations
-    translation = true;
-    t_interval = 10;
-    nt_intervals = 5;
-    n_replicates = 2;
-
-    /* colours */
-    set_colours = true;
-    use_colour_index = true;
-    colour_index = { {115179, 48}, {123010, 45}, {123011, 253}, {115587, 41}, {106627, 20}, {115123, 10}, {106626, 32}, {124035, 31}, {107650, 35}, {108034, 252}, {115151, 26}, {123043, 255}, {107651, 251}, {115075, 250}, {107010, 249}, {123779, 36}, {115079, 33}, {108163, 42}, {123267, 28}, {115087, 29}, {124291, 34}, {124803, 37}, {115127, 16}, {108162, 40}, {115183, 30}, {115199, 21}, {119095, 6}, {123107, 254}, {115083, 25}, {124547, 39}, {115107, 43}, {115135, 22}, {107138, 38}, {114999, 12}, };
-
-
-    //record location of cell divisions
-    division_anisotropy = false;
-
-
-
-    //count stem and differentiated cells
-    stem_counts = false;
-
-    count_bud_cells = false;
-
-    // print single cell proteins
-    single_cell = true;
-    // the phenotype number to return
-    single_type = 350;
-    // start all cells from "single state" initial condition for ex vivo
-    flush_cells = true;
-   // turn all cells into this state at beginning of development
-    flush_states = { 4.64542e-09, 1, 0.692659, 1, 1, 5.10909e-12, 6.54489e-28, 3.35757e-22, 1.34902e-36, 0.999999, 1.72289e-16, 1, 6.20555e-07, 1.16941, 0.829774,  };
-
-
-
-    // convert cells at certain time point to square with radius as shown (radius is half length of square).
-    convert_cells = false;
-    convert_time = 3000;
-    choose_alive_cell = false;
-    convert_x = 45;
-    convert_y = 125;
-    convert_size = 25;
-    clear_radius = 40;
-    convert_to_type = 97539;
-    convert_states = { 0.00289074, 2.95394e-32, 4.73742e-06, 0.993102, 0.993102, 4.00988e-09, 0.993101, 0.00231804, 0.678508, 0.992729, 0.993101, 0.542056, 0.993102, 0.993102, 0.992443, 0.993102, 6.89652e-12, 0.00205639, 0.00223481, 6.97606e-12, 1.37808e-20, 0.993101, 0.512162, 0.538056, 3.55936e-09, 3.39506e-09, 0.00218893, 0.0127123, 6.26531e-11, 0.00402398,  };
-   
-    // print list of concentrations, one for each cell type (used for future input)
-    print_type_concentrations = true;
-
-    // print initial cell protein concentrations
-    output_init_concs = false;
-
-    // used to make a sheet of cells. Use in combination with flush_cells and convert cells
-    make_sheet=false;
-    sheetx=250;
-    sheety=100;
-    triangle_x=175;
-    triangle_y=75;
-
-
-    // limit morphogen to amount (prevents differentiation in some ex vivo organisms)
-    limit_morph = false;
-    limit_amount = 0.8;
-
-    morphogen_dose = 40.;
-
-    hold_morph_constant = false;
-    // scramble cells
-    scramble = false;
-
-    // record copies
-    // recordcopies = true;
-    // mintype = 1300;
-    // maxtype = 2000;
-
-    // DONT TOUCH!
-    vecadherinknockout = false;
-    extensiononly = false;
-    chemotaxis = 0;
-    border_energy = 1;//1000
 
 
     // n_gr = 1; // increment target area of cell (growth gene)
@@ -362,29 +366,58 @@
     // gloc = tloc2 + 1;
     // + n_gr + n_in // add to n_genes
     // stem_gthresh = 2; // going to have a lower growth threshold for stem cells. 
+    n_stem = 2; // not in use
+
 
     // maximum number of somatic genes on before a cell cannot divide. HAVE CHANGED THIS TO TF GENES
     // max_on = 3;
     
+    cycle_size = 8; // number of past states held by a cell for determining cell types. Selecting against cycling cell types. 
+    cycle_threshold = 1; // Dom thinks it is okay to increase this from 2 to 3.  Change back if needed.   
+
+
     // start concentrations are (in order): diffusers(external), maternal factors, 
     // transcription factors, target length genes  -- the other networks hold lock then keys --
 
     // dont need this if starting all at 0. However, TF need to start at 1 to have some input into network for MF 0,0, otherwise will always be single cells at beginning.
     // new_g = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // 
 
-    /* morphogens */
-    // I have defined separate rates for each diffuser, however they are the same for now.
+    theta = -0.3;
+    delta_t = 0.25;
+    d_rate = 1;
+
+    morphogen_dose = 40.;
+
+
+    min_contig = 25;
+
+
+    /// Dom has deprecated. 
+    Jtable = strdup("J.dat");
+
+    // keep this at 2= moore neighbourhood. 2 used in simulations. 
+    neighbours = 2;
+    // high value ensures cells are never broken apart by copy attempts.
+    conn_diss = 2000;
+
+    // DONT TOUCH!
+    vecadherinknockout = false;
+    extensiononly = false;
+    chemotaxis = 0;
+    border_energy = 1;//1000
+    periodic_boundaries = false;
+
+    // PDE field parameters. I have defined separate rates for each diffuser, however they are the same for now.
     // This may change in the future if I make one an evolvable parameter. 
     n_chem = 0; // Dom not currently using, instead using n_diffusers
 
+
+    // Do not need to allocate memory from these because not calling from file (memory always allocated regardless, no need for pointer); 
     
     diff_coeff = new double[n_diffusers];
     decay_rate = new double[n_diffusers];
     secr_rate = new double[n_diffusers];
 
-    
-    subfield = 1.0;
-    relaxation = 0;
 
     saturation = 0;
     dt = 1.0;
@@ -410,25 +443,48 @@
       secr_rate[2] = 2.4e-3;
       
       // Morphogens with shorter range 
+
       // diff_coeff[2] = 8e-7;
       // decay_rate[2] = 5e-3;
       // secr_rate[2] = 5.5e-3;
 
+
       // Morphogens with longer range
+
       // diff_coeff[2] = 4e-6;
       // decay_rate[2] = 1e-3;
       // secr_rate[2] = 1.5e-3;
 
 
     }
-    // enzymes that can break down the morphogen
-    enzymes = false;
 
-    // DEPRACATED: let all cells be capable of cell division.
-    all_divide = true;
+
+    // morphogen wave at the end of programmed division. 
+    // The morphogen occupies a hidden spot at the back of the cell "genes" vector. This allows it to decay but not be increased.
+    // Depracated
+    morphogen = false;
+
+
     // polarity matrix. Used for transcription factors being at one side of the cell upon reproduction. Depracated 
     start_polarity = { 0, 0, 0, 0 };
     polarity_on = false;
+
+    // n_chem = 1;
+    // diff_coeff = new double[1];
+    // diff_coeff[0] = 0.5e-13;
+    // decay_rate = new double[1];
+    // decay_rate[0] = 1.2e-4;
+    // secr_rate = new double[1];
+    // secr_rate[0] = 0.5e-4;
+    // saturation = 0;
+    // dt = 2.0;
+    // dx = 2.0e-6;
+    // pde_its = 15;
+
+
+    
+    subfield = 1.0;
+    relaxation = 0;
 
     // storing images.
     storage_stride = 500;
@@ -437,9 +493,6 @@
 
 
     datadir = strdup("data_film");
-
-      /// Dom has deprecated. 
-      Jtable = strdup("J.dat");
   }
 
   Parameter::~Parameter() {

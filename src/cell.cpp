@@ -243,8 +243,18 @@ double Cell::EnDif(Cell &cell2)
     return 30;
   else
     return 40;
-  
 }
+
+
+double Cell::SheetDif(Cell &cell2)
+{
+  if (sigma==cell2.sigma) 
+    return 0;
+
+  return par.sheet_J;
+
+}
+
 
 
 // return energies by calculating lock & key products switched on by cells. 

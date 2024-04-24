@@ -93,6 +93,8 @@ class Parameter {
   int convert_to_type;
   int clear_radius;
 
+  bool sheet;
+  double sheet_J;
 
   bool file_genomes;
   bool overlap_images;

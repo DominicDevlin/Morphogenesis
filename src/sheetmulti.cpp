@@ -50,6 +50,8 @@ INIT
     CPM->FillGrid();
     CPM->ConstructInitCells(*this);
 
+    par.sheet=true;
+    par.periodic_boundaries=true;
 
     if (par.velocities)
       par.output_sizes = true;
@@ -94,60 +96,22 @@ void process_population(vector<vector<vector<int>>> &network_list, vector<vector
     dishes[i].CPM->set_num(i + 1);
     // does init block above.
     dishes[i].Init();
-    
 
     int t;
-    dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
-
 
     for (t = 0; t < par.mcs; t++)
-    {
-
-      // record initial expression state. This occurs before any time step updates. 
-      if (t == 0)
+    {              
+      if (par.velocities)
       {
-        if (par.flush_cells)
-        {
-          dishes[i].CPM->SetAllStates();
-          dishes[i].PDEfield->FlushGrid();
-        }
-
+        dishes[i].CPM->RecordMasses();
       }
-        
-      
-      {
-        if (t % par.update_freq == 0)
-        {
-          dishes[i].CPM->update_network(t);
-          if (par.noise && t > par.noise_start)
-            dishes[i].CPM->add_noise();
-            
-          dishes[i].AverageChemCell(); 
 
-        }
-        
-        if (par.velocities)
-        {
-          dishes[i].CPM->RecordMasses();
-        }
+      // if (par.output_sizes)
+      // {
+      //   dishes[i].CPM->RecordSizes();
+      // }
 
-        // if (par.output_sizes)
-        // {
-        //   dishes[i].CPM->RecordSizes();
-        // }
-
-        // for (int r=0;r<par.pde_its;r++) 
-        // {
-        //   dish->PDEfield->Secrete(dish->CPM);
-        //   dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
-        // }
-
-
-        // dish->CPM->CellGrowthAndDivision(t);
-      }
       dishes[i].CPM->AmoebaeMove(t);
-      if (t%5000==0)
-        cout << t << endl;
     }
   }
 
@@ -254,22 +218,6 @@ int main(int argc, char *argv[]) {
     par.interval2 = par.interval1 / (double)par.n_lockandkey;
     process_population(networks, polarities);
   }
-
-  
-
-
-  
-
-  // make initial random networks. 
-  // vector<vector<vector<int>>> networks{};
-  // vector<vector<bool>> polarities{};
-  // for (int i=0;i<par.n_orgs;++i)
-  // {
-  //     networks.push_back(par.start_matrix);
-  //     polarities.push_back(start_p);
-  // }
-
-  // process_population(networks, polarities);
 
   // finished
   par.CleanUp();

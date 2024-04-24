@@ -119,7 +119,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (t == par.end_program)
       {
         dishes[i].CPM->CopyProb(par.lT); // normal temperature for normal development timing. 
-        par.T = par.lT;
       } 
       // PROGRAMMED CELL DIVISION SECTION
       if (t < par.end_program)

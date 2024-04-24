@@ -65,8 +65,6 @@ INIT
     CPM->FillGrid();
     CPM->ConstructInitCells(*this);
 
-    par.sheet=true;
-    par.periodic_boundaries=true;
 
     if (par.velocities)
       par.output_sizes = true;
@@ -77,10 +75,14 @@ INIT
 
 
     CPM->FractureSheet();
+
+
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
 
+    CPM->start_network(par.start_matrix, par.start_polarity);
+    par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
 
     if (par.set_colours)
     {
@@ -96,6 +98,7 @@ INIT
         cout << "data_film created." << endl;       
     }
 
+    
   } 
   catch(const char* error) 
   {
@@ -120,22 +123,29 @@ TIMESTEP {
       cout << "calling init" << endl;
       dish->Init();
       dish->CPM->CopyProb(par.T);
+      
     }
-
-    //equilibriate cells with high T
-    // if (t < 100)
-    // {
-    //   dish->CPM->CopyProb(par.T*4);
-    // }
-    
-    // if (t==100)
-    //   dish->CPM->CopyProb(par.T);
-
 
     static Info *info=new Info(*dish, *this);
     
+    // record initial expression state. This occurs before any time step updates. 
+    if (t == 1)
+    {
+      if (par.flush_cells)
+      {
+        dish->CPM->SetAllStates();
+        dish->PDEfield->FlushGrid();
+      }
+      if (par.gene_output)
+        dish->CPM->record_GRN();
 
-    static vector<double> shape_index;
+      if (par.output_init_concs)
+        dish->CPM->OutputInitConcs();
+
+      // if (par.record_shape)
+      //   dish->CPM->initVolume();
+    }
+
     if (t % 1000 == 0 && t > 0)
     {
       dish->CPM->initVolume();
@@ -149,30 +159,91 @@ TIMESTEP {
         double sindex = tperims[i] / sqrt(volumes[i]);
         // cout << i << '\t';
         avg+=sindex;
-        shape_index.push_back(sindex);
-
       }
       avg/=tperims.size();
       cout << endl << avg << endl;
-
-  
-      cout << t << " TIME STEPS HAVE PASSED." << endl;
-      cout << "ORG MASS IS: " << dish->CPM->Mass() << endl;
     }
       
-
     
-    if (par.velocities)
-    {
-      dish->CPM->RecordMasses();
-    }
+    // programmed cell division section
+    // if (t < par.end_program)
+    // {
 
-    if (par.output_sizes)
-    {
-      dish->CPM->RecordSizes();
-    }
+    //   // if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
+    //   // {
+    //   //   dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
+    //   // }
+     
+    //   if (t >= par.begin_network && t % par.update_freq == 0)
+    //   {
 
+    //     dish->CPM->update_network(t);
+    //     dish->AverageChemCell(); 
+        
+    //     if (par.gene_output)
+    //       dish->CPM->record_GRN();   
+
+    //     // nop point recording velocities here?
+    //     // if (par.velocities)
+    //     // {
+    //     //   dish->CPM->RecordMasses();
+    //     // }
+    //     if (par.output_gamma)
+    //       dish->CPM->RecordGamma(); 
+
+    //     // speed up initial PDE diffusion
+    //     // for (int r=0;r<par.program_its;r++) 
+    //     // {
+    //     //   dish->PDEfield->Secrete(dish->CPM);
+    //     //   dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+    //     // } 
+   
+    //   }
+    // }
+    // else
+    {
+      if (t % par.update_freq == 0)
+      {
+        dish->CPM->update_network(t);
+        if (par.noise && t > par.noise_start)
+          dish->CPM->add_noise();
+          
+        dish->AverageChemCell(); 
+        if (par.gene_output)
+        {
+          dish->CPM->record_GRN();
+          dish->CPM->CountTypesTime();
+        }
+
+        if (par.output_gamma)
+        {
+          dish->CPM->RecordGamma();
+        }
+ 
+
+      }
+      
+      if (par.velocities)
+      {
+        dish->CPM->RecordMasses();
+      }
+
+      if (par.output_sizes)
+      {
+        dish->CPM->RecordSizes();
+      }
+
+      // for (int r=0;r<par.pde_its;r++) 
+      // {
+      //   dish->PDEfield->Secrete(dish->CPM);
+      //   dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+      // }
+
+
+      // dish->CPM->CellGrowthAndDivision(t);
+    }
     dish->CPM->AmoebaeMove(t);
+
 
     if (t == par.mcs-1 && par.gene_output)
     {
@@ -181,14 +252,15 @@ TIMESTEP {
         cerr << "Error : " << strerror(errno) << endl;
       else
         cout << "Directory created." << endl;  
+      dish->CPM->print_cell_GRN();
     }
     
 
     if (t == par.mcs - 1)
     {
 
-      
-      
+
+
       if (par.output_gamma)
         dish->CPM->OutputGamma();
 
@@ -198,7 +270,25 @@ TIMESTEP {
         dish->CPM->MeanSquareDisplacement();
       }
         
+
+      // if (par.umap)
+      dish->CPM->ColourIndex();
+
       
+      map<pair<int,int>,int> edge_tally{};
+      
+      // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)
+      bool cycling = dish->CPM->CycleCheck();
+      if (cycling && par.cycle_check)
+      {
+        cout << "There is cycling!!" << endl;
+        dish->CPM->set_long_switches(edge_tally);
+      }
+      else
+      {
+        dish->CPM->set_switches(edge_tally);
+      }
+
       if (par.velocities)
       {
         // dish->CPM->CellVelocities();
@@ -217,6 +307,31 @@ TIMESTEP {
 
     }
    
+    //printing every 1000 steps. Do other debugging things here as well. 
+    if (t % 1000 == 0)
+    {
+
+
+      dish->CPM->print_random_cell();
+      cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
+      cout << t << " TIME STEPS HAVE PASSED." << endl;
+
+      dish->CPM->PrintPhenotypes();
+      // dish->CPM->WhiteSpace();
+      // dish->CPM->DeviationFromCircle();
+      cout << "AVG BINDING: " << dish->CPM->AverageBinding() << endl;
+      cout << "NUMBER OF MEDIUM PROTEINS ON AVG: " << dish->CPM->AvgMedsOn() << endl;
+      cout << "ORG MASS IS: " << dish->CPM->Mass() << endl;
+      double center[] = {0.0,0.0};
+      dish->CPM->get_center(center);
+      cout << "x center: " << center[0] << "   y center: " << center[1] << endl;
+
+      dish->CPM->PrintColours();
+
+      // dish->CPM->prop_success();
+
+    }
+
 
     int freq = 10;
     // par.n_screen_freq=1000;
@@ -237,7 +352,23 @@ TIMESTEP {
         dish->Plot(this);
         
     
-    
+      
+      // static vector<array<int,2>> perim;
+      // static vector<int> pcells;
+      // if (t > 1000 && t % 500 == 0)
+      // {
+      //   // perim = dish->CPM->PerimeterCAC();
+      //   // pcells = dish->CPM->CellsFromCAC(perim);
+      //   // pcells = dish->CPM->LinkPerimeter();
+      //   // dish->CPM->AngleCurvature();
+      // }
+      
+      // if (t > 1500)
+      // {
+      //   // dish->CPM->DrawListofCAC(this, perim);
+      //   // dish->CPM->DrawPerimeter(this, pcells);
+      // }
+
       static bool c1 = false;
       static bool c2 = false;
       static bool c3 = false;
@@ -268,6 +399,12 @@ TIMESTEP {
           // if (c4)
           //   dish->PDEfield->ContourPlot(this,3,37);
         }
+
+
+        // this function plots a shade for the PDE field and is very computationally costly. Isn't needed. 
+        // dish->PDEfield->Plot(this,0);
+        // dish->PDEfield->Plot(this,1);
+        // dish->PDEfield->Plot(this,2);
       }
 
 

@@ -148,7 +148,7 @@ TIMESTEP {
         dish->CPM->OutputInitConcs();
     }
       
-    
+
     // programmed cell division section
     if (t < par.end_program)
     {
@@ -170,9 +170,10 @@ TIMESTEP {
       if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
       {
         dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
+
       }
 
-      
+
      
       if (t >= par.begin_network && t % par.update_freq == 0)
       {
