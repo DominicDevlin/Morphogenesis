@@ -147,7 +147,7 @@ void process_population()
   // string sJ = to_string(par.minJ);
 
   std::stringstream stream;
-  stream << std::fixed << std::setprecision(1) << par.T << "-" << par.minJ;
+  stream << std::fixed << std::setprecision(1) << par.T << "-" << par.sheet_J;
   string s = stream.str();
 
   string var_name = par.data_file + "/msd" + s + ".dat"; 
@@ -224,6 +224,7 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < n_trials; ++i)
   {
     par.sheet_J = Jlist[i];
+    cout << par.sheet_J << endl;
     process_population();
   }
 
