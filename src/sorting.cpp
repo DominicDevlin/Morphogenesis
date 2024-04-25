@@ -373,6 +373,11 @@ TIMESTEP {
                 max_size = inner_vec.size();
             }
         }
+        for (size_t i=0;i<vec.size();++i)
+        {
+          outfile << "SCC-"+to_string(i+1) << '\t';
+        }
+        outfile << endl;
 
         for (size_t i = 0; i < max_size; i++) 
         {

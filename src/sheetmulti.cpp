@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.output_sizes = true;
-  par.mcs=10000 + par.equilibriate;
+  par.mcs=100000 + par.equilibriate;
   par.sizex=150;
   par.sizey=150;
   par.end_program=0;
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
   
   for (int i = 0; i < n_trials; ++i)
   {
-    par.minJ = Jlist[i];
+    par.sheet_J = Jlist[i];
     process_population();
   }
 

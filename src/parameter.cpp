@@ -85,8 +85,8 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, -2, 2, -1, 1 }, { 1, 1, 0, 0, 1, -1 }, { 0, 0, -2, 0, 2, -1 }, { 2, 1, -1, 1, 0, 0 }, { 1, 1, 0, 1, 0, 1 }, { 0, 0, 0, -1, 0, 1 }, { 0, 0, -1, -2, 0, 0 }, { 0, -1, 0, -1, 0, 1 }, { 0, 0, -1, -2, -1, 2 }, { 0, 0, 0, 1, 0, 0 }, { -1, -2, 1, 0, 0, 0 }, { -2, 2, 1, 2, -2, 1 }, };
-
+    start_matrix = { { 0, 2, 2, 0, 0, 0, 0, 1, 0 }, { 0, -2, 2, -2, 0, 1, 0, 0, -2 }, { 0, 0, 1, -1, 0, 0, 0, 1, 1 }, { 0, 0, 0, 2, 0, 0, 0, -1, 1 }, { 0, 0, -1, 1, 0, 0, 1, -1, 0 }, { 1, 1, -1, -2, 2, 0, 0, 1, -1 }, { 0, 1, -1, 0, 0, 2, 1, 0, 0 }, { 0, 0, -1, -1, 0, 0, 1, 0, 0 }, { 2, -1, 0, 0, 1, -1, 0, 1, -1 }, { 2, 1, 0, 0, 0, 1, 0, 1, 1 }, { -1, 1, 0, 0, -1, 0, 2, 1, 0 }, { -1, -1, 0, 1, 0, 0, 0, 0, -1 }, { 1, 1, 1, 1, 2, -2, 1, 0, 0 }, { 1, 0, 2, 0, 2, 2, 0, 0, 0 }, { -1, 0, 0, 0, -1, 1, 1, 0, 1 }, { 1, -1, 0, 2, 1, 0, 0, -2, -1 }, { 1, -1, -1, 0, -1, 0, 0, 1, 0 }, { -1, 0, 0, -1, 1, 0, 0, 0, 0 }, { 0, 1, 0, 1, -1, -1, 0, -2, 0 }, { 1, 0, 0, 1, 0, 1, -2, 0, 0 }, { 0, 0, 0, 0, -2, 1, 0, 0, 0 }, { 0, 0, 0, -1, 0, 0, 2, -2, 0 }, { -2, 0, 1, 0, 0, 0, 1, 0, -1 }, { -2, 0, 2, 0, 1, 0, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, 0, 1, -1 }, { 0, -1, 0, 0, 0, 1, 0, 0, -1 }, { 0, 1, -2, 0, 0, 1, 0, 0, 0 }, };
+    
 
 
 /* Cellular Potts parameters */
@@ -103,7 +103,7 @@
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     shrink = -16;
-    shrink_on = false;
+    shrink_on = true;
     periodic_boundaries = false;
     // keep this at 2= moore neighbourhood. 2 used in simulations. 
     neighbours = 2;
@@ -111,37 +111,42 @@
     conn_diss = 2000;
 
 /* adhesion params */
-   
+
+    //stem-cell system project params
+    // n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
+    // n_locks = n_lockandkey / 2;
+    // n_TF = 4; 
+    // n_length_genes = 2;
+    // minJ=4;
+    // maxJ=24;
+    // n_mediums=5;
+    // med_table = new int[n_mediums];
+    // med_table[0] = 5;
+    // med_table[1] = 4;
+    // med_table[2] = 3;
+    // med_table[3] = 2;
+    // med_table[4] = 1;
+    // n_diffusers=3;
+    // n_MF=2;
+    // minM=6;
+
+    //new params
     n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
     n_locks = n_lockandkey / 2; // must be half lockandkey. 
-    
-    //adding new medium genes to release constraint on keys
     n_mediums = 2;
-
-    // J values for cell with medium
-    med_table = new int[n_mediums];
+    med_table = new int[n_mediums]; // J values for cell with medium
     med_table[0] = 10;
     med_table[1] = 2;
     // med_table[2] = 3;
-    //med_table[3] = 2;
-    //med_table[4] = 1;
-    // [3] = {18};//{6,4,2};
-
-    // number of transcription factors.
+    // med_table[3] = 2;
+    // med_table[4] = 1;
     n_TF = 1; 
-
-    // morphogens
-    n_diffusers = 3;
-    
+    n_diffusers = 3; // morphogens
     n_length_genes = 0;
     n_MF = 2;
-
-    //min J if all cell-cell are paired
-    minJ = 4;
-    // max J if all cell-cell are not paired
-    maxJ = 20;
-    // min J with medium if all proteins are on
-    minM = 6;
+    minJ = 4; // min J if all cell-cell are paired
+    maxJ = 20; // max J if all cell-cell are not paired
+    minM = 6; // min J with medium if all proteins are on
 
     // difference between maximum and minimum cell J
     interval1 = maxJ-minJ;
