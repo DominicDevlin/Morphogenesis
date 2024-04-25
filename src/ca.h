@@ -356,15 +356,17 @@ public:
   // must be done after adjusting volumes
   void adjustPerimeters();
 
- vector<double> TruePerimeters();
+  vector<double> TruePerimeters();
 
- vector<double> GetVolumes();
+  void ShapeIndexByState();
 
-  
+  vector<double> GetVolumes();
+
   vector<double> measureAnisotropy();
 
   void initVolume();
 
+  map<int,vector<double>> Get_state_shape_index();
 
 
 
@@ -627,6 +629,7 @@ protected:
   int **outside;
 
   std::map<int, std::set< std::pair<int, int>>> cellVolumeList;
+  map<int, int> vlist;
   std::map<int, std::set< std::pair<int, int>>> cellPerimeterList;
 
 
@@ -645,6 +648,10 @@ private:
   int stack[8]; // stack to count number of different surrounding cells, CHANGE TO MEMBER FUNCTION
 
   int init_colours=-20;
+
+  double internal_T;
+
+  map<int,vector<double>> state_shape_index;
 
   int rows;
   int cols;

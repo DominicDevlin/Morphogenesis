@@ -220,8 +220,12 @@ TIMESTEP {
         {
           dish->CPM->RecordGamma();
         }
- 
 
+      }
+
+      if (par.insitu_shapes && t % 500 == 0)
+      {
+        dish->CPM->ShapeIndexByState();
       }
       
       if (par.velocities)
@@ -292,7 +296,6 @@ TIMESTEP {
         dish->CPM->Vectorfield();
       }
         
-
       // if (par.umap)
       dish->CPM->ColourIndex();
 
@@ -315,8 +318,10 @@ TIMESTEP {
         dish->CPM->set_switches(edge_tally);
       }
 
+
+
       vector<vector<int>> scc;
-      if (par.velocities)
+      if (par.insitu_shapes)
       {
         par.node_threshold = 0;
         par.prune_edges = true;
@@ -333,6 +338,94 @@ TIMESTEP {
             }
             cout << std::endl;
         }
+
+
+        vector<vector<double>> vec(scc.size());
+
+        map<int, vector<double>> data = dish->CPM->Get_state_shape_index();
+        for (const auto& pair : data )
+        {
+          int count = 0;
+          for (auto &j : scc)
+          {
+            int type = pair.first;
+            auto it = std::find(j.begin(), j.end(), type);
+            if (it != j.end())
+            {
+              for (double val : pair.second)
+              {
+                vec[count].push_back(val);
+              }
+            }
+
+            ++count;
+          }
+        }
+
+        ofstream outfile;
+        string switch_out = par.data_file + "/state_shapes.dat";
+        outfile.open(switch_out, ios::app);
+
+        size_t max_size = 0;
+        for (const auto& inner_vec : vec) {
+            if (inner_vec.size() > max_size) 
+            {
+                max_size = inner_vec.size();
+            }
+        }
+
+        for (size_t i = 0; i < max_size; i++) 
+        {
+            for (size_t j = 0; j < vec.size(); j++) 
+            {
+                if (i < vec[j].size()) 
+                {
+                    outfile << vec[j][i];
+                } 
+                else 
+                {
+                    outfile << "NaN"; // Print extra spaces for alignment if no element exists
+                }
+                outfile << "\t";
+            }
+            outfile << std::endl; // Newline after each column is printed
+        }
+        outfile.close();
+
+        /* this prints individual cell states */
+        // ofstream outfile;
+        // string switch_out = par.data_file + "/state_shapes.dat";
+        // outfile.open(switch_out, ios::app);
+
+        // size_t maxLength = 0;
+        // for (const auto& pair : data) 
+        // {
+        //     maxLength = std::max(maxLength, pair.second.size());
+        // }
+        // for (const auto& pair : data) 
+        // {
+        //   outfile << pair.first << '\t';
+        // }
+        // outfile << '\n';        
+
+        // // Print the vector elements as columns
+        // for (size_t i = 0; i < maxLength; ++i) 
+        // {
+        //     for (const auto& pair : data) 
+        //     {
+        //         if (i < pair.second.size()) 
+        //         {
+        //             outfile << pair.second[i];
+        //             cout << pair.second[i] << endl;
+        //         } 
+        //         else 
+        //         {
+        //             outfile << "NaN"; // Using NaN for missing values
+        //         }
+        //         outfile << '\t';
+        //     }
+        //     outfile << '\n';
+        // }
       }
 
 
@@ -428,7 +521,6 @@ TIMESTEP {
       }
    
     }
-
 
      
     //printing every 1000 steps. Do other debugging things here as well. 

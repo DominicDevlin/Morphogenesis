@@ -93,8 +93,7 @@ class Parameter {
   int convert_to_type;
   int clear_radius;
 
-  bool sheet;
-  double sheet_J;
+
 
   bool file_genomes;
   bool overlap_images;
@@ -116,6 +115,7 @@ class Parameter {
   double mut_rate;
   double polm_rate;
 
+  bool IntegerHamiltonian;
 
   //programmed division parameters
   int end_program;
@@ -200,6 +200,16 @@ class Parameter {
 
   int waiting_time;
   int equilibriate;
+  bool highT;
+  bool highT_temp;
+  int highT_time;
+  double sheet_minJ;
+  double sheet_maxJ;
+  double J_width;
+  bool sheet;
+  double sheet_J;
+
+  bool insitu_shapes;
 
   int max_on; //max number of proteins on before a cell can't divide.
   int max_cells; //max cells as a cap (slows down sims, dont expect to reach this number)

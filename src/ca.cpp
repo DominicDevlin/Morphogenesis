@@ -440,15 +440,24 @@ int CellularPotts::CopyvProb(double DH,  double stiff) {
   s=(int)stiff;
   if (DH<=-s) 
     return 2;
-  
-  // we are slowing down sim by dong on the fly probabilities so that we can do doubles. 
-  dd=exp( -( (double)(DH+s)/par.T ));
 
-  // if DH becomes extremely large, calculate probability on-the-fly
-  // if (DH+s > BOLTZMANN-1)
-  //   dd=exp( -( (double)(DH+s)/par.T ));
+
+  // if (par.IntegerHamiltonian)
+  // {
+  //   // if DH becomes extremely large, calculate probability on-the-fly
+  //   if (DH+s > BOLTZMANN-1)
+  //     dd=exp( -( (double)(DH+s)/par.T ));
+  //   else
+  //     dd=copyprob[DH+s]; 
+  // }
   // else
-  //   dd=copyprob[DH+s]; 
+  // {
+  // we are slowing down sim by dong on the fly probabilities so that we can do doubles. 
+  dd=exp( -( (double)(DH+s)/internal_T ));
+  // }
+
+
+
 
   if (RANDOM(s_val)<dd) 
     return 1; 
@@ -458,8 +467,9 @@ int CellularPotts::CopyvProb(double DH,  double stiff) {
 
 void CellularPotts::CopyProb(double T) {
   int i;
+  internal_T = T;
   for ( i = 0; i < BOLTZMANN; i++ )
-    copyprob[i] = exp( -( (double)(i)/T ) );
+    copyprob[i] = exp( -( (double)(i)/internal_T ) );
 }
 
 void CellularPotts::FreezeAmoebae(void) 
@@ -5577,16 +5587,21 @@ void CellularPotts::initVolume()
       if (n>0)
         cellVolumeList[n].insert(std::make_pair(x,y));
     }
+
+  vlist.clear();
+  for (auto celln : cellVolumeList)
+  {
+    vlist[celln.first] = (int(celln.second.size()));
+  }
+
 }
 
 vector<double> CellularPotts::GetVolumes()
 {
-  vector<double> vlist{};
-  for (auto celln : cellVolumeList)
-  {
-    vlist.push_back(double(celln.second.size()));
-  }
-  return vlist;
+  vector<double> vs;
+  for (auto celln : vlist)
+    vs.push_back(celln.second);
+  return vs;
 }
 
 
@@ -5677,7 +5692,7 @@ void CellularPotts::adjustPerimeters()
 vector<double> CellularPotts::TruePerimeters()
 {
   //  See Magno et al (2015) BMC biophysics for correction factor.
-  int neigh_level=2; // (using n_nb)
+  int neigh_level=2; // (using n_nb because 2)
   double correction=3.;
 
   vector<double> toreturn;
@@ -5742,11 +5757,94 @@ vector<double> CellularPotts::TruePerimeters()
 }
 
 
+void CellularPotts::ShapeIndexByState()
+{
+  initVolume();
+  adjustPerimeters();
+
+  int neigh_level=2; // (using n_nb because 2)
+  double correction=3.;
+
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      int perim_length{};
+      c->Phenotype();
+      int p = c->GetPhenotype();
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+              continue;
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          } 
+        }
+      }
+      // cout << corrected_perim << '\t' << vlist[p] << endl;
+      double corrected_perim = perim_length / correction; 
+      double sindex = corrected_perim / sqrt(double(vlist[celln]));
+      // cout << sindex << endl;
+      state_shape_index[p].push_back(sindex);
+      // toreturn.push_back(correted_perim);      
+    }
+  }  
+}
+
+  map<int,vector<double>> CellularPotts::Get_state_shape_index()
+  {
+    return state_shape_index;
+  }
+
+
+
+
+
+
+
 
 
 
 /*******************************************************************************/
-/*** Measure anisotropy ***/
+/*** Measure anisotropy of cells ***/
 
 
 vector<double> CellularPotts::measureAnisotropy()
@@ -5757,7 +5855,7 @@ vector<double> CellularPotts::measureAnisotropy()
     which are furthest apart, and record their positions.
   */
 
-  vector<double>shape_index{};
+  vector<double>anisotropy{};
 
 
   for (auto each : cellVolumeList)
@@ -5894,13 +5992,13 @@ vector<double> CellularPotts::measureAnisotropy()
     else
       ani = sqrt((double)distmax/(double)(dx*dx+dy*dy));
 
-    shape_index.push_back(ani);
+    anisotropy.push_back(ani);
     // cout << ani << endl;
   }
   double avg=0;
   double max=0;
   double min=100;
-  for (double i : shape_index)
+  for (double i : anisotropy)
   {
     avg+=i;
     if (i>max){max=i;}
@@ -5908,12 +6006,12 @@ vector<double> CellularPotts::measureAnisotropy()
 
 
   }
-  avg /= shape_index.size();
+  avg /= anisotropy.size();
   cout << avg << '\t' << max << '\t' << min << endl;
 
 
 
-  return shape_index;
+  return anisotropy;
 
 }
 

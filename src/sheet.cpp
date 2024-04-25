@@ -119,17 +119,21 @@ TIMESTEP {
     { 
       cout << "calling init" << endl;
       dish->Init();
-      dish->CPM->CopyProb(par.T);
+      
+      // equilibriate cells with high T
+      if (par.highT)
+      {
+        dish->CPM->CopyProb(par.highT_temp);
+      }
+      else
+      {
+        dish->CPM->CopyProb(par.T);
+      }
+        
     }
-
-    //equilibriate cells with high T
-    // if (t < 100)
-    // {
-    //   dish->CPM->CopyProb(par.T*4);
-    // }
     
-    // if (t==100)
-    //   dish->CPM->CopyProb(par.T);
+    if (t==par.highT_time)
+      dish->CPM->CopyProb(par.T);
 
 
     static Info *info=new Info(*dish, *this);

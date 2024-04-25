@@ -35,7 +35,7 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -90,9 +90,9 @@
 
 
 /* Cellular Potts parameters */
-    sizex = 150;
-    sizey = 150;
-    mcs = 3100;
+    sizex = 250;
+    sizey = 250;
+    mcs = 12000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -167,12 +167,25 @@
 
 /* sheet related parameters */
     sheet=false;
-    sheet_J = 8;
+    sheet_J = 6;
+    sheet_minJ=2;
+    sheet_maxJ=16;
+    J_width=0.5;
 
-    //waiting time
+    // diffusion parameters
     waiting_time = 2000;
     equilibriate = 2000;
 
+
+    highT=true;
+    highT_time = 100;
+    highT_temp = 10;
+
+    // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
+    // dH is calculated on the fly. 
+    IntegerHamiltonian = false;
+
+    insitu_shapes=true;
 
 
 /* differentiation parameters */
@@ -304,7 +317,7 @@
     // the phenotype number to return
     single_type = 350;
     // start all cells from "single state" initial condition for ex vivo
-    flush_cells = true;
+    flush_cells = false;
    // turn all cells into this state at beginning of development
     flush_states = { 4.64542e-09, 1, 0.692659, 1, 1, 5.10909e-12, 6.54489e-28, 3.35757e-22, 1.34902e-36, 0.999999, 1.72289e-16, 1, 6.20555e-07, 1.16941, 0.829774,  };
 
