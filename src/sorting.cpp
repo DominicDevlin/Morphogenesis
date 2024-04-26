@@ -226,6 +226,7 @@ TIMESTEP {
       if (par.insitu_shapes && t % 500 == 0)
       {
         dish->CPM->ShapeIndexByState();
+        dish->CPM->AdhesionByState();
       }
       
       if (par.velocities)
@@ -341,8 +342,8 @@ TIMESTEP {
 
 
         vector<vector<double>> vec(scc.size());
-
         map<int, vector<double>> data = dish->CPM->Get_state_shape_index();
+
         for (const auto& pair : data )
         {
           int count = 0;
@@ -386,6 +387,63 @@ TIMESTEP {
                 if (i < vec[j].size()) 
                 {
                     outfile << vec[j][i];
+                } 
+                else 
+                {
+                    outfile << "NaN"; // Print extra spaces for alignment if no element exists
+                }
+                outfile << "\t";
+            }
+            outfile << std::endl; // Newline after each column is printed
+        }
+        outfile.close();
+
+        // doing the same for adhesion
+        vector<vector<double>> vec2(scc.size());
+        map<int, vector<double>> data2 = dish->CPM->Get_state_Adhesion();
+        
+        for (const auto& pair : data2 )
+        {
+          int count = 0;
+          for (auto &j : scc)
+          {
+            int type = pair.first;
+            auto it = std::find(j.begin(), j.end(), type);
+            if (it != j.end())
+            {
+              for (double val : pair.second)
+              {
+                vec2[count].push_back(val);
+              }
+            }
+
+            ++count;
+          }
+        }
+
+        switch_out = par.data_file + "/state_adhesion.dat";
+        outfile.open(switch_out, ios::app);
+
+        max_size = 0;
+        for (const auto& inner_vec2 : vec2) {
+            if (inner_vec2.size() > max_size) 
+            {
+                max_size = inner_vec2.size();
+            }
+        }
+        for (size_t i=0;i<vec2.size();++i)
+        {
+          outfile << "SCC-"+to_string(i+1) << '\t';
+        }
+        outfile << endl;
+
+        for (size_t i = 0; i < max_size; i++) 
+        {
+            for (size_t j = 0; j < vec2.size(); j++) 
+            {
+                if (i < vec2[j].size()) 
+                {
+                    outfile << vec2[j][i];
                 } 
                 else 
                 {

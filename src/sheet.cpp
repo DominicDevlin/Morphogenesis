@@ -129,6 +129,7 @@ TIMESTEP {
       {
         dish->CPM->CopyProb(par.T);
       }
+      dish->CPM->Set_J(par.sheet_J);
         
     }
     

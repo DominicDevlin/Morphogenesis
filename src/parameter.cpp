@@ -96,7 +96,7 @@
     T = 3;
     target_length = 0;
     lambda = 0.5;
-    lambda2 = 0;
+    lambda2 = 0.1;
     div_threshold = 100;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
   
@@ -113,40 +113,42 @@
 /* adhesion params */
 
     //stem-cell system project params
-    // n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
-    // n_locks = n_lockandkey / 2;
-    // n_TF = 4; 
-    // n_length_genes = 2;
-    // minJ=4;
-    // maxJ=24;
-    // n_mediums=5;
-    // med_table = new int[n_mediums];
-    // med_table[0] = 5;
-    // med_table[1] = 4;
-    // med_table[2] = 3;
-    // med_table[3] = 2;
-    // med_table[4] = 1;
-    // n_diffusers=3;
-    // n_MF=2;
-    // minM=6;
+    n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
+    n_locks = n_lockandkey / 2;
+    n_TF = 4; 
+    n_length_genes = 2;
+    minJ=4;
+    maxJ=24;
+    n_mediums=5;
+    med_table = new int[n_mediums];
+    med_table[0] = 5;
+    med_table[1] = 4;
+    med_table[2] = 3;
+    med_table[3] = 2;
+    med_table[4] = 1;
+    n_diffusers=3;
+    n_MF=2;
+    minM=6;
+    tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
+    tlength2 = 2;
 
     //new params
-    n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
-    n_locks = n_lockandkey / 2; // must be half lockandkey. 
-    n_mediums = 2;
-    med_table = new int[n_mediums]; // J values for cell with medium
-    med_table[0] = 10;
-    med_table[1] = 2;
-    // med_table[2] = 3;
-    // med_table[3] = 2;
-    // med_table[4] = 1;
-    n_TF = 1; 
-    n_diffusers = 3; // morphogens
-    n_length_genes = 0;
-    n_MF = 2;
-    minJ = 4; // min J if all cell-cell are paired
-    maxJ = 20; // max J if all cell-cell are not paired
-    minM = 6; // min J with medium if all proteins are on
+    // n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
+    // n_locks = n_lockandkey / 2; // must be half lockandkey. 
+    // n_mediums = 2;
+    // med_table = new int[n_mediums]; // J values for cell with medium
+    // med_table[0] = 10;
+    // med_table[1] = 2;
+    // // med_table[2] = 3;
+    // // med_table[3] = 2;
+    // // med_table[4] = 1;
+    // n_TF = 1; 
+    // n_diffusers = 3; // morphogens
+    // n_length_genes = 0;
+    // n_MF = 2;
+    // minJ = 4; // min J if all cell-cell are paired
+    // maxJ = 20; // max J if all cell-cell are not paired
+    // minM = 6; // min J with medium if all proteins are on
 
     // difference between maximum and minimum cell J
     interval1 = maxJ-minJ;
@@ -174,7 +176,7 @@
     sheet=false;
     sheet_J = 6;
     sheet_minJ=2;
-    sheet_maxJ=16;
+    sheet_maxJ=8;
     J_width=0.5;
 
     // diffusion parameters
@@ -268,24 +270,15 @@
 
 /* GRN */
     update_freq = 40;
+    theta = -0.3;
+    delta_t = 0.25;
+    d_rate = 1;
 
     // add noise to regulatory network 
     noise = false;
     // noise amount
     noise_dose=0.1;
     noise_start = 6500;
-
-    theta = -0.3;
-    delta_t = 0.25;
-    d_rate = 1;
-
-    // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
-    tlength1 = 3;
-    tlength2 = 2;
-
-
-
-
 
 
 

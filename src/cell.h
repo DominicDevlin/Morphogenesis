@@ -1073,7 +1073,7 @@ protected:
 
   double EnDif(Cell &cell2);
 
-  double SheetDif(Cell &cell2);
+  double SheetDif(Cell &cell2, double &sJ=par.sheet_J);
 
 
 

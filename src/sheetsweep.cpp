@@ -86,10 +86,19 @@ void process_population()
 {
 
   vector<vector<double>> shape_index(par.n_orgs);
+  vector<vector<double>> true_adhesion(par.n_orgs);
   vector<vector<double>> cell_displacements;
 
   Dish *dishes = new Dish[par.n_orgs];
 
+  vector<double> Js;
+  for (int i = 0;i<par.n_orgs;++i)
+  {
+    Js.push_back(par.sheet_minJ+i*par.J_width);
+  }
+
+  omp_set_num_threads(par.n_orgs);
+  #pragma omp parallel for
   for (int i = 0; i < par.n_orgs; ++i)
   {
     dishes[i].CPM->set_num(i + 1);
@@ -105,6 +114,7 @@ void process_population()
     {
       dishes[i].CPM->CopyProb(par.T);
     }
+    dishes[i].CPM->Set_J(Js[i]);
 
     int t;
 
@@ -120,12 +130,14 @@ void process_population()
 
       dishes[i].CPM->AmoebaeMove(t);
 
-      if (t % 1000 == 0 && t > 0)
+      if (t % 500 == 0 && t > 0)
       {
         dishes[i].CPM->initVolume();
         dishes[i].CPM->adjustPerimeters();
-        vector<double> tperims = dishes[i].CPM->TruePerimeters();
+        vector<double> tperims = dishes[i].CPM->PerimitersRadiusN(sqrt(13));
         vector<double> volumes = dishes[i].CPM->GetVolumes();
+
+        vector<double> tadhesion = dishes[i].CPM->TrueAdhesion();
 
         double avg{};
         for (int j = 0; j < tperims.size(); ++j)
@@ -134,12 +146,18 @@ void process_population()
           // cout << i << '\t';
           avg+=sindex;
           shape_index[i].push_back(sindex);
-
         }
         avg/=tperims.size();
+
+        double avg_adh{};
+        for (int j = 0; j < tadhesion.size();++j)
+        {
+          true_adhesion[i].push_back(tadhesion[j]);
+        }
+        avg/=tadhesion.size();
+
       }
     }
-    par.sheet_J+=par.J_width;
   }
 
 
@@ -172,9 +190,38 @@ void process_population()
       }
       outfile << std::endl; // Newline after each column is printed
   }
-
-
   outfile.close();
+
+  // now do same for adhesion
+  var_name = par.data_file + "/adhesions.dat";
+  outfile.open(var_name, ios::app);  
+  length=0;
+  for (const auto& inner_vec : true_adhesion) 
+  {
+      if (inner_vec.size() > length) 
+      {
+          length = inner_vec.size();
+      }
+  }
+  // Print the vector of vectors as columns
+  for (size_t i = 0; i < length; i++) {
+      for (size_t j = 0; j < true_adhesion.size(); j++) 
+      {
+          if (i < true_adhesion[j].size()) 
+          {
+              outfile << true_adhesion[j][i] << "\t";
+          } 
+      }
+      outfile << std::endl; // Newline after each column is printed
+  }
+  outfile.close();
+
+
+
+
+
+
+  
   delete[] dishes;
 
 }
@@ -193,7 +240,7 @@ int main(int argc, char *argv[]) {
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.output_sizes = true;
-  par.mcs=100000 + par.equilibriate;
+  par.mcs=10000 + par.equilibriate;
   par.sizex=200;
   par.sizey=200;
   par.end_program=0;

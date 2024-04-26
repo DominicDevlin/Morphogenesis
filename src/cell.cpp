@@ -246,7 +246,7 @@ double Cell::EnDif(Cell &cell2)
 }
 
 
-double Cell::SheetDif(Cell &cell2)
+double Cell::SheetDif(Cell &cell2, double &sJ)
 {
   if (sigma==cell2.sigma) 
     return 0;

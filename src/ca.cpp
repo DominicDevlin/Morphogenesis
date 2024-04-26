@@ -306,7 +306,7 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
       // DH += (*cell)[sxyp].CalculateJfromKeyLock((*cell)[neighsite].get_locks_bool(), (*cell)[neighsite].get_keys_bool()) 
       // - 
       if (par.sheet)
-        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite]) - (*cell)[sxy].SheetDif((*cell)[neighsite]);
+        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J);
       else if (tsteps < par.end_program)
         DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
       else
@@ -5757,6 +5757,83 @@ vector<double> CellularPotts::TruePerimeters()
 }
 
 
+vector<double> CellularPotts::PerimitersRadiusN(int radius)
+{
+  // using this for now
+  radius = sqrt(13);
+  double correction = 36;
+
+
+  vector<double> toreturn;
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      int perim_length{};
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+
+        for (int xp2=x-radius;xp2<=x+radius;xp2++) 
+        {
+          for (int yp2 = y-radius;yp2<=y+radius;++yp2)
+          {
+            double val = sqrt(pow(xp2-x,2)+pow(yp2-y,2));
+            if (val < radius)
+            {
+              if (par.periodic_boundaries)
+              {
+                // since we are asynchronic, we cannot just copy the borders once 
+                // every MCS
+                int nxp2=xp2;
+                int nyp2=yp2;
+
+                if (xp2<=0)
+                  nxp2=sizex-2+xp2;
+                if (yp2<=0)
+                  nyp2=sizey-2+yp2;
+                if (xp2>=sizex-1)
+                  nxp2=xp2-sizex+2;
+                if (yp2>=sizey-1)
+                  nyp2=yp2-sizey+2;
+              
+                // neighsite=sigma[xp2][yp2];
+                if (sigma[x][y]!=sigma[nxp2][nyp2])  
+                {
+                  ++perim_length;
+                }
+              }
+              else
+              {
+                if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+                {
+                  // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+                  continue;
+                }
+                else if (sigma[x][y]!=sigma[xp2][yp2])  
+                {
+                  ++perim_length;
+                }
+              } 
+            }
+          }
+        }
+      }
+      double correted_perim = perim_length / correction; 
+      toreturn.push_back(correted_perim);      
+    }
+  }  
+  return toreturn;
+}
+
+
+
 void CellularPotts::ShapeIndexByState()
 {
   initVolume();
@@ -5829,15 +5906,172 @@ void CellularPotts::ShapeIndexByState()
   }  
 }
 
-  map<int,vector<double>> CellularPotts::Get_state_shape_index()
+map<int,vector<double>> CellularPotts::Get_state_shape_index()
+{
+  return state_shape_index;
+}
+
+
+// must be called after Perimeters are set.
+vector<double> CellularPotts::TrueAdhesion()
+{
+  //  See Magno et al (2015) BMC biophysics for correction factor.
+  int neigh_level=2; // (using n_nb because 2)
+  double correction=3.;
+
+  vector<double> toreturn;
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
   {
-    return state_shape_index;
-  }
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      double adh{};
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+                // UP TO HERE!
+                // DH += (*cell)[sxyp].CalculateJfromKeyLock((*cell)[neighsite].get_locks_bool(), (*cell)[neighsite].get_keys_bool()) 
+                // - 
+                if (par.sheet)
+                  adh += c->SheetDif((*cell)[sigma[xp2][yp2]]);
+                else
+                  adh += c->EnergyDifference((*cell)[sigma[xp2][yp2]]); 
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+
+              std::cout << "Error touching border" << endl;
+              adh+=par.border_energy;
+              // dont know what to do here!!!! 
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+                if (par.sheet)
+                  adh += c->SheetDif((*cell)[sigma[xp2][yp2]]);
+                else
+                  adh += c->EnergyDifference((*cell)[sigma[xp2][yp2]]); 
+            }
+          } 
+        }
+      }
+      double correted_adh = adh / correction; 
+      toreturn.push_back(correted_adh);      
+    }
+  }  
+  return toreturn;
+}
 
 
 
+// must be called after Perimeters are set.
+void CellularPotts::AdhesionByState()
+{
+
+  int neigh_level=2; // (using n_nb because 2)
+  double correction=3.;
 
 
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      double adh{};
+      c->Phenotype();
+      int p = c->GetPhenotype();
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+                if (par.sheet)
+                  adh += c->SheetDif((*cell)[sigma[xp2][yp2]]);
+                else
+                  adh += c->EnergyDifference((*cell)[sigma[xp2][yp2]]); 
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+
+              std::cout << "Error touching border" << endl;
+              adh+=par.border_energy;
+              // dont know what to do here!!!! 
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+                if (par.sheet)
+                  adh += c->SheetDif((*cell)[sigma[xp2][yp2]]);
+                else
+                  adh += c->EnergyDifference((*cell)[sigma[xp2][yp2]]); 
+            }
+          } 
+        }
+      }
+      double corrected_adh = adh / correction; 
+      state_adhesion[p].push_back(corrected_adh);
+    }
+  }  
+}
+
+map<int,vector<double>> CellularPotts::Get_state_Adhesion()
+{
+  return state_adhesion;
+}
 
 
 

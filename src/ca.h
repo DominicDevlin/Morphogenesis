@@ -368,7 +368,13 @@ public:
 
   map<int,vector<double>> Get_state_shape_index();
 
+  vector<double> TrueAdhesion();
 
+  void AdhesionByState();
+
+  map<int,vector<double>> Get_state_Adhesion();
+
+  vector<double> PerimitersRadiusN(int radius);
 
   // inline double prop_success()
   // {
@@ -434,6 +440,11 @@ public:
       if (sigma[0][i]>0) mass++;
     }
     return mass;
+  }
+
+  inline void Set_J(double J)
+  {
+    internal_J = J;
   }
 
   /*! Plot the cells according to their cell identity, not their type.
@@ -651,7 +662,13 @@ private:
 
   double internal_T;
 
+  double internal_J;
+
   map<int,vector<double>> state_shape_index;
+
+  map<int,vector<double>> state_adhesion;
+
+  
 
   int rows;
   int cols;

@@ -107,6 +107,7 @@ void process_population()
     {
       dishes[i].CPM->CopyProb(par.T);
     }
+    dishes[i].CPM->Set_J(par.sheet_J);
 
     int t;
 
