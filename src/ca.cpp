@@ -272,7 +272,6 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
     xp2=x+nx[i]; yp2=y+ny[i];
     if (par.periodic_boundaries) 
     {
-      
       // since we are asynchronic, we cannot just copy the borders once 
       // every MCS
       

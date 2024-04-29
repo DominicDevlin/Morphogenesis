@@ -39,7 +39,7 @@
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
-    draw_paths = true;
+    draw_paths = false;
 
     // Generate a random genome
     randomise = false;
@@ -96,7 +96,7 @@
     T = 3;
     target_length = 0;
     lambda = 0.5;
-    lambda2 = 0.1;
+    lambda2 = 0; // WARNING - do not move from 0 (deltaH function has changed)
     div_threshold = 100;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
   
@@ -174,7 +174,7 @@
 
 /* sheet related parameters */
     sheet=false;
-    sheet_J = 1;
+    sheet_J = 2;
     sheet_minJ=2;
     sheet_maxJ=8;
     J_width=0.5;

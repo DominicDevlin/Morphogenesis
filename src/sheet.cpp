@@ -66,7 +66,6 @@ INIT
     CPM->ConstructInitCells(*this);
 
     par.sheet=true;
-    par.periodic_boundaries=true;
 
     if (par.velocities)
       par.output_sizes = true;
