@@ -139,26 +139,39 @@ TIMESTEP {
 
     static Info *info=new Info(*dish, *this);
     
-
+    static vector<double> N_index;
     static vector<double> shape_index;
     if (t % 1000 == 0 && t > 0)
     {
+      // N_index.clear();
+      // shape_index.clear();
+      cout << (par.periodic_boundaries) << endl;
       dish->CPM->initVolume();
       dish->CPM->adjustPerimeters();
       vector<double> tperims = dish->CPM->TruePerimeters();
       vector<double> volumes = dish->CPM->GetVolumes();
+      vector<double> Nperims = dish->CPM->PerimitersRadiusN(sqrt(5), 11);
+      cout << tperims[1] << '\t' << Nperims[1] << '\t' << volumes[1] << endl;
 
       double avg{};
+      double n_avg{};
       for (int i = 0; i < tperims.size(); ++i)
       {
+        // cout << tperims[i] << '\t' << Nperims[i] << '\t' << volumes[i] << endl;
         double sindex = tperims[i] / sqrt(volumes[i]);
         // cout << i << '\t';
         avg+=sindex;
         shape_index.push_back(sindex);
 
+        sindex = (Nperims[i]) / (sqrt(volumes[i]));
+        // cout << i << '\t';
+        n_avg+=sindex;
+        N_index.push_back(sindex);
+
       }
       avg/=tperims.size();
-      cout << endl << avg << endl;
+      n_avg/=tperims.size();
+      cout << endl << avg << '\t' << n_avg << endl;
 
   
       cout << t << " TIME STEPS HAVE PASSED." << endl;
@@ -344,8 +357,8 @@ int main(int argc, char *argv[]) {
   
 	try 
   {
-    // par.sizex=150;
-    // par.sizey=150;
+    par.sizex=150;
+    par.sizey=150;
     par.end_program=0;
     par.periodic_boundaries = true;
     par.flush_cells = true;

@@ -35,11 +35,11 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
-    draw_paths = false;
+    draw_paths = true;
 
     // Generate a random genome
     randomise = false;
@@ -106,7 +106,7 @@
     shrink_on = true;
     periodic_boundaries = false;
     // keep this at 2= moore neighbourhood. 2 used in simulations. 
-    neighbours = 2;
+    neighbours = 3;
     // high value ensures cells are never broken apart by copy attempts.
     conn_diss = 2000;
 
@@ -174,7 +174,7 @@
 
 /* sheet related parameters */
     sheet=false;
-    sheet_J = 6;
+    sheet_J = 1;
     sheet_minJ=2;
     sheet_maxJ=8;
     J_width=0.5;

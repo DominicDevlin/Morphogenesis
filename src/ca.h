@@ -374,7 +374,7 @@ public:
 
   map<int,vector<double>> Get_state_Adhesion();
 
-  vector<double> PerimitersRadiusN(int radius);
+  vector<double> PerimitersRadiusN(double radius=sqrt(13), double correction=36.);
 
   // inline double prop_success()
   // {

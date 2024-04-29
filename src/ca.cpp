@@ -5757,12 +5757,10 @@ vector<double> CellularPotts::TruePerimeters()
 }
 
 
-vector<double> CellularPotts::PerimitersRadiusN(int radius)
+vector<double> CellularPotts::PerimitersRadiusN(double radius, double correction)
 {
   // using this for now
-  radius = sqrt(13);
-  double correction = 36;
-
+  int rad_max = ceil(radius);
 
   vector<double> toreturn;
 
@@ -5773,20 +5771,20 @@ vector<double> CellularPotts::PerimitersRadiusN(int radius)
     {
       int celln=c->Sigma();
       int perim_length{};
-
       for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
       {
         int x=it->first;
         int y=it->second;
-
-
-        for (int xp2=x-radius;xp2<=x+radius;xp2++) 
+        // int count = 0;
+        for (int xp2=x-rad_max;xp2<=x+rad_max;xp2++) 
         {
-          for (int yp2 = y-radius;yp2<=y+radius;++yp2)
+          for (int yp2 = y-rad_max;yp2<=y+rad_max;++yp2)
           {
             double val = sqrt(pow(xp2-x,2)+pow(yp2-y,2));
-            if (val < radius)
+            // cout << x << '\t' << xp2 << '\t' << y << '\t' << yp2 << '\t' << val << '\t' << radius << endl;
+            if (val < radius + 0.01)
             {
+              // ++count;
               if (par.periodic_boundaries)
               {
                 // since we are asynchronic, we cannot just copy the borders once 
@@ -5824,6 +5822,7 @@ vector<double> CellularPotts::PerimitersRadiusN(int radius)
             }
           }
         }
+        // cout << count << endl;
       }
       double correted_perim = perim_length / correction; 
       toreturn.push_back(correted_perim);      
