@@ -266,14 +266,19 @@ double Cell::EnergyDifference(Cell &cell2, bool phase, double Jstemdiff)
   }
   else if (sigma==0)
   {
+    // cout << "1: " << phaseJfromMed(cell2.getmJ()) << endl;
     return phaseJfromMed(cell2.getmJ());
   }
   else if (cell2.sigma==0)
   {
+    // cout << "2: " <<  PhaseJwithMed() << endl;
     return PhaseJwithMed();
   }
   else
+  {
+    // cout << "3: " << PhaseJ(cell2.GetPhase(), Jstemdiff) << endl;
     return PhaseJ(cell2.GetPhase(), Jstemdiff);
+  }
 }
 
 double Cell::PhaseJ(bool phase, double Jstemdiff)

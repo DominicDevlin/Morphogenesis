@@ -2092,7 +2092,6 @@ void CellularPotts::Programmed_Division(void)
       }
     }
     set_MF(middles, 2);  
-    set_MF(middles, 3);
   }
   // set second maternal factor  
   else if (n_cells < 4)
@@ -2183,7 +2182,7 @@ void CellularPotts::Programmed_Division(bool phase)
         middles.push_back(MiddleOfCell(i->Sigma()));
       }
     }
-    set_MF(middles, par.mfloc1);
+    set_MF(middles, par.mfloc1, true);
     set_MF(middles, par.mfloc2, false);  
   }    
   else 

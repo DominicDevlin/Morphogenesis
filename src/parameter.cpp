@@ -85,8 +85,8 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 1, -2, 0, 0, 0, 0 }, { 2, 0, -1, -1, 1, 0 }, { 1, 1, 1, 0, 1, 0 }, { 1, 0, 2, 1, -1, 0 }, { 2, 0, 1, 0, 1, -1 }, { -1, -1, 0, 1, -1, 0 }, { 2, -1, 0, 1, 0, 0 }, { 1, 0, 1, 2, 0, 1 }, };
-
+    start_matrix = { { 0, 0, -2, 2, -1, 1 }, { 1, 1, 0, 0, 1, -1 }, { 0, 0, -2, 0, 2, -1 }, { 2, 1, -1, 1, 0, 0 }, { 1, 1, 0, 1, 0, 1 }, { 0, 0, 0, -1, 0, 1 }, { 0, 0, -1, -2, 0, 0 }, { 0, -1, 0, -1, 0, 1 }, { 0, 0, -1, -2, -1, 2 }, { 0, 0, 0, 1, 0, 0 }, { -1, -2, 1, 0, 0, 0 }, { -2, 2, 1, 2, -2, 1 }, };
+    
 
 
 /* Cellular Potts parameters */
@@ -134,7 +134,7 @@
 
 
     // phase transition params;
-    phase_evolution=true;
+    phase_evolution=false;
     J_stem=4;
     J_diff=12;
     J_stem_diff=6;

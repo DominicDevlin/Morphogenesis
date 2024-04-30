@@ -144,6 +144,9 @@ INIT
 
     CPM->start_network(par.start_matrix, par.start_polarity);
 
+    CPM->Set_evoJ(par.J_stem_diff);
+
+
     par.print_fitness = true;
     par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
 
@@ -523,6 +526,8 @@ TIMESTEP {
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
+
+      cout << dish->CPM->TraverseFitness() << endl;
 
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;
