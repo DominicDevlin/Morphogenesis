@@ -106,6 +106,23 @@ INIT
 
 }
 
+double findMedian(std::vector<double>& nums) 
+{
+    int n = nums.size();
+    std::nth_element(nums.begin(), nums.begin() + n / 2, nums.end());
+    if (n % 2 != 0) {
+        return static_cast<double>(nums[n / 2]);
+    } 
+    else 
+    {
+        double median1 = nums[n / 2];
+        std::nth_element(nums.begin(), nums.begin() + n / 2 - 1, nums.end());
+        double median2 = nums[n / 2 - 1];
+        return (static_cast<double>(median1) + static_cast<double>(median2)) / 2.0;
+    }
+}
+
+
 TIMESTEP { 
  
   try {
@@ -138,7 +155,7 @@ TIMESTEP {
 
     static Info *info=new Info(*dish, *this);
     
-    static vector<double> N_index;
+    // static vector<double> N_index;
     static vector<double> shape_index;
     if (t % 1000 == 0 && t > 0)
     {
@@ -149,11 +166,11 @@ TIMESTEP {
       dish->CPM->adjustPerimeters();
       vector<double> tperims = dish->CPM->TruePerimeters();
       vector<double> volumes = dish->CPM->GetVolumes();
-      vector<double> Nperims = dish->CPM->PerimitersRadiusN(sqrt(5), 11);
-      cout << tperims[1] << '\t' << Nperims[1] << '\t' << volumes[1] << endl;
+      // vector<double> Nperims = dish->CPM->PerimitersRadiusN(sqrt(5), 11);
+      // cout << tperims[1] << '\t' << Nperims[1] << '\t' << volumes[1] << endl;
 
       double avg{};
-      double n_avg{};
+      // double n_avg{};
       for (int i = 0; i < tperims.size(); ++i)
       {
         // cout << tperims[i] << '\t' << Nperims[i] << '\t' << volumes[i] << endl;
@@ -162,15 +179,16 @@ TIMESTEP {
         avg+=sindex;
         shape_index.push_back(sindex);
 
-        sindex = (Nperims[i]) / (sqrt(volumes[i]));
+        // sindex = (Nperims[i]) / (sqrt(volumes[i]));
         // cout << i << '\t';
-        n_avg+=sindex;
-        N_index.push_back(sindex);
+        // n_avg+=sindex;
+        // N_index.push_back(sindex);
 
       }
+      double median = findMedian(shape_index);
       avg/=tperims.size();
-      n_avg/=tperims.size();
-      cout << endl << avg << '\t' << n_avg << endl;
+      // n_avg/=tperims.size();
+      cout << endl << avg << '\t' << median << endl;
 
   
       cout << t << " TIME STEPS HAVE PASSED." << endl;

@@ -50,7 +50,7 @@
     // gene record needs to always be on to test network connectivity. 
     gene_record = true;
     // include regulatory proteins in the state space 
-    max_statespace = true;
+    max_statespace = false;
 
     //for umap
     umap = false;
@@ -85,8 +85,8 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, 2, 0, 0, 0, 0, 1, 0 }, { 0, -2, 2, -2, 0, 1, 0, 0, -2 }, { 0, 0, 1, -1, 0, 0, 0, 1, 1 }, { 0, 0, 0, 2, 0, 0, 0, -1, 1 }, { 0, 0, -1, 1, 0, 0, 1, -1, 0 }, { 1, 1, -1, -2, 2, 0, 0, 1, -1 }, { 0, 1, -1, 0, 0, 2, 1, 0, 0 }, { 0, 0, -1, -1, 0, 0, 1, 0, 0 }, { 2, -1, 0, 0, 1, -1, 0, 1, -1 }, { 2, 1, 0, 0, 0, 1, 0, 1, 1 }, { -1, 1, 0, 0, -1, 0, 2, 1, 0 }, { -1, -1, 0, 1, 0, 0, 0, 0, -1 }, { 1, 1, 1, 1, 2, -2, 1, 0, 0 }, { 1, 0, 2, 0, 2, 2, 0, 0, 0 }, { -1, 0, 0, 0, -1, 1, 1, 0, 1 }, { 1, -1, 0, 2, 1, 0, 0, -2, -1 }, { 1, -1, -1, 0, -1, 0, 0, 1, 0 }, { -1, 0, 0, -1, 1, 0, 0, 0, 0 }, { 0, 1, 0, 1, -1, -1, 0, -2, 0 }, { 1, 0, 0, 1, 0, 1, -2, 0, 0 }, { 0, 0, 0, 0, -2, 1, 0, 0, 0 }, { 0, 0, 0, -1, 0, 0, 2, -2, 0 }, { -2, 0, 1, 0, 0, 0, 1, 0, -1 }, { -2, 0, 2, 0, 1, 0, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, 0, 1, -1 }, { 0, -1, 0, 0, 0, 1, 0, 0, -1 }, { 0, 1, -2, 0, 0, 1, 0, 0, 0 }, };
-    
+    start_matrix = { { 1, -2, 0, 0, 0, 0 }, { 2, 0, -1, -1, 1, 0 }, { 1, 1, 1, 0, 1, 0 }, { 1, 0, 2, 1, -1, 0 }, { 2, 0, 1, 0, 1, -1 }, { -1, -1, 0, 1, -1, 0 }, { 2, -1, 0, 1, 0, 0 }, { 1, 0, 1, 2, 0, 1 }, };
+
 
 
 /* Cellular Potts parameters */
@@ -103,69 +103,86 @@
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     shrink = -16;
-    shrink_on = true;
+    shrink_on = false;
     periodic_boundaries = false;
     // keep this at 2= moore neighbourhood. 2 used in simulations. 
-    neighbours = 3;
+    neighbours = 2;
     // high value ensures cells are never broken apart by copy attempts.
     conn_diss = 2000;
 
 /* adhesion params */
 
-    //stem-cell system project params
-    n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
-    n_locks = n_lockandkey / 2;
-    n_TF = 4; 
-    n_length_genes = 2;
-    minJ=4;
-    maxJ=24;
-    n_mediums=5;
-    med_table = new int[n_mediums];
-    med_table[0] = 5;
-    med_table[1] = 4;
-    med_table[2] = 3;
-    med_table[3] = 2;
-    med_table[4] = 1;
-    n_diffusers=3;
-    n_MF=2;
-    minM=6;
-    tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
-    tlength2 = 2;
+/*stem-cell system project params*/
+    // n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
+    // n_locks = n_lockandkey / 2;
+    // n_TF = 4; 
+    // n_length_genes = 2;
+    // minJ=4;
+    // maxJ=24;
+    // n_mediums=5;
+    // med_table = new int[n_mediums];
+    // med_table[0] = 5;
+    // med_table[1] = 4;
+    // med_table[2] = 3;
+    // med_table[3] = 2;
+    // med_table[4] = 1;
+    // n_diffusers=3;
+    // n_MF=2;
+    // minM=6;
+    // tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
+    // tlength2 = 2;
 
-    //new params
-    // n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
-    // n_locks = n_lockandkey / 2; // must be half lockandkey. 
-    // n_mediums = 2;
-    // med_table = new int[n_mediums]; // J values for cell with medium
-    // med_table[0] = 10;
-    // med_table[1] = 2;
-    // // med_table[2] = 3;
-    // // med_table[3] = 2;
-    // // med_table[4] = 1;
-    // n_TF = 1; 
-    // n_diffusers = 3; // morphogens
-    // n_length_genes = 0;
-    // n_MF = 2;
-    // minJ = 4; // min J if all cell-cell are paired
-    // maxJ = 20; // max J if all cell-cell are not paired
-    // minM = 6; // min J with medium if all proteins are on
+
+    // phase transition params;
+    phase_evolution=true;
+    J_stem=4;
+    J_diff=12;
+    J_stem_diff=6;
+    J_med=1+0.5*J_diff;
+    J_med2=J_med+10;
+    Vmax = 1; 
+    offset = 50;
+    J_mutate_probability=0.1;
+
+    // GRN params
+    n_TF = 1; 
+    n_diffusers = 3; // morphogens
+    n_length_genes = 0;
+    n_MF = 2;
+
+/*small genome params*/
+    n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
+    n_locks = n_lockandkey / 2; // must be half lockandkey. 
+    n_mediums = 2;
+    med_table = new int[n_mediums]; // J values for cell with medium
+    med_table[0] = 10;
+    med_table[1] = 2;
+    minJ = 4; // min J if all cell-cell are paired
+    maxJ = 20; // max J if all cell-cell are not paired
+    minM = 6; // min J with medium if all proteins are on
 
     // difference between maximum and minimum cell J
     interval1 = maxJ-minJ;
     // addition of J for each lock and key pair
     interval2 = interval1 / (double)n_lockandkey;
 
+    n_genes = n_diffusers + n_TF + n_MF + !phase_evolution * (n_lockandkey + n_mediums + shrink_on + n_length_genes + (enzymes * n_diffusers)) + phase_evolution*(2);
     // number of genes. All gene types must sum to this value (except if using morphogenwave, then activators is +1).
-    n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers); 
+    // n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers); 
     n_activators = n_diffusers + n_TF+n_MF; //number of genes that can activate network (<= n_genes)
-    n_functional = n_lockandkey + n_length_genes + n_mediums;
-    gene_vector_size = n_diffusers + n_TF + n_length_genes +n_MF + n_gr + n_in + shrink_on + (enzymes * n_diffusers);
+    n_functional = phase_evolution * 2 + !phase_evolution*(n_lockandkey + n_length_genes + n_mediums);
+    gene_vector_size = n_diffusers + n_TF + !phase_evolution * (n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers)) + phase_evolution*(2);
+
+    //location of maternal factors in genome
+    mfloc1 = n_diffusers;
+    mfloc2 = mfloc1 + 1;
+
     // location of target length genes in genome. 
     tloc1 = n_diffusers + n_MF + n_TF;
     tloc2 = tloc1+1;
 
     shrink_loc = tloc2+1;
-
+    // DEPRACATED
     e1_loc=shrink_loc+1;
     e2_loc=e1_loc+1;
     e1_loc=shrink_loc+1;
@@ -174,7 +191,7 @@
 
 /* sheet related parameters */
     sheet=false;
-    sheet_J = 2;
+    sheet_J = 4;
     sheet_minJ=2;
     sheet_maxJ=8;
     J_width=0.5;
@@ -222,7 +239,7 @@
 
 /*Conditions for evolution */
     // select for movement of cells towards one side of the boundary.
-    asymmetry_selection = false; 
+    asymmetry_selection = true; 
     asym_only = false;
     swap_selection = 240.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
     // start from a certain network
@@ -237,7 +254,7 @@
     pic_gen_interval = 100;
   
     evs = 10000;
-    insert_randoms = true;
+    insert_randoms = false;
     n_mutations = 1;
     // mut rate for gene network
     mut_rate = 0.5;
@@ -372,7 +389,6 @@
     // n_in = 1; // decrement target area of cell 
     // gloc = tloc2 + 1;
     // + n_gr + n_in // add to n_genes
-    // stem_gthresh = 2; // going to have a lower growth threshold for stem cells. 
 
     // maximum number of somatic genes on before a cell cannot divide. HAVE CHANGED THIS TO TF GENES
     // max_on = 3;

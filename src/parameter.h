@@ -209,6 +209,16 @@ class Parameter {
   bool sheet;
   double sheet_J;
 
+  double J_stem;
+  double J_diff;
+  double J_stem_diff;
+  double J_med;
+  double J_med2;
+  int Vmax; 
+  bool phase_evolution;
+  int offset;
+  double J_mutate_probability;
+
   bool insitu_shapes;
 
   int max_on; //max number of proteins on before a cell can't divide.
@@ -237,6 +247,9 @@ class Parameter {
 
   int tloc1;
   int tloc2;
+
+  int mfloc1;
+  int mfloc2;
 
   int n_in;
   int n_gr;

@@ -102,7 +102,6 @@ void Cell::CellBirth(Cell &mother_cell) {
   full_set=mother_cell.full_set;
   cycles=mother_cell.cycles;
   gene_recordings=mother_cell.gene_recordings;
-  stemness=mother_cell.stemness;
   shrinker = mother_cell.shrinker;
 
   div_time = mother_cell.div_time;
@@ -124,6 +123,10 @@ void Cell::CellBirth(Cell &mother_cell) {
   mass_list = mother_cell.mass_list;
   time_created = mother_cell.time_created;
 
+  phase_protein_conc = mother_cell.phase_protein_conc;
+  phase_state = mother_cell.phase_state;
+  medium_protein_conc = mother_cell.medium_protein_conc;
+  medium_state = mother_cell.medium_state;
 
   for (int i=0;i<par.n_diffusers;i++)
   {
@@ -255,6 +258,63 @@ double Cell::SheetDif(Cell &cell2, double &sJ)
 
 }
 
+double Cell::EnergyDifference(Cell &cell2, bool phase, double Jstemdiff)
+{
+  if (sigma==cell2.sigma)
+  {
+    return 0;
+  }
+  else if (sigma==0)
+  {
+    return phaseJfromMed(cell2.getmJ());
+  }
+  else if (cell2.sigma==0)
+  {
+    return PhaseJwithMed();
+  }
+  else
+    return PhaseJ(cell2.GetPhase(), Jstemdiff);
+}
+
+double Cell::PhaseJ(bool phase, double Jstemdiff)
+{
+  if (phase && phase_state)
+  {
+    return par.J_stem;
+  }
+  else if (!phase && !phase_state)
+  {
+    return par.J_diff;
+  }
+  else
+  {
+    return Jstemdiff;
+  }
+}
+
+double Cell::PhaseJwithMed()
+{
+  if (medium_state)
+  {
+    return par.J_med;
+  }
+  else
+  {
+    return par.J_med2;
+  }
+}
+
+double Cell::phaseJfromMed(bool mstate)
+{
+  if (mstate)
+  {
+    return par.J_med;
+  }
+  else
+  {
+    return par.J_med2;
+  }
+}
 
 
 // return energies by calculating lock & key products switched on by cells. 

@@ -79,14 +79,16 @@ public:
   Find enlarged cells, and divide them.*/
   void CellGrowthAndDivision(int time);
 
-  /// program first 1000 montecarlo steps
+  /// program first divisions for MFs
   void Programmed_Division(void);
+
+  void Programmed_Division(bool phase);
 
   // get the approx middle of a cell
   vector<int> MiddleOfCell(int sig);
 
   // called by Programmed_Division() to set maternal factors
-  void set_MF(vector<vector<int>> middles, int gene);
+  void set_MF(vector<vector<int>> middles, int gene, bool on=true);
 
   vector<bool> divide_vector(void);
 
@@ -97,6 +99,8 @@ public:
   void start_network(vector<vector<int>> start_matrix, vector<bool> start_pol={0,0,0,0});
 
   void update_network(int tsteps);
+
+  void update_phase_network(int tsteps);
 
   double numeric_step(vector<double>& gene_list, double conc, int gene_n, int tsteps);
 
@@ -447,6 +451,11 @@ public:
     internal_J = J;
   }
 
+  inline void Set_evoJ(double J)
+  {
+    evo_J = J;
+  }
+
   /*! Plot the cells according to their cell identity, not their type.
     
   The black lines are omitted.
@@ -663,6 +672,8 @@ private:
   double internal_T;
 
   double internal_J;
+
+  double evo_J;
 
   map<int,vector<double>> state_shape_index;
 

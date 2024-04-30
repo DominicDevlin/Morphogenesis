@@ -104,7 +104,6 @@ public:
     cycles=src.cycles;
     gene_recordings=src.gene_recordings;
 
-    stemness = src.stemness;
     shrinker = src.shrinker;
 
     div_time = src.div_time;
@@ -129,6 +128,10 @@ public:
     gamma_list = src.gamma_list;
     mass_list = src.mass_list;
 
+    phase_protein_conc = src.phase_protein_conc;
+    phase_state = src.phase_state;
+    medium_protein_conc = src.medium_protein_conc;
+    medium_state = src.medium_state;
 
     diffs = new double[par.n_diffusers];
 
@@ -211,7 +214,6 @@ public:
 
     time_created = src.time_created;
 
-    stemness = src.stemness;
     shrinker = src.shrinker;
 
     xcen = src.xcen;
@@ -223,6 +225,10 @@ public:
     gamma_list = src.gamma_list;
     mass_list = src.mass_list;
 
+    phase_protein_conc = src.phase_protein_conc;
+    phase_state = src.phase_state;
+    medium_protein_conc = src.medium_protein_conc;
+    medium_state = src.medium_state;
 
 
     diffs = new double[par.n_diffusers];
@@ -301,6 +307,8 @@ public:
   **/
   // int EnergyDifference(Cell &cell2) const;
   double EnergyDifference(Cell &cell2); // DOM CHANGED TO NON-CONST
+
+  double EnergyDifference(Cell &cell2, bool phase, double Jstemdiff=par.J_stem_diff);
 
   //! Return Cell's actual area.
   inline int Area() const {
@@ -636,6 +644,37 @@ private:
     diff_genes = new_diff;
   }
 
+  inline void set_phase_state()
+  {
+    if (phase_protein_conc > 0.5)
+      phase_state = true;
+    else
+      phase_state = false;
+
+    if (medium_protein_conc > 0.5)
+      medium_state = true;
+    else
+      medium_state = false;
+  }
+
+  inline double& get_phase_J(void)
+  {
+    return phase_protein_conc;
+  }
+
+  inline double& get_phase_M(void)
+  {
+    return medium_protein_conc;
+  }
+
+  inline bool& getpJ(void)
+  {
+    return phase_state;
+  }
+  inline bool& getmJ(void)
+  {
+    return medium_state;
+  }  
 
   inline void set_locks(vector<double>& nlock)
   {
@@ -684,15 +723,26 @@ private:
 
   inline void set_lists(void)
   {
-    locks.resize(par.n_locks);
-    keys.resize(par.n_locks);
-    locks_bool.resize(par.n_locks);
-    keys_bool.resize(par.n_locks);
-    medp.resize(par.n_mediums);
-    medp_bool.resize(par.n_mediums);
-    full_set.resize(par.n_lockandkey + par.n_length_genes + par.n_mediums);
-    cycles.resize(par.cycle_size);
-    gene_recordings.resize(par.n_genes+par.n_diffusers);
+    if (par.phase_evolution)
+    {
+      full_set.resize(2);
+      gene_recordings.resize(par.n_genes+par.n_diffusers);
+      cycles.resize(par.cycle_size);
+      phase_protein_conc=0.;
+      medium_protein_conc=0.;
+    }
+    else
+    {
+      locks.resize(par.n_locks);
+      keys.resize(par.n_locks);
+      locks_bool.resize(par.n_locks);
+      keys_bool.resize(par.n_locks);
+      medp.resize(par.n_mediums);
+      medp_bool.resize(par.n_mediums);
+      full_set.resize(par.n_lockandkey + par.n_length_genes + par.n_mediums);
+      cycles.resize(par.cycle_size);
+      gene_recordings.resize(par.n_genes+par.n_diffusers);
+    }
   }
 
   
@@ -726,6 +776,13 @@ private:
   // static vector<bool> spare;
 
   double CalculateJfromMed(vector<bool>& medp2);
+
+  double PhaseJ(bool phase, double Jstemdiff);
+
+  double PhaseJwithMed();
+
+  double phaseJfromMed(bool mstate);
+  
 
 
   inline void set_lambda_2(double l)
@@ -769,15 +826,7 @@ private:
   }
 
 
-  inline void set_stem(bool fate)
-  {
-    stemness = fate;
-  }
 
-  inline bool get_stem(void)
-  {
-    return stemness;
-  }
 
   inline void set_shrink(bool fate)
   {
@@ -1001,7 +1050,12 @@ private:
     full_set.resize(par.n_functional+par.n_activators, 0);
   }
 
-  
+  inline int GetPhase()
+  {
+    return phase_state;
+  }
+
+
 private:
 //! Increments the cell's actual area by 1 unit.
   inline int IncrementArea() {
@@ -1066,6 +1120,13 @@ protected:
   vector<double> gamma_list; 
   vector<double> mass_list;
 
+  double phase_protein_conc;
+  bool phase_state;
+  double medium_protein_conc;
+  bool medium_state;
+
+
+
 
   bool exposed{true};
 
@@ -1117,8 +1178,6 @@ protected:
   vector<tuple<int,int, uint64_t>> switches;
   vector<tuple<int,int, uint64_t>> long_switches;
 
-  // if cell is stem cell or not
-  bool stemness{false};
 
   // if cell shrinks more easily
   bool shrinker{false};

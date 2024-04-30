@@ -306,10 +306,21 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
       // - 
       if (par.sheet)
         DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J);
-      else if (tsteps < par.end_program)
-        DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+
+      if (par.phase_evolution)
+      {
+        if (tsteps < par.end_program)
+          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+        else
+          DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
+      }
       else
-        DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
+      {
+        if (tsteps < par.end_program)
+          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+        else
+          DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
+      }
       // debugging. 
       // cout << "COPYING: " << (*cell)[sxyp].getTau() << (*cell)[sxy].getTau() << std::endl;
       // cout << "sxyp is type: " << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) 
@@ -1470,7 +1481,6 @@ void CellularPotts::FractureSheet()
 
 
 int CellularPotts::GrowInCells(int n_cells, int cell_size, double subfield) {
-
   
   int sx = (int)((sizex-2)/subfield);
   int sy = (int)((sizey-2)/subfield);
@@ -1478,15 +1488,17 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, double subfield) {
   int offset_x = (sizex-2-sx)/2;
   int offset_y = (sizey-2-sy)/2;
   
-  if (n_cells==1) {
+  if (n_cells==1) 
+  {
     return GrowInCells(1, cell_size, sizex/2, sizey/2, 0, 0);
-  } else {
+  } else 
+  {
     return GrowInCells(n_cells, cell_size, sx, sy, offset_x, offset_y);
   }
 }
 
-int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int offset_x, int offset_y) {
-  
+int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int offset_x, int offset_y) 
+{
   // make initial cells using Eden Growth
   
   int **new_sigma=(int **)malloc(sizex*sizeof(int *));
@@ -1510,17 +1522,16 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int o
   // if only one cell is desired
   int cellnum=cell->size()-1;
 
-  if (n_cells>1) {
-    
-    
-    
-    { for (int i=0;i<n_cells;i++) {
-      
+  if (n_cells>1) 
+  {   
+    { for (int i=0;i<n_cells;i++) 
+    {
       sigma[RandomNumber(sx, s_val)+offset_x][RandomNumber(sy, s_val)+offset_y]=++cellnum;
-      
     }}
-  } else {
-    sigma[sx][sy]=++cellnum;
+  } 
+  else 
+  {
+    sigma[sx+offset_x][sy+offset_y]=++cellnum;
 
   }
 
@@ -1888,10 +1899,6 @@ void CellularPotts::CellGrowthAndDivision(int time)
       int gthresh = par.gthresh;
       int sthresh=par.shrink;
 
-      // if (c->get_stem())
-      //   gthresh = par.stem_gthresh;
-      // else
-      //   gthresh = par.gthresh;
 
       if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
       {
@@ -1924,28 +1931,8 @@ void CellularPotts::CellGrowthAndDivision(int time)
       if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
       {
         
-        // int count=0;
-        // if (!par.all_divide)
-        // {
-        //   vector<double> &genes = c->get_genes();
-
-        //   int i = par.n_diffusers + par.n_MF;
-        //   int k = i + par.n_stem;
-        //   while (i < k)
-        //   {
-        //     if (genes[i] > 0.5)
-        //       ++count;
-        //     ++i;
-        //   }
-        // }
-        // // only divide cells if they have stem cell genes on
-        // // divide all cells on the rare case that there area is too large. 
-        // if (count == par.n_stem || area > (double)(par.div_threshold) * 1.5) 
-        // {
         which_cells[c->Sigma()]=true;
         cell_division++;
-
-        // }
       }
     }
   }
@@ -2028,7 +2015,7 @@ vector<int> CellularPotts::MiddleOfCell(int sig)
 
 
 
-void CellularPotts::set_MF(vector<vector<int>> middles, int gene)
+void CellularPotts::set_MF(vector<vector<int>> middles, int gene, bool on)
 {
   int xdif = middles.at(0).at(1) - middles.at(1).at(1);
   int ydif = middles.at(0).at(2) - middles.at(1).at(2);
@@ -2039,14 +2026,14 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene)
       // furthest on right gets MF at 4 --> 1  
       // genes expression defualt is at 0 so only have to modify one
       std::vector<double>& g_list = cell->at(middles.at(0).at(0)).get_genes();
-      g_list.at(gene) = 1;
+      g_list.at(gene) = on;
       int val = g_list.at(2) * 4 + g_list.at(3)*3;
       cell->at(middles.at(0).at(0)).set_ctype(val);
     }
     else
     {
       std::vector<double>& g_list = cell->at(middles.at(1).at(0)).get_genes();
-      g_list.at(gene) = 1;
+      g_list.at(gene) = on;
       int val = g_list.at(2) * 4 + g_list.at(3)*3;
       cell->at(middles.at(1).at(0)).set_ctype(val);
     }
@@ -2057,14 +2044,14 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene)
     {
       // furthest on bottom(maybe decreasing y from top??) gets MF at 4 --> 1  
       std::vector<double>& g_list = cell->at(middles.at(0).at(0)).get_genes();
-      g_list.at(gene) = 1;
+      g_list.at(gene) = on;
       int val = g_list.at(2) * 4 + g_list.at(3)*3;
       cell->at(middles.at(0).at(0)).set_ctype(val);
     }
     else
     {
       std::vector<double>& g_list = cell->at(middles.at(1).at(0)).get_genes();
-      g_list.at(gene) = 1;
+      g_list.at(gene) = on;
       int val = g_list.at(2) * 4 + g_list.at(3)*3;
       cell->at(middles.at(1).at(0)).set_ctype(val);
     }
@@ -2105,6 +2092,7 @@ void CellularPotts::Programmed_Division(void)
       }
     }
     set_MF(middles, 2);  
+    set_MF(middles, 3);
   }
   // set second maternal factor  
   else if (n_cells < 4)
@@ -2162,6 +2150,45 @@ void CellularPotts::Programmed_Division(void)
     DivideCells(to_divide);
 } 
 
+
+
+
+void CellularPotts::Programmed_Division(bool phase)
+{
+
+  vector<bool> to_divide = divide_vector();
+  int n_cells = CountCells();
+  
+  // set first maternal factor
+  if (n_cells < 2)
+  {
+    // DivideCells(to_divide);
+
+    int id{};
+    vector<Cell>::const_iterator i;
+    for ( (i=cell->begin(),i++); i!=cell->end(); i++)
+    {
+      if (i->AliveP()) 
+      {
+        id = i->Sigma();
+      }
+    }
+    xyCellDivision(id, false);
+    vector<vector<int>> middles;
+
+    for ( (i=cell->begin(),i++); i!=cell->end(); i++)
+    {
+      if (i->AliveP()) 
+      {
+        middles.push_back(MiddleOfCell(i->Sigma()));
+      }
+    }
+    set_MF(middles, par.mfloc1);
+    set_MF(middles, par.mfloc2, false);  
+  }    
+  else 
+    DivideCells(to_divide);
+} 
 
 
 void CellularPotts::randomise_network()
@@ -2561,6 +2588,157 @@ void CellularPotts::update_network(int tsteps)
     }
   }
 }
+
+
+void CellularPotts::update_phase_network(int tsteps)
+{
+  vector<Cell>::iterator c;
+
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      vector<double>& genes = c->get_genes();
+      vector<double>& diffusers = c->get_diffusers(); 
+
+      double& cellJ = c->get_phase_J();
+      double& mediumJ = c->get_phase_M();
+
+      vector<double> gene_copy = c->get_genes();
+      if (genes.empty() == true)
+        cout << "EMPTY GENE SET" << endl;
+
+      // iterate through genes and update them according to GRN
+      // iteration is a bit weird through different vectors
+      // gene expression for morphogens is in diffuser, but the input for other genes is in the genes vector
+
+      for (int i = 0; i < par.n_genes; ++i)
+      {
+        if (i < par.n_diffusers)
+          diffusers[i] = numeric_step(gene_copy, diffusers[i], i, tsteps);
+        else if (i < par.n_genes - 2)
+          genes[i] = numeric_step(gene_copy, genes[i], i, tsteps);
+        else if (i < par.n_genes - 1)
+        {
+          cellJ = numeric_step(gene_copy, cellJ, i, tsteps);
+        }
+        else
+        {
+          mediumJ = numeric_step(gene_copy, mediumJ, i, tsteps);
+        }
+      }
+      c->set_phase_state();
+      if (par.gene_record && tsteps > par.end_program)
+      {
+        if (!par.max_statespace)
+        {
+          // make boolean set. 
+          vector<bool>& full_set = c->get_set();
+          // for recording differentiation events to output.
+          vector<bool> cp(par.n_functional);
+          if (par.gene_record && tsteps > par.end_program)
+          {
+            for (int i = 0;i<(int)full_set.size();i++)
+            {
+              cp[i] = full_set[i];
+            }
+          }
+          full_set[0] = c->getpJ();
+          full_set[1] = c->getmJ();
+
+          c->AddPhenotype();
+          c->RecordLongSwitch(cp, RandomNumber(INT_MAX, s_val));
+          if (tsteps > par.adult_begins)
+          {
+            c->AddType();
+          }
+          if (!par.potency_edges)
+            c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
+          else if (par.potency_edges && tsteps > par.adult_begins)
+          {
+            c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
+          }
+          // unfortunately need to add old and new phenotype just in case a node is missed. 
+          c->Phenotype();
+          // Have to record types before and after switch otherwise a node could be skipped.
+          c->AddPhenotype();
+          if (tsteps > par.adult_begins)
+          {
+            c->AddType();
+          }
+          int ptype=c->GetPhenotype();
+          // int tau = c->getTau();
+          // set the type of the cell based on network arrangement.
+          c->set_ctype(set_type(ptype));// * c->getTau());
+          // c->add_to_cycle();
+        }
+        else
+        {
+          cout << "ERROR - NO FUNCTIONALITY HERE YET!" << endl;
+          // // make boolean set. 
+          // vector<bool>& full_set = c->get_set();
+          // // for recording differentiation events to output.
+          // vector<bool> cp(par.n_functional);
+          // if (par.gene_record && tsteps > par.end_program)
+          // {
+          //   for (int i = 0;i<(int)full_set.size();i++)
+          //   {
+          //     cp[i] = full_set[i];
+          //   }
+
+          //   for (int i=0; i < par.n_locks; ++i)
+          //   {
+
+          //     full_set[i] = l_bool[i];
+          //     full_set[i+par.n_locks] = k_bool[i];
+          //   }
+
+          //   for (int i=0; i < par.n_mediums; ++i)
+          //   {
+          //     m_bool[i] = (meds[i]>0.5) ? true : false;
+          //     full_set[i+par.n_lockandkey] = m_bool[i];
+          //   }
+
+          //   for (int i=0;i<par.n_activators;++i)
+          //   {
+          //     full_set[par.n_functional+i] = ((genes[i]>0.5)? true : false);
+          //   }
+          //   c->AddPhenotype();
+          //   c->RecordLongSwitch(cp, RandomNumber(INT_MAX, s_val));
+          //   if (tsteps > par.adult_begins)
+          //   {
+          //     c->AddType();
+          //   }
+          //   if (!par.potency_edges)
+          //     c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
+          //   else if (par.potency_edges && tsteps > par.adult_begins)
+          //   {
+          //     c->RecordSwitch(cp, RandomNumber(INT_MAX, s_val));
+          //   }
+          //   // unfortunately need to add old and new phenotype just in case a node is missed. 
+          //   c->Phenotype();
+          //   // Have to record types before and after switch otherwise a node could be skipped.
+          //   c->AddPhenotype();
+          //   if (tsteps > par.adult_begins)
+          //   {
+          //     c->AddType();
+          //   }
+          //   int ptype=c->GetPhenotype();
+          //   // int tau = c->getTau();
+          //   // set the type of the cell based on network arrangement.
+          //   c->set_ctype(set_type(ptype));// * c->getTau());
+          //   // c->add_to_cycle();
+
+          // }
+        }
+      }
+    }
+  }
+}
+
+
+
+
 
 
 bool CellularPotts::CycleCheck()
@@ -3325,7 +3503,8 @@ void CellularPotts::record_GRN()
     if (c->AliveP())
     {
       c->Phenotype();
-      c->add_to_vectors();
+      if (!par.phase_evolution)
+        c->add_to_vectors();
     }
   }
 }
@@ -9201,7 +9380,7 @@ double CellularPotts::TraverseFitness()
   // could I just try for any asymmetry??
 
   double midx = ((double)sizex - 1) / 2;
-  double midy = ((double)sizey - 1) / 2;
+  double midy = ((double)sizey - 1) / 2 + (par.phase_evolution * par.offset);
 
   double total_movement{};
 
