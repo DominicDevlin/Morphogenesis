@@ -191,6 +191,7 @@ class Parameter {
   bool record_directions;
 
   string data_file;
+  string pic_dir;
 
   bool stem_counts;
 

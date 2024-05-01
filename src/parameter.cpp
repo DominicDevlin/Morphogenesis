@@ -42,7 +42,7 @@
     draw_paths = false;
 
     // Generate a random genome
-    randomise = false;
+    randomise = true;
 
     // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
     // output data for analysis (connectivity, gene expression, state transitions)
@@ -85,8 +85,9 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, -2, 2, -1, 1 }, { 1, 1, 0, 0, 1, -1 }, { 0, 0, -2, 0, 2, -1 }, { 2, 1, -1, 1, 0, 0 }, { 1, 1, 0, 1, 0, 1 }, { 0, 0, 0, -1, 0, 1 }, { 0, 0, -1, -2, 0, 0 }, { 0, -1, 0, -1, 0, 1 }, { 0, 0, -1, -2, -1, 2 }, { 0, 0, 0, 1, 0, 0 }, { -1, -2, 1, 0, 0, 0 }, { -2, 2, 1, 2, -2, 1 }, };
-    
+    start_matrix = { { 0, 0, 1, 1, -2, 0 }, { -2, 0, -1, 1, 0, 0 }, { 0, 1, 0, 0, -2, 0 }, { 0, 1, -1, 0, 0, 1 }, { 2, 0, 1, -1, 2, 0 }, { 2, 0, 1, -1, 0, 1 }, { 2, -2, -2, 0, 1, -1 }, { -1, 2, 0, 1, 0, -1 }, };
+
+
 
 
 /* Cellular Potts parameters */
@@ -134,7 +135,7 @@
 
 
     // phase transition params;
-    phase_evolution=false;
+    phase_evolution=true;
     J_stem=4;
     J_diff=12;
     J_stem_diff=6;
@@ -248,10 +249,11 @@
     starter = false;
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
 
-    start_n = { { 0, -1, 0, 0, 2, -1 }, { 0, 0, 2, 0, 0, 0 }, { 0, 0, 1, 2, 0, 2 }, { -1, 0, -1, 1, 0, 0 }, { -1, 0, 2, 1, 0, 0 }, { -1, -2, 2, 2, 1, 0 }, { 0, 0, 0, 0, 0, 0 }, { -1, 0, 0, -1, 0, 0 }, { -1, 2, 1, 0, 2, 0 }, { -1, 0, 2, 0, -1, 0 }, { -1, 0, 0, 0, 0, 0 }, { 2, 1, 0, -1, 1, -1 }, { 1, -2, 0, 2, 1, 1 }, { -2, 0, 0, 2, 2, 0 }, { 1, 0, -1, 0, 1, 0 }, { 1, 0, -1, 0, 0, 1 }, { 1, -2, -1, 0, -1, -1 }, { 0, 0, 0, -1, 0, 1 }, { 0, 1, 1, 0, 0, 1 }, { 0, 2, 0, 2, -1, -1 }, { 0, -1, -1, 2, 0, 1 }, { 1, -1, 0, 1, 0, 0 }, { 1, 0, 0, -2, 0, 0 }, { 1, 0, 0, 1, 1, -1 }, };
-
-    evo_pics = false;
-    pic_gen_interval = 100;
+    start_n = { { 0, 0, 1, 1, -2, 0 }, { -2, 0, -1, 1, 0, 0 }, { 0, 1, 0, 0, -2, 0 }, { 0, 1, -1, 0, 0, 1 }, { 2, 0, 1, -1, 2, 0 }, { 2, 0, 1, -1, 0, 1 }, { 2, -2, -2, 0, 1, -1 }, { -1, 2, 0, 1, 0, -1 }, };
+    
+    evo_pics = true;
+    pic_gen_interval = 50;
+    pic_dir = "images";
   
     evs = 10000;
     insert_randoms = false;

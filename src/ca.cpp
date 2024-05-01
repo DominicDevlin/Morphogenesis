@@ -1053,7 +1053,6 @@ void CellularPotts::ShowDirections(Graphics &g, const Dir *celldir) const
 
 void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 {
-  
   // for the cell directions
   Dir *celldir=0;
   
@@ -1097,13 +1096,11 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
             daughterp=new Cell(*(motherp->owner));
             daughterp->CellBirth(*motherp);
             cell->push_back(*daughterp);
-            
             // renew pointer to mother
             motherp=&((*cell)[sigma[i][j]]);
 
             divflags[ motherp->Sigma() ]=daughterp->Sigma();
             delete daughterp;
-            
             // array may be relocated after "push_back"
             
             // renew daughter pointers
@@ -1118,12 +1115,14 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
                 { 
                   TF[k+par.n_TF] = 0;
                 }
+
             }
 
             if (par.gene_record)
             {
               daughterp->RecordDivision(t); // record division only in daughter cell.
               daughterp->reset_recordings(); 
+
             }
 
             
@@ -2015,45 +2014,86 @@ vector<int> CellularPotts::MiddleOfCell(int sig)
 
 
 
-void CellularPotts::set_MF(vector<vector<int>> middles, int gene, bool on)
+void CellularPotts::set_MF(vector<vector<int>> middles, int gene, double conc, bool mod_second)
 {
-  int xdif = middles.at(0).at(1) - middles.at(1).at(1);
-  int ydif = middles.at(0).at(2) - middles.at(1).at(2);
+  int xdif = middles[0][1] - middles[1][1];
+  int ydif = middles[0][2] - middles[1][2];
+   // maternal factors left and right
   if (abs(xdif) > abs(ydif))
   {
-    if (middles.at(0).at(1) > middles.at(1).at(1))
+    // right gets MF --> conc  
+    if (middles[0][1] > middles[1][1])
     {
-      // furthest on right gets MF at 4 --> 1  
+      
       // genes expression defualt is at 0 so only have to modify one
-      std::vector<double>& g_list = cell->at(middles.at(0).at(0)).get_genes();
-      g_list.at(gene) = on;
-      int val = g_list.at(2) * 4 + g_list.at(3)*3;
-      cell->at(middles.at(0).at(0)).set_ctype(val);
+      std::vector<double>& g_list = cell->at(middles[0][0]).get_genes();
+      g_list.at(gene) = conc;
+      int val = g_list.at(par.mfloc1) * 4 + g_list.at(par.mfloc2)*3;
+      cell->at(middles[0][0]).set_ctype(val);
+
+      // modify other
+      if (mod_second)
+      {
+        vector<double>& nlist = cell->at(middles[1][0]).get_genes();
+        nlist.at(gene) = abs(1 - conc);
+        int val = nlist.at(par.mfloc1) * 4 + nlist.at(par.mfloc2)*3;
+        cell->at(middles[1][0]).set_ctype(val);
+      }
     }
     else
     {
-      std::vector<double>& g_list = cell->at(middles.at(1).at(0)).get_genes();
-      g_list.at(gene) = on;
-      int val = g_list.at(2) * 4 + g_list.at(3)*3;
-      cell->at(middles.at(1).at(0)).set_ctype(val);
+      std::vector<double>& g_list = cell->at(middles[1][0]).get_genes();
+      g_list.at(gene) = conc;
+      int val = g_list.at(par.mfloc1) * 4 + g_list.at(par.mfloc2)*3;
+      cell->at(middles[1][0]).set_ctype(val);
+      // modify other
+      if (mod_second)
+      {
+        vector<double>& nlist = cell->at(middles[0][0]).get_genes();
+        nlist.at(gene) = abs(1 - conc);
+        int val = nlist.at(par.mfloc1) * 4 + nlist.at(par.mfloc2)*3;
+        cell->at(middles[0][0]).set_ctype(val);
+      }
     }
   }
+  // maternal factors up and down
   else 
   {
-    if (middles.at(0).at(2) > middles.at(1).at(2))
+    // bottom gets MF --> conc  
+    if (middles[0][2] > middles[1][2])
     {
+      // cout << "PRINT3: " << cell->at(middles[0][0]).Sigma() << endl;
       // furthest on bottom(maybe decreasing y from top??) gets MF at 4 --> 1  
-      std::vector<double>& g_list = cell->at(middles.at(0).at(0)).get_genes();
-      g_list.at(gene) = on;
-      int val = g_list.at(2) * 4 + g_list.at(3)*3;
-      cell->at(middles.at(0).at(0)).set_ctype(val);
+      std::vector<double>& g_list = cell->at(middles[0][0]).get_genes();
+      g_list.at(gene) = conc;
+      int val = g_list.at(par.mfloc1) * 4 + g_list.at(par.mfloc2)*3;
+      cell->at(middles[0][0]).set_ctype(val);
+
+      if (mod_second)
+      {
+        vector<double>& nlist = cell->at(middles[1][0]).get_genes();
+        nlist.at(gene) = abs(1 - conc);
+        int val = nlist.at(par.mfloc1) * 4 + nlist.at(par.mfloc2)*3;
+        cell->at(middles[1][0]).set_ctype(val);
+      }
     }
     else
     {
-      std::vector<double>& g_list = cell->at(middles.at(1).at(0)).get_genes();
-      g_list.at(gene) = on;
-      int val = g_list.at(2) * 4 + g_list.at(3)*3;
-      cell->at(middles.at(1).at(0)).set_ctype(val);
+      // cout << "PRINT4: " << cell->at(middles[1][0]).Sigma() << endl;
+      std::vector<double>& g_list = cell->at(middles[1][0]).get_genes();
+      g_list.at(gene) = conc;
+      int val = g_list.at(par.mfloc1) * 4 + g_list.at(par.mfloc2)*3;
+      cell->at(middles[1][0]).set_ctype(val);
+      cout << cell->at(middles[1][0]).Sigma() << '\t' << gene << '\t' << g_list[gene] << endl;
+
+      if (mod_second)
+      {
+        vector<double>& nlist = cell->at(middles[0][0]).get_genes();
+        nlist.at(gene) = abs(1 - conc);
+        cout << cell->at(middles[0][0]).Sigma() << '\t' << gene << '\t' << g_list[gene] << endl;
+        int val = nlist.at(par.mfloc1) * 4 + nlist.at(par.mfloc2)*3;
+        cell->at(middles[0][0]).set_ctype(val);
+      }
     }
   }  
 }
@@ -2091,7 +2131,8 @@ void CellularPotts::Programmed_Division(void)
         middles.push_back(MiddleOfCell(i->Sigma()));
       }
     }
-    set_MF(middles, 2);  
+    set_MF(middles, par.mfloc1);  
+
   }
   // set second maternal factor  
   else if (n_cells < 4)
@@ -2122,7 +2163,7 @@ void CellularPotts::Programmed_Division(void)
       if (i->AliveP()) 
       {
         std::vector<double>& g = i->get_genes();
-        if (g.at(2) > 0.5)
+        if (g.at(par.mfloc1) > 0.5)
           g4_on.push_back(i->Sigma());
         else
           g4_off.push_back(i->Sigma());
@@ -2134,14 +2175,13 @@ void CellularPotts::Programmed_Division(void)
     {
       middles1.push_back(MiddleOfCell(cell->at(j).Sigma()));
     }
-    set_MF(middles1, 3);
-    
+    set_MF(middles1, par.mfloc2);
     vector<vector<int>> middles2;
     for (int j : g4_off)
     {
       middles2.push_back(MiddleOfCell(cell->at(j).Sigma()));
     }
-    set_MF(middles2, 3);
+    set_MF(middles2, par.mfloc2);
 
     
   }
@@ -2164,7 +2204,7 @@ void CellularPotts::Programmed_Division(bool phase)
     // DivideCells(to_divide);
 
     int id{};
-    vector<Cell>::const_iterator i;
+    vector<Cell>::iterator i;
     for ( (i=cell->begin(),i++); i!=cell->end(); i++)
     {
       if (i->AliveP()) 
@@ -2182,12 +2222,16 @@ void CellularPotts::Programmed_Division(bool phase)
         middles.push_back(MiddleOfCell(i->Sigma()));
       }
     }
-    set_MF(middles, par.mfloc1, true);
-    set_MF(middles, par.mfloc2, false);  
+    set_MF(middles, par.mfloc1, 1, true);
+    set_MF(middles, par.mfloc2, 0, true);  
   }    
   else 
     DivideCells(to_divide);
+
+
 } 
+
+
 
 
 void CellularPotts::randomise_network()
@@ -2205,7 +2249,7 @@ void CellularPotts::randomise_network()
       {
         matrix[i][j] = -1;
       }
-      else if (val < 0.78)
+      else if (val < 0.7)
       {
         matrix[i][j] = 0;
       }
@@ -2807,7 +2851,29 @@ void CellularPotts::ColourCells()
 }
 
 
+void CellularPotts::ColourCells(bool phase)
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {    
+      // make boolean set. 
+      vector<bool>& full_set = c->get_set();
 
+      full_set[0] = c->getpJ();
+      full_set[1] = c->getmJ();
+
+
+      c->Phenotype();
+      int ptype=c->GetPhenotype();
+      // int tau = c->getTau();
+      // set the type of the cell based on network arrangement.
+      c->set_ctype(set_type(ptype));// * c->getTau());
+      // c->add_to_cycle();
+    }
+  }
+}
 
 
 

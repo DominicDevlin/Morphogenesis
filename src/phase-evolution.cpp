@@ -36,7 +36,7 @@ std::uniform_real_distribution<double> double_num(0.0, 1.0);
 std::uniform_int_distribution<> genes_dist(0, par.n_genes-1);
 std::uniform_int_distribution<> activ_dist(0, par.n_activators-1);
 std::uniform_int_distribution<> TF_dist(0, par.n_TF-1);
-
+std::uniform_int_distribution<> J_dist(0, par.J_diff);
 
 int PDE::MapColour(double val) {
   
@@ -89,6 +89,13 @@ void swapb(vector<bool> *xp, vector<bool> *yp)
   *yp = temp;
 }
 
+void swapJ(double *xp, double *yp)
+{
+  double temp = *xp;
+  *xp = *yp;
+  *yp = temp;  
+}
+
 void swapd(Dish *d, int max_idx, int i)
 {
   Dish tmp = d[max_idx];
@@ -96,7 +103,7 @@ void swapd(Dish *d, int max_idx, int i)
   d[i] = tmp;
 }
 
-void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, vector<double> &fitlist, Dish *dishes)
+void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, vector<double>& Js, vector<double> &fitlist, Dish *dishes)
 {
   int i, j, max_idx;
   int n = par.n_orgs;
@@ -113,6 +120,7 @@ void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, ve
     swap(&fitlist.at(max_idx), &fitlist.at(i));
     swapv(&networks.at(max_idx), &networks.at(i));
     swapb(&pol.at(max_idx), &pol.at(i));
+    swapJ(&Js.at(max_idx), &Js.at(i));
     // std::swap(dishes[max_idx], dishes[i]);
 
     // swapd(&dishes[max_idx], &dishes[i]);
@@ -175,6 +183,11 @@ vector<bool> get_random_pol()
   return pol;
 }
 
+double get_random_J()
+{
+  return double(J_dist(mersenne));
+}
+
 
 // mutate a network. Currently no bias towards ON when mutating networks. 
 void mutate(vector<vector<int>> &network)
@@ -214,6 +227,11 @@ void mutate_J(double &J)
     J -= 0.5;
   else
     J += 0.5;
+
+  if (J < 0)
+    J = 0;
+  if (J > par.J_diff)
+    J = par.J_diff;
 }
 
 // mutate the TF polarities (whether each TF is passed onto daughter upon cell reproduction)
@@ -477,13 +495,13 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   if (par.evo_pics && time % par.pic_gen_interval == 0)
   {
-    string dirn = par.data_file + "/" + to_string(time+1);
+    string dirn = par.pic_dir + "/" + to_string(time+1);
     if (mkdir(dirn.c_str(), 0777) != -1)
       cout << "Directory created." << endl;
     record_networks(network_list, dirn);
     for (int i=0; i < par.n_orgs; ++i)
     {
-      dishes[i].CPM->ColourCells();
+      dishes[i].CPM->ColourCells(par.phase_evolution);
       fft new_org(par.sizex,par.sizey);
       new_org.ImportCPM(dishes[i].get_cpm());
       string f2 = "org-";
@@ -491,13 +509,14 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       string ftype = ".png";
       string foutput = dirn + "/" + f2 + n2 + ftype;
       new_org.cpmOutput(foutput);
+
     }
   }
 
   delete[] dishes;
 
   // do sorting algorithm and return fitness
-  sorter(network_list, pols, inter_org_fitness, dishes);
+  sorter(network_list, pols, Js, inter_org_fitness, dishes);
 
   //output to standard output
   output_networks(network_list);
@@ -510,14 +529,16 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   vector<vector<vector<int>>> nextgen{};
   vector<vector<bool>> nextgenpol{};
+  vector<double> nextgenJs{};
   int j = 0;
   for (int i=0; i < par.n_orgs;++i)
   {
     // Currently no random networks are added if largest fitness > this
     if (inter_org_fitness.front() > 30 || !par.insert_randoms)
     {
-      nextgen.push_back(network_list.at(j));
-      nextgenpol.push_back(pols.at(j));
+      nextgen.push_back(network_list[j]);
+      nextgenpol.push_back(pols[j]);
+      nextgenJs.push_back(Js[j]);
 
       //mutate network with probability = mut_rate
       double mu = double_num(mersenne);
@@ -528,7 +549,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       double mu2 = double_num(mersenne);
       if (mu2 < par.J_mutate_probability)
       {
-        mutate_J(Js[i]);
+        mutate_J(nextgenJs.back());
       }
       ++j; 
       if (j >= par.n_orgs / 4)
@@ -541,11 +562,13 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       {
         nextgen.push_back(get_random_network());
         nextgenpol.push_back(get_random_pol());
+        nextgenJs.push_back(get_random_J());
       }
       else 
       {
         nextgen.push_back(network_list.at(j));
         nextgenpol.push_back(pols.at(j));
+        nextgenJs.push_back(get_random_J());
       }
 
       //mutate network with probability = 0.5
@@ -557,7 +580,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       double mu2 = double_num(mersenne);
       if (mu2 < par.J_mutate_probability)
       {
-        mutate_J(Js[i]);
+        mutate_J(nextgenJs.back());
       }
 
       ++j;
@@ -571,6 +594,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   {
     network_list.at(i) = nextgen.at(i);
     pols.at(i) = nextgenpol.at(i);
+    Js.at(i) = nextgenJs.at(i);
   }
   return inter_org_fitness;
 }
@@ -585,8 +609,7 @@ int main(int argc, char *argv[]) {
   if (par.evo_pics)
   {
     QApplication* a = new QApplication(argc, argv);
-    par.data_file = "images";
-    if (mkdir(par.data_file.c_str(), 0777) != -1)
+    if (mkdir(par.pic_dir.c_str(), 0777) != -1)
       cout << "Directory created." << endl;
   }
   

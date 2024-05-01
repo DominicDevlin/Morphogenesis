@@ -88,7 +88,7 @@ public:
   vector<int> MiddleOfCell(int sig);
 
   // called by Programmed_Division() to set maternal factors
-  void set_MF(vector<vector<int>> middles, int gene, double conc=1., bool mod_second = false);
+  void set_MF(vector<vector<int>> middles, int gene, bool on=true);
 
   vector<bool> divide_vector(void);
 
@@ -340,8 +340,6 @@ public:
   void PrintHexColours();
 
   void ColourCells();
-
-  void ColourCells(bool phase);
 
   void FillGrid();
 

@@ -212,12 +212,13 @@ TIMESTEP {
     // programmed cell division section
     if (t < par.end_program)
     {
+      
 
       if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
       {
-
+        // cout << "here " << t << endl;
         dish->CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
-
+        //cout << "here " <<  t << endl;
       }
      
       if (t >= par.begin_network && t % par.update_freq == 0)
@@ -742,9 +743,10 @@ int main(int argc, char *argv[]) {
 #ifdef QTGRAPHICS
     QApplication a(argc, argv);
 #endif
+    Parameter();
     par.sizex=200;
     par.sizey=200;
-    Parameter();
+    par.phase_evolution = true;    
     // Read parameters
     bool read = false;
     if (read)
