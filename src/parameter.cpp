@@ -138,7 +138,7 @@
     phase_evolution=true;
     J_stem=4;
     J_diff=12;
-    J_stem_diff=floor((J_diff - J_stem) / 2);
+    J_stem_diff=(J_diff - J_stem);
     // J_stem_diff=7;
     J_med=1+0.5*J_diff;
     J_med2=J_med+10;
