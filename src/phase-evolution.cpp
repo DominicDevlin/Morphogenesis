@@ -228,10 +228,10 @@ void mutate_J(double &J)
   else
     J += 0.5;
 
-  if (J < 0)
-    J = 0;
   if (J > par.J_diff)
     J = par.J_diff;
+  else if (J < par.J_stem)
+    J = par.J_stem;
 }
 
 // mutate the TF polarities (whether each TF is passed onto daughter upon cell reproduction)
