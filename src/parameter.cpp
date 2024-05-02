@@ -37,7 +37,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -85,8 +85,8 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 2, 1, -1, 0, 1, 0 }, { 0, 1, 0, 0, 1, 1 }, { -1, 0, 0, 1, 0, 0 }, { -1, 1, 2, 2, 0, 0 }, { 0, 1, 1, 1, -1, 0 }, { 0, 0, 0, 1, 0, 1 }, { -1, -1, 1, 0, 1, 1 }, { 2, 1, 0, -2, 0, 0 }, };
-    
+    start_matrix = { { 0, 0, 0, 2, -1, 2 }, { 0, 0, 0, -1, -1, 0 }, { -2, 0, 0, 0, -2, 1 }, { 1, 2, 2, 0, 0, -1 }, { 0, 0, -2, -2, 1, 1 }, { 0, -1, 0, 0, -1, 1 }, { -1, 1, 2, -1, 1, 1 }, { 1, 0, 2, 2, 1, 0 }, };
+
 
 
 
@@ -137,14 +137,17 @@
     // phase transition params;
     phase_evolution=true;
     J_stem=4;
-    J_diff=12;
+    J_diff=6;
     J_stem_diff=(J_diff - J_stem);
-    J_stem_diff=12;
+    J_stem_diff=8;
     J_med=0.5+0.5*J_diff;
+    // J_med=8;
     J_med2=J_med+10;
     Vmax = 1; 
     offset = 0;
     J_mutate_probability=0.1;
+
+    // I NEED TO EVOLVE GROWTH RATES FOR BOTH STATES!!!!!! liquid like and solid like, i..e, how constrained V is!!
 
     // GRN params
     n_TF = 1; 
