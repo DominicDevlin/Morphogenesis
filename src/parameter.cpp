@@ -37,7 +37,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -85,8 +85,8 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 1, 0, 0, 1, 0 }, { -1, -1, 1, 1, 2, 0 }, { 0, 0, -1, 1, 1, -1 }, { -1, -1, 1, 1, 0, 2 }, { -2, 1, 1, 1, 0, 2 }, { 0, 0, 0, 0, 2, 1 }, { -1, -1, 0, 0, 1, 1 }, { 2, 1, 0, -2, 0, 0 }, };
-
+    start_matrix = { { 2, 1, -1, 0, 1, 0 }, { 0, 1, 0, 0, 1, 1 }, { -1, 0, 0, 1, 0, 0 }, { -1, 1, 2, 2, 0, 0 }, { 0, 1, 1, 1, -1, 0 }, { 0, 0, 0, 1, 0, 1 }, { -1, -1, 1, 0, 1, 1 }, { 2, 1, 0, -2, 0, 0 }, };
+    
 
 
 
@@ -139,11 +139,11 @@
     J_stem=4;
     J_diff=12;
     J_stem_diff=(J_diff - J_stem);
-    // J_stem_diff=7;
-    J_med=1+0.5*J_diff;
+    J_stem_diff=12;
+    J_med=0.5+0.5*J_diff;
     J_med2=J_med+10;
     Vmax = 1; 
-    offset = 50;
+    offset = 0;
     J_mutate_probability=0.1;
 
     // GRN params
@@ -260,7 +260,7 @@
     insert_randoms = false;
     n_mutations = 1;
     // mut rate for gene network
-    mut_rate = 0.5;
+    mut_rate = 0.25;
     // mutation rate for polarities
     polm_rate = 0.2;
     n_pred = n_orgs / 2;
