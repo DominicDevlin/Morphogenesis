@@ -37,7 +37,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -91,9 +91,9 @@
 
 
 /* Cellular Potts parameters */
-    sizex = 250;
-    sizey = 250;
-    mcs = 12000;
+    sizex = 200;
+    sizey = 200;
+    mcs = 20000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -137,9 +137,9 @@
     // phase transition params;
     phase_evolution=true;
     J_stem=4;
-    J_diff=6;
+    J_diff=12;
     J_stem_diff=(J_diff - J_stem);
-    J_stem_diff=8;
+    J_stem_diff=12;
     J_med=0.5+0.5*J_diff;
     // J_med=8;
     J_med2=J_med+10;
@@ -433,6 +433,7 @@
     secr_rate[0] = 2.4e-3;
     secr_rate[1] = 2.4e-3;
 
+    // depracated
     reaction_rate = 5e-3; // small rate = 5e-3; // large rate = 1e-2
 
     if (n_diffusers > 2)
