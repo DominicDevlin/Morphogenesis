@@ -85,7 +85,7 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 }, { 1, 2, 1, }, };
+    start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
     sizex = 200;
@@ -139,7 +139,7 @@
     J_stem_diff=12;
     J_med=0.5+0.5*J_diff;
     // J_med=8;
-    J_med2=J_med+10;
+    // J_med2=J_med+10;
     Vmax = 1; 
     offset = 0;
     J_mutate_probability=0.1;
@@ -168,12 +168,12 @@
     // addition of J for each lock and key pair
     interval2 = interval1 / (double)n_lockandkey;
 
-    n_genes = n_diffusers + n_TF + n_MF + !phase_evolution * (n_lockandkey + n_mediums + shrink_on + n_length_genes + (enzymes * n_diffusers)) + phase_evolution*(2);
+    n_genes = n_diffusers + n_TF + n_MF + !phase_evolution * (n_lockandkey + n_mediums + shrink_on + n_length_genes + (enzymes * n_diffusers)) + phase_evolution*(1);
     // number of genes. All gene types must sum to this value (except if using morphogenwave, then activators is +1).
     // n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers); 
     n_activators = n_diffusers + n_TF+n_MF; //number of genes that can activate network (<= n_genes)
-    n_functional = phase_evolution * 2 + !phase_evolution*(n_lockandkey + n_length_genes + n_mediums);
-    gene_vector_size = n_diffusers + n_TF + !phase_evolution * (n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers)) + phase_evolution*(2);
+    n_functional = phase_evolution * (1) + !phase_evolution*(n_lockandkey + n_length_genes + n_mediums);
+    gene_vector_size = n_diffusers + n_TF + n_MF +  !phase_evolution * (n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers));
 
     //location of maternal factors in genome
     mfloc1 = n_diffusers;
@@ -281,12 +281,12 @@
     divisions = 0;
 
     //programmed division parameters
-    end_program = 1600;
-    begin_network = 75;
-    div_freq = 50;
+    end_program = 50;
+    begin_network = 50;
+    div_freq = 10;
     // begin_movement=1200;
-    program_its = 30; // we are doing more PDE iterations during the program. 
-    div_end = 250;
+    program_its = 1; // we are doing more PDE iterations during the program. 
+    div_end = 50;
 
 /* GRN */
     update_freq = 40;

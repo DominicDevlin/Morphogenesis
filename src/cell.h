@@ -651,10 +651,10 @@ private:
     else
       phase_state = false;
 
-    if (medium_protein_conc > 0.5)
-      medium_state = true;
-    else
-      medium_state = false;
+    // if (medium_protein_conc > 0.5)
+    //   medium_state = true;
+    // else
+    //   medium_state = false;
   }
 
   inline double& get_phase_J(void)
@@ -725,7 +725,7 @@ private:
   {
     if (par.phase_evolution)
     {
-      full_set.resize(2);
+      full_set.resize(1);
       gene_recordings.resize(par.n_genes+par.n_diffusers);
       cycles.resize(par.cycle_size);
       phase_protein_conc=0.;

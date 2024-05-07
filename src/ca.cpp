@@ -2202,7 +2202,6 @@ void CellularPotts::Programmed_Division(bool phase)
   if (n_cells < 2)
   {
     // DivideCells(to_divide);
-
     int id{};
     vector<Cell>::iterator i;
     for ( (i=cell->begin(),i++); i!=cell->end(); i++)
@@ -2645,7 +2644,7 @@ void CellularPotts::update_phase_network(int tsteps)
       vector<double>& diffusers = c->get_diffusers(); 
 
       double& cellJ = c->get_phase_J();
-      double& mediumJ = c->get_phase_M();
+      // double& mediumJ = c->get_phase_M();
 
       vector<double> gene_copy = c->get_genes();
       if (genes.empty() == true)
@@ -2661,19 +2660,15 @@ void CellularPotts::update_phase_network(int tsteps)
           diffusers[i] = numeric_step(gene_copy, diffusers[i], i, tsteps);
         else if (i < par.n_genes - 2)
           genes[i] = numeric_step(gene_copy, genes[i], i, tsteps);
-        else if (i < par.n_genes - 1)
+        else//  if (i < par.n_genes - 1)
         {
           cellJ = numeric_step(gene_copy, cellJ, i, tsteps);
         }
-        else
-        {
-          mediumJ = numeric_step(gene_copy, mediumJ, i, tsteps);
-        }
+        // else
+        // {
+        //   mediumJ = numeric_step(gene_copy, mediumJ, i, tsteps);
+        // }
       }
-      for (auto i : genes)
-        cout << i << '\t';
-      cout << endl;
-
       c->set_phase_state();
       if (par.gene_record && tsteps > par.end_program)
       {
@@ -2690,12 +2685,9 @@ void CellularPotts::update_phase_network(int tsteps)
               cp[i] = full_set[i];
             }
           }
-          for (auto i : full_set)
-            cout << i << '\t';
-          cout << endl;
 
           full_set[0] = c->getpJ();
-          full_set[1] = c->getmJ();
+          // full_set[1] = c->getmJ();
 
           c->AddPhenotype();
           c->RecordLongSwitch(cp, RandomNumber(INT_MAX, s_val));

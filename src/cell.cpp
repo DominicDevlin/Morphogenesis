@@ -299,26 +299,28 @@ double Cell::PhaseJ(bool phase, double Jstemdiff)
 
 double Cell::PhaseJwithMed()
 {
-  if (medium_state)
-  {
-    return par.J_med;
-  }
-  else
-  {
-    return par.J_med2;
-  }
+  return par.J_med;
+  // if (medium_state)
+  // {
+  //   return par.J_med;
+  // }
+  // else
+  // {
+  //   return par.J_med2;
+  // }
 }
 
 double Cell::phaseJfromMed(bool mstate)
 {
-  if (mstate)
-  {
-    return par.J_med;
-  }
-  else
-  {
-    return par.J_med2;
-  }
+  return par.J_med;
+  // if (mstate)
+  // {
+  //   return par.J_med;
+  // }
+  // else
+  // {
+  //   return par.J_med2;
+  // }
 }
 
 

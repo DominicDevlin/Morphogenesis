@@ -192,7 +192,6 @@ TIMESTEP {
     }
 
     static Info *info=new Info(*dish, *this);
-    
     // record initial expression state. This occurs before any time step updates. 
     if (t == 100)
     {
@@ -212,7 +211,6 @@ TIMESTEP {
     // programmed cell division section
     if (t < par.end_program)
     {
-      
       if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
       {
         dish->CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
@@ -222,7 +220,6 @@ TIMESTEP {
       {
         dish->CPM->update_phase_network(t);
         dish->AverageChemCell(); 
-
         if (par.gene_output)
           dish->CPM->record_GRN();   
 
