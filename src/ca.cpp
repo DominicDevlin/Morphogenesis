@@ -2670,6 +2670,10 @@ void CellularPotts::update_phase_network(int tsteps)
           mediumJ = numeric_step(gene_copy, mediumJ, i, tsteps);
         }
       }
+      for (auto i : genes)
+        cout << i << '\t';
+      cout << endl;
+
       c->set_phase_state();
       if (par.gene_record && tsteps > par.end_program)
       {
@@ -2686,6 +2690,10 @@ void CellularPotts::update_phase_network(int tsteps)
               cp[i] = full_set[i];
             }
           }
+          for (auto i : full_set)
+            cout << i << '\t';
+          cout << endl;
+
           full_set[0] = c->getpJ();
           full_set[1] = c->getmJ();
 

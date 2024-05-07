@@ -213,17 +213,13 @@ TIMESTEP {
     if (t < par.end_program)
     {
       
-
       if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
       {
-        // cout << "here " << t << endl;
         dish->CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
-        //cout << "here " <<  t << endl;
       }
      
       if (t >= par.begin_network && t % par.update_freq == 0)
       {
-
         dish->CPM->update_phase_network(t);
         dish->AverageChemCell(); 
 
@@ -312,7 +308,6 @@ TIMESTEP {
       dish->CPM->CellGrowthAndDivision(t);
     }
     dish->CPM->AmoebaeMove(t);
-    
     // if (t == par.mcs-1 && par.gene_output)
     // {
 
@@ -635,7 +630,8 @@ TIMESTEP {
       if (t>0 && t % par.begin_network == 0)
       {
         c1 = dish->PDEfield->CheckSecreting(0);
-        c2 = dish->PDEfield->CheckSecreting(1);
+        if (par.n_diffusers > 1)
+          c2 = dish->PDEfield->CheckSecreting(1);
         if (par.n_diffusers > 2)
         {
           c3 = dish->PDEfield->CheckSecreting(2);
@@ -693,7 +689,8 @@ TIMESTEP {
       if (t>par.end_program && par.contours)
       {
         c1 = dish->PDEfield->CheckSecreting(0);
-        c2 = dish->PDEfield->CheckSecreting(1);
+        if (par.n_diffusers > 1)
+          c2 = dish->PDEfield->CheckSecreting(1);
         if (par.n_diffusers > 2)
         {
           c3 = dish->PDEfield->CheckSecreting(2);

@@ -37,7 +37,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -85,10 +85,7 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, 0, 2, -1, 2 }, { 0, 0, 0, -1, -1, 0 }, { -2, 0, 0, 0, -2, 1 }, { 1, 2, 2, 0, 0, -1 }, { 0, 0, -2, -2, 1, 1 }, { 0, -1, 0, 0, -1, 1 }, { -1, 1, 2, -1, 1, 1 }, { 1, 0, 2, 2, 1, 0 }, };
-
-
-
+    start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 }, { 1, 2, 1, }, };
 
 /* Cellular Potts parameters */
     sizex = 200;
@@ -150,8 +147,8 @@
     // I NEED TO EVOLVE GROWTH RATES FOR BOTH STATES!!!!!! liquid like and solid like, i..e, how constrained V is!!
 
     // GRN params
-    n_TF = 1; 
-    n_diffusers = 3; // morphogens
+    n_TF = 0; 
+    n_diffusers = 1; // morphogens
     n_length_genes = 0;
     n_MF = 2;
 
@@ -288,7 +285,7 @@
     begin_network = 75;
     div_freq = 50;
     // begin_movement=1200;
-    program_its = 8; // we are doing more PDE iterations during the program. 
+    program_its = 30; // we are doing more PDE iterations during the program. 
     div_end = 250;
 
 /* GRN */
