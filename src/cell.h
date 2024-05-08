@@ -1047,7 +1047,10 @@ private:
 
   inline void MaxSet()
   {
-    full_set.resize(par.n_functional+par.n_activators, 0);
+    if (par.phase_evolution)
+      full_set.resize(par.n_genes,0);
+    else
+      full_set.resize(par.n_functional+par.n_activators, 0);
   }
 
   inline int GetPhase()

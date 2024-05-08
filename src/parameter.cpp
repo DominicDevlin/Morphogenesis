@@ -142,7 +142,7 @@
     // J_med2=J_med+10;
     Vmax = 1; 
     offset = 0;
-    J_mutate_probability=0.1;
+    
 
     // I NEED TO EVOLVE GROWTH RATES FOR BOTH STATES!!!!!! liquid like and solid like, i..e, how constrained V is!!
 
@@ -261,6 +261,8 @@
     n_mutations = 1;
     // mut rate for gene network
     mut_rate = 0.25;
+    // mutate for J stem diff (no longer in use)
+    J_mutate_probability=0.1;
     // mutation rate for polarities
     polm_rate = 0.2;
     n_pred = n_orgs / 2;
