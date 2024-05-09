@@ -136,7 +136,7 @@
     J_stem=4;
     J_diff=12;
     J_stem_diff=(J_diff - J_stem);
-    J_stem_diff=14;
+    J_stem_diff=12;
     J_med=0.5+0.5*J_diff;
     // J_med=8;
     // J_med2=J_med+10;

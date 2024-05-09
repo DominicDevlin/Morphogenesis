@@ -382,7 +382,10 @@ public:
 
   vector<double> PerimitersRadiusN(double radius=sqrt(13), double correction=36.);
 
+  void Init_Otimizer();
+
   double Optimizer();
+
 
   // inline double prop_success()
   // {
@@ -683,7 +686,8 @@ private:
 
   map<int,vector<double>> state_adhesion;
 
-  
+  int start_width;
+  int opt_starty;
 
   int rows;
   int cols;

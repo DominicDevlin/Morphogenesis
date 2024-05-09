@@ -849,6 +849,8 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
       }
     }
   }
+  if (par.phase_evolution)
+    Init_Otimizer();
 }
 
 
@@ -2776,20 +2778,72 @@ void CellularPotts::update_phase_network(int tsteps)
 }
 
 
-double CellularPotts::Optimizer()
+void CellularPotts::Init_Otimizer()
 {
-  int miny = sizey;
+  opt_starty=sizey;
+  int opt_minx=sizex;
+  int opt_maxx=0;
+
   for (int x=1; x<sizex; ++x)
     for (int y=1; y<sizey; ++y)
     {
       if (sigma[x][y] > 0)
       {
-        if (x < miny)
+        if (y < opt_starty)
+          opt_starty = y;
+        if (x < opt_minx)
+          opt_minx=x;
+        if (x > opt_maxx)
+          opt_maxx=x;
+      }      
+    }
+  
+  start_width = abs(opt_maxx - opt_minx);
+
+}
+
+double CellularPotts::Optimizer()
+{
+  int miny = sizey;
+  int minx=sizex;
+  int maxx=0;
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        if (y < miny)
           miny = y;
+        if (x < minx)
+          minx=x;
+        if (x > maxx)
+          maxx=x;
       }
     }
+  
+  int length = opt_starty - miny;
 
-  return miny;
+  int width = maxx - minx;
+
+  int d_width = width - start_width;
+
+  int optima = length;
+
+  if (d_width > 0)
+    optima -= d_width;
+
+  
+  // check if we are hitting boundaries, then penalise if true.
+  bool pen=false;
+  if (maxx > sizex-3)
+    pen = true;
+  if (minx < 3)
+    pen = true;
+
+  if (pen)
+    optima /= 2;
+
+  return optima;
 }
 
 
