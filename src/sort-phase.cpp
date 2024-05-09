@@ -534,6 +534,8 @@ TIMESTEP {
 
       dish->CPM->PrintColours();
 
+      cout << "DISTANCE TO TOP: " << dish->CPM->Optimizer() << endl;
+
       // dish->CPM->prop_success();
     }
 
@@ -738,8 +740,6 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 #endif
     Parameter();
-    par.sizex=200;
-    par.sizey=200;
     par.phase_evolution = true;    
     // Read parameters
     bool read = false;

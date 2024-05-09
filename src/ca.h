@@ -382,6 +382,8 @@ public:
 
   vector<double> PerimitersRadiusN(double radius=sqrt(13), double correction=36.);
 
+  double Optimizer();
+
   // inline double prop_success()
   // {
   //   // cout << "Successes: " << flip_true << "  Fails: " << flip_false << endl;

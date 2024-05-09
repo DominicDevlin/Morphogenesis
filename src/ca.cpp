@@ -2671,11 +2671,11 @@ void CellularPotts::update_phase_network(int tsteps)
       }
       c->set_phase_state();
 
-      for (auto n : genes)
-      {
-        cout << n << '\t';
-      }
-      cout << cellJ << endl;
+      // for (auto n : genes)
+      // {
+      //   cout << n << '\t';
+      // }
+      // cout << cellJ << endl;
 
 
       if (par.gene_record && tsteps > par.end_program)
@@ -2774,6 +2774,24 @@ void CellularPotts::update_phase_network(int tsteps)
     }
   }
 }
+
+
+double CellularPotts::Optimizer()
+{
+  int miny = sizey;
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        if (x < miny)
+          miny = y;
+      }
+    }
+
+  return miny;
+}
+
 
 
 

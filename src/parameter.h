@@ -215,7 +215,10 @@ class Parameter {
   double J_stem_diff;
   double J_med;
   double J_med2;
-  int Vmax; 
+  double Vs_max;
+  double Vd_max;
+  int optimization_replicates;  
+  bool pics_for_opt;
   bool phase_evolution;
   int offset;
   double J_mutate_probability;
