@@ -850,7 +850,7 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
     }
   }
   if (par.phase_evolution)
-    Init_Otimizer();
+    Init_Optimizer();
 }
 
 
@@ -2086,13 +2086,13 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene, double conc, b
       g_list.at(gene) = conc;
       int val = g_list.at(par.mfloc1) * 4 + g_list.at(par.mfloc2)*3;
       cell->at(middles[1][0]).set_ctype(val);
-      cout << cell->at(middles[1][0]).Sigma() << '\t' << gene << '\t' << g_list[gene] << endl;
+      // cout << cell->at(middles[1][0]).Sigma() << '\t' << gene << '\t' << g_list[gene] << endl;
 
       if (mod_second)
       {
         vector<double>& nlist = cell->at(middles[0][0]).get_genes();
         nlist.at(gene) = abs(1 - conc);
-        cout << cell->at(middles[0][0]).Sigma() << '\t' << gene << '\t' << g_list[gene] << endl;
+        // cout << cell->at(middles[0][0]).Sigma() << '\t' << gene << '\t' << g_list[gene] << endl;
         int val = nlist.at(par.mfloc1) * 4 + nlist.at(par.mfloc2)*3;
         cell->at(middles[0][0]).set_ctype(val);
       }
@@ -2778,7 +2778,7 @@ void CellularPotts::update_phase_network(int tsteps)
 }
 
 
-void CellularPotts::Init_Otimizer()
+void CellularPotts::Init_Optimizer()
 {
   opt_starty=sizey;
   int opt_minx=sizex;

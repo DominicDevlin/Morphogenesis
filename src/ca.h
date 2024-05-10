@@ -382,7 +382,7 @@ public:
 
   vector<double> PerimitersRadiusN(double radius=sqrt(13), double correction=36.);
 
-  void Init_Otimizer();
+  void Init_Optimizer();
 
   double Optimizer();
 

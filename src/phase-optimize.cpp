@@ -67,10 +67,10 @@ TIMESTEP
 
 
 
-void printn(vector<double> fitn, string oname)
+void printn(vector<double> &fitn, string &oname, vector<double> &params)
 {
   // create and open file
-  std::string var_name = oname + "/gene_networks.txt";
+  std::string var_name = oname + "/optimize.txt";
   std::ofstream outfile;
   outfile.open(var_name, ios::app);
 
@@ -82,33 +82,37 @@ void printn(vector<double> fitn, string oname)
   for (double i : fitn)
   {
     avgfit += i;
+    cout << i << endl;
   }
-  avgfit = avgfit / par.n_orgs;
+  avgfit = avgfit / par.optimization_replicates;
 
   //output fitness 
-  var_name = oname + "/fitness.txt";
+  outfile << avgfit << '\t' << max_fit << endl;
+
+  outfile.close();
+
+  var_name = oname + "/params.txt";
   outfile.open(var_name, ios::app);
-  outfile << max_fit << '\t' << avgfit << endl;
+
+  for (double i : params)
+    outfile << i << '\t';
+  outfile << endl;
+  outfile.close();
 
 }
-
-
-
-
-
 
 
 
 // function that simulates a population for a single evolutionary step. 
 vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, vector<double> params)
 {
-  vector<double> inter_org_fitness{};
-  inter_org_fitness.resize(par.optimization_replicates);
+  vector<double> opt_out{};
+  opt_out.resize(par.optimization_replicates);
 
   // create memory for dishes. 
   Dish* dishes = new Dish[par.optimization_replicates];
-
   int time{};
+  time = int(params[7]);
 
   // run organisms in parallel. 
   omp_set_num_threads(par.optimization_replicates);
@@ -122,7 +126,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     int t;
 
     dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
-
     // setting optimization params
     // 0 = secretion rate
     par.secr_rate[0] = params[0];
@@ -131,10 +134,15 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     dishes[i].CPM->Set_evoJ(par.J_stem_diff);
     par.Vs_max = params[3];
     par.Vd_max = params[4];
-    time = params[5];
     // constant params
-    par.J_stem = params[6];
-    par.J_diff = params[7];
+    par.J_stem = params[5];
+    par.J_diff = params[6];
+
+    // if (i=0)
+    // {
+    //   cout << "params are: " << par.secr_rate[0] << '\t' << par.J_med << '\t' << par.J_stem_diff << '\t' << par.Vs_max << '\t' <<
+    //   par.Vd_max << '\t' << par.secr_rate[0] << '\t' << par.secr_rate[0] << endl;
+    // }
 
     dishes[i].CPM->CopyProb(par.T);
 
@@ -190,7 +198,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         bool check_shape = dishes[i].CPM->CheckShape();
         if (check_shape == false)
         {
-          inter_org_fitness[i] = 0;
+          opt_out[i] = 1;
           t = par.mcs;
           // cout << "Org number: " << i << " has bad shape. " << endl;
         }
@@ -198,8 +206,12 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       // get fitness at end of development
       if (t == par.mcs-1)
       {
-        inter_org_fitness[i] = dishes[i].CPM->get_fitness();
-
+        double output = dishes[i].CPM->Optimizer();
+        if (output > 0)
+          opt_out[i] = 1. / dishes[i].CPM->Optimizer();
+        else
+          opt_out[i] = 1;
+        
       }        
     }
         
@@ -212,8 +224,11 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   {
     string dirn = par.pic_dir + "/" + to_string(time+1);
     if (mkdir(dirn.c_str(), 0777) != -1)
+    {
       cout << "Directory created." << endl;
-    for (int i=0; i < par.n_orgs; ++i)
+    }
+      
+    for (int i=0; i < par.optimization_replicates; ++i)
     {
       dishes[i].CPM->ColourCells(par.phase_evolution);
       fft new_org(par.sizex,par.sizey);
@@ -223,17 +238,14 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       string ftype = ".png";
       string foutput = dirn + "/" + f2 + n2 + ftype;
       new_org.cpmOutput(foutput);
-
     }
   }
 
   delete[] dishes;
-
-
   // output to file
-  printn(inter_org_fitness, par.data_file);
+  printn(opt_out, par.data_file, params);
 
-  return inter_org_fitness;
+  return opt_out;
 }
 
 
@@ -252,10 +264,12 @@ int main(int argc, char *argv[]) {
   
 #endif
 
+
   vector<double> params;
   for (int i = 1; i < argc; ++i)
   {
-    params[i-1] = stod(argv[i]);
+    params.push_back(stod(argv[i]));
+    cout << stod(argv[i]) << endl;
   }
 
 
@@ -271,7 +285,7 @@ int main(int argc, char *argv[]) {
   par.pickseed = 0;
   par.umap = false;
   par.output_sizes=false;
-  par.mcs = 12000;
+  par.mcs = 20000;
   par.phase_evolution = true;
   
 
@@ -279,7 +293,15 @@ int main(int argc, char *argv[]) {
 
   string dirn = par.data_file;
   if (mkdir(dirn.c_str(), 0777) != -1)
+  {
     cout << "Directory created." << endl;
+    std::string var_name = par.data_file + "/optimize.txt";
+    std::ofstream outfile;
+    outfile.open(var_name, ios::app);
+    outfile << "avg\tmax" << endl;
+    outfile.close();
+  }
+   
 
   // This is currently depracated. 
   vector<bool> start_p = { 0, 0, 0, 0 };
@@ -292,7 +314,7 @@ int main(int argc, char *argv[]) {
     polarities.push_back(start_p);
   }
 
-
+  
   // process population. 
   vector<double> fit = process_population(networks, polarities, params);
 
