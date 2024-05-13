@@ -667,11 +667,6 @@ private:
     return medium_protein_conc;
   }
 
-  inline bool& getpJ(void)
-  {
-    return phase_state;
-  }
-
   inline bool& getmJ(void)
   {
     return medium_state;

@@ -1953,16 +1953,15 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
   leftover_mass_stem += par.Vs_max;
   leftover_mass_diff += par.Vd_max;
 
+  // cout << leftover_mass_stem << '\t' << leftover_mass_diff << endl;
+
   vector<bool> which_cells(cell->size());
 
   int cell_division=0;
-
   int mass_increase_stem=0;
-
   int mass_increase_diff=0;
-
-  vector<int> to_increase_stem(cell->size());
-  vector<int> to_increase_diff(cell->size());
+  vector<int> to_increase_stem(cell->size(), 0);
+  vector<int> to_increase_diff(cell->size(), 0);
   
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
@@ -1974,8 +1973,7 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
       int gthresh = par.gthresh;
       int sthresh = par.shrink;
       
-      bool state = c->getpJ();
-
+      bool state = c->GetPhase();
 
       if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
       {
@@ -2005,6 +2003,7 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
         int area = c->Area();
         int gthresh = par.gthresh;
         int sthresh=par.shrink;
+        bool state = c->GetPhase();
 
 
         if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
@@ -2014,6 +2013,10 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
           {
             c->IncrementTargetArea();
             --count;
+            if (state)
+              leftover_mass_stem-=1;
+            else
+              leftover_mass_diff-=1;
           }
         } 
         if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
@@ -2035,17 +2038,26 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
     }
     vector<double> cdf(cell->size(), 0);
     partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+    // for (auto i : cdf)
+    // {
+    //   cout << i << " ";
+    // }
+    // cout << endl;
     while (leftover_mass_stem > 0)
     {
       double dnum = RANDOM(s_val);
       auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
       int number = distance(cdf.begin(), it_num);
-      if (c[number].AliveP() == false)
+      // cout << "NUMBER IS: " << number << endl;
+      if (cell->at(number).AliveP() == false)
       {
         cerr << "ERROR IN DISC.DIST\n";
+        // cout << "jump is: " << to_increase_stem[number] << endl;
+        // cout << "probability: " << probabilities[number] << endl;
+
       }
 
-      c[number].IncrementTargetArea();
+      cell->at(number).IncrementTargetArea();
       to_increase_stem[number] -= 1;
       leftover_mass_stem -= 1;
       sum_numbers -= 1;
@@ -2076,6 +2088,7 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
             {
               c->IncrementTargetArea();
               --count;
+              leftover_mass_diff -= 1;
             }
           } 
         }  
@@ -2102,12 +2115,12 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
       double dnum = RANDOM(s_val);
       auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
       int number = distance(cdf.begin(), it_num);
-      if (c[number].AliveP() == false)
+      if (cell->at(number).AliveP() == false)
       {
-        cerr << "ERROR IN DISC.DIST\n";
+        cerr << "ERROR IN DISC.DIST2\n";
       }
 
-      c[number].IncrementTargetArea();
+      cell->at(number).IncrementTargetArea();
       to_increase_diff[number] -= 1;
       leftover_mass_diff -= 1;
       sum_numbers -= 1;
@@ -2138,6 +2151,7 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
             {
               c->IncrementTargetArea();
               --count;
+              leftover_mass_stem -= 1;
             }
           } 
         }  
@@ -2151,81 +2165,95 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
   }
   else
   {
-    int sum_numbers = accumulate(to_increase_stem.begin(), to_increase_stem.end(), 0);
-    vector<double> probabilities(cell->size());
-    for (int i = 0; i < cell->size(); ++i)
+    if (mass_increase_stem > leftover_mass_stem)
     {
-        probabilities[i] = double(to_increase_stem[i]) / double(sum_numbers);
-    }
-    vector<double> cdf(cell->size(), 0);
-    partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
-    while (leftover_mass_stem > 0)
-    {
-      double dnum = RANDOM(s_val);
-      auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
-      int number = distance(cdf.begin(), it_num);
-      if (c[number].AliveP() == false)
-      {
-        cerr << "ERROR IN DISC.DIST\n";
-      }
-
-      c[number].IncrementTargetArea();
-      to_increase_stem[number] -= 1;
-      leftover_mass_stem -= 1;
-      sum_numbers -= 1;
-      // remake distribution
-      
+      int sum_numbers = accumulate(to_increase_stem.begin(), to_increase_stem.end(), 0);
+      vector<double> probabilities(cell->size());
       for (int i = 0; i < cell->size(); ++i)
       {
           probabilities[i] = double(to_increase_stem[i]) / double(sum_numbers);
       }
-      partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());      
-    }
-
-    // STARTING NEXT
-    sum_numbers = accumulate(to_increase_diff.begin(), to_increase_diff.end(), 0);
-    for (int i = 0; i < cell->size(); ++i)
-    {
-        probabilities[i] = double(to_increase_diff[i]) / double(sum_numbers);
-    }
-    partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
-    while (leftover_mass_diff > 0)
-    {
-      double dnum = RANDOM(s_val);
-      auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
-      int number = distance(cdf.begin(), it_num);
-      if (c[number].AliveP() == false)
+      vector<double> cdf(cell->size(), 0);
+      partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+      while (leftover_mass_stem > 0)
       {
-        cerr << "ERROR IN DISC.DIST\n";
-      }
+        double dnum = RANDOM(s_val);
+        auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
+        int number = distance(cdf.begin(), it_num);
+        if (cell->at(number).AliveP() == false)
+        {
+          cerr << "ERROR IN DISC.DIST3\n";
+        }
 
-      c[number].IncrementTargetArea();
-      to_increase_diff[number] -= 1;
-      leftover_mass_diff -= 1;
-      sum_numbers -= 1;
-      // remake distribution
-      
+        cell->at(number).IncrementTargetArea();
+        to_increase_stem[number] -= 1;
+        leftover_mass_stem -= 1;
+        sum_numbers -= 1;
+        // remake distribution
+        
+        for (int i = 0; i < cell->size(); ++i)
+        {
+            probabilities[i] = double(to_increase_stem[i]) / double(sum_numbers);
+        }
+        partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());      
+      }
+    }
+    if (mass_increase_diff > leftover_mass_diff)
+    {
+      // STARTING NEXT
+      int sum_numbers = accumulate(to_increase_diff.begin(), to_increase_diff.end(), 0);
+      vector<double> probabilities(cell->size());
       for (int i = 0; i < cell->size(); ++i)
       {
           probabilities[i] = double(to_increase_diff[i]) / double(sum_numbers);
       }
-      partial_sum(to_increase_diff.begin(), to_increase_diff.end(), cdf.begin());      
-    }
-    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
-    {
-      if (c->AliveP())
+      vector<double> cdf(cell->size(), 0);
+      partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+      for (int i = 0; i < cell->size(); ++i)
       {
-        int area = c->Area();
-        if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+          probabilities[i] = double(to_increase_diff[i]) / double(sum_numbers);
+      }
+      partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+      while (leftover_mass_diff > 0)
+      {
+        double dnum = RANDOM(s_val);
+        auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
+        int number = distance(cdf.begin(), it_num);
+        if (cell->at(number).AliveP() == false)
         {
-          which_cells[c->Sigma()]=true;
-          cell_division++;
-        }        
+          cout << leftover_mass_stem << '\t' << leftover_mass_diff << endl;
+          cerr << "ERROR IN DISC.DIST4\n";
+        }
+
+        cell->at(number).IncrementTargetArea();
+        to_increase_diff[number] -= 1;
+        leftover_mass_diff -= 1;
+        sum_numbers -= 1;
+        // remake distribution
+        
+        for (int i = 0; i < cell->size(); ++i)
+        {
+            probabilities[i] = double(to_increase_diff[i]) / double(sum_numbers);
+        }
+        partial_sum(to_increase_diff.begin(), to_increase_diff.end(), cdf.begin());      
+      }
+      for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+      {
+        if (c->AliveP())
+        {
+          int area = c->Area();
+          if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+          {
+            which_cells[c->Sigma()]=true;
+            cell_division++;
+          }        
+        }
       }
     }
+
+
   }
   // now do death
-  vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
   {
     if (c->AliveP())
@@ -2252,7 +2280,6 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
       }
     }
   }
-
   // Divide scheduled cells
   if (cell_division) 
   {
@@ -3013,7 +3040,7 @@ void CellularPotts::update_phase_network(int tsteps)
             }
           }
 
-          full_set[0] = c->getpJ();
+          full_set[0] = c->GetPhase();
           // full_set[1] = c->getmJ();
 
           c->AddPhenotype();
@@ -3055,7 +3082,7 @@ void CellularPotts::update_phase_network(int tsteps)
               cp[i] = full_set[i];
             }
 
-            full_set[0] = c->getpJ();
+            full_set[0] = c->GetPhase();
 
             for (int i=0; i < par.n_genes-1; ++i)
             {
@@ -3137,17 +3164,15 @@ double CellularPotts::Optimizer()
           maxx=x;
       }
     }
-  
-  int length = opt_starty - miny;
+  // int length = opt_starty - miny;
+  // int width = maxx - minx;
+  // int d_width = width - start_width;
+  // int optima = length;
 
-  int width = maxx - minx;
+  int optima = miny+100;
 
-  int d_width = width - start_width;
-
-  int optima = length;
-
-  if (d_width > 0)
-    optima -= d_width;
+  // if (d_width > 0)
+  //   optima -= d_width;
 
   
   // check if we are hitting boundaries, then penalise if true.
@@ -3156,9 +3181,13 @@ double CellularPotts::Optimizer()
     pen = true;
   if (minx < 3)
     pen = true;
-
+  // penalty will be a + 50
   if (pen)
-    optima /= 2;
+    optima += par.penalty;
+
+  int n_cells = CountCells();
+
+  optima-=n_cells;
 
   return optima;
 }
@@ -3246,7 +3275,7 @@ void CellularPotts::ColourCells(bool phase)
       // make boolean set. 
       vector<bool>& full_set = c->get_set();
 
-      full_set[0] = c->getpJ();
+      full_set[0] = c->GetPhase();
       full_set[1] = c->getmJ();
 
 

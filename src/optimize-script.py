@@ -13,7 +13,7 @@ import pandas as pd
 # index = int(sys.argv[1])
 #name of c++ exec
 
-J_stem = 3.
+J_stem = 4.
 J_diff = 12.
 
 file_path = 'org-data/optimize.txt'
@@ -26,9 +26,9 @@ def f(x, time):
     x[0] = rounder(x[0], 1/0.2e-3)
     x[1] = rounder(x[1], 1/0.5)
     x[2] = rounder(x[2], 1/0.5)
-    x[3] = rounder(x[3], 1/0.5)
-    x[4] = rounder(x[4], 1/0.5)
-    name = "./phase-optimize "
+    x[3] = rounder(x[3], 1/0.1)
+    x[4] = rounder(x[4], 1/0.1)
+    name = "xvfb-run ./phase-optimize "
     for var in x:
         name = name + str(var) + " "
     name = name + str(J_stem) + " " + str(J_diff) + " " + str(time)   
@@ -52,8 +52,8 @@ Jmed = [J_stem, J_diff + 3]
 # J of stem to diff
 Jsd = [J_stem, J_diff]
 # max growth rate per DTS OF stem cells (need to sort out this implementation)
-V_smax = [0.5,5]
-V_dmax = [0.5,5]
+V_smax = [0.,1.]
+V_dmax = [0.,1.]
 
 # 5 dimensional param space
 var_list = [diff_rate, Jmed, Jsd, V_smax, V_dmax]

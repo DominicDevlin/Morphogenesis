@@ -88,7 +88,7 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 150;
+    sizex = 120;
     sizey = 250;
     mcs = 20000;
     T = 3;
@@ -135,18 +135,21 @@
     phase_evolution=true;
     J_stem=4;
     J_diff=12;
-    J_stem_diff=(J_diff - J_stem);
-    J_stem_diff=12;
-    J_med=0.5+0.5*J_diff;
+    J_stem_diff=12;//(J_diff - J_stem);
+    J_med=4;//0.5+0.5*J_diff;
     // J_med=8;
     // J_med2=J_med+10;
-    Vs_max = 1;
-    Vd_max = 1; 
+    Vs_max = 1; // 1;
+    Vd_max = 1; // 1; 
+    secr_rate = new double[n_diffusers];
+    secr_rate[0] = 2.4e-3;
+
     offset = 75;
     optimization_replicates = 4;
     pics_for_opt = true;
-    secr_rate = new double[n_diffusers];
-    secr_rate[0] = 2.4e-3;
+    penalty=110;
+
+    
     
 
     // I NEED TO EVOLVE GROWTH RATES FOR BOTH STATES!!!!!! liquid like and solid like, i..e, how constrained V is!!

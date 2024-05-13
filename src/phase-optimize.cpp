@@ -186,32 +186,27 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           dishes[i].PDEfield->Secrete(dishes[i].CPM);
           dishes[i].PDEfield->Diffuse(1); 
         }  
-        dishes[i].CPM->CellGrowthAndDivision(t);
+        dishes[i].CPM->ConstainedGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
     
 
+      // // ensure all cells are connected for shape calculations. 
+      // if (t > 0 && t % 1000 == 0)
+      // {
+      //   bool check_shape = dishes[i].CPM->CheckShape();
+      //   if (check_shape == false)
+      //   {
+      //     opt_out[i] = 100;
+      //     t = par.mcs;
+      //     // cout << "Org number: " << i << " has bad shape. " << endl;
+      //   }
+      // }
 
-      // ensure all cells are connected for shape calculations. 
-      if (t > 0 && t % 1000 == 0)
-      {
-        bool check_shape = dishes[i].CPM->CheckShape();
-        if (check_shape == false)
-        {
-          opt_out[i] = 1;
-          t = par.mcs;
-          // cout << "Org number: " << i << " has bad shape. " << endl;
-        }
-      }
       // get fitness at end of development
       if (t == par.mcs-1)
       {
-        double output = dishes[i].CPM->Optimizer();
-        if (output > 0)
-          opt_out[i] = 1. / dishes[i].CPM->Optimizer();
-        else
-          opt_out[i] = 1;
-        
+        opt_out[i] = dishes[i].CPM->Optimizer();       
       }        
     }
         

@@ -301,8 +301,8 @@ TIMESTEP {
       // {
       //   dish->PDEfield->print_concentrations(dish->CPM);
       // }
-
-      dish->CPM->ConstainedGrowthAndDivision(t);
+      if (t > par.end_program)
+        dish->CPM->ConstainedGrowthAndDivision(t);
     }
     dish->CPM->AmoebaeMove(t);
 
@@ -322,7 +322,6 @@ TIMESTEP {
       // if (par.umap)
       dish->CPM->ColourIndex();
 
-      // dish->CPM->get_fitness();
 
       map<int, int> phens = dish->CPM->get_phenotype_time();
       map<int, int> types = dish->CPM->get_AdultTypes();  
@@ -505,7 +504,6 @@ TIMESTEP {
     if (t % 1000 == 0)
     {
 
-      cout << dish->CPM->TraverseFitness() << endl;
 
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;

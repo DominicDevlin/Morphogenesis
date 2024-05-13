@@ -222,7 +222,8 @@ class Parameter {
   bool phase_evolution;
   int offset;
   double J_mutate_probability;
-
+  int penalty;
+  
   bool insitu_shapes;
 
   int max_on; //max number of proteins on before a cell can't divide.
