@@ -1946,6 +1946,323 @@ void CellularPotts::CellGrowthAndDivision(int time)
 }
 
 
+void CellularPotts::ConstainedGrowthAndDivision(int time)
+{
+
+  // ADD LEFTOVER MASS HERE
+  leftover_mass_stem += par.Vs_max;
+  leftover_mass_diff += par.Vd_max;
+
+  vector<bool> which_cells(cell->size());
+
+  int cell_division=0;
+
+  int mass_increase_stem=0;
+
+  int mass_increase_diff=0;
+
+  vector<int> to_increase_stem(cell->size());
+  vector<int> to_increase_diff(cell->size());
+  
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      int TA = c->TargetArea();
+      int area = c->Area();
+      int gthresh = par.gthresh;
+      int sthresh = par.shrink;
+      
+      bool state = c->getpJ();
+
+
+      if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
+      {
+        int count= area-TA; //area-TA;
+        if (state)
+        {
+          mass_increase_stem+=count;
+          to_increase_stem[c->Sigma()] = count;
+        }
+        else
+        {
+          mass_increase_diff+=count;
+          to_increase_diff[c->Sigma()] = count;
+        }
+          
+
+      }
+    }
+  }
+  if (mass_increase_stem < leftover_mass_stem && mass_increase_diff < leftover_mass_diff)
+  {
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        int TA = c->TargetArea();
+        int area = c->Area();
+        int gthresh = par.gthresh;
+        int sthresh=par.shrink;
+
+
+        if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
+        {
+          int count= area-TA; //area-TA;
+          while (count>0)
+          {
+            c->IncrementTargetArea();
+            --count;
+          }
+        } 
+        if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+        {
+          
+          which_cells[c->Sigma()]=true;
+          cell_division++;
+        }
+      }  
+    } 
+  }
+  else if (mass_increase_stem > leftover_mass_stem && mass_increase_diff < leftover_mass_diff)
+  {
+    int sum_numbers = accumulate(to_increase_stem.begin(), to_increase_stem.end(), 0);
+    vector<double> probabilities(cell->size());
+    for (int i = 0; i < cell->size(); ++i)
+    {
+        probabilities[i] = double(to_increase_stem[i]) / double(sum_numbers);
+    }
+    vector<double> cdf(cell->size(), 0);
+    partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+    while (leftover_mass_stem > 0)
+    {
+      double dnum = RANDOM(s_val);
+      auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
+      int number = distance(cdf.begin(), it_num);
+      if (c[number].AliveP() == false)
+      {
+        cerr << "ERROR IN DISC.DIST\n";
+      }
+
+      c[number].IncrementTargetArea();
+      to_increase_stem[number] -= 1;
+      leftover_mass_stem -= 1;
+      sum_numbers -= 1;
+      // remake distribution
+      
+      for (int i = 0; i < cell->size(); ++i)
+      {
+          probabilities[i] = double(to_increase_stem[i]) / double(sum_numbers);
+      }
+      partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());      
+    }
+
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        int TA = c->TargetArea();
+        int area = c->Area();
+        int gthresh = par.gthresh;
+        int sthresh=par.shrink;        
+        if (!c->GetPhase())
+        {
+
+          if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
+          {
+            int count= area-TA; //area-TA;
+            while (count>0)
+            {
+              c->IncrementTargetArea();
+              --count;
+            }
+          } 
+        }  
+        if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+        {
+          which_cells[c->Sigma()]=true;
+          cell_division++;
+        }        
+      }
+    }
+  }
+  else if (mass_increase_stem < leftover_mass_stem && mass_increase_diff > leftover_mass_diff)
+  {
+    int sum_numbers = accumulate(to_increase_diff.begin(), to_increase_diff.end(), 0);
+    vector<double> probabilities(cell->size());
+    for (int i = 0; i < cell->size(); ++i)
+    {
+        probabilities[i] = double(to_increase_diff[i]) / double(sum_numbers);
+    }
+    vector<double> cdf(cell->size(), 0);
+    partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+    while (leftover_mass_diff > 0)
+    {
+      double dnum = RANDOM(s_val);
+      auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
+      int number = distance(cdf.begin(), it_num);
+      if (c[number].AliveP() == false)
+      {
+        cerr << "ERROR IN DISC.DIST\n";
+      }
+
+      c[number].IncrementTargetArea();
+      to_increase_diff[number] -= 1;
+      leftover_mass_diff -= 1;
+      sum_numbers -= 1;
+      // remake distribution
+      
+      for (int i = 0; i < cell->size(); ++i)
+      {
+          probabilities[i] = double(to_increase_diff[i]) / double(sum_numbers);
+      }
+      partial_sum(to_increase_diff.begin(), to_increase_diff.end(), cdf.begin());      
+    }
+
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        int TA = c->TargetArea();
+        int area = c->Area();
+        int gthresh = par.gthresh;
+        int sthresh=par.shrink;        
+        if (c->GetPhase())
+        {
+
+          if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
+          {
+            int count= area-TA; //area-TA;
+            while (count>0)
+            {
+              c->IncrementTargetArea();
+              --count;
+            }
+          } 
+        }  
+        if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+        {
+          which_cells[c->Sigma()]=true;
+          cell_division++;
+        }        
+      }
+    }
+  }
+  else
+  {
+    int sum_numbers = accumulate(to_increase_stem.begin(), to_increase_stem.end(), 0);
+    vector<double> probabilities(cell->size());
+    for (int i = 0; i < cell->size(); ++i)
+    {
+        probabilities[i] = double(to_increase_stem[i]) / double(sum_numbers);
+    }
+    vector<double> cdf(cell->size(), 0);
+    partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+    while (leftover_mass_stem > 0)
+    {
+      double dnum = RANDOM(s_val);
+      auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
+      int number = distance(cdf.begin(), it_num);
+      if (c[number].AliveP() == false)
+      {
+        cerr << "ERROR IN DISC.DIST\n";
+      }
+
+      c[number].IncrementTargetArea();
+      to_increase_stem[number] -= 1;
+      leftover_mass_stem -= 1;
+      sum_numbers -= 1;
+      // remake distribution
+      
+      for (int i = 0; i < cell->size(); ++i)
+      {
+          probabilities[i] = double(to_increase_stem[i]) / double(sum_numbers);
+      }
+      partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());      
+    }
+
+    // STARTING NEXT
+    sum_numbers = accumulate(to_increase_diff.begin(), to_increase_diff.end(), 0);
+    for (int i = 0; i < cell->size(); ++i)
+    {
+        probabilities[i] = double(to_increase_diff[i]) / double(sum_numbers);
+    }
+    partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+    while (leftover_mass_diff > 0)
+    {
+      double dnum = RANDOM(s_val);
+      auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
+      int number = distance(cdf.begin(), it_num);
+      if (c[number].AliveP() == false)
+      {
+        cerr << "ERROR IN DISC.DIST\n";
+      }
+
+      c[number].IncrementTargetArea();
+      to_increase_diff[number] -= 1;
+      leftover_mass_diff -= 1;
+      sum_numbers -= 1;
+      // remake distribution
+      
+      for (int i = 0; i < cell->size(); ++i)
+      {
+          probabilities[i] = double(to_increase_diff[i]) / double(sum_numbers);
+      }
+      partial_sum(to_increase_diff.begin(), to_increase_diff.end(), cdf.begin());      
+    }
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        int area = c->Area();
+        if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+        {
+          which_cells[c->Sigma()]=true;
+          cell_division++;
+        }        
+      }
+    }
+  }
+  // now do death
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+
+
+      int TA = c->TargetArea();
+      int area = c->Area();
+      int sthresh=par.shrink;
+
+      if ( (area-TA)<sthresh ) 
+      {
+        int count=TA-area;
+        while (c->TargetArea() > 0 && count > 0)
+        {
+          c->DecrementTargetArea();
+          --count;
+        }
+      }
+      else if (area < 3)
+      {
+        c->SetTargetArea(0);
+        c->set_lambda(100);
+      }
+    }
+  }
+
+  // Divide scheduled cells
+  if (cell_division) 
+  {
+    DivideCells(which_cells, time);
+  }  
+}
+
+
+
+
 
 vector<bool> CellularPotts::divide_vector(void) 
 {

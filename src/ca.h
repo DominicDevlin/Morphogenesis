@@ -386,6 +386,13 @@ public:
 
   double Optimizer();
 
+  void ConstainedGrowthAndDivision(int time);
+
+  // void TypeGrowDivide(bool state, vector<bool> &which_cells);
+
+  // void TypeGrowDivideDistribution(vector<int> &to_increase);
+
+
 
   // inline double prop_success()
   // {
@@ -711,7 +718,8 @@ private:
   // double dH_tally{};
   // double dH_neg{};
 
-
+  double leftover_mass_stem{};
+  double leftover_mass_diff{};
 
 
   vector<map<int,int>> TypeCounts;

@@ -302,25 +302,10 @@ TIMESTEP {
       //   dish->PDEfield->print_concentrations(dish->CPM);
       // }
 
-      dish->CPM->CellGrowthAndDivision(t);
+      dish->CPM->ConstainedGrowthAndDivision(t);
     }
     dish->CPM->AmoebaeMove(t);
-    // if (t == par.mcs-1 && par.gene_output)
-    // {
 
-    //   if (mkdir(par.data_file.c_str(), 0777) == -1)
-    //     cerr << "Error : " << strerror(errno) << endl;
-    //   else
-    //     cout << "Directory created." << endl;  
-    //   dish->CPM->print_cell_GRN();
-    // }
-
-    // // fitness stuff
-    // if (t > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
-    // {
-    //   dish->CPM->update_fitness();
-    // }
-    
 
     if (t == par.mcs - 1)
     {

@@ -61,13 +61,13 @@ var_list = [diff_rate, Jmed, Jsd, V_smax, V_dmax]
 #number of bayesian iterations
 iterations = 200
 
-6.5
-12
-3.5
-1
-4
-12
-19
+# 6.5
+# 12
+# 3.5
+# 1
+# 4
+# 12
+# 19
 
 
 inits = [2.4e-3, 6.5, 12, 1, 1]

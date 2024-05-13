@@ -671,6 +671,7 @@ private:
   {
     return phase_state;
   }
+
   inline bool& getmJ(void)
   {
     return medium_state;
@@ -1053,7 +1054,7 @@ private:
       full_set.resize(par.n_functional+par.n_activators, 0);
   }
 
-  inline int GetPhase()
+  inline bool& GetPhase()
   {
     return phase_state;
   }
