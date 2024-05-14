@@ -1,9 +1,11 @@
 import numpy as np
-from skopt import gp_minimize
 from skopt import Optimizer
+from skopt.sampler import Hammersly
 import os
 import sys
 import pandas as pd
+import time
+
 
 # def f(x):
 #     return ((x[0]**2) * np.sin(x[0])  + np.random.randn() * 0.1)
@@ -13,7 +15,10 @@ import pandas as pd
 # index = int(sys.argv[1])
 #name of c++ exec
 
-J_stem = 4.
+np.random.seed(int(time.time()))
+
+
+J_stem = 3.
 J_diff = 12.
 
 file_path = 'org-data/optimize.txt'
@@ -21,14 +26,14 @@ file_path = 'org-data/optimize.txt'
 def rounder(number, amount):
     return round(number * amount) / amount
 
-def f(x, time):
+def f(x, time=0):
     # round params
-    x[0] = rounder(x[0], 1/0.2e-3)
+    x[0] = rounder(x[0], 1/0.1e-3)
     x[1] = rounder(x[1], 1/0.5)
     x[2] = rounder(x[2], 1/0.5)
     x[3] = rounder(x[3], 1/0.1)
     x[4] = rounder(x[4], 1/0.1)
-    name = "xvfb-run ./phase-optimize "
+    name = "./phase-optimize "
     for var in x:
         name = name + str(var) + " "
     name = name + str(J_stem) + " " + str(J_diff) + " " + str(time)   
@@ -48,7 +53,7 @@ def f(x, time):
 # differentiation rate, will just be the secretion constant (2.4e-3 is default, 1.5 is about minimum before 0 becomes equilibrium)
 diff_rate = (1.4e-3,1e-2)
 # J of cells with medium
-Jmed = [J_stem, J_diff + 3]
+Jmed = [0.5*J_diff, J_diff + 3]
 # J of stem to diff
 Jsd = [J_stem, J_diff]
 # max growth rate per DTS OF stem cells (need to sort out this implementation)
@@ -58,21 +63,42 @@ V_dmax = [0.,1.]
 # 5 dimensional param space
 var_list = [diff_rate, Jmed, Jsd, V_smax, V_dmax]
 
+# do random sampling
+# hammer = Hammersly()
+# n_samples = 10
+# x_samples = hammer.generate(var_list, n_samples=n_samples)
+# hammer_results = []
+# start_time = 0 - n_samples
+# for i in x_samples:
+#     # print("random sample: ", i)
+#     hres = f(i, start_time)
+#     hammer_results.append(hres)
+#     print(i, "Hammersly random sampling result is: ", hres)
+#     start_time+=1
+
+# for i in range(len(x_samples)):
+#     opt.tell(x_samples[i], hammer_results[i])
+
 #number of bayesian iterations
 iterations = 200
 
-# 6.5
-# 12
-# 3.5
-# 1
-# 4
-# 12
-# 19
+## init punt
+punt_sec_rate = 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588
+punt_J_med = 0.5 + 0.5*J_diff
+punt_J_sd = 12
+punt_vsmax = 1
+punt_vdmax = 1
+
+inits = [punt_sec_rate, punt_J_med, punt_J_sd, punt_vsmax, punt_vdmax]
 
 
-inits = [2.4e-3, 6.5, 12, 1, 1]
+# acq_func_kwargs = {"xi: ": 10}
 
-opt = Optimizer(var_list)
+opt = Optimizer(var_list) 
+# n_initial_points should be AT LEAST 50 FOR ACTUAL SIMULATIONS!!!
+# Should be like this - I run for 20,000 to 30,000 MCS, or stop when they hit the back wall (or any wall???)
+# When I analyse results, each SHOULD be able to hit the back. If it can't hit the back (within a reasonable time frame) MORPHOGENESIS HAS FAILED!!
+
 
 for i in range(iterations):
     suggested = []
@@ -80,14 +106,11 @@ for i in range(iterations):
         suggested = inits
     else:
         suggested = opt.ask()
-    print(suggested)
 
+    print(suggested)
     y = f(suggested, i)
     opt.tell(suggested, y)
     print('iteration:', i, suggested, y)
     
-    # for var in y
     
     
-#     os.system("./" + name + " " + threshold + " " + mutation + " " + kp + " " + dp + " " + kq + " " + dq)
-#     # dont forget to send iteration number to c++

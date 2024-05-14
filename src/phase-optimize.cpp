@@ -75,7 +75,8 @@ void printn(vector<double> &fitn, string &oname, vector<double> &params)
   outfile.open(var_name, ios::app);
 
   // max fitness 
-  double max_fit = fitn.front();
+  double min_fit = SIZE_MAX;
+  double max_fit = 0;
 
   //average fitness
   double avgfit = 0;
@@ -83,11 +84,15 @@ void printn(vector<double> &fitn, string &oname, vector<double> &params)
   {
     avgfit += i;
     cout << i << endl;
+    if (i > max_fit)
+      max_fit = i;
+    if (i < min_fit)
+      min_fit = i;
   }
   avgfit = avgfit / par.optimization_replicates;
 
   //output fitness 
-  outfile << avgfit << '\t' << max_fit << endl;
+  outfile << min_fit << '\t' << max_fit << '\t' << avgfit << endl;
 
   outfile.close();
 
@@ -293,7 +298,7 @@ int main(int argc, char *argv[]) {
     std::string var_name = par.data_file + "/optimize.txt";
     std::ofstream outfile;
     outfile.open(var_name, ios::app);
-    outfile << "avg\tmax" << endl;
+    outfile << "min\tmax\tavg" << endl;
     outfile.close();
   }
    

@@ -3169,7 +3169,7 @@ double CellularPotts::Optimizer()
   // int d_width = width - start_width;
   // int optima = length;
 
-  int optima = miny+100;
+  int optima = miny;//+100;
 
   // if (d_width > 0)
   //   optima -= d_width;
@@ -3185,9 +3185,9 @@ double CellularPotts::Optimizer()
   if (pen)
     optima += par.penalty;
 
-  int n_cells = CountCells();
+  // int n_cells = CountCells();
 
-  optima-=n_cells;
+  // optima-=n_cells;
 
   return optima;
 }
