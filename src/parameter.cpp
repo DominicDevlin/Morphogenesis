@@ -90,7 +90,7 @@
 /* Cellular Potts parameters */
     sizex = 150;
     sizey = 250;
-    mcs = 20000;
+    mcs = 50000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -99,7 +99,7 @@
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
   
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
-    gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
+    
     shrink = -16;
     shrink_on = false;
     periodic_boundaries = false;
@@ -133,16 +133,19 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=3;
+    
+    J_stem=1;
     J_diff=12;
-    J_stem_diff=12;//(J_diff - J_stem);
     J_med=6.5;//0.5+0.5*J_diff;
+    J_stem_diff=12;//(J_diff - J_stem);
     // J_med=8;
     // J_med2=J_med+10;
     Vs_max = 1; // 1;
     Vd_max = 1; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.0032; // 2.4e-3;
+    secr_rate[0] = 0.0081; // 2.4e-3;
+    // might make this a optimizable parameter as well
+    gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
     offset = 75;
     optimization_replicates = 4;

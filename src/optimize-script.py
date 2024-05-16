@@ -18,7 +18,7 @@ import time
 np.random.seed(int(time.time()))
 
 
-J_stem = 3.
+J_stem = 1.
 J_diff = 12.
 
 file_path = 'org-data/optimize.txt'
@@ -33,6 +33,7 @@ def f(x, time=0):
     x[2] = rounder(x[2], 1/0.5)
     x[3] = rounder(x[3], 1/0.1)
     x[4] = rounder(x[4], 1/0.1)
+    x[5] = rounder(x[5], True)
     name = "./phase-optimize "
     for var in x:
         name = name + str(var) + " "
@@ -59,9 +60,11 @@ Jsd = [J_stem, J_diff]
 # max growth rate per DTS OF stem cells (need to sort out this implementation)
 V_smax = [0.,1.]
 V_dmax = [0.,1.]
+# v-V threshold, usually 2
+gthresh = [1.,3.]
 
 # 5 dimensional param space
-var_list = [diff_rate, Jmed, Jsd, V_smax, V_dmax]
+var_list = [diff_rate, Jmed, Jsd, V_smax, V_dmax, gthresh]
 
 # do random sampling
 # hammer = Hammersly()
@@ -88,8 +91,9 @@ punt_J_med = 0.5 + 0.5*J_diff
 punt_J_sd = 12
 punt_vsmax = 1
 punt_vdmax = 1
+punt_gthresh = 2
 
-inits = [punt_sec_rate, punt_J_med, punt_J_sd, punt_vsmax, punt_vdmax]
+inits = [punt_sec_rate, punt_J_med, punt_J_sd, punt_vsmax, punt_vdmax, punt_gthresh]
 
 
 # acq_func_kwargs = {"xi: ": 10}

@@ -386,6 +386,8 @@ public:
 
   double Optimizer();
 
+  bool EndOptimizer();
+
   void ConstainedGrowthAndDivision(int time);
 
   // void TypeGrowDivide(bool state, vector<bool> &which_cells);

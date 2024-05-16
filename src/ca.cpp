@@ -3146,7 +3146,9 @@ void CellularPotts::Init_Optimizer()
 
 }
 
-double CellularPotts::Optimizer()
+
+
+bool CellularPotts::EndOptimizer()
 {
   int miny = sizey;
   int minx=sizex;
@@ -3164,32 +3166,61 @@ double CellularPotts::Optimizer()
           maxx=x;
       }
     }
+  
+  // End simulation if we touch any of the walls.
+  if (maxx > sizex-3)
+    return true;
+  if (minx < 3)
+    return true;
+  if (miny < 3)
+    return true;
+    
+  return false;
+
+}
+
+double CellularPotts::Optimizer()
+{
+  int miny = sizey;
+  // int minx=sizex;
+  // int maxx=0;
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        if (y < miny)
+          miny = y;
+        // if (x < minx)
+        //   minx=x;
+        // if (x > maxx)
+        //   maxx=x;
+      }
+    }
   // int length = opt_starty - miny;
   // int width = maxx - minx;
   // int d_width = width - start_width;
   // int optima = length;
 
   int optima = miny;//+100;
-
+  return optima;
   // if (d_width > 0)
   //   optima -= d_width;
 
-  
-  // check if we are hitting boundaries, then penalise if true.
-  bool pen=false;
-  if (maxx > sizex-3)
-    pen = true;
-  if (minx < 3)
-    pen = true;
-  // penalty will be a + 50
-  if (pen)
-    optima += par.penalty;
+    // check if we are hitting boundaries, then penalise if true.
+  // bool pen=false;
+  // if (maxx > sizex-3)
+  //   pen = true;
+  // if (minx < 3)
+  //   pen = true;
+  // // penalty will be a + 50
+  // if (pen)
+  //   optima += par.penalty;
 
   // int n_cells = CountCells();
 
   // optima-=n_cells;
-
-  return optima;
+ 
 }
 
 

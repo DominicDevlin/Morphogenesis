@@ -112,12 +112,13 @@ void printn(vector<double> &fitn, string &oname, vector<double> &params)
 vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, vector<double> params)
 {
   vector<double> opt_out{};
+  vector<int> cell_counter{par.optimization_replicates};
   opt_out.resize(par.optimization_replicates);
 
   // create memory for dishes. 
   Dish* dishes = new Dish[par.optimization_replicates];
   int time{};
-  time = int(params[7]);
+  time = int(params[8]);
 
   // run organisms in parallel. 
   omp_set_num_threads(par.optimization_replicates);
@@ -139,9 +140,10 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     dishes[i].CPM->Set_evoJ(par.J_stem_diff);
     par.Vs_max = params[3];
     par.Vd_max = params[4];
+    par.gthresh = params[5];
     // constant params
-    par.J_stem = params[5];
-    par.J_diff = params[6];
+    par.J_stem = params[6];
+    par.J_diff = params[7];
 
     // if (i=0)
     // {
@@ -150,6 +152,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     // }
 
     dishes[i].CPM->CopyProb(par.T);
+
+    cell_counter[i] = dishes[i].CPM->CountCells();
 
     // run simulation for single organism for mcs montecarlo steps.
     for (t=0;t<par.mcs;t++) 
@@ -195,6 +199,23 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       }
       dishes[i].CPM->AmoebaeMove(t);
     
+      bool check_end = dishes[i].CPM->EndOptimizer();
+      if (check_end)
+        t = par.mcs;
+
+      // finish simulation if organism is not growing.
+      if (t%1000==0 && t > 0)
+      {
+        int n_cells = dishes[i].CPM->CountCells();
+        if (n_cells == cell_counter[i])
+        {
+          t = par.mcs;
+        }
+        else
+        {
+          cell_counter[i] = n_cells;
+        }
+      }
 
       // // ensure all cells are connected for shape calculations. 
       // if (t > 0 && t % 1000 == 0)
@@ -209,12 +230,10 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       // }
 
       // get fitness at end of development
-      if (t == par.mcs-1)
-      {
-        opt_out[i] = dishes[i].CPM->Optimizer();       
-      }        
+      
     }
-        
+    opt_out[i] = dishes[i].CPM->Optimizer();       
+          
     if (i == 1)
       cout << "Sim #1 complete. The number of cells is: " << dishes[i].CPM->CountCells() << endl;
 
@@ -285,7 +304,7 @@ int main(int argc, char *argv[]) {
   par.pickseed = 0;
   par.umap = false;
   par.output_sizes=false;
-  par.mcs = 20000;
+  par.mcs = 50000;
   par.phase_evolution = true;
   
 
