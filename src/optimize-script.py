@@ -17,11 +17,14 @@ import time
 
 np.random.seed(int(time.time()))
 
-
+index = int(sys.argv[1])
+print("INDEX IS: ", index)
 J_stem = 1.
 J_diff = 12.
 
-file_path = 'org-data/optimize.txt'
+J_stem += index
+
+file_path = 'org-data-' + str(J_stem) + '/optimize.txt'
 
 def rounder(number, amount):
     return round(number * amount) / amount
@@ -34,10 +37,10 @@ def f(x, time=0):
     x[3] = rounder(x[3], 1/0.1)
     x[4] = rounder(x[4], 1/0.1)
     x[5] = rounder(x[5], True)
-    name = "./phase-optimize "
+    name = "xvfb-run ./phase-optimize "
     for var in x:
         name = name + str(var) + " "
-    name = name + str(J_stem) + " " + str(J_diff) + " " + str(time)   
+    name = name + str(J_stem) + " " + str(J_diff) + " " + str(time)
     print(name)
     os.system(name)
 
@@ -56,7 +59,7 @@ diff_rate = (1.4e-3,1e-2)
 # J of cells with medium
 Jmed = [0.5*J_diff, J_diff + 3]
 # J of stem to diff
-Jsd = [J_stem, J_diff]
+Jsd = [J_stem, J_diff, + 3]
 # max growth rate per DTS OF stem cells (need to sort out this implementation)
 V_smax = [0.,1.]
 V_dmax = [0.,1.]
@@ -83,7 +86,7 @@ var_list = [diff_rate, Jmed, Jsd, V_smax, V_dmax, gthresh]
 #     opt.tell(x_samples[i], hammer_results[i])
 
 #number of bayesian iterations
-iterations = 200
+iterations = 1600
 
 ## init punt
 punt_sec_rate = 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588
@@ -98,7 +101,7 @@ inits = [punt_sec_rate, punt_J_med, punt_J_sd, punt_vsmax, punt_vdmax, punt_gthr
 
 # acq_func_kwargs = {"xi: ": 10}
 
-opt = Optimizer(var_list) 
+opt = Optimizer(var_list, n_initial_points=100) 
 # n_initial_points should be AT LEAST 50 FOR ACTUAL SIMULATIONS!!!
 # Should be like this - I run for 20,000 to 30,000 MCS, or stop when they hit the back wall (or any wall???)
 # When I analyse results, each SHOULD be able to hit the back. If it can't hit the back (within a reasonable time frame) MORPHOGENESIS HAS FAILED!!

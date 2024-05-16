@@ -204,7 +204,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         t = par.mcs;
 
       // finish simulation if organism is not growing.
-      if (t%1000==0 && t > 0)
+      if (t%3000==0 && t > 0)
       {
         int n_cells = dishes[i].CPM->CountCells();
         if (n_cells == cell_counter[i])
@@ -246,18 +246,19 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     {
       cout << "Directory created." << endl;
     }
-      
-    for (int i=0; i < par.optimization_replicates; ++i)
-    {
-      dishes[i].CPM->ColourCells(par.phase_evolution);
-      fft new_org(par.sizex,par.sizey);
-      new_org.ImportCPM(dishes[i].get_cpm());
-      string f2 = "org-";
-      string n2 = to_string(i);
-      string ftype = ".png";
-      string foutput = dirn + "/" + f2 + n2 + ftype;
-      new_org.cpmOutput(foutput);
-    }
+
+    if (par.evo_pics)  
+      for (int i=0; i < par.optimization_replicates; ++i)
+      {
+        dishes[i].CPM->ColourCells(par.phase_evolution);
+        fft new_org(par.sizex,par.sizey);
+        new_org.ImportCPM(dishes[i].get_cpm());
+        string f2 = "org-";
+        string n2 = to_string(i);
+        string ftype = ".png";
+        string foutput = dirn + "/" + f2 + n2 + ftype;
+        new_org.cpmOutput(foutput);
+      }
   }
 
   delete[] dishes;
@@ -273,6 +274,24 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 // Main function
 int main(int argc, char *argv[]) {
 
+
+
+  
+
+  vector<double> params;
+  for (int i = 1; i < argc; ++i)
+  {
+    params.push_back(stod(argv[i]));
+    cout << stod(argv[i]) << endl;
+  }
+
+
+  par.pic_dir = par.pic_dir + "-" + argv[7];
+  par.data_file = par.data_file + "-" + argv[7];
+
+    
+
+
 #ifdef QTGRAPHICS
   if (par.evo_pics)
   {
@@ -282,14 +301,6 @@ int main(int argc, char *argv[]) {
   }
   
 #endif
-
-
-  vector<double> params;
-  for (int i = 1; i < argc; ++i)
-  {
-    params.push_back(stod(argv[i]));
-    cout << stod(argv[i]) << endl;
-  }
 
 
   par.graphics=false;
