@@ -15,8 +15,14 @@
 find . -name "*.o" -type f -delete
 module load Qt5/5.12.3-GCCcore-9.2.0
 module load Python/3.9.5-gimkl-2020a
-qmake
-make
+if [ ! -f build_done.flag ]; then
+    touch build_done.flag
+    qmake
+    make
+else
+    sleep 60
+fi
+
 module load LegacySystemLibs/7
 python3 optimize-script.py ${SLURM_ARRAY_TASK_ID}
 
