@@ -219,6 +219,8 @@ class Parameter {
   double Vd_max;
   int optimization_replicates;  
   bool pics_for_opt;
+  int pics_for_opt_interval;
+  int max_div_time;
   bool phase_evolution;
   int offset;
   double J_mutate_probability;

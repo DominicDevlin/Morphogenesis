@@ -37,7 +37,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -90,7 +90,7 @@
 /* Cellular Potts parameters */
     sizex = 150;
     sizey = 250;
-    mcs = 50000;
+    mcs = 100000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -134,29 +134,28 @@
     // phase transition params;
     phase_evolution=true;
     
-    J_stem=1;
+    J_stem=5;
     J_diff=12;
-    J_med=6.5;//0.5+0.5*J_diff;
-    J_stem_diff=12;//(J_diff - J_stem);
+    J_med=8;//0.5+0.5*J_diff;
+    J_stem_diff=14.5;//(J_diff - J_stem);
     // J_med=8;
     // J_med2=J_med+10;
     Vs_max = 1; // 1;
     Vd_max = 1; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.0081; // 2.4e-3;
+    secr_rate[0] = 0.0026; // 2.4e-3;
     // might make this a optimizable parameter as well
-    gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
+    gthresh = 1; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
     offset = 75;
     optimization_replicates = 4;
     pics_for_opt = true;
+    pics_for_opt_interval = 1;
+    max_div_time = 6000;
+
     penalty=250;
 
-    	///6.5	12	1	1	4	12	139	
-    
-
-    // I NEED TO EVOLVE GROWTH RATES FOR BOTH STATES!!!!!! liquid like and solid like, i..e, how constrained V is!!
-
+  
     // GRN params
     n_TF = 0; 
     n_diffusers = 1; // morphogens

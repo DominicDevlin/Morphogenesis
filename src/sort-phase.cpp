@@ -191,6 +191,20 @@ TIMESTEP {
       
     }
 
+    static int counter{};
+    static int n_cells{};
+    if (t > 50)
+    {
+      ++counter;
+      int tmp = dish->CPM->CountCells();
+      if (tmp > n_cells)
+      {
+        cout << "TIME BETWEEN DIVISIONS: " << counter << endl;
+        n_cells = tmp;
+        counter = 0;
+      }
+    }
+  
     static Info *info=new Info(*dish, *this);
     // record initial expression state. This occurs before any time step updates. 
     if (t == 100)

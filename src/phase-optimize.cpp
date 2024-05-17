@@ -112,7 +112,7 @@ void printn(vector<double> &fitn, string &oname, vector<double> &params)
 vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, vector<double> params)
 {
   vector<double> opt_out{};
-  vector<int> cell_counter{par.optimization_replicates};
+  vector<int> cell_counter(par.optimization_replicates, 0);
   opt_out.resize(par.optimization_replicates);
 
   // create memory for dishes. 
@@ -153,7 +153,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
     dishes[i].CPM->CopyProb(par.T);
 
-    cell_counter[i] = dishes[i].CPM->CountCells();
+    
 
     // run simulation for single organism for mcs montecarlo steps.
     for (t=0;t<par.mcs;t++) 
@@ -179,6 +179,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
             dishes[i].PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
           } 
         }
+        
       }
       else 
       {
@@ -203,11 +204,14 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (check_end)
         t = par.mcs;
 
+      
+      if (t == par.end_program)
+        cell_counter[i] = dishes[i].CPM->CountCells();
       // finish simulation if organism is not growing.
-      if (t%3000==0 && t > 0)
+      if (t%par.max_div_time==0 && t > 0)
       {
         int n_cells = dishes[i].CPM->CountCells();
-        if (n_cells == cell_counter[i])
+        if (n_cells <= cell_counter[i])
         {
           t = par.mcs;
         }
@@ -239,7 +243,11 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   }
 
-  if (par.pics_for_opt)
+  
+  // output to file
+  printn(opt_out, par.data_file, params);
+
+  if (par.pics_for_opt && time % par.pics_for_opt_interval == 0)
   {
     string dirn = par.pic_dir + "/" + to_string(time+1);
     if (mkdir(dirn.c_str(), 0777) != -1)
@@ -262,8 +270,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   }
 
   delete[] dishes;
-  // output to file
-  printn(opt_out, par.data_file, params);
 
   return opt_out;
 }
@@ -282,15 +288,12 @@ int main(int argc, char *argv[]) {
   for (int i = 1; i < argc; ++i)
   {
     params.push_back(stod(argv[i]));
-    cout << stod(argv[i]) << endl;
+    cout << stod(argv[i]) << " ";
   }
-
+  cout << endl;
 
   par.pic_dir = par.pic_dir + "-" + argv[7];
   par.data_file = par.data_file + "-" + argv[7];
-
-    
-
 
 #ifdef QTGRAPHICS
   if (par.evo_pics)
@@ -299,7 +302,6 @@ int main(int argc, char *argv[]) {
     if (mkdir(par.pic_dir.c_str(), 0777) != -1)
       cout << "Directory created." << endl;
   }
-  
 #endif
 
 
@@ -315,7 +317,7 @@ int main(int argc, char *argv[]) {
   par.pickseed = 0;
   par.umap = false;
   par.output_sizes=false;
-  par.mcs = 50000;
+  par.mcs = 100000;
   par.phase_evolution = true;
   
 

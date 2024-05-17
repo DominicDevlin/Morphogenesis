@@ -17,8 +17,15 @@ import time
 
 np.random.seed(int(time.time()))
 
-index = int(sys.argv[1])
-print("INDEX IS: ", index)
+index = 0
+prepend = ""
+
+if (len(sys.argv) > 1):
+    index = int(sys.argv[1])
+    print("INDEX IS: ", index)
+    prepend = "xvfb-run - a "
+
+
 J_stem = 1.
 J_diff = 12.
 
@@ -31,13 +38,13 @@ def rounder(number, amount):
 
 def f(x, time=0):
     # round params
-    x[0] = rounder(x[0], 1/0.1e-3)
+    # x[0] = rounder(x[0], 1/0.1e-3) # not rounding this
     x[1] = rounder(x[1], 1/0.5)
     x[2] = rounder(x[2], 1/0.5)
     x[3] = rounder(x[3], 1/0.1)
     x[4] = rounder(x[4], 1/0.1)
     x[5] = rounder(x[5], True)
-    name = "xvfb-run ./phase-optimize "
+    name = prepend + "./phase-optimize "
     for var in x:
         name = name + str(var) + " "
     name = name + str(J_stem) + " " + str(J_diff) + " " + str(time)
@@ -55,11 +62,11 @@ def f(x, time=0):
 ### specify ranges to optimize, each is a tuple with min and max
 
 # differentiation rate, will just be the secretion constant (2.4e-3 is default, 1.5 is about minimum before 0 becomes equilibrium)
-diff_rate = (1.4e-3,1e-2)
+diff_rate = (1.4e-3,0.025)
 # J of cells with medium
 Jmed = [0.5*J_diff, J_diff + 3]
 # J of stem to diff
-Jsd = [J_stem, J_diff, + 3]
+Jsd = [J_stem, J_diff + 3]
 # max growth rate per DTS OF stem cells (need to sort out this implementation)
 V_smax = [0.,1.]
 V_dmax = [0.,1.]
@@ -88,15 +95,25 @@ var_list = [diff_rate, Jmed, Jsd, V_smax, V_dmax, gthresh]
 #number of bayesian iterations
 iterations = 1600
 
-## init punt
+inits=[]
+
+## first punt
 punt_sec_rate = 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588
 punt_J_med = 0.5 + 0.5*J_diff
 punt_J_sd = 12
 punt_vsmax = 1
 punt_vdmax = 1
 punt_gthresh = 2
+inits.append([punt_sec_rate, punt_J_med, punt_J_sd, punt_vsmax, punt_vdmax, punt_gthresh])
 
-inits = [punt_sec_rate, punt_J_med, punt_J_sd, punt_vsmax, punt_vdmax, punt_gthresh]
+### second punt
+punt_sec_rate = 128.123*pow((J_stem+3.66212),-5.64574)+0.00194831
+punt_J_med = 0.5*J_diff+2
+punt_J_sd = 14.5
+punt_vsmax = 1
+punt_vdmax = 1
+punt_gthresh = 1
+inits.append([punt_sec_rate, punt_J_med, punt_J_sd, punt_vsmax, punt_vdmax, punt_gthresh])
 
 
 # acq_func_kwargs = {"xi: ": 10}
@@ -109,8 +126,8 @@ opt = Optimizer(var_list, n_initial_points=100)
 
 for i in range(iterations):
     suggested = []
-    if i == 0:
-        suggested = inits
+    if i < len(inits):
+        suggested = inits[i]
     else:
         suggested = opt.ask()
 
