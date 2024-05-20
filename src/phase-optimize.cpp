@@ -118,7 +118,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   // create memory for dishes. 
   Dish* dishes = new Dish[par.optimization_replicates];
   int time{};
-  time = int(params[8]);
+  time = int(params[6]);
 
   // run organisms in parallel. 
   omp_set_num_threads(par.optimization_replicates);
@@ -138,12 +138,13 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     par.J_med = params[1];
     par.J_stem_diff = params[2];
     dishes[i].CPM->Set_evoJ(par.J_stem_diff);
-    par.Vs_max = params[3];
-    par.Vd_max = params[4];
-    par.gthresh = params[5];
+    // par.Vs_max = params[3];
+    // par.Vd_max = params[4];
+    par.gthresh = params[3];
     // constant params
-    par.J_stem = params[6];
-    par.J_diff = params[7];
+    par.J_stem = params[4];
+    par.mcs=40000 + int(par.J_stem)*20000;
+    par.J_diff = params[5];
 
     // if (i=0)
     // {
@@ -221,17 +222,17 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         }
       }
 
-      // // ensure all cells are connected for shape calculations. 
-      // if (t > 0 && t % 1000 == 0)
-      // {
-      //   bool check_shape = dishes[i].CPM->CheckShape();
-      //   if (check_shape == false)
-      //   {
-      //     opt_out[i] = 100;
-      //     t = par.mcs;
-      //     // cout << "Org number: " << i << " has bad shape. " << endl;
-      //   }
-      // }
+      // ensure all cells are connected for shape calculations. 
+      if (t > 0 && t % 10000 == 0)
+      {
+        bool check_shape = dishes[i].CPM->CheckShape();
+        if (check_shape == false)
+        {
+          opt_out[i] = par.sizey;
+          t = par.mcs;
+          // cout << "Org number: " << i << " has bad shape. " << endl;
+        }
+      }
 
       // get fitness at end of development
       
@@ -292,8 +293,8 @@ int main(int argc, char *argv[]) {
   }
   cout << endl;
 
-  par.pic_dir = par.pic_dir + "-" + argv[7];
-  par.data_file = par.data_file + "-" + argv[7];
+  par.pic_dir = par.pic_dir + "-" + argv[5];
+  par.data_file = par.data_file + "-" + argv[5];
 
 #ifdef QTGRAPHICS
   if (par.evo_pics)

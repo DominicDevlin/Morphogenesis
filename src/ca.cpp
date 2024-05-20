@@ -1993,7 +1993,7 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
       }
     }
   }
-  if (mass_increase_stem < leftover_mass_stem && mass_increase_diff < leftover_mass_diff)
+  if (mass_increase_stem <= leftover_mass_stem && mass_increase_diff <= leftover_mass_diff)
   {
     for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
@@ -2028,7 +2028,7 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
       }  
     } 
   }
-  else if (mass_increase_stem > leftover_mass_stem && mass_increase_diff < leftover_mass_diff)
+  else if (mass_increase_stem >= leftover_mass_stem && mass_increase_diff < leftover_mass_diff)
   {
     int sum_numbers = accumulate(to_increase_stem.begin(), to_increase_stem.end(), 0);
     vector<double> probabilities(cell->size());
@@ -2100,7 +2100,7 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
       }
     }
   }
-  else if (mass_increase_stem < leftover_mass_stem && mass_increase_diff > leftover_mass_diff)
+  else if (mass_increase_stem < leftover_mass_stem && mass_increase_diff >= leftover_mass_diff)
   {
     int sum_numbers = accumulate(to_increase_diff.begin(), to_increase_diff.end(), 0);
     vector<double> probabilities(cell->size());
@@ -2198,7 +2198,7 @@ void CellularPotts::ConstainedGrowthAndDivision(int time)
         partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());      
       }
     }
-    if (mass_increase_diff > leftover_mass_diff)
+    if (leftover_mass_diff > 0 && mass_increase_diff > leftover_mass_diff)
     {
       // STARTING NEXT
       int sum_numbers = accumulate(to_increase_diff.begin(), to_increase_diff.end(), 0);
