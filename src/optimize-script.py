@@ -26,7 +26,7 @@ if (len(sys.argv) > 1):
     prepend = "xvfb-run -a "
 
 
-J_stem = 10.
+J_stem = 1.
 J_diff = 12.
 
 J_stem += index
