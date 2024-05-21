@@ -87,5 +87,6 @@
     "typeinfo": "cpp",
     "variant": "cpp",
     "filesystem": "cpp"
-  }
+  },
+  "C_Cpp.errorSquiggles": "enabled"
 }

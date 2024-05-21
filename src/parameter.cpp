@@ -42,7 +42,7 @@
     // show on screen
     graphics = false;
     // show morphogen gradients
-    contours = true;
+    contours = false;
 
     // Generate a random genome
     randomise = false;
@@ -84,7 +84,7 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 1, 1, -1, 1, 0, -1, 0, 1, 1 }, { 1, 1, 0, 0, 0, 0, -1, 0, 1 }, { 0, 2, -1, 0, 2, 0, 0, 0, 0 }, { 0, 0, 0, 2, 0, 0, 0, 0, 0 }, { 0, 0, 1, -1, -1, 0, 1, 0, -1 }, { 0, 1, 1, 0, -1, 0, 0, 0, 0 }, { -1, -1, 1, 1, 1, 1, 1, 2, 0 }, { 1, -1, 0, 0, 0, 0, 0, 0, 2 }, { 1, 1, -1, 0, -1, 0, -1, 0, 0 }, { 2, 1, 1, 1, 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0, -1, 1, 0, 0 }, { 0, 1, 0, -1, 1, -2, 0, 0, 0 }, { -2, 0, 0, 0, 0, 0, 1, 1, 1 }, { -1, 0, 0, 0, 0, 0, 1, -2, -1 }, { -1, -1, 0, 2, -1, -1, 2, 0, 0 }, { 1, -1, 0, 0, -1, 1, 0, 0, -1 }, { 0, 0, 0, 0, -1, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, -2, -2, -2 }, { 0, 1, 0, 0, 2, 1, 0, 0, 0 }, { 2, 0, 0, 0, 0, -1, -2, 1, 0 }, { 1, 0, 1, 0, 1, 2, 0, -1, 1 }, { 1, 1, -1, 0, 0, 0, 1, 0, 0 }, { 0, 0, 0, 0, 0, -1, 0, 1, 0 }, { 0, 0, 0, 0, 0, -1, 0, 1, 0 }, { 0, -1, 0, -1, 0, 0, 0, 1, 0 }, { -1, -2, 1, 0, 0, 0, -1, 2, 2 }, { 0, 0, 0, 0, 0, 1, 0, 1, 2 }, };
+    start_matrix = { { 0, 2, 2, 0, 0, 0, 0, 1, 0 }, { 0, -2, 2, -2, 0, 1, 0, 0, -2 }, { 0, 0, 1, -1, 0, 0, 0, 1, 1 }, { 0, 0, 0, 2, 0, 0, 0, -1, 1 }, { 0, 0, -1, 1, 0, 0, 1, -1, 0 }, { 1, 1, -1, -2, 2, 0, 0, 1, -1 }, { 0, 1, -1, 0, 0, 2, 1, 0, 0 }, { 0, 0, -1, -1, 0, 0, 1, 0, 0 }, { 2, -1, 0, 0, 1, -1, 0, 1, -1 }, { 2, 1, 0, 0, 0, 1, 0, 1, 1 }, { -1, 1, 0, 0, -1, 0, 2, 1, 0 }, { -1, -1, 0, 1, 0, 0, 0, 0, -1 }, { 1, 1, 1, 1, 2, -2, 1, 0, 0 }, { 1, 0, 2, 0, 2, 2, 0, 0, 0 }, { -1, 0, 0, 0, -1, 1, 1, 0, 1 }, { 1, -1, 0, 2, 1, 0, 0, -2, -1 }, { 1, -1, -1, 0, -1, 0, 0, 1, 0 }, { -1, 0, 0, -1, 1, 0, 0, 0, 0 }, { 0, 1, 0, 1, -1, -1, 0, -2, 0 }, { 1, 0, 0, 1, 0, 1, -2, 0, 0 }, { 0, 0, 0, 0, -2, 1, 0, 0, 0 }, { 0, 0, 0, -1, 0, 0, 2, -2, 0 }, { -2, 0, 1, 0, 0, 0, 1, 0, -1 }, { -2, 0, 2, 0, 1, 0, 0, 1, -1 }, { 0, 0, 0, 0, 0, 0, 0, 1, -1 }, { 0, -1, 0, 0, 0, 1, 0, 0, -1 }, { 0, 1, -2, 0, 0, 1, 0, 0, 0 }, };
 
 
 
@@ -93,7 +93,7 @@
     // edges and nodes only at end of simulation (always true).
     potency_edges = true;
     // what mcs to start measuring adult types & differentiation. set to 6000 for all results
-    adult_begins = 8000;
+    adult_begins = 6000;
 
     // scramble cells
     scramble = false;
@@ -207,11 +207,11 @@
     count_bud_cells = false;
 
     // print single cell proteins
-    single_cell = true;
+    single_cell = false;
     // the phenotype number to return
     single_type = 83331;
     // start all cells from "single state" initial condition for ex vivo
-    flush_cells = true;
+    flush_cells = false;
    // turn all cells into this state at beginning of development
     flush_states = { 2.88816e-05, 9.24869e-10, 0.993102, 0.00273912, 0.992828, 1.27142e-05, 0.993102, 0.270609, 1.10889e-24, 0.993102, 0.993102, 0.993101, 0.99279, 0.343194, 0.992968, 9.29912e-10, 5.87968e-12, 1.93265e-23, 0.993102, 5.26903e-14, 0.993102, 0.980537, 0.248388, 0.248388, 0.23865, 0.00215724, 0.248486, 0.227796, 6.66981e-05, 0.698422,  };
 
@@ -244,7 +244,7 @@
     limit_amount = 0.8;
 
 
-    hold_morph_constant = true;
+    hold_morph_constant = false;
 
     // print list of concentrations, one for each cell type (used for future input)
     print_type_concentrations = true;

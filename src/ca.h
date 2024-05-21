@@ -311,6 +311,7 @@ public:
 
   vector<pair<double, double>> scc_momenta(vector<vector<int>> sccs);
 
+  vector<vector<double>> state_momenta(vector<vector<int>> sccs);
 
   vector<pair<double, double>> scc_polar_momenta(vector<vector<int>> sccs);
 

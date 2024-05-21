@@ -345,6 +345,9 @@ TIMESTEP {
       }
 
 
+
+
+
       if (par.potency_edges)
       {
         // entire program is run from ungraph now

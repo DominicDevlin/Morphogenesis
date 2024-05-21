@@ -221,7 +221,7 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
     }
   }
 
-
+  vector<vector<vector<double>>> SCC_momentas;
 
   int count = 0;
   for (int i=0; i < par.n_orgs; ++i)  
@@ -273,6 +273,35 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
     {
       dishes[i].CPM->set_switches(edge_tally);
     }
+
+    if (true)
+    {
+      map<int,int>subcomps{};
+      Graph ungraph(types.size());
+      par.node_threshold = 0;//int(floor((par.mcs - par.adult_begins) / 40));
+      par.prune_edges = true;
+      subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+      vector<vector<int>> result = ungraph.GetComps(types, 600);
+      for (auto i : result)
+      {
+        cout << "SCC starting.. ";
+        for (auto j : i)
+          cout << j << " ";  
+        cout << endl;      
+      }
+      vector<vector<double>> state_momentas = dishes[i].CPM->state_momenta(result);
+
+      ofstream outnet;
+      string netw ="momentas.txt";
+      outnet.open(netw, ios::app);
+      for (int x=0;x<state_momentas.size();++x)
+      {
+        for (int z=0; z < state_momentas[x].size(); ++z)
+          outnet << count << '\t' << x << '\t' << state_momentas[x][z] << endl;
+      } // outnet << count << '\t' << x << '\t' << result[x][z] << '\t' << state_momentas[x][z] << endl;
+    }
+
+
 
     vector<vector<int>> scc;
     if (par.velocities)
@@ -405,6 +434,12 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
       // dishes[i].CPM->SingleCellDirection();
     }
 
+
+    
+
+
+
+
     if (par.store)
     {
       string name = par.data_file + "/final_pic.png";
@@ -430,6 +465,10 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
       #endif
 
       delete[] nname;
+
+
+      
+
 
     }
   }

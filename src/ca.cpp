@@ -5355,6 +5355,77 @@ pair<double, double> CellularPotts::momenta(void)
 
 
 
+vector<vector<double>> CellularPotts::state_momenta(vector<vector<int>> sccs)
+{
+  vector<vector<double>> momenta_sccs{};
+  for (vector<int> scc : sccs)
+  {
+    vector<double> momenta_s;
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        // when the cell first appears in the SCC
+
+
+        vector<double>& xm = c->get_xcens();
+        vector<double>& ym = c->get_ycens();
+        vector<int>& velp = c->get_velphens();
+        vector<double>& sizes = c->GetMassList();
+        int s = xm.size();
+        int init_time = c->get_time_created();
+
+        int cell_origin=INT_MAX;
+        int x_origin=xm[250];
+        int y_origin=ym[250];
+        int start=INT_MAX;
+
+
+        for (int i = 0; i < s; ++i)
+        {
+          int t = velp[i];
+          if (find(scc.begin(), scc.end(), t) == scc.end())
+          {
+            continue;
+          }
+          else
+          {
+            start = i;
+            x_origin = xm[i];
+            y_origin = ym[i];
+            break;
+          }
+        }
+
+        for (int i = start; i < s; ++i)
+        {
+          // we want displacement from a while ago to account for back and forth motion
+          int t = velp[i];
+
+          if (find(scc.begin(), scc.end(), t) == scc.end())
+          {
+            double x1 = xm[i];
+            double y1 = ym[i];
+            double len = sqrt(pow(x1-x_origin,2) + pow(y1-y_origin,2));
+            double velocity = len / double(i-start);
+            momenta_s.push_back(velocity);
+            // double csize = sizes[i-500];
+            // double total = csize * len;
+            break;
+          }
+        }   
+      }
+    }
+    momenta_sccs.push_back(momenta_s);
+  }
+  return momenta_sccs;
+}
+
+
+
+
+
 // automatic method to separate speeds into components
 vector<pair<double, double>> CellularPotts::scc_momenta(vector<vector<int>> sccs)
 {
