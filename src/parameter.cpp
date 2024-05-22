@@ -103,7 +103,7 @@
     // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
     prune_edges = false;
     
-    prune_amount = 6;
+    prune_amount = 8;
 
     cycle_check = false;
 

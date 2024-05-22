@@ -281,7 +281,7 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
       par.node_threshold = 0;//int(floor((par.mcs - par.adult_begins) / 40));
       par.prune_edges = true;
       subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-      vector<vector<int>> result = ungraph.GetComps(types, 600);
+      vector<vector<int>> result = ungraph.GetComps(types, 4000);
       for (auto i : result)
       {
         cout << "SCC starting.. ";

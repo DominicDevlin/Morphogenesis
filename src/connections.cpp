@@ -567,6 +567,7 @@ vector<vector<int>> Graph::GetComps(map<int, int> types, int threshold)
 		{
 			sumt += types[j];
 		}
+		cout << "SUMT: " << sumt << endl;
 		if (sumt > threshold)
 		{
 			comps.push_back(i);
