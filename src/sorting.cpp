@@ -345,7 +345,43 @@ TIMESTEP {
       }
 
 
+    if (true)
+    {
+      map<int,int>subcomps{};
+      Graph ungraph(types.size());
+      par.node_threshold = 0;//int(floor((par.mcs - par.adult_begins) / 40));
+      par.prune_edges = true;
+      subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+      vector<vector<int>> result = ungraph.GetComps(types, 600);
+      for (auto i : result)
+      {
+        cout << "SCC starting.. ";
+        for (auto j : i)
+          cout << j << " ";  
+        cout << endl;      
+      }
+      vector<vector<double>> state_momentas = dish->CPM->scc_momenta_new(result);
 
+      ofstream outnet;
+      string netw ="momentas.txt";
+      outnet.open(netw, ios::app);
+      for (int x=0;x<state_momentas.size();++x)
+      {
+        if (state_momentas[x].size() > 0)
+        {
+          int vecsize = state_momentas[x].size();
+          double mean = accumulate(state_momentas[x].begin(), state_momentas[x].end(), 0.0);
+          mean = mean / vecsize;
+          double median = state_momentas[x][vecsize / 2];
+          double q1 = state_momentas[x][vecsize / 4];
+          double q3 = state_momentas[x][(3*vecsize) / 4];
+          // for (int z=0; z < state_momentas[x].size(); ++z)
+          outnet << x << '\t' << result[x][0] << '\t' << mean << '\t' << median << '\t' << q1 << '\t' << q3 << '\t' << endl;
+            // outnet << x << '\t' << result[x][0] << '\t' << state_momentas[x][z] << endl;
+        }
+
+      } // outnet << count << '\t' << x << '\t' << result[x][z] << '\t' << state_momentas[x][z] << endl;
+    }
 
 
       if (par.potency_edges)

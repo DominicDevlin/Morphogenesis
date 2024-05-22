@@ -5377,46 +5377,103 @@ vector<vector<double>> CellularPotts::state_momenta(vector<vector<int>> sccs)
         int init_time = c->get_time_created();
 
         int cell_origin=INT_MAX;
-        int x_origin=xm[250];
-        int y_origin=ym[250];
+        int x_origin=0;
+        int y_origin=0;
         int start=INT_MAX;
-
+        int end=s;
+        bool found = false;
+        double x1 = xm.back();
+        double y1 = ym.back();
+        int type = 0;
 
         for (int i = 0; i < s; ++i)
         {
           int t = velp[i];
-          if (find(scc.begin(), scc.end(), t) == scc.end())
+          if (!found && find(scc.begin(), scc.end(), t) != scc.end())
           {
-            continue;
-          }
-          else
-          {
+            found = true;
+            type = t;
             start = i;
-            x_origin = xm[i];
-            y_origin = ym[i];
+            x_origin = xm[i+500];
+            y_origin = ym[i+500];
+          }
+
+          if (found && find(scc.begin(), scc.end(), t) == scc.end())
+          {
+            x1 = xm[i];
+            y1 = ym[i];
+            end = i;
             break;
           }
         }
 
-        for (int i = start; i < s; ++i)
+        if (found && end - start > 500)
         {
-          // we want displacement from a while ago to account for back and forth motion
-          int t = velp[i];
+            double len = sqrt(pow(x1-x_origin,2) + pow(y1-y_origin,2));
+            double velocity = len / double(end-start);
+            // cout << "cell: " << c->Sigma() << '\t' << start << '\t' << end << '\t' << "\tdata: " << type << '\t' << len << '\t' << velocity << endl;
+            momenta_s.push_back(velocity);          
+        }
+      }
+    }
+    momenta_sccs.push_back(momenta_s);
+  }
+  return momenta_sccs;
+}
 
-          if (find(scc.begin(), scc.end(), t) == scc.end())
+
+
+vector<vector<double>> CellularPotts::scc_momenta_new(vector<vector<int>> sccs)
+{
+  vector<vector<double>> momenta_sccs{};
+  for (vector<int> scc : sccs)
+  {
+    vector<double> momenta_s{};
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        // when the cell first appears in the SCC
+
+
+        vector<double>& xm = c->get_xcens();
+        vector<double>& ym = c->get_ycens();
+        vector<int>& velp = c->get_velphens();
+        vector<double>& sizes = c->GetMassList();
+        int s = xm.size();
+        int init_time = c->get_time_created();
+
+        int cell_origin=INT_MAX;
+        int x_origin=0;
+        int y_origin=0;
+        double x1 = xm.back();
+        double y1 = ym.back();
+        int type = 0;
+        int wait = 1000;
+
+        for (int i = wait + init_time; i < s; ++i)
+        {
+          int t = velp[i];
+          int tback = velp[i-wait];
+          if (find(scc.begin(), scc.end(), t) != scc.end() && find(scc.begin(), scc.end(), tback) != scc.end())
           {
+            int x_origin=xm[i-wait];
+            int y_origin=ym[i-wait];
             double x1 = xm[i];
             double y1 = ym[i];
             double len = sqrt(pow(x1-x_origin,2) + pow(y1-y_origin,2));
-            double velocity = len / double(i-start);
-            momenta_s.push_back(velocity);
-            // double csize = sizes[i-500];
-            // double total = csize * len;
-            break;
+            double sum = std::accumulate(sizes.begin()+i-wait, sizes.begin()+i, 0.0);
+            sum = sum / wait;
+
+            double moment = (len) / double(wait);
+            // cout << "cell: " << c->Sigma() << '\t' << start << '\t' << end << '\t' << "\tdata: " << type << '\t' << len << '\t' << velocity << endl;
+            momenta_s.push_back(moment);
           }
-        }   
+        }
       }
     }
+    std::sort(momenta_s.begin(), momenta_s.end());
     momenta_sccs.push_back(momenta_s);
   }
   return momenta_sccs;

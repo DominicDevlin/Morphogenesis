@@ -289,17 +289,33 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
           cout << j << " ";  
         cout << endl;      
       }
-      vector<vector<double>> state_momentas = dishes[i].CPM->state_momenta(result);
+      vector<vector<double>> state_momentas = dishes[i].CPM->scc_momenta_new(result);
 
       ofstream outnet;
       string netw ="momentas.txt";
       outnet.open(netw, ios::app);
+
       for (int x=0;x<state_momentas.size();++x)
       {
-        for (int z=0; z < state_momentas[x].size(); ++z)
-          outnet << count << '\t' << x << '\t' << state_momentas[x][z] << endl;
-      } // outnet << count << '\t' << x << '\t' << result[x][z] << '\t' << state_momentas[x][z] << endl;
+        if (state_momentas[x].size() > 0)
+        {
+          int vecsize = state_momentas[x].size();
+          double mean = accumulate(state_momentas[x].begin(), state_momentas[x].end(), 0.0);
+          mean = mean / vecsize;
+          double median = state_momentas[x][vecsize / 2];
+          double q1 = state_momentas[x][vecsize / 4];
+          double q3 = state_momentas[x][(3*vecsize) / 4];
+          // for (int z=0; z < state_momentas[x].size(); ++z)
+          outnet << count << '\t' << x << '\t' << result[x][0] << '\t' << mean << '\t' << median << '\t' << q1 << '\t' << q3 << '\t' << endl;
+            // outnet << x << '\t' << result[x][0] << '\t' << state_momentas[x][z] << endl;
+        }
+      } 
+
     }
+
+
+
+
 
 
 
