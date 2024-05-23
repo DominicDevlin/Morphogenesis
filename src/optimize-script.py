@@ -31,6 +31,11 @@ J_diff = 12.
 
 J_stem += index
 
+if J_stem >= J_diff:
+    print(f"Exiting because J_stem ({J_stem}) is greater than J_diff ({J_diff})")
+    sys.exit(1)  # Exit with a status code indicating an error
+
+
 file_path = 'org-data-' + str(J_stem) + '/optimize.txt'
 
 def rounder(number, amount):
@@ -60,9 +65,9 @@ def f(x, time=0):
 # differentiation rate, will just be the secretion constant (2.4e-3 is default, 1.5 is about minimum before 0 becomes equilibrium)
 diff_rate = [1.4e-3,0.025]
 # J of cells with medium
-Jmed = [0.5*J_diff, J_diff + 3]
+Jmed = [1.0, 16.0]
 # J of stem to diff
-Jsd = [J_stem, J_diff + J_diff]
+Jsd = [1.0, 24.0]
 # max growth rate per DTS OF stem cells. Taking this out for now.
 # V_smax = [0.,1.]
 # V_dmax = [0.,1.]

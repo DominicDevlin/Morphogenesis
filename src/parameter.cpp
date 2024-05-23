@@ -150,7 +150,7 @@
     offset = 75;
     optimization_replicates = 6;
     pics_for_opt = true;
-    pics_for_opt_interval = 1;
+    pics_for_opt_interval = 100;
     max_div_time = 20000;
 
     penalty=250;
