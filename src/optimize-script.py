@@ -101,7 +101,7 @@ inits=[]
 ## first punt
 punt_sec_rate = 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588
 punt_J_med = 0.5 + 0.5*J_diff
-punt_J_sd = 12
+punt_J_sd = J_diff
 # punt_vsmax = 1
 # punt_vdmax = 1
 punt_gthresh = 2
@@ -110,7 +110,7 @@ inits.append([punt_sec_rate, punt_J_med, punt_J_sd, punt_gthresh])
 ### second punt
 punt_sec_rate = 128.123*pow((J_stem+3.66212),-5.64574)+0.00194831
 punt_J_med = 0.5*J_diff+2
-punt_J_sd = 14.5
+punt_J_sd = J_diff + (J_diff*0.21)
 # punt_vsmax = 1
 # punt_vdmax = 1
 punt_gthresh = 1
