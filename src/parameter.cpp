@@ -100,8 +100,6 @@
   
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
     
-    shrink = -16;
-    shrink_on = false;
     periodic_boundaries = false;
     // keep this at 2= moore neighbourhood. 2 used in simulations. 
     neighbours = 2;
@@ -134,16 +132,16 @@
     // phase transition params;
     phase_evolution=true;
     
-    J_stem=1;
-    J_diff=3;
-    J_med=0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
-    J_stem_diff=J_diff;//(J_diff - J_stem);
+    J_stem=5;
+    J_diff=9;
+    J_med=5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
+    J_stem_diff=10;//J_diff;//(J_diff - J_stem);
     // J_med=8;
     // J_med2=J_med+10;
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.00259342;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
@@ -173,6 +171,9 @@
     maxJ = 20; // max J if all cell-cell are not paired
     minM = 6; // min J with medium if all proteins are on
 
+/*iterators */
+    shrink = -16;
+    shrink_on = false;
     // difference between maximum and minimum cell J
     interval1 = maxJ-minJ;
     // addition of J for each lock and key pair
