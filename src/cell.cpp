@@ -258,6 +258,30 @@ double Cell::SheetDif(Cell &cell2, double &sJ)
 
 }
 
+double Cell::Melt(Cell &cell2, int x)
+{
+  if (sigma==cell2.sigma)
+  {
+    return 0;
+  }
+  else if (sigma==0)
+  {
+    // cout << "1: " << phaseJfromMed(cell2.getmJ()) << endl;
+    return phaseJfromMed();
+  }
+  else if (cell2.sigma==0)
+  {
+    // cout << "2: " <<  PhaseJwithMed() << endl;
+    return PhaseJwithMed();
+  }
+  else
+  {
+    // cout << "3: " << PhaseJ(cell2.GetPhase(), Jstemdiff) << endl;
+    return J_equation(x);
+  }
+}
+
+
 double Cell::EnergyDifference(Cell &cell2, bool phase, double Jstemdiff)
 {
   if (sigma==cell2.sigma)
@@ -267,7 +291,7 @@ double Cell::EnergyDifference(Cell &cell2, bool phase, double Jstemdiff)
   else if (sigma==0)
   {
     // cout << "1: " << phaseJfromMed(cell2.getmJ()) << endl;
-    return phaseJfromMed(cell2.getmJ());
+    return phaseJfromMed();
   }
   else if (cell2.sigma==0)
   {
@@ -310,7 +334,7 @@ double Cell::PhaseJwithMed()
   // }
 }
 
-double Cell::phaseJfromMed(bool mstate)
+double Cell::phaseJfromMed()
 {
   return par.J_med;
   // if (mstate)
@@ -321,6 +345,16 @@ double Cell::phaseJfromMed(bool mstate)
   // {
   //   return par.J_med2;
   // }
+}
+
+
+double Cell::J_equation(int x)
+{
+  double eq = (double(par.J_diff-par.J_stem) / (1.+exp((double(par.xtip - par.melt - x))/par.slope))) + par.J_stem;
+  // double first = double(par.xtip - par.melt - x)/par.slope;
+  // double second = 1.0 + exp(first);
+  // cout << par.xtip << '\t' << par.melt << '\t' << x << '\t' << par.slope << '\t' << first << '\t' << second << endl;
+  return eq; 
 }
 
 

@@ -388,11 +388,15 @@ public:
 
   bool EndOptimizer();
 
-  void ConstainedGrowthAndDivision(int time);
+  void ConstrainedGrowthAndDivision(int time);
 
   // void TypeGrowDivide(bool state, vector<bool> &which_cells);
 
   // void TypeGrowDivideDistribution(vector<int> &to_increase);
+
+  void VolumeAddition();
+
+  void SetXTip();
 
 
 

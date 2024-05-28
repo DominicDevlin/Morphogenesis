@@ -197,7 +197,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           dishes[i].PDEfield->Secrete(dishes[i].CPM);
           dishes[i].PDEfield->Diffuse(1); 
         }  
-        dishes[i].CPM->ConstainedGrowthAndDivision(t);
+        dishes[i].CPM->ConstrainedGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
     

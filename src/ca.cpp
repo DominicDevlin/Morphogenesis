@@ -267,7 +267,8 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
   sxyp = sigma[xp][yp];
     
   /* DH due to cell adhesion */
-  for (i=1;i<=n_nb;i++) {
+  for (i=1;i<=n_nb;i++) 
+  {
     int xp2,yp2;
     xp2=x+nx[i]; yp2=y+ny[i];
     if (par.periodic_boundaries) 
@@ -307,7 +308,15 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
       if (par.sheet)
         DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J);
 
-      if (par.phase_evolution)
+
+      if (par.melting_adhesion)
+      {
+        if (tsteps < par.end_program)
+          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+        else
+          DH += (*cell)[sxyp].Melt((*cell)[neighsite], y) - (*cell)[sxy].Melt((*cell)[neighsite], y);
+      }
+      else if (par.phase_evolution)
       {
         if (tsteps < par.end_program)
           DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
@@ -1946,7 +1955,7 @@ void CellularPotts::CellGrowthAndDivision(int time)
 }
 
 
-void CellularPotts::ConstainedGrowthAndDivision(int time)
+void CellularPotts::ConstrainedGrowthAndDivision(int time)
 {
 
   // ADD LEFTOVER MASS HERE
@@ -2319,6 +2328,43 @@ int CellularPotts::CountCells(void) const
   }
   return amount;
 }
+
+
+void CellularPotts::SetXTip()
+{
+  int tip = sizey;
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        if (y < tip)
+          tip = y;
+      }      
+    }
+  par.xtip = tip;  
+}
+
+
+double Qx(double xtip)
+{
+  
+}
+
+void CellularPotts::VolumeAddition()
+{
+  // make distribution
+
+
+
+
+  // pull random value from distribution, random cell value along that x value.
+  // Add one mass to that cell.
+}
+
+
+
 
 
 // return the approxiamte location of the cell centre

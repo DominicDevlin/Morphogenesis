@@ -204,6 +204,11 @@ TIMESTEP {
     //     counter = 0;
     //   }
     // }
+
+    if (par.melting_adhesion)
+    {
+      dish->CPM->SetXTip();
+    }
   
     static Info *info=new Info(*dish, *this);
     // record initial expression state. This occurs before any time step updates. 
@@ -316,7 +321,12 @@ TIMESTEP {
       //   dish->PDEfield->print_concentrations(dish->CPM);
       // }
       if (t > par.end_program)
-        dish->CPM->ConstainedGrowthAndDivision(t);
+      {
+        if (par.melting_adhesion)
+          dish->CPM->CellGrowthAndDivision(t);
+        else
+          dish->CPM->ConstrainedGrowthAndDivision(t);
+      }
     }
     dish->CPM->AmoebaeMove(t);
 

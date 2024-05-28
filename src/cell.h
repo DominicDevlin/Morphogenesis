@@ -310,6 +310,8 @@ public:
 
   double EnergyDifference(Cell &cell2, bool phase, double Jstemdiff=par.J_stem_diff);
 
+  double Melt(Cell &cell2, int x);
+
   //! Return Cell's actual area.
   inline int Area() const {
     return area;
@@ -777,9 +779,9 @@ private:
 
   double PhaseJwithMed();
 
-  double phaseJfromMed(bool mstate);
-  
+  double phaseJfromMed();
 
+  double J_equation(int x); 
 
   inline void set_lambda_2(double l)
   {

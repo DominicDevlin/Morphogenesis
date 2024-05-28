@@ -225,6 +225,11 @@ class Parameter {
   int offset;
   double J_mutate_probability;
   int penalty;
+
+  bool melting_adhesion;  
+  int xtip;
+  int melt;
+  double slope;
   
   bool insitu_shapes;
 
