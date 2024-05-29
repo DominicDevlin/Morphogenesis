@@ -398,6 +398,8 @@ public:
 
   void SetXTip();
 
+  void ColourCellsByShape();
+
 
 
   // inline double prop_success()

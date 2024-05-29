@@ -350,7 +350,7 @@ double Cell::phaseJfromMed()
 
 double Cell::J_equation(int x)
 {
-  double eq = (double(par.J_diff-par.J_stem) / (1.+exp((double(par.xtip - par.melt - x))/par.slope))) + par.J_stem;
+  double eq = (double(par.J_diff-par.J_stem) / (1.+exp((double(par.tip_max - par.melt - x))/par.slope))) + par.J_stem;
   // double first = double(par.xtip - par.melt - x)/par.slope;
   // double second = 1.0 + exp(first);
   // cout << par.xtip << '\t' << par.melt << '\t' << x << '\t' << par.slope << '\t' << first << '\t' << second << endl;

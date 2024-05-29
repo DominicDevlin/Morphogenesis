@@ -2333,6 +2333,7 @@ int CellularPotts::CountCells(void) const
 void CellularPotts::SetXTip()
 {
   int tip = sizey;
+  int tipmin = 0;
 
   for (int x=1; x<sizex; ++x)
     for (int y=1; y<sizey; ++y)
@@ -2341,25 +2342,76 @@ void CellularPotts::SetXTip()
       {
         if (y < tip)
           tip = y;
+        if (y > tipmin)
+          tipmin = y;
       }      
     }
-  par.xtip = tip;  
+  par.tip_max = tip;  
+  par.tip_min = tipmin;
 }
 
 
-double Qx(double xtip)
+double IntegralQx()
 {
-  
+  // cout << par.slope << '\t' << par.melt << '\t' << par.tip_max << '\t' << par.tip_min << endl;
+  double min = par.v_slope*log((1.+exp((double(par.tip_max - par.v_melt - par.tip_max - 0.5))/par.v_slope))) + double(par.tip_max);
+  double max = par.v_slope*log((1.+exp((double(par.tip_max - par.v_melt - par.tip_min - 0.5))/par.v_slope))) + double(par.tip_min);
+  // cout << max << '\t' << min << endl;
+  if (max - min < 0)
+    cerr << '\t' << "Error in integral\n";
+  return max - min;
+}
+
+double Qx(double v)
+{
+  double val = 1./(1.+exp((double(par.tip_max - par.v_melt - v))/par.v_slope));
+  // cout << v << '\t' << val << endl;
+  return val;
 }
 
 void CellularPotts::VolumeAddition()
 {
+  vector<double> probabilities{};
+  double integral = IntegralQx();
+  // cout << integral << endl;
+  double sum = 0;
   // make distribution
+  for (int i = par.tip_max; i <= par.tip_min;++i)
+  {
+    double absol = Qx(i + 0.5);
+    absol = absol / integral;
+    sum += absol;
+    probabilities.push_back(absol);
+  }
+  vector<double> cdf(probabilities.size());
+  partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());  
+  double dnum = RANDOM(s_val);
+  auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
+  int yval = distance(cdf.begin(), it_num) + par.tip_max;  
+  // cout << sum << '\t' << yval << endl;
+  
+  int minx=sizex;
+  int maxx=0;
+  for (int x = 1; x<sizex;++x)
+  {
+    if (sigma[x][yval] > 0)
+    {
+      if (x < minx)
+        minx = x;
+      if (x > maxx)
+        maxx = x;
+    }
+  }
+  if (maxx == sizex)
+    cerr << "ERROR MAXX\n";
+  double xnum = RANDOM(s_val) * (maxx - minx);
+  int xval = floor(xnum + double(minx));
+  if (sigma[xval][yval] == 0)
+    cout << "ERR no cell\n";
+  int ctarget = (*cell)[sigma[xval][yval]].TargetArea();
+  (*cell)[sigma[xval][yval]].SetTargetArea(ctarget+=1);
 
-
-
-
-  // pull random value from distribution, random cell value along that x value.
+  // pull random y value from distribution, random cell value along that x-axis of that y value.
   // Add one mass to that cell.
 }
 
@@ -6563,6 +6615,97 @@ vector<double> CellularPotts::PerimitersRadiusN(double radius, double correction
     }
   }  
   return toreturn;
+}
+
+
+
+void CellularPotts::ColourCellsByShape()
+{
+  vector<Cell>::iterator c=cell->begin(); ++c;
+  for (;c!=cell->end();c++) 
+  {
+    
+    double& shapei = c->GetShapeIndex();
+    if (shapei > 3.95)
+      c->set_ctype(4);
+    else
+      c->set_ctype(3);   
+       
+    // c->setTau(1);
+    // c->set_ctype(2);
+    // c->SetTargetLength(0.0);
+    
+  } 
+}
+
+
+
+void CellularPotts::ShapeIndex()
+{
+  initVolume();
+  adjustPerimeters();
+
+  int neigh_level=2; // (using n_nb because 2)
+  double correction=3.;
+
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      int perim_length{};
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+              continue;
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          } 
+        }
+      }
+      // cout << corrected_perim << '\t' << vlist[p] << endl;
+      double corrected_perim = perim_length / correction; 
+      double sindex = corrected_perim / sqrt(double(vlist[celln]));
+      c->SetShapeIndex(sindex);
+    }
+  }    
 }
 
 

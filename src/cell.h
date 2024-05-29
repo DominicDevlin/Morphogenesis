@@ -965,6 +965,16 @@ private:
     return mass_div_time;
   }
 
+  inline void SetShapeIndex(double ind)
+  {
+    shape_index = ind;
+  }
+
+  inline double& GetShapeIndex()
+  {
+    return shape_index;
+  }
+
 
   inline void RecordDivision(int time)
   {
@@ -1225,6 +1235,7 @@ protected:
   // and quickly calculated!
   
   // N.B: N is area!
+  double shape_index;
   
   long int sum_x;
   long int sum_y;

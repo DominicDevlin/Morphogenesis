@@ -132,8 +132,8 @@
     // phase transition params;
     phase_evolution=true;
     
-    J_stem=3;
-    J_diff=9;
+    J_stem=2;
+    J_diff=12;
     J_med=0.5*J_diff+0.25;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
     J_stem_diff=J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
@@ -146,9 +146,15 @@
     gthresh = 1; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
     melting_adhesion = true;
-    xtip = 50;
-    melt = -40;
-    slope = 2;
+    tip_max = 50;
+    tip_min = 0;
+    melt = -50;
+    slope = 4;
+    if (melting_adhesion)
+      gthresh = 50;
+
+    v_melt = -50;
+    v_slope = -4;
 
     offset = 75;
     optimization_replicates = 6;

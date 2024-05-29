@@ -227,9 +227,13 @@ class Parameter {
   int penalty;
 
   bool melting_adhesion;  
-  int xtip;
+  int tip_max;
+  int tip_min;
   int melt;
   double slope;
+
+  double v_melt;
+  double v_slope;
   
   bool insitu_shapes;
 
