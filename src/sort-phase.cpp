@@ -317,7 +317,7 @@ TIMESTEP {
       //   dish->PDEfield->print_concentrations(dish->CPM);
       // }
     }
-    if (t > par.end_program)
+    if (t > par.end_program && t % 20 == 0)
     {
       if (par.melting_adhesion)
       {
@@ -327,7 +327,6 @@ TIMESTEP {
         dish->CPM->ShapeIndex();
         dish->CPM->ColourCellsByShape();
       }
-        
       else
         dish->CPM->ConstrainedGrowthAndDivision(t);
     }

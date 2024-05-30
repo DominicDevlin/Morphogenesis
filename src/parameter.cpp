@@ -132,12 +132,13 @@
     // phase transition params;
     phase_evolution=true;
     
-    J_stem=2;
+    J_stem=4;
     J_diff=12;
-    J_med=0.5*J_diff+0.25;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
+    J_med=0.5*J_diff+2;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
     J_stem_diff=J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     // J_med2=J_med+10;
+
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
@@ -153,7 +154,7 @@
     if (melting_adhesion)
       gthresh = 50;
 
-    v_melt = -50;
+    v_melt = -30;
     v_slope = -4;
 
     offset = 75;

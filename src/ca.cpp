@@ -2354,9 +2354,9 @@ void CellularPotts::SetXTip()
 double IntegralQx()
 {
   // cout << par.slope << '\t' << par.melt << '\t' << par.tip_max << '\t' << par.tip_min << endl;
-  double min = par.v_slope*log((1.+exp((double(par.tip_max - par.v_melt - par.tip_max - 0.5))/par.v_slope))) + double(par.tip_max);
-  double max = par.v_slope*log((1.+exp((double(par.tip_max - par.v_melt - par.tip_min - 0.5))/par.v_slope))) + double(par.tip_min);
-  // cout << max << '\t' << min << endl;
+  double min = par.v_slope*log((1.+fabs(exp((double(par.tip_max - par.v_melt - par.tip_max ))/par.v_slope)))) + double(par.tip_max);
+  double max = par.v_slope*log((1.+fabs(exp((double(par.tip_max - par.v_melt - par.tip_min ))/par.v_slope)))) + double(par.tip_min);
+  // cout << par.tip_max << '\t' << par.tip_min << '\t' << min << '\t' << max << endl;
   if (max - min < 0)
     cerr << '\t' << "Error in integral\n";
   return max - min;
@@ -2372,16 +2372,20 @@ double Qx(double v)
 void CellularPotts::VolumeAddition()
 {
   vector<double> probabilities{};
-  double integral = IntegralQx();
+  // double integral = IntegralQx();
   // cout << integral << endl;
   double sum = 0;
   // make distribution
   for (int i = par.tip_max; i <= par.tip_min;++i)
   {
-    double absol = Qx(i + 0.5);
-    absol = absol / integral;
+    double absol = Qx(i);
     sum += absol;
     probabilities.push_back(absol);
+    // cout << i << '\t' << absol << endl;
+  }
+  for (double& i : probabilities)
+  {
+    i = i / sum;
   }
   vector<double> cdf(probabilities.size());
   partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());  
@@ -2390,24 +2394,20 @@ void CellularPotts::VolumeAddition()
   int yval = distance(cdf.begin(), it_num) + par.tip_max;  
   // cout << sum << '\t' << yval << endl;
   
-  int minx=sizex;
-  int maxx=0;
+
+  vector<int> xsites{};
   for (int x = 1; x<sizex;++x)
   {
     if (sigma[x][yval] > 0)
     {
-      if (x < minx)
-        minx = x;
-      if (x > maxx)
-        maxx = x;
+      xsites.push_back(x);
     }
   }
-  if (maxx == sizex)
-    cerr << "ERROR MAXX\n";
-  double xnum = RANDOM(s_val) * (maxx - minx);
-  int xval = floor(xnum + double(minx));
+
+  double xnum = RANDOM(s_val) * double(xsites.size());
+  int xval = xsites[floor(xnum)];
   if (sigma[xval][yval] == 0)
-    cout << "ERR no cell\n";
+    cout << "ERR no cell: " << xval << '\t' << yval << '\t' << par.tip_min << '\t' << par.tip_max << endl;
   int ctarget = (*cell)[sigma[xval][yval]].TargetArea();
   (*cell)[sigma[xval][yval]].SetTargetArea(ctarget+=1);
 
