@@ -502,12 +502,13 @@ TIMESTEP {
     }
 
 
-    if (t == 6998)
+    if (t <4020 && t > 4010)
     {
       // dish->CPM->ConvertToStem(125,95,40,11907, dish->PDEfield, true, 45);
       // dish->CPM->ConvertToStem(140,125,25,123107, dish->PDEfield, true); // - did 6998 for fungi to create figure
       // dish->CPM->ConvertToStem(140,125,35,107651, dish->PDEfield, true, 60);  // fungi trash
-      // dish->CPM->ConvertToStem(140,125,25,115075, dish->PDEfield, true, 50); 
+      // dish->CPM->ConvertToStem(125,160,30,115711, dish->PDEfield, true, 30); 
+      dish->CPM->ConvertToStem(105,120,6,99327, dish->PDEfield, true, 6); 
       // dish->IntroduceMorphogen(1, 120, 90);
     }
 
@@ -610,7 +611,7 @@ TIMESTEP {
     }
   
     // storage function. 
-    if (par.store && !(t%par.storage_stride))//  || t == 3041) 
+    if ((par.store && !(t%par.storage_stride)))// || t == 2550) 
     {
       char fname[200];
       sprintf(fname,"%s/extend%07d.png",par.datadir,t);
