@@ -78,7 +78,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;
+    pickseed=4626157915171642161;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -90,7 +90,7 @@
 /* Cellular Potts parameters */
     sizex = 150;
     sizey = 250;
-    mcs = 100000;
+    mcs = 20000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -132,21 +132,21 @@
     // phase transition params;
     phase_evolution=true;
     
-    J_stem=4;
-    J_diff=12;
-    J_med=0.5*J_diff+2;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
-    J_stem_diff=J_diff + 0.5;//(J_diff - J_stem);
+    J_stem=3;
+    J_diff=10;
+    J_med=12;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
+    J_stem_diff=13;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     // J_med2=J_med+10;
 
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.00465618;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.00334309;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
-    gthresh = 1; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
+    gthresh = 4; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
-    melting_adhesion = true;
+    melting_adhesion = false;
     tip_max = 50;
     tip_min = 0;
     melt = -50;

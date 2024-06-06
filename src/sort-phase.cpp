@@ -317,9 +317,9 @@ TIMESTEP {
       //   dish->PDEfield->print_concentrations(dish->CPM);
       // }
     }
-    if (t > par.end_program && t % 20 == 0)
+    if (t > par.end_program)
     {
-      if (par.melting_adhesion)
+      if (t % 20 == 0 && par.melting_adhesion)
       {
         dish->CPM->SetXTip();
         dish->CPM->VolumeAddition();
