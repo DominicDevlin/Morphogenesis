@@ -1957,7 +1957,6 @@ void CellularPotts::CellGrowthAndDivision(int time)
 
 void CellularPotts::ConstrainedGrowthAndDivision(int time)
 {
-
   // ADD LEFTOVER MASS HERE
   leftover_mass_stem += par.Vs_max;
   leftover_mass_diff += par.Vd_max;
