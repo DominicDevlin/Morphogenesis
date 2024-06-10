@@ -278,7 +278,8 @@ TIMESTEP {
 
       if (par.insitu_shapes && t % 500 == 0)
       {
-        dish->CPM->ShapeIndexByState();
+        // dish->CPM->ShapeIndexByState();
+        dish->CPM->SimpleShapeIndex();
         // dish->CPM->AdhesionByState();
       }
       

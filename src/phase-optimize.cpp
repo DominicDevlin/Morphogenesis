@@ -66,6 +66,107 @@ TIMESTEP
 }
 
 
+// Function to calculate the mean
+double calculateMean(const std::vector<double>& data) {
+    double sum = std::accumulate(data.begin(), data.end(), 0.0);
+    return sum / data.size();
+}
+
+// Function to calculate the median
+double calculateMedian(std::vector<double>& data) {
+    std::sort(data.begin(), data.end());
+    size_t size = data.size();
+    if (size % 2 == 0) {
+        return (data[size / 2 - 1] + data[size / 2]) / 2;
+    } else {
+        return data[size / 2];
+    }
+}
+
+// Function to calculate the IQR
+std::pair<double, double> calculateIQR(std::vector<double>& data) {
+    std::sort(data.begin(), data.end());
+    size_t size = data.size();
+    double q1, q3;
+
+    if (size % 2 == 0) {
+        std::vector<double> lower(data.begin(), data.begin() + size / 2);
+        std::vector<double> upper(data.begin() + size / 2, data.end());
+        q1 = calculateMedian(lower);
+        q3 = calculateMedian(upper);
+    } else {
+        std::vector<double> lower(data.begin(), data.begin() + size / 2);
+        std::vector<double> upper(data.begin() + size / 2 + 1, data.end());
+        q1 = calculateMedian(lower);
+        q3 = calculateMedian(upper);
+    }
+
+    return std::make_pair(q1, q3);
+}
+
+// Function to calculate the range
+double calculateRange(const std::vector<double>& data) {
+    auto [minIt, maxIt] = std::minmax_element(data.begin(), data.end());
+    return *maxIt - *minIt;
+}
+
+
+void OutputShapes(map<int, vector<double>> data2, string &oname, int time)
+{
+  ofstream outfile;
+  std::string var_name = oname + "/shape-data.txt";
+  outfile.open(var_name, ios::app);
+
+  outfile << time << '\t';
+  for (const auto& [key, values] : data2)
+  {
+    std::vector<double> tempValues = values;
+    double mean = calculateMean(values);
+    double median = calculateMedian(tempValues);
+    auto [q1, q3] = calculateIQR(tempValues);
+    double range = calculateRange(values);
+
+    outfile << key << '\t' << mean << '\t' << median << '\t' << q1 << '\t' << q3 << '\t' << range << '\t';
+  }
+  outfile << endl;
+
+  outfile.close();  
+}
+
+void OutputResults(vector<double>& lengths, vector<double>& variances, string& oname, int time)
+{
+
+  double maxfit = 0;
+  //average fitness
+  double avgfit = 0;
+  double avg_length = 0;
+  double avg_variance = 0;
+  for (int i = 0; i < lengths.size(); ++i)
+  {
+    double fitness = lengths[i] / variances[i];
+    avgfit += fitness;
+
+    avg_length += lengths[i];
+    avg_variance += variances[i];
+
+    if (fitness > maxfit)
+      maxfit = fitness;
+  }
+  avgfit = avgfit / lengths.size();
+  avg_length = avg_length / lengths.size();
+  avg_variance = avg_variance / lengths.size();
+
+  std::string var_name = oname + "/results.txt";
+  std::ofstream outfile;
+  outfile.open(var_name, ios::app);
+
+  outfile << time << '\t' << maxfit << '\t' << avgfit << '\t' << avg_length << '\t' << avg_variance << endl;
+  outfile.close();
+
+}
+
+
+
 
 void printn(vector<double> &fitn, string &oname, vector<double> &params)
 {
@@ -143,8 +244,13 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     par.gthresh = params[2];
     // constant params
     par.J_stem = params[3];
-    par.mcs=40000 + int(par.J_stem)*30000;
+    par.mcs= 40000 + int(par.J_stem)*30000;
     par.J_diff = params[4];
+
+    if (par.J_stem > par.J_diff)
+      par.J_stem_diff = par.J_stem;
+    else
+      par.J_stem_diff = par.J_diff;
 
     // if (i=0)
     // {
@@ -201,6 +307,13 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       }
       dishes[i].CPM->AmoebaeMove(t);
     
+      if (t % 500 == 0 && par.insitu_shapes)
+      {
+        // cout << 'here' << endl;
+        dishes[i].CPM->SimpleShapeIndex();
+        // dish->CPM->AdhesionByState();
+      }
+
       bool check_end = dishes[i].CPM->EndOptimizer();
       if (check_end)
         t = par.mcs;
@@ -223,7 +336,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       }
 
       // ensure all cells are connected for shape calculations. 
-      if (t > 0 && t % 10000 == 0)
+      if (t > 0 && t % 5000 == 0)
       {
         bool check_shape = dishes[i].CPM->CheckShape();
         if (check_shape == false)
@@ -238,13 +351,48 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       
     }
     opt_out[i] = dishes[i].CPM->Optimizer();       
-          
+    cout << "finished" << endl;
     if (i == 1)
       cout << "Sim #1 complete. The number of cells is: " << dishes[i].CPM->CountCells() << endl;
 
   }
 
   
+  // combine maps together:
+  map<int, vector<double>> data = dishes[0].CPM->Get_state_shape_index();
+
+  for (int i = 1; i < par.optimization_replicates;++i)
+  {
+    map<int, vector<double>> next = dishes[0].CPM->Get_state_shape_index();
+    for (auto&kv : next)
+    {
+      int key = kv.first;
+      vector<double>& vec = kv.second;
+      if (data.find(key) != data.end()) {
+          data[key].insert(data[key].end(), vec.begin(), vec.end());
+      } 
+      else 
+      {
+          // If key does not exist, insert the new key-value pair
+          data[key] = vec;
+      }
+    }
+  }
+  OutputShapes(data, par.data_file, time);
+
+  vector<double> lengths;
+  vector<double> variances;
+
+  for (int i = 0; i < par.optimization_replicates;++i)
+  {
+    pair<double,double> lw = dishes[i].CPM->LengthWidth();
+    lengths.push_back(lw.first);
+    variances.push_back(lw.second);
+  }
+  OutputResults(lengths, variances, par.data_file, time);
+  
+
+
   // output to file
   printn(opt_out, par.data_file, params);
 
@@ -294,7 +442,7 @@ int main(int argc, char *argv[]) {
   cout << endl;
 
   par.pic_dir = par.pic_dir + "-" + argv[4] + "-" + argv[5];
-  par.data_file = par.data_file + "-" + argv[4] + "-" + argv[4];
+  par.data_file = par.data_file + "-" + argv[4] + "-" + argv[5];
 
 #ifdef QTGRAPHICS
   if (par.evo_pics)
@@ -320,6 +468,7 @@ int main(int argc, char *argv[]) {
   par.output_sizes=false;
   par.mcs = 100000;
   par.phase_evolution = true;
+  par.insitu_shapes = true;
   
 
   Parameter();

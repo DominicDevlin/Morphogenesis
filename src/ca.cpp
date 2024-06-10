@@ -3278,29 +3278,70 @@ bool CellularPotts::EndOptimizer()
 
 double CellularPotts::Optimizer()
 {
+
   int miny = sizey;
-  // int minx=sizex;
-  // int maxx=0;
-  for (int x=1; x<sizex; ++x)
-    for (int y=1; y<sizey; ++y)
+  int maxy = 0;
+  vector<int> widths{};
+
+  for (int y=1; y<sizey; ++y)
+  {
+    int minx=sizex;
+    int maxx=0;
+    for (int x=1; x<sizex; ++x)
     {
       if (sigma[x][y] > 0)
       {
         if (y < miny)
           miny = y;
-        // if (x < minx)
-        //   minx=x;
-        // if (x > maxx)
-        //   maxx=x;
+        if (y > maxy)
+          maxy=y;
+        if (x > maxx)
+          maxx=x;
+        if (x < minx)
+          minx = x;
       }
     }
-  // int length = opt_starty - miny;
-  // int width = maxx - minx;
-  // int d_width = width - start_width;
-  // int optima = length;
+    if (minx<sizex)
+    {
+      widths.push_back(maxx-minx);
+    }
+  }
 
-  int optima = miny;//+100;
-  return optima;
+  double mean = std::accumulate(widths.begin(), widths.end(), 0.0) / widths.size();
+  double sumOfSquaredDifferences = 0.0;
+  for (int value : widths) {
+      sumOfSquaredDifferences += std::pow(value - mean, 2);
+  }
+  double variance = sumOfSquaredDifferences / widths.size();
+
+  int length = maxy - miny;
+
+  return variance / double(length);
+
+
+  // int miny = sizey;
+  // // int minx=sizex;
+  // // int maxx=0;
+  // for (int x=1; x<sizex; ++x)
+  //   for (int y=1; y<sizey; ++y)
+  //   {
+  //     if (sigma[x][y] > 0)
+  //     {
+  //       if (y < miny)
+  //         miny = y;
+  //       // if (x < minx)
+  //       //   minx=x;
+  //       // if (x > maxx)
+  //       //   maxx=x;
+  //     }
+  //   }
+  // // int length = opt_starty - miny;
+  // // int width = maxx - minx;
+  // // int d_width = width - start_width;
+  // // int optima = length;
+
+  // int optima = miny;//+100;
+  // return optima;
   // if (d_width > 0)
   //   optima -= d_width;
 
@@ -6709,7 +6750,7 @@ void CellularPotts::ShapeIndex()
 
 
 
-void CellularPotts::ShapeIndexByState()
+void CellularPotts::SimpleShapeIndex()
 {
   initVolume();
   adjustPerimeters();
@@ -6725,8 +6766,8 @@ void CellularPotts::ShapeIndexByState()
     {
       int celln=c->Sigma();
       int perim_length{};
-      c->Phenotype();
-      int p = c->GetPhenotype();
+      c->set_phase_state();
+      bool p = c->GetPhase();
 
       for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
       {
@@ -6781,10 +6822,133 @@ void CellularPotts::ShapeIndexByState()
   }  
 }
 
+
+void CellularPotts::ShapeIndexByState()
+{
+  initVolume();
+  adjustPerimeters();
+
+  int neigh_level=2; // (using n_nb because 2)
+  double correction=3.;
+
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      int perim_length{};
+      c->Phenotype();
+      int p = c->GetPhenotype();
+      cout << p << endl;
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+              continue;
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          } 
+        }
+      }
+      // cout << corrected_perim << '\t' << vlist[p] << endl;
+      double corrected_perim = perim_length / correction; 
+      double sindex = corrected_perim / sqrt(double(vlist[celln]));
+      // cout << sindex << endl;
+      state_shape_index[p].push_back(sindex);
+      // toreturn.push_back(correted_perim);      
+    }
+  }  
+}
+
+
+
+
+
 map<int,vector<double>> CellularPotts::Get_state_shape_index()
 {
   return state_shape_index;
 }
+
+
+pair<double,double> CellularPotts::LengthWidth()
+{
+  int miny = sizey;
+  int maxy = 0;
+  vector<int> widths{};
+
+  for (int y=1; y<sizey; ++y)
+  {
+    int minx=sizex;
+    int maxx=0;
+    for (int x=1; x<sizex; ++x)
+    {
+      if (sigma[x][y] > 0)
+      {
+        if (y < miny)
+          miny = y;
+        if (y > maxy)
+          maxy=y;
+        if (x > maxx)
+          maxx=x;
+        if (x < minx)
+          minx = x;
+      }
+    }
+    if (minx<sizex)
+    {
+      widths.push_back(maxx-minx);
+    }
+  }
+
+  double mean = std::accumulate(widths.begin(), widths.end(), 0.0) / widths.size();
+  double sumOfSquaredDifferences = 0.0;
+  for (int value : widths) {
+      sumOfSquaredDifferences += std::pow(value - mean, 2);
+  }
+  double variance = sumOfSquaredDifferences / widths.size();
+
+  int length = maxy - miny;
+  pair<double,double> toreturn = {length, variance};
+  
+  return toreturn;
+}
+
 
 
 // must be called after Perimeters are set.

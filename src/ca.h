@@ -366,6 +366,8 @@ public:
 
   void ShapeIndexByState();
 
+  void SimpleShapeIndex();
+
   vector<double> GetVolumes();
 
   vector<double> measureAnisotropy();
@@ -387,6 +389,8 @@ public:
   double Optimizer();
 
   bool EndOptimizer();
+
+  pair<double,double> LengthWidth();
 
   void ConstrainedGrowthAndDivision(int time);
 
