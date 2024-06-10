@@ -5105,10 +5105,10 @@ void CellularPotts::OutputProteinNorms()
 
       for (double &i : state)
       {
-        norm += pow(i,2);
+        norm += i;//pow(i,2);
       }
 
-      norm = sqrt(norm);
+      // norm = sqrt(norm);
 
       vector<double>& xcens = c->get_xcens();
       vector<double>& ycens = c->get_ycens();
