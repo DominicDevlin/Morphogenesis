@@ -12,7 +12,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-TARGET = sort-phase
+TARGET = phase-optimize
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 
 message( $$MAINFILE )
