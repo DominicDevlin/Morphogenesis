@@ -78,7 +78,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=4626157915171642161;
+    pickseed=0;//4626157915171642161;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -90,7 +90,7 @@
 /* Cellular Potts parameters */
     sizex = 150;
     sizey = 250;
-    mcs = 20000;
+    mcs = 100000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -132,17 +132,17 @@
     // phase transition params;
     phase_evolution=true;
     
-    J_stem=2;
-    J_diff=4;
+    J_stem=5;
+    J_diff=9;
     J_med=5;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
-    J_stem_diff=4;//J_diff + 0.5;//(J_diff - J_stem);
+    J_stem_diff=9;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     // J_med2=J_med+10;
 
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.014031;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.00504465;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 0; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
@@ -216,9 +216,9 @@
 
 /* sheet related parameters */
     sheet=false;
-    sheet_J = 4;
-    sheet_minJ=2;
-    sheet_maxJ=8;
+    sheet_J = 1.5;
+    sheet_minJ=1;
+    sheet_maxJ=12;
     J_width=0.5;
 
     // diffusion parameters

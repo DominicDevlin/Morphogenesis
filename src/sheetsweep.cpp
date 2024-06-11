@@ -130,11 +130,12 @@ void process_population()
 
       dishes[i].CPM->AmoebaeMove(t);
 
-      if (t % 500 == 0 && t > 0)
+      if (t % 500 == 0 && t > par.equilibriate)
       {
         dishes[i].CPM->initVolume();
         dishes[i].CPM->adjustPerimeters();
-        vector<double> tperims = dishes[i].CPM->PerimitersRadiusN(sqrt(13));
+        // vector<double> tperims = dishes[i].CPM->PerimitersRadiusN(sqrt(13));
+        vector<double> tperims = dishes[i].CPM->TruePerimeters();
         vector<double> volumes = dishes[i].CPM->GetVolumes();
 
         vector<double> tadhesion = dishes[i].CPM->TrueAdhesion();

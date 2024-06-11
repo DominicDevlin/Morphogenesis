@@ -81,10 +81,6 @@ INIT
     CPM->SetRandomTypes();
 
 
-    if (par.set_colours)
-    {
-      CPM->SetColours();
-    }
 
 
     if (par.store)
@@ -130,7 +126,6 @@ TIMESTEP {
     static int t=0;
  
     static Dish *dish=new Dish();
-    
     if (t < 1)
     { 
       cout << "calling init" << endl;
@@ -196,7 +191,6 @@ TIMESTEP {
     }
       
 
-    
     if (par.velocities)
     {
       dish->CPM->RecordMasses();
@@ -206,7 +200,6 @@ TIMESTEP {
     {
       dish->CPM->RecordSizes();
     }
-
     dish->CPM->AmoebaeMove(t);
 
     if (t == par.mcs-1 && par.gene_output)
@@ -218,7 +211,6 @@ TIMESTEP {
         cout << "Directory created." << endl;  
     }
     
-
     if (t == par.mcs - 1)
     {
 
@@ -261,6 +253,7 @@ TIMESTEP {
     //cerr << "Done\n";
     if (par.graphics && t%freq==0)// !(t%par.screen_freq)) 
     {
+      dish->CPM->ColourCellsByIndex();
       
       BeginScene();
       ClearImage();
@@ -277,33 +270,6 @@ TIMESTEP {
       static bool c2 = false;
       static bool c3 = false;
       // static bool c4 = false;
-
-      if (t>0 && t % par.begin_network == 0)
-      {
-        c1 = dish->PDEfield->CheckSecreting(0);
-        c2 = dish->PDEfield->CheckSecreting(1);
-        if (par.n_diffusers > 2)
-        {
-          c3 = dish->PDEfield->CheckSecreting(2);
-          // c4 = dish->PDEfield->CheckSecreting(3);
-        }
-
-      }
-
-      if (t>par.end_program && par.contours)
-      {
-        if (c1)
-          dish->PDEfield->ContourPlot(this,0,5);
-        if (c2)
-          dish->PDEfield->ContourPlot(this,1,7);
-        if (par.n_diffusers > 2)
-        {
-          if (c3)
-            dish->PDEfield->ContourPlot(this,2,14);
-          // if (c4)
-          //   dish->PDEfield->ContourPlot(this,3,37);
-        }
-      }
 
 
     

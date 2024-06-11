@@ -306,10 +306,10 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
       // DH += (*cell)[sxyp].CalculateJfromKeyLock((*cell)[neighsite].get_locks_bool(), (*cell)[neighsite].get_keys_bool()) 
       // - 
       if (par.sheet)
+      {
         DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J);
-
-
-      if (par.melting_adhesion)
+      }
+      else if (par.melting_adhesion)
       {
         if (tsteps < par.end_program)
           DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
@@ -6675,6 +6675,15 @@ void CellularPotts::ColourCellsByShape()
     // c->set_ctype(2);
     // c->SetTargetLength(0.0);
     
+  } 
+}
+
+void CellularPotts::ColourCellsByIndex()
+{
+  vector<Cell>::iterator c=cell->begin(); ++c;
+  for (;c!=cell->end();c++) 
+  {
+    c->set_ctype(c->Sigma());   
   } 
 }
 

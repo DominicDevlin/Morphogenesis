@@ -253,8 +253,7 @@ double Cell::SheetDif(Cell &cell2, double &sJ)
 {
   if (sigma==cell2.sigma) 
     return 0;
-
-  return par.sheet_J;
+  return sJ;
 
 }
 
