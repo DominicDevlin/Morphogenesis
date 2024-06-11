@@ -404,6 +404,9 @@ public:
 
   void ColourCellsByShape();
 
+  void ColourCellsByIndex();
+
+
 
 
   // inline double prop_success()
