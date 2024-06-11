@@ -3314,9 +3314,9 @@ double CellularPotts::Optimizer()
   }
   double variance = sumOfSquaredDifferences / widths.size();
 
-  int length = maxy - miny;
+  double length = pow(maxy - miny, 2);
 
-  return variance / double(length);
+  return (variance / length);
 
 
   // int miny = sizey;

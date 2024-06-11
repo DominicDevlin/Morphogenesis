@@ -136,31 +136,30 @@ void OutputShapes(map<int, vector<double>> data2, string &oname, int time)
 void OutputResults(vector<double>& lengths, vector<double>& variances, string& oname, int time)
 {
 
-  double maxfit = 0;
   //average fitness
-  double avgfit = 0;
   double avg_length = 0;
   double avg_variance = 0;
+  vector<double> vec;
   for (int i = 0; i < lengths.size(); ++i)
   {
-    double fitness = lengths[i] / variances[i];
-    avgfit += fitness;
+    double fitness = pow(lengths[i],2) / variances[i];
+    vec.push_back(fitness);
 
     avg_length += lengths[i];
     avg_variance += variances[i];
-
-    if (fitness > maxfit)
-      maxfit = fitness;
   }
-  avgfit = avgfit / lengths.size();
   avg_length = avg_length / lengths.size();
   avg_variance = avg_variance / lengths.size();
+
+  std::sort(vec.begin(), vec.end(), std::greater<int>());
+  double avgfit = std::accumulate(vec.begin(), vec.begin() + 3, 0.0) / 3;
+
 
   std::string var_name = oname + "/results.txt";
   std::ofstream outfile;
   outfile.open(var_name, ios::app);
 
-  outfile << time << '\t' << maxfit << '\t' << avgfit << '\t' << avg_length << '\t' << avg_variance << endl;
+  outfile << time << '\t' << avgfit << '\t' << avg_length << '\t' << avg_variance << endl;
   outfile.close();
 
 }
@@ -179,21 +178,22 @@ void printn(vector<double> &fitn, string &oname, vector<double> &params)
   double min_fit = SIZE_MAX;
   double max_fit = 0;
 
-  //average fitness
-  double avgfit = 0;
+  int half = par.optimization_replicates / 2;
+  // need three lowest
+  std::sort(fitn.begin(), fitn.end());
+  double avgfit = std::accumulate(fitn.begin(), fitn.begin() + half, 0.0) / half;
+
   for (double i : fitn)
   {
-    avgfit += i;
-    cout << i << endl;
     if (i > max_fit)
       max_fit = i;
     if (i < min_fit)
       min_fit = i;
   }
-  avgfit = avgfit / par.optimization_replicates;
+  // avgfit = avgfit / par.optimization_replicates;
 
   //output fitness 
-  outfile << min_fit << '\t' << max_fit << '\t' << avgfit << endl;
+  outfile << avgfit << '\t' << min_fit << '\t' << max_fit << endl;
 
   outfile.close();
 
@@ -221,6 +221,19 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   int time{};
   time = int(params[5]);
 
+  par.secr_rate[0] = params[0];
+  par.J_med = params[1];
+  par.gthresh = params[2];
+  // constant params
+  par.J_stem = params[3];
+  par.mcs= 40000 + int(par.J_stem)*30000;
+  par.J_diff = params[4];
+
+  if (par.J_stem > par.J_diff)
+    par.J_stem_diff = par.J_stem;
+  else
+    par.J_stem_diff = par.J_diff;
+
   // run organisms in parallel. 
   omp_set_num_threads(par.optimization_replicates);
   #pragma omp parallel for 
@@ -235,22 +248,12 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
     // setting optimization params
     // 0 = secretion rate
-    par.secr_rate[0] = params[0];
-    par.J_med = params[1];
+
     // par.J_stem_diff = params[2];
     dishes[i].CPM->Set_evoJ(par.J_stem_diff);
     // par.Vs_max = params[3];
     // par.Vd_max = params[4];
-    par.gthresh = params[2];
-    // constant params
-    par.J_stem = params[3];
-    par.mcs= 40000 + int(par.J_stem)*30000;
-    par.J_diff = params[4];
 
-    if (par.J_stem > par.J_diff)
-      par.J_stem_diff = par.J_stem;
-    else
-      par.J_stem_diff = par.J_diff;
 
     // if (i=0)
     // {
@@ -480,7 +483,7 @@ int main(int argc, char *argv[]) {
     std::string var_name = par.data_file + "/optimize.txt";
     std::ofstream outfile;
     outfile.open(var_name, ios::app);
-    outfile << "min\tmax\tavg" << endl;
+    outfile << "avg\tmin\tmax" << endl;
     outfile.close();
   }
    
