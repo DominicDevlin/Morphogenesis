@@ -23,7 +23,7 @@ prepend = ""
 if (len(sys.argv) > 1):
     index = int(sys.argv[1])
     print("INDEX IS: ", index)
-    # prepend = "xvfb-run -a "
+    prepend = "xvfb-run -a "
 
 
 J_stem = 1.
@@ -51,9 +51,9 @@ def rounder(number, amount):
 def f(x, time=0):
     # round params
     # x[0] = rounder(x[0], 1/0.1e-3) # not rounding this
-    x[1] = rounder(x[1], 1/0.5)
+    # x[1] = rounder(x[1], 1/0.5)
     # x[2] = rounder(x[2], 1/0.5)
-    x[2] = rounder(x[2], True)
+    x[1] = rounder(x[1], True)
     name = prepend + "./phase-optimize "
     for var in x:
         name = name + str(var) + " "
@@ -74,7 +74,7 @@ diff_rate = [1.4e-3,0.025]
 # J of cells with medium
 Jmed = [1.0, 16.0]
 # J of stem to diff
-# Jsd = [1.0, 24.0]
+Jsd = [1.0, 24.0]
 # max growth rate per DTS OF stem cells. Taking this out for now.
 # V_smax = [0.,1.]
 # V_dmax = [0.,1.]
@@ -82,7 +82,7 @@ Jmed = [1.0, 16.0]
 gthresh = [0.,3.]
 
 # 5 dimensional param space
-var_list = [diff_rate, Jmed, gthresh]
+var_list = [diff_rate, gthresh]
 
 # do random sampling
 # hammer = Hammersly()
@@ -112,7 +112,7 @@ punt_J_sd = J_diff
 # punt_vsmax = 1
 # punt_vdmax = 1
 punt_gthresh = 2
-inits.append([punt_sec_rate, punt_J_med, punt_gthresh])
+inits.append([punt_sec_rate, punt_gthresh])
 
 ### second punt
 punt_sec_rate = 128.123*pow((J_stem+3.66212),-5.64574)+0.00194831
@@ -121,7 +121,7 @@ punt_J_sd = J_diff + (J_diff*0.21)
 # punt_vsmax = 1
 # punt_vdmax = 1
 punt_gthresh = 1
-inits.append([punt_sec_rate, punt_J_med, punt_gthresh])
+inits.append([punt_sec_rate, punt_gthresh])
 
 
 punt_sec_rate = 0.0223029*pow((J_stem+0.757648),-1.79529)+0.00182658
@@ -132,7 +132,7 @@ punt_J_sd = punt_J_med*2
 # punt_vsmax = 1
 # punt_vdmax = 1
 punt_gthresh = 0
-inits.append([punt_sec_rate, punt_J_med, punt_gthresh])
+inits.append([punt_sec_rate, punt_gthresh])
 
 
 # acq_func_kwargs = {"xi: ": 10}
