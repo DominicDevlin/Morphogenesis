@@ -236,6 +236,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     par.J_stem_diff = par.J_diff;
 
   par.J_med = par.J_stem - 0.5;
+  par.J_med2 = 0.5*par.J_diff+0.5;
 
   // run organisms in parallel. 
   omp_set_num_threads(par.optimization_replicates);

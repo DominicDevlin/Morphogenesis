@@ -132,19 +132,19 @@
     // phase transition params;
     phase_evolution=true;
     
-    J_stem=5;
-    J_diff=1;
-    J_med=2.5;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
-    J_stem_diff=5;//J_diff + 0.5;//(J_diff - J_stem);
+    J_stem=3;
+    J_diff=12;
+    J_med=6.5;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
+    J_stem_diff=12;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
-    // J_med2=J_med+10;
+    J_med2=6.5;//0.5*J_diff+0.5;
 
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.00711471;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.00314044;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
-    gthresh = 0; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
+    gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
     melting_adhesion = false;
     tip_max = 50;
@@ -347,8 +347,7 @@
     /* colours */
     set_colours = true;
     use_colour_index = true;
-    colour_index = { {115179, 48}, {123010, 45}, {123011, 253}, {115587, 41}, {106627, 20}, {115123, 10}, {106626, 32}, {124035, 31}, {107650, 35}, {108034, 252}, {115151, 26}, {123043, 255}, {107651, 251}, {115075, 250}, {107010, 249}, {123779, 36}, {115079, 33}, {108163, 42}, {123267, 28}, {115087, 29}, {124291, 34}, {124803, 37}, {115127, 16}, {108162, 40}, {115183, 30}, {115199, 21}, {119095, 6}, {123107, 254}, {115083, 25}, {124547, 39}, {115107, 43}, {115135, 22}, {107138, 38}, {114999, 12}, };
-
+    colour_index = { {0, 10}, {1, 11},};
 
     //record location of cell divisions
     division_anisotropy = false;
