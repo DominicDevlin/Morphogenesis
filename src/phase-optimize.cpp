@@ -219,24 +219,25 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   // create memory for dishes. 
   Dish* dishes = new Dish[par.optimization_replicates];
   int time{};
-  time = int(params[4]);
+  time = int(params[6]);
 
   par.secr_rate[0] = params[0];
-  // par.J_med = params[1];
-  // par.J_stem_diff = params[2];
-  par.gthresh = params[1];
+  par.J_med = params[1];
+  par.J_med2 = params[1];
+  par.J_stem_diff = params[2];
+  par.gthresh = params[3];
   // constant params
-  par.J_stem = params[2];
+  par.J_stem = params[4];
   par.mcs= 40000 + int(par.J_stem)*30000;
-  par.J_diff = params[3];
+  par.J_diff = params[5];
 
-  if (par.J_stem > par.J_diff)
-    par.J_stem_diff = par.J_stem;
-  else
-    par.J_stem_diff = par.J_diff;
+  // if (par.J_stem > par.J_diff)
+  //   par.J_stem_diff = par.J_stem;
+  // else
+  //   par.J_stem_diff = par.J_diff;
 
-  par.J_med = par.J_stem - 0.5;
-  par.J_med2 = 0.5*par.J_diff+0.5;
+  // par.J_med = par.J_stem - 0.5;
+  // par.J_med2 = 0.5*par.J_diff+0.5;
 
   // run organisms in parallel. 
   omp_set_num_threads(par.optimization_replicates);
@@ -310,7 +311,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           dishes[i].PDEfield->Secrete(dishes[i].CPM);
           dishes[i].PDEfield->Diffuse(1); 
         }  
-        dishes[i].CPM->ConstrainedGrowthAndDivision(t);
+        // dishes[i].CPM->ConstrainedGrowthAndDivision(t);
+        dishes[i].CPM->CellGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
     
@@ -448,8 +450,8 @@ int main(int argc, char *argv[]) {
   }
   cout << endl;
 
-  par.pic_dir = par.pic_dir + "-" + argv[3] + "-" + argv[4];
-  par.data_file = par.data_file + "-" + argv[3] + "-" + argv[4];
+  par.pic_dir = par.pic_dir + "-" + argv[5] + "-" + argv[6];
+  par.data_file = par.data_file + "-" + argv[5] + "-" + argv[6];
 
 #ifdef QTGRAPHICS
   if (par.evo_pics)
