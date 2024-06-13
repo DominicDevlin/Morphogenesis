@@ -134,10 +134,10 @@
     
     J_stem=3;
     J_diff=12;
-    J_med=6.5;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
+    J_med=8;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
     J_stem_diff=12;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
-    J_med2=6.5;//0.5*J_diff+0.5;
+    J_med2=6;//0.5*J_diff+0.5;
 
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
