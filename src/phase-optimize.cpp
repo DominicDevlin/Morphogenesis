@@ -219,22 +219,22 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   // create memory for dishes. 
   Dish* dishes = new Dish[par.optimization_replicates];
   int time{};
-  time = int(params[5]);
+  time = int(params[4]);
 
   par.secr_rate[0] = params[0];
   // par.J_med = params[1];
   // par.J_med2 = params[1];
-  par.J_stem_diff = params[1];
-  par.gthresh = params[2];
+  // par.J_stem_diff = params[1];
+  par.gthresh = params[1];
   // constant params
-  par.J_stem = params[3];
+  par.J_stem = params[2];
   par.mcs= 40000 + int(par.J_stem)*25000;
-  par.J_diff = params[4];
+  par.J_diff = params[3];
 
-  // if (par.J_stem > par.J_diff)
-  //   par.J_stem_diff = par.J_stem;
-  // else
-  //   par.J_stem_diff = par.J_diff;
+  if (par.J_stem > par.J_diff)
+    par.J_stem_diff = par.J_stem;
+  else
+    par.J_stem_diff = par.J_diff;
 
   par.J_med = 0.5*par.J_diff+0.5;
   par.J_med2 = 0.5*par.J_diff+0.5;
@@ -450,11 +450,11 @@ int main(int argc, char *argv[]) {
   }
   cout << endl;
 
-  par.pic_dir = par.pic_dir + "-" + argv[4] + "-" + argv[5];
-  par.data_file = par.data_file + "-" + argv[4] + "-" + argv[5];
+  par.pic_dir = par.pic_dir + "-" + argv[3] + "-" + argv[4];
+  par.data_file = par.data_file + "-" + argv[3] + "-" + argv[4];
 
 #ifdef QTGRAPHICS
-  if (par.evo_pics)
+  if (par.pics_for_opt)
   {
     QApplication* a = new QApplication(argc, argv);
     if (mkdir(par.pic_dir.c_str(), 0777) != -1)

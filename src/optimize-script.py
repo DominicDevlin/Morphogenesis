@@ -23,7 +23,7 @@ prepend = ""
 if (len(sys.argv) > 1):
     index = int(sys.argv[1])
     print("INDEX IS: ", index)
-    prepend = "xvfb-run -a "
+    # prepend = "xvfb-run -a "
 
 
 J_stem = 1.
@@ -52,8 +52,8 @@ def f(x, time=0):
     # round params
     # not rounding this x[0] = rounder(x[0], 1/0.1e-3) # not rounding this
     #x[1] = rounder(x[1], 1/0.5)
-    x[1] = rounder(x[1], 1/0.5)
-    x[2] = rounder(x[2], True)
+    # x[1] = rounder(x[1], 1/0.5)
+    x[1] = rounder(x[1], True)
     name = prepend + "./phase-optimize "
     for var in x:
         name = name + str(var) + " "
@@ -82,7 +82,7 @@ Jsd = [J_diff, J_diff + J_diff * 0.25]
 gthresh = [0.,3.]
 
 # 5 dimensional param space
-var_list = [diff_rate, Jsd, gthresh]
+var_list = [diff_rate, gthresh]
 
 # do random sampling
 # hammer = Hammersly()
@@ -112,7 +112,7 @@ punt_J_sd = J_diff
 # punt_vsmax = 1
 # punt_vdmax = 1
 punt_gthresh = 2
-inits.append([punt_sec_rate, punt_J_sd, punt_gthresh])
+inits.append([punt_sec_rate, punt_gthresh])
 
 ### second punt
 punt_sec_rate = 128.123*pow((J_stem+3.66212),-5.64574)+0.00194831
@@ -121,7 +121,7 @@ punt_J_sd = J_diff + (J_diff*0.2)
 # punt_vsmax = 1
 # punt_vdmax = 1
 punt_gthresh = 1
-inits.append([punt_sec_rate, punt_J_sd, punt_gthresh])
+inits.append([punt_sec_rate, punt_gthresh])
 
 
 # punt_sec_rate = 0.0223029*pow((J_stem+0.757648),-1.79529)+0.00182658
@@ -136,7 +136,7 @@ inits.append([punt_sec_rate, punt_J_sd, punt_gthresh])
 
 # acq_func_kwargs = {"xi: ": 10}
 
-opt = Optimizer(var_list, n_initial_points=0) 
+opt = Optimizer(var_list, n_initial_points=10) 
 # n_initial_points should be AT LEAST 50 when loooking for a broad scope?
 # Should be like this - I run for 20,000 to 30,000 MCS, or stop when they hit the back wall (or any wall???)
 # When I analyse results, each SHOULD be able to hit the back. If it can't hit the back (within a reasonable time frame) MORPHOGENESIS HAS FAILED!!
