@@ -266,7 +266,14 @@ void Dish::AverageChemCell() // d is number of diffusers (2?)
     if (c->AliveP())
     {
       c->average_chem();
-
+      
+      // if (c->Sigma() < 10)
+      // {
+      //   vector<double> &genes = c->get_genes();
+      //   for (auto i : genes)
+      //     cout << i << '\t';
+      //   cout << endl;
+      // }
 
       // if (c->chem_conc(0) > max_conc)
       //   max_conc = c->chem_conc(0);

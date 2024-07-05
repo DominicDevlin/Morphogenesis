@@ -282,13 +282,40 @@ void PDE::PrintAxisConcentrations(bool dim, int point)
       outfile << endl;
     }    
   }
-
-
-
 }
 
 
+void PDE::PrintAxisConcentrations(bool dim, bool out_only, int point)
+{
+  // if dim is true, we are going to have a fixed x, iterate through y
+  out_only=false;
+ 
 
+  if (dim)
+  {
+    for (int y=0;y<sizey;y++) 
+    {
+      cout << y;
+      for (int n = 0;n<par.n_diffusers;++n)
+      {
+        cout << '\t' << sigma[n][point][y];
+      }
+      cout << endl;
+    }
+  }
+  else
+  {
+    for (int x=0;x<sizex;x++) 
+    {
+      cout << x;
+      for (int n = 0;n<par.n_diffusers;++n)
+      {
+        cout << '\t' << sigma[n][x][point];
+      }
+      cout << endl;
+    }    
+  }
+}
 
 
 

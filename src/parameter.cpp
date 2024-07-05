@@ -35,9 +35,9 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -85,7 +85,7 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
+    start_matrix = { { 5, 2, 2 }, { 5, 5, 5 }, { 5, 5, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
     sizex = 250;
@@ -132,17 +132,20 @@
     // phase transition params;
     phase_evolution=true;
     
-    J_stem=4;
+    J_stem=3;
     J_diff=12;
     J_med=6.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
-    J_stem_diff=13.5;//J_diff + 0.5;//(J_diff - J_stem);
+    J_stem_diff=12;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
 
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.0014;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    diff_coeff = new double[n_diffusers];
+    secr_rate[0] = 0.01;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    diff_coeff[0] = 1.6e-6; // Keeping it at this for now. Maybe this could be evolvable. 
+
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
@@ -300,8 +303,8 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    target_area = 8100;
-    size_init_cells = 90; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
+    target_area = 6400;
+    size_init_cells = 80; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     n_init_cells = 1;
     divisions = 0;
 
@@ -436,11 +439,14 @@
     // This may change in the future if I make one an evolvable parameter. 
     n_chem = 0; // Dom not currently using, instead using n_diffusers
 
-    
     diff_coeff = new double[n_diffusers];
     decay_rate = new double[n_diffusers];
 
-    
+    secr_rate[0] = 5e-4;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    diff_coeff[0] = 4e-6; // Keeping it at this for now. Maybe this could be evolvable. 
+    decay_rate[0] = 1e-7;
+
+
     subfield = 1.0;
     relaxation = 0;
 
@@ -449,10 +455,8 @@
     dx = double(1)/double(250);// 1/((double)sizex);
     pde_its = 1;
 
-    diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 
     diff_coeff[1] = 8e-7;
 
-    decay_rate[0] = 2e-3;
     decay_rate[1] = 2e-3;
     
     

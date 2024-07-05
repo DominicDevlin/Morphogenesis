@@ -530,7 +530,7 @@ TIMESTEP {
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
-
+      dish->PDEfield->PrintAxisConcentrations(true,true,125);
 
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;
