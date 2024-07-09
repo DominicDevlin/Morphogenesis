@@ -450,7 +450,7 @@
     subfield = 1.0;
     relaxation = 0;
 
-    pde_divisor=1;
+    pde_divisor=2;
     pde_sx=sizex/pde_divisor;
     pde_sy=sizey/pde_divisor;
 

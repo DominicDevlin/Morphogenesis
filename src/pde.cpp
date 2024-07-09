@@ -163,22 +163,49 @@ void PDE::ContourPlot(Graphics *g, int l, int colour) {
   {for (int i=0;i<sizey*par.pde_divisor;i++)
     y[i]=i;}
 
+
   double **nsigma;
-  nsigma=(double **)malloc(par.pde_divisor*sizex*sizeof(double **));
+  nsigma = new double*[par.pde_divisor * sizex];
+  nsigma[0] = new double[par.pde_divisor * par.pde_divisor * sizex * sizey];
+
+  for (int i = 1; i < par.pde_divisor * sizex; i++) {
+    nsigma[i] = nsigma[0] + i * sizey * par.pde_divisor;
+  }
+  // for (int i=0;i<par.pde_divisor*par.pde_divisor*sizex*sizey;i++) 
+  // {
+  //   int zz = floor( double(i) / double(par.pde_divisor) );
+  //   nsigma[0][i]=sigma[l][0][zz]; 
+  //   // cout << i << '\t' << zz << '\t' << nsigma[0][i] << '\t' << sigma[l][0][zz] << endl;
+  // }
+  for (int x=0;x<par.pde_divisor*sizex;x++) 
+  {
+    for (int y=0;y<par.pde_divisor*sizey;y++) 
+    {
+      int zx = floor( double(x) / double(par.pde_divisor) );
+      int zy = floor( double(y) / double(par.pde_divisor) );
+      nsigma[x][y] = sigma[l][zx][zy];
+      // cout << x << '\t' << y << '\t' << nsigma[x][y] << '\t' << sigma[l][zx][zy] << endl;
+    }
+  }  
+
+  // double **nsigma;
+  // nsigma=(double **)malloc(par.pde_divisor*sizex*sizeof(double **));
   
    
-  nsigma[0]=(double *)malloc(par.pde_divisor*par.pde_divisor*sizex*sizey*sizeof(double));
+  // nsigma[0]=(double *)malloc(par.pde_divisor*par.pde_divisor*sizex*sizey*sizeof(double));
 
-  {for (int i=1;i<par.pde_divisor*sizex;i++) 
-    nsigma[0][i]=nsigma[0][i-1]+sizey*par.pde_divisor;}
+  // {for (int i=1;i<par.pde_divisor*sizex;i++) 
+  //   nsigma[0][i]=nsigma[0][i-1]+sizey*par.pde_divisor;}
 
-  /* create PDE */
-  for (int i=0;i<par.pde_divisor*par.pde_divisor*sizex*sizey;i++) 
-  {
-    int zz = round( double(i) / double(par.pde_divisor) );
-    nsigma[0][i]=sigma[l][0][zz]; 
-    cout << i << '\t' << zz << '\t' << nsigma[0][i] << '\t' << sigma[l][0][zz] << endl;
-  }
+  // /* create PDE */
+  // for (int i=0;i<par.pde_divisor*par.pde_divisor*sizex*sizey;i++) 
+  // {
+  //   int zz = round( double(i) / double(par.pde_divisor) );
+  //   nsigma[0][i]=sigma[l][0][zz]; 
+  //   // cout << i << '\t' << zz << '\t' << nsigma[0][i] << '\t' << sigma[l][0][zz] << endl;
+  // }
+
+
 
   
   conrec(nsigma,0,(sizex*par.pde_divisor)-1,0,(sizey*par.pde_divisor)-1,x,y,nc,z,g,colour);
@@ -186,7 +213,7 @@ void PDE::ContourPlot(Graphics *g, int l, int colour) {
   free(x);
   free(y);
   free(z);
-  free(nsigma);
+  delete[] nsigma;
   
  
 }
