@@ -444,14 +444,18 @@
 
     secr_rate[0] = 5e-4;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     diff_coeff[0] = 4e-6; // Keeping it at this for now. Maybe this could be evolvable. 
-    decay_rate[0] = 1e-7;
+    decay_rate[0] = 5e-8;
 
 
     subfield = 1.0;
     relaxation = 0;
 
+    pde_divisor=1;
+    pde_sx=sizex/pde_divisor;
+    pde_sy=sizey/pde_divisor;
+
     saturation = 0;
-    dt = 1.0;
+    dt = 1;
     dx = double(1)/double(250);// 1/((double)sizex);
     pde_its = 1;
 

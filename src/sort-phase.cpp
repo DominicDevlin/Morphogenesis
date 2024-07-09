@@ -138,6 +138,7 @@ INIT
     {
       CPM->DivideCells();
     }
+    cout << "here" << endl;
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
@@ -333,6 +334,11 @@ TIMESTEP {
     }
     dish->CPM->AmoebaeMove(t);
 
+
+    if (t==4000)
+    {
+      dish->PDEfield->PrintAxisConcentrations(true, 125);
+    }
 
     if (t == par.mcs - 1)
     {
@@ -530,7 +536,7 @@ TIMESTEP {
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
-      dish->PDEfield->PrintAxisConcentrations(true,true,125);
+      // dish->PDEfield->PrintAxisConcentrations(true,true,125);
 
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;

@@ -72,6 +72,9 @@ class Parameter {
   int rseed;
   double subfield;
   int relaxation;
+  int pde_sx;
+  int pde_sy;
+  int pde_divisor;
   int storage_stride;
   bool graphics;
   bool contours;

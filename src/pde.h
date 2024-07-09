@@ -92,7 +92,8 @@ class PDE {
   \param layer: the PDE plane to probe.
   \param x, y: grid point to probe.
   */
-  inline double Sigma(const int layer, const int x, const int y) const {
+  inline double Sigma(const int layer, const int x, const int y) const 
+  {
     return sigma[layer][x][y];
   }
 

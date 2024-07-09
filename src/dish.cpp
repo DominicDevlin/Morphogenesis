@@ -46,7 +46,7 @@ Dish::Dish()
   
   CPM=new CellularPotts(&cell, par.sizex, par.sizey);
   if (par.n_diffusers)
-    PDEfield=new PDE(par.n_diffusers,par.sizex, par.sizey);
+    PDEfield=new PDE(par.n_diffusers,par.pde_sx, par.pde_sy);
   
   // Initial cell distribution is defined by user in INIT {} block
   // Init();
@@ -250,7 +250,9 @@ void Dish::AverageChemCell() // d is number of diffusers (2?)
         int cn = CPM->Sigma(x,y);
         if (cn > 0)
         {
-          (cell)[cn].diffs[i] += PDEfield->Sigma(i,x,y);
+          int gx = floor(double(x) / double(par.pde_divisor));
+          int gy = floor(double(y) / double(par.pde_divisor));
+          (cell)[cn].diffs[i] += PDEfield->Sigma(i,gx,gy);
         }
       }
   
