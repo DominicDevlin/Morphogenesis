@@ -42,7 +42,7 @@
     draw_paths = false;
 
     // Generate a random genome
-    randomise = false;
+    randomise = true;
 
     // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
     // output data for analysis (connectivity, gene expression, state transitions)
@@ -109,42 +109,57 @@
 /* adhesion params */
 
 /*stem-cell system project params*/
-    // n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
-    // n_locks = n_lockandkey / 2;
-    // n_TF = 4; 
-    // n_length_genes = 2;
-    // minJ=4;
-    // maxJ=24;
-    // n_mediums=5;
-    // med_table = new int[n_mediums];
-    // med_table[0] = 5;
-    // med_table[1] = 4;
-    // med_table[2] = 3;
-    // med_table[3] = 2;
-    // med_table[4] = 1;
-    // n_diffusers=3;
-    // n_MF=2;
-    // minM=6;
-    // tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
-    // tlength2 = 2;
+    n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
+    n_locks = n_lockandkey / 2;
+    n_TF = 4; 
+    n_length_genes = 2;
+    minJ=4;
+    maxJ=24;
+    n_mediums=5;
+    med_table = new int[n_mediums];
+    med_table[0] = 5;
+    med_table[1] = 4;
+    med_table[2] = 3;
+    med_table[3] = 2;
+    med_table[4] = 1;
+    n_diffusers=4;
+    n_MF=2;
+    minM=6;
+    tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
+    tlength2 = 2;
 
 
     // phase transition params;
-    phase_evolution=true;
-    
+    phase_evolution=false;
     J_stem=3;
     J_diff=12;
     J_med=6.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
     J_stem_diff=12;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
+
+    // morphogen parameters
     secr_rate = new double[n_diffusers];
     diff_coeff = new double[n_diffusers];
-    secr_rate[0] = 0.01;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
-    diff_coeff[0] = 1.6e-6; // Keeping it at this for now. Maybe this could be evolvable. 
+    decay_rate = new double[n_diffusers];
+  
+    secr_rate[0] = 2.4e-3;
+    decay_rate[0] = 2e-3;
+    diff_coeff[0] = 8e-7; 
+
+    secr_rate[1] = 2.4e-3;
+    decay_rate[1] = 2e-3;
+    diff_coeff[1] = 8e-7;
+
+    secr_rate[2] = 2e-3;
+    decay_rate[2] = 8e-4;
+    diff_coeff[2] = 4e-6; 
+
+    secr_rate[3] = 2e-3;
+    decay_rate[3] = 8e-4;
+    diff_coeff[3] = 4e-6; 
 
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
@@ -160,7 +175,7 @@
     v_melt = -30;
     v_slope = -4;
 
-    offset = 50;//75
+    offset = 0;//75
     optimization_replicates = 6;
     pics_for_opt = false;
     pics_for_opt_interval = 100;
@@ -169,22 +184,6 @@
     penalty=250;
 
   
-    // GRN params
-    n_TF = 0; 
-    n_diffusers = 1; // morphogens
-    n_length_genes = 0;
-    n_MF = 2;
-
-/*small genome params*/
-    n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
-    n_locks = n_lockandkey / 2; // must be half lockandkey. 
-    n_mediums = 2;
-    med_table = new int[n_mediums]; // J values for cell with medium
-    med_table[0] = 10;
-    med_table[1] = 2;
-    minJ = 4; // min J if all cell-cell are paired
-    maxJ = 20; // max J if all cell-cell are not paired
-    minM = 6; // min J with medium if all proteins are on
 
 /*iterators */
     shrink = -16;
@@ -309,7 +308,7 @@
     divisions = 0;
 
     //programmed division parameters
-    end_program = 50;
+    end_program = 1000;
     begin_network = 50;
     div_freq = 10;
     // begin_movement=1200;
@@ -439,13 +438,6 @@
     // This may change in the future if I make one an evolvable parameter. 
     n_chem = 0; // Dom not currently using, instead using n_diffusers
 
-    diff_coeff = new double[n_diffusers];
-    decay_rate = new double[n_diffusers];
-
-    secr_rate[0] = 2e-3;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
-    diff_coeff[0] = 4e-6; // Keeping it at this for now. Maybe this could be evolvable. 
-    decay_rate[0] = 5e-4;
-
 
     subfield = 1.0;
     relaxation = 0;
@@ -459,37 +451,11 @@
     dx = double(1)/double(250);// 1/((double)sizex);
     pde_its = 1;
 
-    diff_coeff[1] = 8e-7;
 
-    decay_rate[1] = 2e-3;
     
-    
-    secr_rate[1] = 2.4e-3;
-
-    // depracated
-    reaction_rate = 5e-3; // small rate = 5e-3; // large rate = 1e-2
-
-    if (n_diffusers > 2)
-    {
-      
-      diff_coeff[2] = 8e-7; 
-      decay_rate[2] = 2.4e-3;
-      secr_rate[2] = 2.4e-3;
-      
-      // Morphogens with shorter range 
-      // diff_coeff[2] = 8e-7;
-      // decay_rate[2] = 5e-3;
-      // secr_rate[2] = 5.5e-3;
-
-      // Morphogens with longer range
-      // diff_coeff[2] = 4e-6;
-      // decay_rate[2] = 1e-3;
-      // secr_rate[2] = 1.5e-3;
-
-
-    }
     // enzymes that can break down the morphogen
     enzymes = false;
+    reaction_rate = 5e-3; 
 
     // DEPRACATED: let all cells be capable of cell division.
     all_divide = true;
