@@ -442,9 +442,9 @@
     diff_coeff = new double[n_diffusers];
     decay_rate = new double[n_diffusers];
 
-    secr_rate[0] = 5e-4;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 2e-3;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     diff_coeff[0] = 4e-6; // Keeping it at this for now. Maybe this could be evolvable. 
-    decay_rate[0] = 5e-8;
+    decay_rate[0] = 5e-4;
 
 
     subfield = 1.0;

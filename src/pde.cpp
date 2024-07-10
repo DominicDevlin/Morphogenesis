@@ -45,6 +45,8 @@ PDE::PDE(const int l, const int sx, const int sy) {
   sizex=sx;
   sizey=sy;
   layers=l;
+  divisor=par.pde_divisor;
+  jump = floor(double(divisor)/2.);
   
   sigma=AllocateSigma(l,sx,sy);
   alt_sigma=AllocateSigma(l,sx,sy);
@@ -155,52 +157,52 @@ void PDE::ContourPlot(Graphics *g, int l, int colour) {
   {for (int i=0;i<nc;i++)
     z[i]=(i+1)*step;}
   
-  double *x=(double *)malloc(sizex*sizeof(double)*par.pde_divisor);
-  {for (int i=0;i<sizex*par.pde_divisor;i++)
+  double *x=(double *)malloc(sizex*sizeof(double)*divisor);
+  {for (int i=0;i<sizex*divisor;i++)
     x[i]=i;}
   
-  double *y=(double *)malloc(sizey*sizeof(double)*par.pde_divisor);
-  {for (int i=0;i<sizey*par.pde_divisor;i++)
+  double *y=(double *)malloc(sizey*sizeof(double)*divisor);
+  {for (int i=0;i<sizey*divisor;i++)
     y[i]=i;}
 
 
   double **nsigma;
-  nsigma = new double*[par.pde_divisor * sizex];
-  nsigma[0] = new double[par.pde_divisor * par.pde_divisor * sizex * sizey];
+  nsigma = new double*[divisor * sizex];
+  nsigma[0] = new double[divisor * divisor * sizex * sizey];
 
-  for (int i = 1; i < par.pde_divisor * sizex; i++) {
-    nsigma[i] = nsigma[0] + i * sizey * par.pde_divisor;
+  for (int i = 1; i < divisor * sizex; i++) {
+    nsigma[i] = nsigma[0] + i * sizey * divisor;
   }
-  // for (int i=0;i<par.pde_divisor*par.pde_divisor*sizex*sizey;i++) 
+  // for (int i=0;i<divisor*divisor*sizex*sizey;i++) 
   // {
-  //   int zz = floor( double(i) / double(par.pde_divisor) );
+  //   int zz = floor( double(i) / double(divisor) );
   //   nsigma[0][i]=sigma[l][0][zz]; 
   //   // cout << i << '\t' << zz << '\t' << nsigma[0][i] << '\t' << sigma[l][0][zz] << endl;
   // }
-  for (int x=0;x<par.pde_divisor*sizex;x++) 
+  for (int x=0;x<divisor*sizex;x++) 
   {
-    for (int y=0;y<par.pde_divisor*sizey;y++) 
+    for (int y=0;y<divisor*sizey;y++) 
     {
-      int zx = floor( double(x) / double(par.pde_divisor) );
-      int zy = floor( double(y) / double(par.pde_divisor) );
+      int zx = floor( double(x) / double(divisor) );
+      int zy = floor( double(y) / double(divisor) );
       nsigma[x][y] = sigma[l][zx][zy];
       // cout << x << '\t' << y << '\t' << nsigma[x][y] << '\t' << sigma[l][zx][zy] << endl;
     }
   }  
 
   // double **nsigma;
-  // nsigma=(double **)malloc(par.pde_divisor*sizex*sizeof(double **));
+  // nsigma=(double **)malloc(divisor*sizex*sizeof(double **));
   
    
-  // nsigma[0]=(double *)malloc(par.pde_divisor*par.pde_divisor*sizex*sizey*sizeof(double));
+  // nsigma[0]=(double *)malloc(divisor*divisor*sizex*sizey*sizeof(double));
 
-  // {for (int i=1;i<par.pde_divisor*sizex;i++) 
-  //   nsigma[0][i]=nsigma[0][i-1]+sizey*par.pde_divisor;}
+  // {for (int i=1;i<divisor*sizex;i++) 
+  //   nsigma[0][i]=nsigma[0][i-1]+sizey*divisor;}
 
   // /* create PDE */
-  // for (int i=0;i<par.pde_divisor*par.pde_divisor*sizex*sizey;i++) 
+  // for (int i=0;i<divisor*divisor*sizex*sizey;i++) 
   // {
-  //   int zz = round( double(i) / double(par.pde_divisor) );
+  //   int zz = round( double(i) / double(divisor) );
   //   nsigma[0][i]=sigma[l][0][zz]; 
   //   // cout << i << '\t' << zz << '\t' << nsigma[0][i] << '\t' << sigma[l][0][zz] << endl;
   // }
@@ -208,7 +210,7 @@ void PDE::ContourPlot(Graphics *g, int l, int colour) {
 
 
   
-  conrec(nsigma,0,(sizex*par.pde_divisor)-1,0,(sizey*par.pde_divisor)-1,x,y,nc,z,g,colour);
+  conrec(nsigma,0,(sizex*divisor)-1,0,(sizey*divisor)-1,x,y,nc,z,g,colour);
   
   free(x);
   free(y);
@@ -252,10 +254,11 @@ void PDE::Secrete(CellularPotts *cpm)
         for (int y=0;y<sizey;y++) 
         {
           // inside cells with diffuser on (secrete + decay)
-          if (cpm->Sigma((x*par.pde_divisor),(y*par.pde_divisor)) > 0) 
+          if (cpm->Sigma((x*divisor+jump),(y*divisor+jump)) > 0) 
           {
+
             
-            double conc = cpm->diffuser_check(n,(x*par.pde_divisor),(y*par.pde_divisor));
+            double conc = cpm->diffuser_check(n,(x*divisor+jump),(y*divisor+jump));
             sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
           } 
           else 
@@ -274,11 +277,11 @@ void PDE::Secrete(CellularPotts *cpm)
         for (int y=0;y<sizey;y++) 
         {
           // inside cells with diffuser on (secrete + decay)
-          if (cpm->Sigma((x*par.pde_divisor),(y*par.pde_divisor)) > 0) 
+          if (cpm->Sigma((x*divisor),(y*divisor)) > 0) 
           {
             
-            double conc = cpm->diffuser_check(n,(x*par.pde_divisor),(y*par.pde_divisor));
-            double enzyme = cpm->get_enzyme_conc(n,(x*par.pde_divisor),(y*par.pde_divisor));
+            double conc = cpm->diffuser_check(n,(x*divisor),(y*divisor));
+            double enzyme = cpm->get_enzyme_conc(n,(x*divisor),(y*divisor));
             sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]) - par.reaction_rate*dt*sigma[n][x][y]*enzyme;
             // cout << (par.reaction_rate*dt*conc*enzyme) << "   secretion: " << (par.secr_rate[n]*dt*conc) <<  endl;
           } 
@@ -308,7 +311,7 @@ void PDE::PrintAxisConcentrations(bool dim, int point)
   {
     for (int y=0;y<sizey;y++) 
     {
-      outfile << y*par.pde_divisor;
+      outfile << y*divisor;
       for (int n = 0;n<par.n_diffusers;++n)
       {
         outfile << '\t' << sigma[n][point][y];
@@ -320,7 +323,7 @@ void PDE::PrintAxisConcentrations(bool dim, int point)
   {
     for (int x=0;x<sizex;x++) 
     {
-      outfile << x*par.pde_divisor;
+      outfile << x*divisor;
       for (int n = 0;n<par.n_diffusers;++n)
       {
         outfile << '\t' << sigma[n][x][point];
@@ -341,7 +344,7 @@ void PDE::PrintAxisConcentrations(bool dim, bool out_only, int point)
   {
     for (int y=0;y<sizey;y++) 
     {
-      cout << y*par.pde_divisor;
+      cout << y*divisor;
       for (int n = 0;n<par.n_diffusers;++n)
       {
         cout << '\t' << sigma[n][point][y];
@@ -353,7 +356,7 @@ void PDE::PrintAxisConcentrations(bool dim, bool out_only, int point)
   {
     for (int x=0;x<sizex;x++) 
     {
-      cout << x*par.pde_divisor;
+      cout << x*divisor;
       for (int n = 0;n<par.n_diffusers;++n)
       {
         cout << '\t' << sigma[n][x][point];

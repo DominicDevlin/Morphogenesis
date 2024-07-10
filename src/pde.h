@@ -253,6 +253,9 @@ class PDE {
   int sizex;
   int sizey;
   int layers;
+
+  int divisor;
+  int jump;
  
  
   // Protected member functions
