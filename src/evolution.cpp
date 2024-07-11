@@ -518,7 +518,7 @@ int main(int argc, char *argv[]) {
   if (par.evo_pics)
   {
     QApplication* a = new QApplication(argc, argv);
-    par.data_file = "evolution";
+    par.data_file = "evo-data";
     if (mkdir(par.data_file.c_str(), 0777) != -1)
       cout << "Directory created." << endl;
   }

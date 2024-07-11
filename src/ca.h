@@ -100,6 +100,8 @@ public:
 
   void update_network(int tsteps);
 
+  int CountStableTypes();
+
   void update_phase_network(int tsteps);
 
   double numeric_step(vector<double>& gene_list, double conc, int gene_n, int tsteps);

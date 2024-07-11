@@ -2868,6 +2868,37 @@ void CellularPotts::add_noise()
 
 }
 
+int CellularPotts::CountStableTypes()
+{
+  map<int, int> type_counter;
+  vector<Cell>::iterator c;
+  for (c = cell->begin(), c++; c != cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      vector<tuple<int,int,uint64_t>>& switches = c->get_switches();
+      if (switches.size() == 0)
+      {
+        int t = c->GetPhenotype();
+        type_counter[t] += 1;
+        cout << t << endl;
+      }
+    }
+  }
+  
+  int sum_of_keys = 0;
+  for (const auto& pair : type_counter)
+  {
+    if (pair.second >= 10)
+    {
+      ++sum_of_keys;
+    }
+  }
+
+  return sum_of_keys;
+}
+
+
 
 void CellularPotts::update_network(int tsteps)
 {

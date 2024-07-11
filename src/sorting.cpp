@@ -287,8 +287,11 @@ TIMESTEP {
     }
     
 
+
     if (t == par.mcs - 1)
     {
+
+      cout << "n stable types: " << dish->CPM->CountStableTypes() << endl;
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();
@@ -321,7 +324,7 @@ TIMESTEP {
         dish->CPM->set_switches(edge_tally);
       }
 
-
+  
 
       vector<vector<int>> scc;
       if (par.insitu_shapes)
@@ -612,11 +615,11 @@ TIMESTEP {
     }
 
     // used to create morphogen stuff
-    if (t==3000)
-    {
-      dish->PDEfield->PrintAxisConcentrations(true, 125);
-      // dish->CPM->OutputProteinNorms();
-    }
+    // if (t==3000)
+    // {
+    //   dish->PDEfield->PrintAxisConcentrations(true, 125);
+    //   // dish->CPM->OutputProteinNorms();
+    // }
 
 
     if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
