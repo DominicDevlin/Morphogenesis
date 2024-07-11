@@ -14,9 +14,11 @@
 #include "parameter.h"
 #include "sqr.h"
 #include "omp.h"
-#include "connections.h"
 #include <chrono>
 #include <random>
+#include "fft.h"
+#include <sys/stat.h>
+
 
 #ifdef QTGRAPHICS
 #include "qtgraph.h"
@@ -65,7 +67,7 @@ TIMESTEP
 
 
 
-void swap(int *xp, int *yp)
+void swap(double *xp, double *yp)
 {
   double temp = *xp;
   *xp = *yp;
@@ -87,7 +89,14 @@ void swapb(vector<bool> *xp, vector<bool> *yp)
   *yp = temp;
 }
 
-void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, vector<int> &fitlist)
+void swapd(Dish *d, int max_idx, int i)
+{
+  Dish tmp = d[max_idx];
+  d[max_idx] = d[i];
+  d[i] = tmp;
+}
+
+void sorter(vector<vector<vector<int>>> &networks, vector<double> &fitlist, Dish *dishes)
 {
   int i, j, max_idx;
   int n = par.n_orgs;
@@ -103,7 +112,9 @@ void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, ve
     // swap largest element with first element
     swap(&fitlist.at(max_idx), &fitlist.at(i));
     swapv(&networks.at(max_idx), &networks.at(i));
-    swapb(&pol.at(max_idx), &pol.at(i));
+    // std::swap(dishes[max_idx], dishes[i]);
+
+    // swapd(&dishes[max_idx], &dishes[i]);
   }
 }
 
@@ -123,7 +134,6 @@ vector<vector<int>> get_random_network()
     for (int j = 0; j < par.n_activators; ++j)
     {
       double val = double_num(mersenne);
-      // slight ON bias for random networks. This is due to theta = -0.3. 
       if (val < 0.05)
       {
         matrix[i][j] = -2;
@@ -132,11 +142,11 @@ vector<vector<int>> get_random_network()
       {
         matrix[i][j] = -1;
       }
-      else if (val < 0.74)
+      else if (val < 0.7)
       {
         matrix[i][j] = 0;
       }
-      else if (val < 0.93)
+      else if (val < 0.95)
       {
         matrix[i][j] = 1;
       }
@@ -147,21 +157,6 @@ vector<vector<int>> get_random_network()
     }
   }
   return matrix;
-}
-
-vector<bool> get_random_pol()
-{
-  vector<bool> pol;
-  pol.resize(par.n_TF);
-  for (int i=0;i<par.n_TF;++i)
-  {
-    double val = double_num(mersenne);
-    if (val < 0.7)
-      pol[i]=0;
-    else
-      pol[i]=1;
-  }
-  return pol;
 }
 
 
@@ -196,16 +191,6 @@ void mutate(vector<vector<int>> &network)
   }
 }
 
-// mutate the TF polarities (whether each TF is passed onto daughter upon cell reproduction)
-void polmutate(vector<bool> &pol)
-{
-  int i = TF_dist(mersenne);
-  double val = double_num(mersenne);
-  if (val > 0.7)
-    pol[i] = true;
-  else
-    pol[i] = false;
-}
 
 
 void output_networks(vector<vector<vector<int>>>& netw)
@@ -229,11 +214,36 @@ void output_networks(vector<vector<vector<int>>>& netw)
     }
 }
 
+void record_networks(vector<vector<vector<int>>>& netw, string oname)
+{
+  string nname = oname + "/" + "genomes.txt";
+  std::ofstream outfile;
+  outfile.open(nname, ios::app);
+  for (int org=0;org<par.n_orgs;++org)
+    for (int i=0;i<par.n_genes;++i)
+    {
+      if (i == 0)
+        outfile << "{ ";
+      for (int j=0;j<par.n_activators;++j)
+      {
+        if (j==0)
+          outfile << "{ " << netw[org][i][j] << ", ";
+        else if (j==par.n_activators-1)
+          outfile << netw[org][i][j] << " }, ";
+        else 
+          outfile << netw[org][i][j] << ", ";
+      }
+      if (i == par.n_genes -1)
+        outfile << "}" << endl;
+    }
+  outfile.close();
+}
 
 
 
 
-void printn(vector<vector<int>> netw, vector<bool> pol, vector<int> fitn)
+
+void printn(vector<vector<int>> netw, vector<double> fitn)
 {
   // create and open file
   std::string var_name = "gene_networks.txt";
@@ -256,15 +266,7 @@ void printn(vector<vector<int>> netw, vector<bool> pol, vector<int> fitn)
     if (i == par.n_genes -1)
       outfile << "}" << endl;
   }
-  // outfile << "{ ";
-  // for (int i=0;i<par.n_TF;++i)
-  // {
-  //   if (i < par.n_TF - 1)
-  //     outfile << pol[i] << ", ";
-  //   else 
-  //     outfile << pol[i] << " }";
-  // }
-  // outfile << endl;
+
   outfile.close();
 
   // max fitness 
@@ -277,6 +279,7 @@ void printn(vector<vector<int>> netw, vector<bool> pol, vector<int> fitn)
     avgfit += i;
   }
   avgfit = avgfit / par.n_orgs;
+
 
   if (par.asym_only && par.asymmetry_selection && avgfit > par.swap_selection)
   {
@@ -299,16 +302,11 @@ void printn(vector<vector<int>> netw, vector<bool> pol, vector<int> fitn)
 
 
 
-
-
 // function that simulates a population for a single evolutionary step. 
-vector<int> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols)
+vector<double> process_population(vector<vector<vector<int>>>& network_list, int time)
 {
-  vector<int> inter_org_fitness{};
-  vector<int> shape_checks{};
+  vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
-  shape_checks.resize(par.n_orgs);
-
 
   // create memory for dishes. 
   Dish* dishes = new Dish[par.n_orgs];
@@ -324,7 +322,7 @@ vector<int> process_population(vector<vector<vector<int>>>& network_list, vector
 
     int t;
 
-    dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
+    dishes[i].CPM->start_network(network_list.at(i));
 
 
     // make temperature lower for division section
@@ -374,12 +372,17 @@ vector<int> process_population(vector<vector<vector<int>>>& network_list, vector
       }
       dishes[i].CPM->AmoebaeMove(t);
     
-
-      bool check_shape = true;
-      // ensure all cells are connected for shape calculations. 
-      if (t > 0 && t % 1000 == 0)
+      // calculate complexity 
+      if (t == par.mcs - 1 )// > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
       {
-        check_shape = dishes[i].CPM->CheckShape();
+        // am now doing for curvature as well (taking mean)
+        dishes[i].CPM->update_fitness();
+      }
+ 
+      // ensure all cells are connected for shape calculations. 
+      if (t % 1000 == 0 || (t<1000 && t>par.end_program && t%100 == 0))
+      {
+        bool check_shape = dishes[i].CPM->CheckShape();
         if (check_shape == false)
         {
           inter_org_fitness[i] = 0;
@@ -387,8 +390,11 @@ vector<int> process_population(vector<vector<vector<int>>>& network_list, vector
           // cout << "Org number: " << i << " has bad shape. " << endl;
         }
       }
-      shape_checks[i] = check_shape;
-      // get fitness at end of development       
+      // get fitness at end of development
+      if (t == par.mcs-1)
+      {
+        inter_org_fitness[i] = dishes[i].CPM->get_fitness();
+      }        
     }
         
     if (i == 1)
@@ -396,44 +402,50 @@ vector<int> process_population(vector<vector<vector<int>>>& network_list, vector
 
   }
 
-  for (int i = 0; i < par.n_orgs;++i)
+  if (par.evo_pics && time % par.pic_gen_interval == 0)
   {
-    if (shape_checks[i] && dishes[i].CPM->CountCells() > 80)
+    string dirn = par.data_file + "/" + to_string(time+1);
+    if (mkdir(dirn.c_str(), 0777) != -1)
+      cout << "Directory created." << endl;
+    record_networks(network_list, dirn);
+    for (int i=0; i < par.n_orgs; ++i)
     {
-      inter_org_fitness[i] = dishes[i].CPM->TypeFitness2();
+      dishes[i].CPM->ColourCells();
+      fft new_org(par.sizex,par.sizey);
+      new_org.ImportCPM(dishes[i].get_cpm());
+      string f2 = "org-";
+      string n2 = to_string(i);
+      string ftype = ".png";
+      string foutput = dirn + "/" + f2 + n2 + ftype;
+      new_org.cpmOutput(foutput);
     }
-    else
-    {
-      inter_org_fitness[i] = 0;
-    }
-
   }
-
 
   delete[] dishes;
 
-
-
-
   // do sorting algorithm and return fitness
-  sorter(network_list, pols, inter_org_fitness);
+  sorter(network_list, inter_org_fitness, dishes);
 
   //output to standard output
   output_networks(network_list);
 
   // output to file
-  printn(network_list.front(), pols.front(), inter_org_fitness);
+  printn(network_list.front(),inter_org_fitness);
+
+
+
+
+
+
 
   vector<vector<vector<int>>> nextgen{};
-  vector<vector<bool>> nextgenpol{};
   int j = 0;
   for (int i=0; i < par.n_orgs;++i)
   {
     // Currently no random networks are added if largest fitness > this
-    if (inter_org_fitness.front() > 2 || !par.insert_randoms)
+    if (inter_org_fitness.front() > 30 || !par.insert_randoms)
     {
       nextgen.push_back(network_list.at(j));
-      nextgenpol.push_back(pols.at(j));
 
       //mutate network with probability = mut_rate
       double mu = double_num(mersenne);
@@ -441,11 +453,7 @@ vector<int> process_population(vector<vector<vector<int>>>& network_list, vector
       {
         mutate(nextgen.back());
       }
-      double mu2 = double_num(mersenne);
-      if  (mu2 < par.polm_rate)
-      {
-        polmutate(nextgenpol.back());
-      }
+
       ++j; 
       if (j >= par.n_orgs / 4)
         j=0;
@@ -456,12 +464,10 @@ vector<int> process_population(vector<vector<vector<int>>>& network_list, vector
       if (i >= (par.n_orgs * 3)/4)
       {
         nextgen.push_back(get_random_network());
-        nextgenpol.push_back(get_random_pol());
       }
       else 
       {
         nextgen.push_back(network_list.at(j));
-        nextgenpol.push_back(pols.at(j));
       }
 
       //mutate network with probability = 0.5
@@ -469,11 +475,6 @@ vector<int> process_population(vector<vector<vector<int>>>& network_list, vector
       if (mu > par.mut_rate)
       {
         mutate(nextgen.back());
-      }
-      double mu2 = double_num(mersenne);
-      if  (mu2 > 0.5)
-      {
-        polmutate(nextgenpol.back());
       }
 
       ++j;
@@ -486,7 +487,6 @@ vector<int> process_population(vector<vector<vector<int>>>& network_list, vector
   for (int i=0;i<par.n_orgs;++i)
   {
     network_list.at(i) = nextgen.at(i);
-    pols.at(i) = nextgenpol.at(i);
   }
   return inter_org_fitness;
 }
@@ -497,16 +497,33 @@ vector<int> process_population(vector<vector<vector<int>>>& network_list, vector
 // Main function
 int main(int argc, char *argv[]) {
 
+#ifdef QTGRAPHICS
+  if (par.evo_pics)
+  {
+    QApplication* a = new QApplication(argc, argv);
+    par.data_file = "images";
+    if (mkdir(par.data_file.c_str(), 0777) != -1)
+      cout << "Directory created." << endl;
+  }
   
+#endif
+
+
   par.graphics=false;
   par.contours=false;
   par.print_fitness=false;
   par.randomise=false;
   par.gene_output=false;
-  par.gene_record = true;
+  par.gene_record = false;
   par.store = false;
+  par.velocities=false;
+  par.output_gamma=false;
   par.pickseed = 0;
-  par.mcs = 12100;
+  par.umap = false;
+  par.output_sizes=false;
+  par.mcs = 12000;
+  
+
   Parameter();
 
   // This is currently depracated. 
@@ -514,18 +531,15 @@ int main(int argc, char *argv[]) {
 
   // make initial random networks. 
   vector<vector<vector<int>>> networks{};
-  vector<vector<bool>> polarities{};
   for (int i=0;i<par.n_orgs;++i)
   {
     if (par.starter)
     {
       networks.push_back(par.start_n);
-      polarities.push_back(start_p);
     }
     else
     {
       networks.push_back(get_random_network());
-      polarities.push_back(get_random_pol());
     }
   }
 
@@ -534,7 +548,7 @@ int main(int argc, char *argv[]) {
   {
     cout << "current ev timestep is: " << t+1 << endl;
     // process population. 
-    vector<int> fit = process_population(networks, polarities);
+    vector<double> fit = process_population(networks, t);
 
     // output every x evolution steps. 
     // if (t%1==0)

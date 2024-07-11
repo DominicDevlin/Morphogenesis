@@ -388,23 +388,24 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
   {
     double lambda2=par.lambda2; 
     if ( sxyp == MEDIUM ) {
-      DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-            - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-              (*cell)[sxy].TargetLength()) ));
+      DH -= (lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength()))
+            - (DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+              (*cell)[sxy].TargetLength())));
       
     }
     else if ( sxy == MEDIUM ) {
-      DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+      DH -= (lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
         -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
       
     }
-    else {
-      DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-          -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
-          ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+    else 
+    {
+      DH -= (lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+          -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength()))) +
+          (lambda2* (DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
             - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-            (*cell)[sxy].TargetLength()) )) );
-  }
+            (*cell)[sxy].TargetLength()))) ;
+    }
   }
 
   return DH;
@@ -2705,17 +2706,6 @@ void CellularPotts::randomise_network()
       }
     }
 
-
-
-  }
-
-  for (int i=0;i<par.n_TF;++i)
-  {
-    double val = RANDOM(s_val);
-    if (val < 0.7)
-      polarity[i]=0;
-    else
-      polarity[i]=1;
   }
 
   cout << "{ ";
@@ -2729,22 +2719,15 @@ void CellularPotts::randomise_network()
     cout << "}, ";
   }
   cout << " }" << endl;
-  cout << "TF polarities { ";
-  for (int k = 0; k < par.n_TF; ++k)
-  {
-    cout << polarity[k] << ", "; 
-  }
-  cout << "}" << endl;
+
 }
 
 
-void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool> start_pol)
+void CellularPotts::start_network(vector<vector<int>> start_matrix)
 {
   matrix.clear();
   matrix.resize(par.n_genes);
 
-  polarity.clear();
-  polarity.resize(par.n_TF);
 
   for (vector<int> &i : matrix)
   {
@@ -2765,11 +2748,7 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
         // cout << "matrix: " << start_matrix[i][j] << endl;
         matrix[i][j] = start_matrix[i][j]; 
       }
-    }
-    for (int i=0;i<par.n_TF;++i)
-    {
-      polarity[i] = start_pol[i];
-    }      
+    }     
   } //set matrix to input, either from simulation or par.set_matrix
 
   vector<double> new_g;
@@ -6850,7 +6829,6 @@ void CellularPotts::ShapeIndexByState()
       int perim_length{};
       c->Phenotype();
       int p = c->GetPhenotype();
-      cout << p << endl;
 
       for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
       {

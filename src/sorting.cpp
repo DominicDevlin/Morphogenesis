@@ -84,7 +84,7 @@ INIT
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
 
-    CPM->start_network(par.start_matrix, par.start_polarity);
+    CPM->start_network(par.start_matrix);
 
     par.mfloc1=2;
     par.mfloc2=3;
@@ -225,7 +225,6 @@ TIMESTEP {
         }
 
       }
-
       if (par.insitu_shapes && t % 500 == 0)
       {
         dish->CPM->ShapeIndexByState();
@@ -613,11 +612,11 @@ TIMESTEP {
     }
 
     // used to create morphogen stuff
-    // if (t==9000)
-    // {
-    //   dish->PDEfield->PrintAxisConcentrations(true, 120);
-    //   dish->CPM->OutputProteinNorms();
-    // }
+    if (t==3000)
+    {
+      dish->PDEfield->PrintAxisConcentrations(true, 125);
+      // dish->CPM->OutputProteinNorms();
+    }
 
 
     if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
@@ -666,9 +665,8 @@ TIMESTEP {
 
 
 
-    static bool c1 = false;
-    static bool c2 = false;
-    static bool c3 = false;
+    static vector<bool> con_plot(4, false);
+    static vector<int> con_colours{5, 7, 14, 37};
 
     //cerr << "Done\n";
     if (par.graphics && t%5==0)// !(t%par.screen_freq)) 
@@ -701,29 +699,30 @@ TIMESTEP {
 
       if (t>0 && t % par.begin_network == 0)
       {
-        c1 = dish->PDEfield->CheckSecreting(0);
-        c2 = dish->PDEfield->CheckSecreting(1);
-        if (par.n_diffusers > 2)
-        {
-          c3 = dish->PDEfield->CheckSecreting(2);
-          // c4 = dish->PDEfield->CheckSecreting(3);
-        }
-
+        for (int c=0;c<par.n_diffusers;++c)
+          con_plot[c] = dish->PDEfield->CheckSecreting(c);
       }
 
       if (t>par.end_program && par.contours)
       {
-        if (c1)
-          dish->PDEfield->ContourPlot(this,0,5);
-        if (c2)
-          dish->PDEfield->ContourPlot(this,1,7);
-        if (par.n_diffusers > 2)
+        
+        for (int c=0;c<par.n_diffusers;++c)
         {
-          if (c3)
-            dish->PDEfield->ContourPlot(this,2,14);
+          if (con_plot[c])
+            dish->PDEfield->ContourPlot(this,c,con_colours[c]);
+        }
+
+        // if (c1)
+        //   dish->PDEfield->ContourPlot(this,0,5);
+        // if (c2)
+        //   dish->PDEfield->ContourPlot(this,1,7);
+        // if (par.n_diffusers > 2)
+        // {
+        //   if (c3)
+        //     dish->PDEfield->ContourPlot(this,2,14);
           // if (c4)
           //   dish->PDEfield->ContourPlot(this,3,37);
-        }
+        // }
 
 
         // this function plots a shade for the PDE field and is very computationally costly. Isn't needed. 
@@ -759,20 +758,39 @@ TIMESTEP {
 
       if (t>par.end_program && par.contours)
       {
-        c1 = dish->PDEfield->CheckSecreting(0);
-        c2 = dish->PDEfield->CheckSecreting(1);
-        if (par.n_diffusers > 2)
+
+        if (t>0 && t % par.begin_network == 0)
         {
-          c3 = dish->PDEfield->CheckSecreting(2);
-          // c4 = dish->PDEfield->CheckSecreting(3);
+          for (int c=0;c<par.n_diffusers;++c)
+            con_plot[c] = dish->PDEfield->CheckSecreting(c);
         }
-        if (c1)
-          dish->PDEfield->ContourPlot(this,0,293);
-        if (c2)
-          dish->PDEfield->ContourPlot(this,1,291);
-        if (c3)
-          dish->PDEfield->ContourPlot(this,2,292);
+
+        if (t>par.end_program && par.contours)
+        {
+          
+          for (int c=0;c<par.n_diffusers;++c)
+          {
+            if (con_plot[c])
+              dish->PDEfield->ContourPlot(this,c,con_colours[c]);
+          }
+            
+        }
+
+        // c1 = dish->PDEfield->CheckSecreting(0);
+        // c2 = dish->PDEfield->CheckSecreting(1);
+        // if (par.n_diffusers > 2)
+        // {
+        //   c3 = dish->PDEfield->CheckSecreting(2);
+        //   // c4 = dish->PDEfield->CheckSecreting(3);
+        // }
+        // if (c1)
+        //   dish->PDEfield->ContourPlot(this,0,293);
+        // if (c2)
+        //   dish->PDEfield->ContourPlot(this,1,291);
+        // if (c3)
+        //   dish->PDEfield->ContourPlot(this,2,292);
       }
+
       
       EndScene();
     

@@ -109,24 +109,49 @@
 /* adhesion params */
 
 /*stem-cell system project params*/
-    n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
+    n_lockandkey = 12; // number of lock and keys (==), stored in separate vector for ease
     n_locks = n_lockandkey / 2;
     n_TF = 4; 
-    n_length_genes = 2;
+    n_length_genes = 0;
     minJ=4;
-    maxJ=24;
-    n_mediums=5;
+    maxJ=16;
+    n_mediums=4;
     med_table = new int[n_mediums];
-    med_table[0] = 5;
-    med_table[1] = 4;
-    med_table[2] = 3;
-    med_table[3] = 2;
-    med_table[4] = 1;
+    med_table[0] = 8;
+    med_table[1] = 5;
+    med_table[2] = 1;
+    med_table[3] = 1;
     n_diffusers=4;
     n_MF=2;
-    minM=6;
+    minM=5;
+    gthresh = 2; 
+
+    // depracated
     tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
     tlength2 = 2;
+
+    // morphogen parameters
+    secr_rate = new double[n_diffusers];
+    diff_coeff = new double[n_diffusers];
+    decay_rate = new double[n_diffusers];
+  
+    secr_rate[0] = 2.6e-3;
+    decay_rate[0] = 2e-3;
+    diff_coeff[0] = 4e-7; 
+
+    secr_rate[1] = 2.6e-3;
+    decay_rate[1] = 2e-3;
+    diff_coeff[1] = 4e-7;
+
+    secr_rate[2] = 3e-3;
+    decay_rate[2] = 6e-4;
+    diff_coeff[2] = 4e-6; 
+
+    secr_rate[3] = 3e-3;
+    decay_rate[3] = 6e-4;
+    diff_coeff[3] = 4e-6; 
+
+
 
 
     // phase transition params;
@@ -139,30 +164,6 @@
     J_med2=J_med;//0.5*J_diff+0.5;
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
-
-    // morphogen parameters
-    secr_rate = new double[n_diffusers];
-    diff_coeff = new double[n_diffusers];
-    decay_rate = new double[n_diffusers];
-  
-    secr_rate[0] = 2.4e-3;
-    decay_rate[0] = 2e-3;
-    diff_coeff[0] = 8e-7; 
-
-    secr_rate[1] = 2.4e-3;
-    decay_rate[1] = 2e-3;
-    diff_coeff[1] = 8e-7;
-
-    secr_rate[2] = 2e-3;
-    decay_rate[2] = 8e-4;
-    diff_coeff[2] = 4e-6; 
-
-    secr_rate[3] = 2e-3;
-    decay_rate[3] = 8e-4;
-    diff_coeff[3] = 4e-6; 
-
-    // might make this a optimizable parameter as well
-    gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
     melting_adhesion = false;
     tip_max = 50;
@@ -227,7 +228,6 @@
     waiting_time = 2000;
     equilibriate = 2000;
 
-
     highT=true;
     highT_time = 100;
     highT_temp = 10;
@@ -237,7 +237,6 @@
     IntegerHamiltonian = false;
 
     insitu_shapes=true;
-
 
 /* differentiation parameters */
 
@@ -278,7 +277,7 @@
     start_n = { { 0, 0, 1, 1, -2, 0 }, { -2, 0, -1, 1, 0, 0 }, { 0, 1, 0, 0, -2, 0 }, { 0, 1, -1, 0, 0, 1 }, { 2, 0, 1, -1, 2, 0 }, { 2, 0, 1, -1, 0, 1 }, { 2, -2, -2, 0, 1, -1 }, { -1, 2, 0, 1, 0, -1 }, };
     
     evo_pics = true;
-    pic_gen_interval = 50;
+    pic_gen_interval = 100;
     pic_dir = "images";
   
     evs = 10000;
@@ -308,7 +307,7 @@
     divisions = 0;
 
     //programmed division parameters
-    end_program = 1000;
+    end_program = 400;
     begin_network = 50;
     div_freq = 10;
     // begin_movement=1200;

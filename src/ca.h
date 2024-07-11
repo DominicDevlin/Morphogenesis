@@ -96,7 +96,7 @@ public:
 
   int CountSomaticCells(void); 
 
-  void start_network(vector<vector<int>> start_matrix, vector<bool> start_pol={0,0,0,0});
+  void start_network(vector<vector<int>> start_matrix);
 
   void update_network(int tsteps);
 

@@ -409,15 +409,15 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       dishes[i].CPM->AmoebaeMove(t);
     
 
-      // calculate the diversity over last 20% of time steps. 
-      if (t > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
+      // calculate complexity 
+      if (t == par.mcs - 1 )// > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
       {
         // am now doing for curvature as well (taking mean)
         dishes[i].CPM->update_fitness();
       }
  
       // ensure all cells are connected for shape calculations. 
-      if (t == par.mcs-1)
+      if (t % 1000 == 0 || (t<1000 && t>par.end_program && t%100 == 0))
       {
         bool check_shape = dishes[i].CPM->CheckShape();
         if (check_shape == false)
@@ -431,7 +431,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (t == par.mcs-1)
       {
         inter_org_fitness[i] = dishes[i].CPM->get_fitness();
-
       }        
     }
         
