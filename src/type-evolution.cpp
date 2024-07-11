@@ -389,28 +389,40 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
       }
       dishes[i].CPM->AmoebaeMove(t);
     
-      // calculate complexity 
-      if (t == par.mcs - 1 )// > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
+      if (time % (par.fluctuate_interval*2) < par.fluctuate_interval) 
       {
-        // am now doing for curvature as well (taking mean)
-        dishes[i].CPM->update_fitness();
-      }
- 
-      // ensure all cells are connected for shape calculations. 
-      if (t % 1000 == 0 || (t<1000 && t>par.end_program && t%100 == 0))
-      {
-        bool check_shape = dishes[i].CPM->CheckShape();
-        if (check_shape == false)
+        // calculate complexity 
+        if (t == par.mcs - 1 )// > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
         {
-          inter_org_fitness[i] = 0;
-          t = par.mcs;
-          // cout << "Org number: " << i << " has bad shape. " << endl;
+          // am now doing for curvature as well (taking mean)
+          dishes[i].CPM->update_fitness();
+        }
+  
+        // ensure all cells are connected for shape calculations. 
+        if (t % 1000 == 0 || (t<1000 && t>par.end_program && t%100 == 0))
+        {
+          bool check_shape = dishes[i].CPM->CheckShape();
+          if (check_shape == false)
+          {
+            inter_org_fitness[i] = 0;
+            t = par.mcs;
+            // cout << "Org number: " << i << " has bad shape. " << endl;
+          }
+        }
+        // get fitness at end of development
+        if (t == par.mcs-1)
+        {
+          inter_org_fitness[i] = dishes[i].CPM->get_fitness();
         }
       }
-      // get fitness at end of development
-      if (t == par.mcs-1)
+      else
       {
-        inter_org_fitness[i] = dishes[i].CPM->get_fitness();
+        // do fluctuating selection
+        if (t == par.mcs - 1 )
+        {
+          inter_org_fitness[i] = dishes[i].CPM->CountStableTypes();
+        }        
+
       }        
     }
         
@@ -531,7 +543,6 @@ int main(int argc, char *argv[]) {
   par.print_fitness=false;
   par.randomise=false;
   par.gene_output=false;
-  par.gene_record = false;
   par.store = false;
   par.velocities=false;
   par.output_gamma=false;
@@ -540,7 +551,8 @@ int main(int argc, char *argv[]) {
   par.output_sizes=false;
   par.mcs = 12000;
   
-
+  // this is true for type selection
+  par.gene_record = true;
   Parameter();
 
   // This is currently depracated. 

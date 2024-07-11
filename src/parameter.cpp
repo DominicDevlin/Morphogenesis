@@ -35,14 +35,14 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
     // Generate a random genome
-    randomise = true;
+    randomise = false;
 
     // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
     // output data for analysis (connectivity, gene expression, state transitions)
@@ -85,12 +85,12 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 5, 2, 2 }, { 5, 5, 5 }, { 5, 5, 2 }, { -1, -1, 1 } };
+    start_matrix = { { 0, -2, 1, 1, 0, 0, 0, 1, 1, 1 }, { 0, 1, 1, 1, 0, 0, 1, -1, 0, 0 }, { 0, -2, 0, -1, 0, 0, -1, 1, 1, -1 }, { 1, 0, -1, 1, 0, 0, 0, -1, -1, -1 }, { 2, 0, 0, 0, 0, 0, 0, -2, 1, 0 }, { 0, 0, 0, 1, 0, 0, 0, 1, 1, 0 }, { 0, 0, 0, 0, 0, 2, 0, 0, 0, 0 }, { -1, 1, 1, -1, -1, 0, 1, 0, -2, 0 }, { -1, 1, -1, 0, 0, 0, -2, 1, 2, 0 }, { 0, -1, -1, 0, 0, 0, 0, 0, 1, 0 }, { 0, -1, 0, 1, 0, 1, 0, -1, 0, -1 }, { 0, -2, -1, 0, 1, 0, 0, 0, 1, 0 }, { 0, 2, 0, 0, 0, 0, 1, 1, 1, 0 }, { 1, 1, -2, 1, -1, -1, 0, -2, 0, 0 }, { 1, 0, 0, -1, -1, -1, -1, 0, 0, 0 }, { -1, 0, 0, 1, -1, 1, 0, 0, 1, 0 }, { 0, 0, 1, 0, 1, 1, -1, 1, -1, 1 }, { 0, 0, 1, 0, -1, 0, 0, 1, 0, 2 }, { 0, 1, 0, 1, 0, -1, -2, 1, 0, 0 }, { 1, 1, 0, 1, 0, 2, 1, 0, 1, 0 }, { -2, 0, 1, 0, 1, 0, 1, 0, -1, 0 }, { 0, 1, 1, 2, 0, 0, 1, -2, -1, 1 }, { -1, 1, 0, 1, 0, -1, 2, -1, -2, 0 }, { 0, -1, -1, -2, 0, 2, 0, 0, -2, 0 }, { 2, 0, -1, 0, 0, 0, -2, 0, 1, 0 }, { 0, 1, 0, 0, -2, 0, 0, 0, 0, 1 }, };
 
 /* Cellular Potts parameters */
     sizex = 250;
     sizey = 250;
-    mcs = 12000;
+    mcs = 10000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -268,12 +268,13 @@
     asymmetry_selection = true; 
     asym_only = false;
     swap_selection = 240.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
-    // start from a certain network
+    // fluctuating selection interval
+    fluctuate_interval = 1;
     growth_selection=false;
     elongation_selection = false;
     starter = false;
-    n_orgs = 60; // should be multiple of 4, 60 used for evolution
-
+    n_orgs = 4; // should be multiple of 4, 60 used for evolution
+    // start from a certain network
     start_n = { { 0, 0, 1, 1, -2, 0 }, { -2, 0, -1, 1, 0, 0 }, { 0, 1, 0, 0, -2, 0 }, { 0, 1, -1, 0, 0, 1 }, { 2, 0, 1, -1, 2, 0 }, { 2, 0, 1, -1, 0, 1 }, { 2, -2, -2, 0, 1, -1 }, { -1, 2, 0, 1, 0, -1 }, };
     
     evo_pics = true;

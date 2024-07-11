@@ -2881,7 +2881,7 @@ int CellularPotts::CountStableTypes()
       {
         int t = c->GetPhenotype();
         type_counter[t] += 1;
-        cout << t << endl;
+        // cout << t << endl;
       }
     }
   }
@@ -2891,6 +2891,7 @@ int CellularPotts::CountStableTypes()
   {
     if (pair.second >= 10)
     {
+      cout << pair.first << '\t' << pair.second << endl;
       ++sum_of_keys;
     }
   }

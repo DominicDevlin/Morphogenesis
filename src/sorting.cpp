@@ -225,11 +225,11 @@ TIMESTEP {
         }
 
       }
-      if (par.insitu_shapes && t % 500 == 0)
-      {
-        dish->CPM->ShapeIndexByState();
-        dish->CPM->AdhesionByState();
-      }
+      // if (par.insitu_shapes && t % 500 == 0)
+      // {
+      //   dish->CPM->ShapeIndexByState();
+      //   dish->CPM->AdhesionByState();
+      // }
       
       if (par.velocities)
       {
