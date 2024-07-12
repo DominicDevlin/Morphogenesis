@@ -320,6 +320,7 @@ class Parameter {
   bool evo_pics;
   int pic_gen_interval;
   int fluctuate_interval;
+  bool select_switch;
 
   bool starter;
   vector<vector<int>> start_n;

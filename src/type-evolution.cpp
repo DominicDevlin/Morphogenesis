@@ -389,13 +389,16 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
       }
       dishes[i].CPM->AmoebaeMove(t);
     
-      if (time % (par.fluctuate_interval*2) < par.fluctuate_interval) 
+
+      if (par.select_switch)
       {
         // calculate complexity 
         if (t == par.mcs - 1 )// > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
         {
-          // am now doing for curvature as well (taking mean)
+          // am now doing for curvature as well
           dishes[i].CPM->update_fitness();
+          // get fitness at end of development
+          inter_org_fitness[i] = dishes[i].CPM->get_fitness();
         }
   
         // ensure all cells are connected for shape calculations. 
@@ -409,11 +412,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
             // cout << "Org number: " << i << " has bad shape. " << endl;
           }
         }
-        // get fitness at end of development
-        if (t == par.mcs-1)
-        {
-          inter_org_fitness[i] = dishes[i].CPM->get_fitness();
-        }
       }
       else
       {
@@ -421,7 +419,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
         if (t == par.mcs - 1 )
         {
           inter_org_fitness[i] = dishes[i].CPM->CountStableTypes();
-          cout << "fitness is: " << inter_org_fitness[i] << endl;
+          // cout << "fitness is: " << inter_org_fitness[i] << endl;
         }        
 
       }        
@@ -464,16 +462,12 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
 
 
 
-
-
-
-
   vector<vector<vector<int>>> nextgen{};
   int j = 0;
   for (int i=0; i < par.n_orgs;++i)
   {
     // Currently no random networks are added if largest fitness > this
-    if (inter_org_fitness.front() > 30 || !par.insert_randoms)
+    if (inter_org_fitness.front() > 30 || !par.insert_randoms || par.select_switch == false)
     {
       nextgen.push_back(network_list.at(j));
 
@@ -585,6 +579,14 @@ int main(int argc, char *argv[]) {
     // {
     //   printn(networks.front(), polarities.front(), fit);
     // }
+    if (t % par.fluctuate_interval == 0)
+    {
+      if (par.select_switch == true)
+        par.select_switch = false;
+      else
+        par.select_switch = true;
+    }
+
   }
   // finished
   par.CleanUp();

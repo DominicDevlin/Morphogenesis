@@ -4029,7 +4029,7 @@ void CellularPotts::update_fitness()
     }
     else
     {
-      asymmetry = asymmetry / 2.;
+      // asymmetry = asymmetry / 2.;
       shape_fitness_list.push_back(dev + wspc + asymmetry);
     }
   }

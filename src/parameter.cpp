@@ -85,13 +85,13 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, 2, 0, 0, 0, 0, -2, 0, 1 }, { 0, 1, 0, 0, 0, 1, 0, 1, 0, 0 }, { 0, -2, 0, 0, -1, 1, -1, 1, 0, 0 }, { 2, 2, 1, 0, -2, 1, 1, -2, -2, 0 }, { 0, -1, 0, 1, 2, 1, 0, 0, 0, 0 }, { 0, 0, 2, 0, 1, 0, 0, 0, 0, -1 }, { 0, -1, -1, 0, 1, 0, -1, 0, 0, 2 }, { 0, 0, 1, 2, 0, 0, -1, -1, 0, 0 }, { 0, -1, 0, 1, 1, 0, 1, 0, 1, -1 }, { -1, -2, -1, 0, 2, 1, -2, 0, 0, 0 }, { -1, 0, 0, 0, 0, 0, 0, 0, 1, 0 }, { 0, 0, 0, 0, 0, -1, -1, 0, 2, 2 }, { 0, 0, 0, 1, 1, 1, 1, 1, 0, 0 }, { 0, 0, 0, 0, 0, 1, 0, 0, 1, 0 }, { 2, -1, 0, 0, 1, 1, 2, 2, 0, 0 }, { -1, -1, 0, 0, 0, 1, -1, 0, 0, -1 }, { 0, 2, 1, 0, -1, -1, -1, 0, 0, -2 }, { 0, 1, 0, 0, 1, -2, 0, -1, 0, 0 }, { -1, 1, -1, 1, -1, 0, 0, -1, 0, 1 }, { 0, 1, -1, 0, -1, -1, 0, 0, 0, 1 }, { 1, 0, 2, 1, -1, 0, -2, 0, 0, 1 }, { -1, 0, 0, -1, 2, 0, 0, 0, 0, 0 }, { 1, -2, -1, 1, 0, 1, 0, 1, 0, 1 }, { 0, 1, 0, 1, 0, -2, -1, -1, 0, 0 }, { 0, 0, 1, 0, 0, 0, 0, 0, 0, 1 }, { 0, 0, 0, -2, 0, 0, -2, 0, 0, 2 }, };
+    start_matrix = { { 0, -1, 1, -2, 0, -1, 1, 1, 1, 0 }, { 0, -1, 0, 0, 0, 1, 0, 1, 1, 0 }, { 0, 0, 0, 0, 1, 2, 1, -1, -1, 0 }, { 1, 0, 1, 1, 0, -1, 0, 1, -1, 1 }, { -2, -1, 0, 0, 1, 1, 1, 0, -1, 2 }, { 0, 0, 1, 1, 1, 0, 0, 0, 1, -1 }, { -1, 0, 1, 0, 1, 0, 0, -2, 0, -1 }, { 0, 1, -1, 1, 1, 0, 0, 1, -2, 0 }, { 1, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, { 1, -1, 2, 1, 1, 0, 1, 1, 2, 0 }, { 0, 0, 0, 2, 0, 2, -2, 0, 1, -1 }, { 0, 0, 0, 1, 0, 1, -1, 0, 0, 0 }, { 0, 0, 1, 0, -1, -1, 1, 1, 0, 0 }, { 1, 1, 2, 0, 0, 1, 0, 1, 0, 2 }, { -1, 0, 1, 0, 1, 0, 0, 0, 0, 0 }, { 0, 0, -1, 1, 0, 2, 0, 0, 1, 0 }, { 0, 1, 0, -1, 0, -1, 1, 1, 1, 0 }, { 1, 1, 1, 1, 1, 0, -2, 0, -1, 0 }, { 0, -1, -1, -2, 0, 1, 0, 0, 0, -1 }, { 0, 0, 0, 1, -1, -2, 0, 1, 1, 0 }, { 1, 0, -1, 0, 2, 1, 1, -1, 0, 2 }, { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 }, { 0, 1, -2, 0, 0, -1, -1, 0, -2, 0 }, { 0, 0, -1, 1, 0, 0, -1, 1, 0, 1 }, { 0, -1, 0, 0, 0, 1, 1, -1, 0, -2 }, { 0, 0, 0, 0, 1, 0, -1, 0, 1, 0 }, };
 
 
 /* Cellular Potts parameters */
     sizex = 250;
     sizey = 250;
-    mcs = 10000;
+    mcs = 11000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -244,7 +244,7 @@
     // edges and nodes only at end of simulation (always true).
     potency_edges = true;
     // what mcs to start measuring adult types & differentiation. set to 6000 for all results
-    adult_begins = 8000;
+    adult_begins = 7000;
 
     // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
     prune_edges = false;
@@ -270,7 +270,8 @@
     asym_only = false;
     swap_selection = 240.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
     // fluctuating selection interval
-    fluctuate_interval = 1;
+    fluctuate_interval = 100;
+    select_switch = false;
     growth_selection=false;
     elongation_selection = false;
     starter = false;
@@ -303,8 +304,8 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    target_area = 6400;
-    size_init_cells = 80; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
+    target_area = 4900;
+    size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     n_init_cells = 1;
     divisions = 0;
 
