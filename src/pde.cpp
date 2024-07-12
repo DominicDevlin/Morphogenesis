@@ -46,7 +46,7 @@ PDE::PDE(const int l, const int sx, const int sy) {
   sizey=sy;
   layers=l;
   divisor=par.pde_divisor;
-  jump = floor(double(divisor)/2.);
+  jump = pow(divisor, 2);
   
   sigma=AllocateSigma(l,sx,sy);
   alt_sigma=AllocateSigma(l,sx,sy);
@@ -253,19 +253,23 @@ void PDE::Secrete(CellularPotts *cpm)
       for (int x=0;x<sizex;x++)
         for (int y=0;y<sizey;y++) 
         {
-          // inside cells with diffuser on (secrete + decay)
-          if (cpm->Sigma((x*divisor+jump),(y*divisor+jump)) > 0) 
-          {
-
-            
-            double conc = cpm->diffuser_check(n,(x*divisor+jump),(y*divisor+jump));
-            sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
-          } 
-          else 
-          {
-          // cells without diffuser on (only decay). 
-            sigma[n][x][y]-= par.decay_rate[n]*dt*sigma[n][x][y];
-          }
+          double conc{};
+          for (int xp=0;xp<divisor;xp++)
+            for (int yp=0;yp<divisor;yp++)
+            {
+              // inside cells with diffuser on (secrete + decay)
+              if (cpm->Sigma((x*divisor+xp),(y*divisor+yp)) > 0) 
+              {
+                conc += cpm->diffuser_check(n,(x*divisor+xp),(y*divisor+yp));
+                // sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
+              } 
+            }
+          sigma[n][x][y]+= (par.secr_rate[n]*dt*conc/jump - par.decay_rate[n]*dt*sigma[n][x][y]);
+          // else 
+          // {
+          // // cells without diffuser on (only decay). 
+          //   sigma[n][x][y]-= par.decay_rate[n]*dt*sigma[n][x][y];
+          // }
         }
     }
   }

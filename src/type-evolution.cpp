@@ -421,6 +421,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
         if (t == par.mcs - 1 )
         {
           inter_org_fitness[i] = dishes[i].CPM->CountStableTypes();
+          cout << "fitness is: " << inter_org_fitness[i] << endl;
         }        
 
       }        
