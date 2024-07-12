@@ -86,8 +86,6 @@ INIT
 
     CPM->start_network(par.start_matrix);
 
-    par.mfloc1=2;
-    par.mfloc2=3;
 
     par.print_fitness = true;
     par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
