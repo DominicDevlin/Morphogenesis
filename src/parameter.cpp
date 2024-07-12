@@ -35,14 +35,14 @@
   Parameter::Parameter()
   {
     //basic grid parameters. 
-    sizex = 300;
-    sizey = 300;
+    sizex = 250;
+    sizey = 250;
     mcs = 12100;
 
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
 
     // Generate a random genome
     randomise = false;
@@ -53,7 +53,7 @@
     // gene record needs to always be on to test network connectivity. 
     gene_record = true;
     // include regulatory proteins in the state space 
-    max_statespace = true;
+    max_statespace = false;
 
     //for umap
     umap = false;
@@ -76,7 +76,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=15578219141350747043;
+    pickseed=0;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -84,7 +84,7 @@
 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { -1, -1, -2, 0, -2, 1, -2, 0, 2 }, { 1, 0, 2, 2, 0, 0, 2, 2, 0 }, { 0, 1, 0, -1, 2, 0, 1, 0, 0 }, { 1, -1, 0, 1, 0, 0, 0, 0, 0 }, { 0, 1, 0, 0, 0, 0, 0, -1, 0 }, { 1, 0, 0, 0, 0, 0, 2, 0, 0 }, { -1, 1, 0, 0, 1, 0, 0, 0, 0 }, { 0, 0, -1, 0, 0, -1, 1, 2, 0 }, { 0, 1, 0, 2, -1, 0, 0, -1, 1 }, { -1, 0, 0, 0, 1, 0, 0, 2, 0 }, { 0, 1, -1, 0, 0, 0, 1, 0, 0 }, { 0, 0, -1, 0, 0, 0, -1, 2, -2 }, { 0, 1, 2, 0, 1, -2, 0, 0, 0 }, { 0, 0, 1, 0, 0, 0, -1, -1, 1 }, { 0, 1, 1, -1, 0, 0, 0, 1, -1 }, { 0, 1, 0, 1, 0, 0, 0, 2, -2 }, { 1, 0, 0, -1, 0, 0, 1, 0, 0 }, { 1, 0, 2, 0, 2, 0, -1, 1, 1 }, { 0, 0, 1, 0, 0, 0, 0, 0, 1 }, { 0, 0, -2, -1, 1, 0, -2, 1, 1 }, { -1, 1, 0, 0, 1, 0, 0, 0, 0 }, { 0, 1, 0, 0, -1, 0, -1, 0, 0 }, { -1, 0, -1, 0, 0, 0, 0, 0, 1 }, { 1, -2, -1, 0, 1, 1, 1, 0, 0 }, { 0, -1, 0, 1, 0, -1, 0, 1, 0 }, { -1, 0, 0, 0, 0, 1, -1, 0, 0 }, { 0, -1, -1, -1, 0, 0, 0, 1, 1 }, };
+    start_matrix = { { 0, 0, 0, 0, 0, 1, 0, 0, 0 }, { 0, 1, 0, 1, 0, 1, 1, 0, 0 }, { 0, 2, 0, 1, 1, 0, 0, 1, 0 }, { 0, 1, 2, 2, 0, 0, 0, 2, 1 }, { 0, 2, 0, 0, 1, 0, 0, 0, 2 }, { -1, 0, 1, -1, 1, 2, 0, -1, 0 }, { 0, 0, 0, -1, 0, -1, -1, 0, 0 }, { -1, 0, 0, 2, 0, 0, 0, 0, 2 }, { 0, 1, 0, 0, 0, 2, 0, -1, 0 }, { 0, 1, 2, -1, 1, -2, 1, 0, 0 }, { 0, 0, 0, -1, 1, 2, 0, 1, 1 }, { 1, -1, 1, 1, 0, -2, 0, 0, 1 }, { -1, 0, -1, -1, 1, 0, 0, 1, 2 }, { 1, 0, 0, 0, 0, 0, -1, 0, 2 }, { 0, 0, 1, 0, 2, -2, 0, 2, 0 }, { 1, -1, 0, 2, 0, 0, 0, 0, 0 }, { 1, 0, 0, -1, 1, 1, 0, 0, 0 }, { 0, 0, 0, 0, 0, 1, -1, 1, -1 }, { -1, 1, 1, 0, -1, -2, 0, 0, 0 }, { -1, 0, -1, 0, 0, 0, 0, 1, 0 }, { 1, -1, 1, 0, 0, 0, -1, 0, 0 }, { -2, -1, 0, 0, 1, -1, -1, 1, 0 }, { 0, 0, -1, -2, 1, -1, 0, 2, -2 }, { -1, -1, 0, 1, 0, -2, 0, 0, 1 }, { 0, -1, 0, 1, 0, 0, 0, 0, -1 }, { -1, -1, 0, 0, 0, 1, 0, 1, 0 }, { 0, 0, -1, 0, 1, 0, 1, 0, 2 }, };
 
 
 
@@ -401,7 +401,7 @@
     {
       
       diff_coeff[2] = 8e-7; 
-      decay_rate[2] = 2.4e-3;
+      decay_rate[2] = 2e-3;
       secr_rate[2] = 2.4e-3;//2.4e-3;
       
       // Morphogens with shorter range 
