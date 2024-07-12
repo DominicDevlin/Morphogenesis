@@ -173,7 +173,6 @@ TIMESTEP {
       if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
       {
         dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
-
       }
 
 
@@ -594,11 +593,9 @@ TIMESTEP {
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
-
       dish->CPM->print_random_cell();
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;
-
       dish->CPM->PrintPhenotypes();
       // dish->CPM->WhiteSpace();
       // dish->CPM->DeviationFromCircle();
@@ -608,9 +605,7 @@ TIMESTEP {
       double center[] = {0.0,0.0};
       dish->CPM->get_center(center);
       cout << "x center: " << center[0] << "   y center: " << center[1] << endl;
-
       dish->CPM->PrintColours();
-
       // dish->CPM->prop_success();
     }
 
@@ -630,8 +625,8 @@ TIMESTEP {
 
     if (par.convert_cells && par.convert_time == t)
     {
-      dish->CPM->ConvertToStem(par.convert_x,par.convert_y,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius);
-      dish->CPM->ConvertToStem(100,230,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius);  
+      // dish->CPM->ConvertToStem(par.convert_x,par.convert_y,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius);
+      // dish->CPM->ConvertToStem(100,230,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius);  
     }
 
 

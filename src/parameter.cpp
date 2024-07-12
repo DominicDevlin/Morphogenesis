@@ -56,17 +56,17 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = true;
+    velocities = false;
     record_directions = false;
 
     // record cell sizes
-    output_sizes = true;
+    output_sizes = false;
 
     // record gamma parameter
     output_gamma = false;
 
     // read genomes from file
-    file_genomes = true;
+    file_genomes = false;
 
     //name of data file
     data_file = "org-data";
@@ -85,8 +85,9 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, -1, 1, -2, 0, -1, 1, 1, 1, 0 }, { 0, -1, 0, 0, 0, 1, 0, 1, 1, 0 }, { 0, 0, 0, 0, 1, 2, 1, -1, -1, 0 }, { 1, 0, 1, 1, 0, -1, 0, 1, -1, 1 }, { -2, -1, 0, 0, 1, 1, 1, 0, -1, 2 }, { 0, 0, 1, 1, 1, 0, 0, 0, 1, -1 }, { -1, 0, 1, 0, 1, 0, 0, -2, 0, -1 }, { 0, 1, -1, 1, 1, 0, 0, 1, -2, 0 }, { 1, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, { 1, -1, 2, 1, 1, 0, 1, 1, 2, 0 }, { 0, 0, 0, 2, 0, 2, -2, 0, 1, -1 }, { 0, 0, 0, 1, 0, 1, -1, 0, 0, 0 }, { 0, 0, 1, 0, -1, -1, 1, 1, 0, 0 }, { 1, 1, 2, 0, 0, 1, 0, 1, 0, 2 }, { -1, 0, 1, 0, 1, 0, 0, 0, 0, 0 }, { 0, 0, -1, 1, 0, 2, 0, 0, 1, 0 }, { 0, 1, 0, -1, 0, -1, 1, 1, 1, 0 }, { 1, 1, 1, 1, 1, 0, -2, 0, -1, 0 }, { 0, -1, -1, -2, 0, 1, 0, 0, 0, -1 }, { 0, 0, 0, 1, -1, -2, 0, 1, 1, 0 }, { 1, 0, -1, 0, 2, 1, 1, -1, 0, 2 }, { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 }, { 0, 1, -2, 0, 0, -1, -1, 0, -2, 0 }, { 0, 0, -1, 1, 0, 0, -1, 1, 0, 1 }, { 0, -1, 0, 0, 0, 1, 1, -1, 0, -2 }, { 0, 0, 0, 0, 1, 0, -1, 0, 1, 0 }, };
+    start_matrix = { { -1, 0, -1, 1, 1, 1, -1, 1, 0, 0 }, { 0, -1, 0, 0, 1, 0, 1, 1, 0, 1 }, { 1, 1, 0, 1, 1, 1, 0, 0, 1, -1 }, { 0, 1, 1, 1, 1, 0, 1, -1, -1, 0 }, { 1, 0, 0, -2, 1, 0, 0, 0, 0, 0 }, { 1, -1, 0, -1, 0, 0, -1, 0, 0, 1 }, { 2, 0, 0, -1, 1, 0, -2, 0, 1, 0 }, { 0, -1, 0, 1, 0, 2, 0, 1, -1, 0 }, { -1, 0, -1, 1, 0, 0, 0, 1, 0, 0 }, { 0, 1, 0, -2, 0, 0, 0, 1, 0, 0 }, { 2, -2, 0, 1, -1, -1, 1, 0, -1, 0 }, { -2, 0, 1, 1, 0, 0, 0, 0, 1, -1 }, { -1, -2, 0, -1, 0, 0, 0, 1, 0, 1 }, { -2, 2, 0, 1, 1, 1, -2, 0, -1, 0 }, { 1, 0, 1, 2, -1, 0, 1, -1, 0, 2 }, { 0, 0, -1, 1, 1, 0, 1, -1, 0, 0 }, { 0, 1, 0, 0, 0, 0, -1, 0, 0, -2 }, { 0, 0, -1, 0, 0, 1, -1, 0, 2, 2 }, { -1, 1, 0, 0, 0, -1, 1, 0, 1, -1 }, { 0, 1, -1, 0, 0, 0, 1, 1, 0, -1 }, { 0, 1, 0, 0, 2, 0, 1, 0, 0, -1 }, { 1, 0, 1, 1, 0, 0, -1, 0, -2, 0 }, { 0, 0, 0, -1, 1, 0, 1, 2, 0, 0 }, { 0, 0, 0, 0, 1, 0, 0, 0, 1, 0 }, { 1, 1, 2, 1, 0, -2, 0, 0, 1, -1 }, { 0, -1, 0, 0, 2, 1, 0, 0, 0, 1 }, };
 
+    
 
 /* Cellular Potts parameters */
     sizex = 250;
@@ -364,7 +365,7 @@
     count_bud_cells = false;
 
     // print single cell proteins
-    single_cell = true;
+    single_cell = false;
     // the phenotype number to return
     single_type = 350;
     // start all cells from "single state" initial condition for ex vivo
@@ -455,7 +456,7 @@
 
 
     
-    // enzymes that can break down the morphogen
+    // depracated - enzymes that can break down the morphogen
     enzymes = false;
     reaction_rate = 5e-3; 
 
