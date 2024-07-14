@@ -535,7 +535,6 @@ TIMESTEP {
       {
         // Graph newgraph(phens.size());
         // newgraph.CreateDiGraph(phens, types, edge_start, edge_end);
-
         // cout << "Having a look at the undirected graph...." << endl;
         Graph ungraph(phens.size());
         map<int,int> subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);

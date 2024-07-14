@@ -319,7 +319,8 @@ class Parameter {
   bool elongation_selection;
   bool evo_pics;
   int pic_gen_interval;
-  int fluctuate_interval;
+  int fluctuate_interval1;
+int fluctuate_interval2;
   bool select_switch;
 
   bool starter;

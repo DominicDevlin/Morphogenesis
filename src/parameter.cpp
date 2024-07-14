@@ -91,7 +91,7 @@
 /* Cellular Potts parameters */
     sizex = 250;
     sizey = 250;
-    mcs = 11000;
+    mcs = 10000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -110,21 +110,22 @@
 /* adhesion params */
 
 /*stem-cell system project params*/
-    n_lockandkey = 12; // number of lock and keys (==), stored in separate vector for ease
+    n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
     n_locks = n_lockandkey / 2;
     n_TF = 4; 
     n_length_genes = 0;
     minJ=4;
-    maxJ=16;
-    n_mediums=4;
+    maxJ=24;
+    n_mediums=5;
     med_table = new int[n_mediums];
     med_table[0] = 8;
     med_table[1] = 5;
-    med_table[2] = 1;
+    med_table[2] = 3;
     med_table[3] = 1;
+    med_table[4] = 1;
     n_diffusers=4;
     n_MF=2;
-    minM=5;
+    minM=6;
     gthresh = 2; 
 
     // depracated
@@ -144,13 +145,19 @@
     decay_rate[1] = 2e-3;
     diff_coeff[1] = 4e-7;
 
-    secr_rate[2] = 3e-3;
-    decay_rate[2] = 6e-4;
-    diff_coeff[2] = 4e-6; 
+    secr_rate[2] = 2.6e-3;
+    decay_rate[2] = 2e-3;
+    diff_coeff[2] = 4e-7;
 
-    secr_rate[3] = 3e-3;
-    decay_rate[3] = 6e-4;
-    diff_coeff[3] = 4e-6; 
+    secr_rate[3] = 2.6e-3;
+    decay_rate[3] = 2e-3;
+    diff_coeff[3] = 4e-7;
+
+
+
+    // secr_rate[3] = 3e-3;
+    // decay_rate[3] = 6e-4;
+    // diff_coeff[3] = 4e-6; 
 
 
 
@@ -244,7 +251,7 @@
     // edges and nodes only at end of simulation (always true).
     potency_edges = true;
     // what mcs to start measuring adult types & differentiation. set to 6000 for all results
-    adult_begins = 7000;
+    adult_begins = 2000;
 
     // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
     prune_edges = false;
@@ -270,8 +277,9 @@
     asym_only = true;
     swap_selection = 200.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
     // fluctuating selection interval
-    fluctuate_interval = 20;
-    select_switch = false;
+    fluctuate_interval1 = 100;
+    fluctuate_interval2 = 20;
+    select_switch = true;
     growth_selection=false;
     elongation_selection = false;
     starter = false;
@@ -280,7 +288,7 @@
     start_n = { { 1, -1, -1, 0, -1, 0, 0, 0, 0, 0 }, { 2, 0, -2, -1, 0, 0, -2, 0, 0, 0 }, { -2, 0, 0, 0, 0, 1, 0, -1, 0, 0 }, { 0, 0, 1, 1, 0, 0, 0, 0, 0, -1 }, { -1, 2, 1, 0, 1, -2, 0, 2, 1, 1 }, { 0, 0, 0, -1, -2, 2, 0, -1, 1, 0 }, { 0, 0, 1, 1, 0, 0, 2, -2, -1, 0 }, { -1, 0, 0, 0, 0, 0, -1, 0, 1, 0 }, { 0, -2, -1, 0, 0, -1, 0, 0, 1, 0 }, { -2, 1, 0, -1, 1, -2, -1, -2, 0, 0 }, { 0, 0, 0, 0, 1, 1, 1, 1, -1, -2 }, { 0, 1, 0, 2, 1, 0, 0, -1, -1, -2 }, { 0, 1, 1, 0, 0, -1, 1, -1, 0, 1 }, { -1, 1, 0, 1, 1, 0, 0, 0, 0, 1 }, { 0, 0, 0, 0, 1, 2, 1, -1, -1, 0 }, { 0, 0, 0, 0, -1, 1, 1, 0, 0, 0 }, { 0, 0, -1, 0, 1, 0, 0, -2, 2, -1 }, { 0, 0, 1, 0, 1, 0, 0, 0, 0, 0 }, { 0, 0, -1, -1, 2, 1, 0, 0, 0, -2 }, { -1, -2, 0, 0, 2, 2, 0, -2, 2, 0 }, { 2, 1, -1, 0, 0, -1, -1, 1, 0, -1 }, { -1, -1, 1, -1, 1, 0, 0, 0, 1, 0 }, { 0, -2, 1, -1, 0, 0, -1, 0, 2, 0 }, { 0, 0, 0, -1, -1, 1, -1, 0, 0, 0 }, { 1, 0, 0, 2, -1, 1, 0, -2, 1, -1 }, { 1, -1, 0, 1, -1, 0, -2, 0, 1, 0 }, };
 
     evo_pics = true;
-    pic_gen_interval = 100;
+    pic_gen_interval = 100; 
     pic_dir = "images";
   
     evs = 10000;

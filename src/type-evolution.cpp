@@ -18,6 +18,7 @@
 #include <random>
 #include "fft.h"
 #include <sys/stat.h>
+#include "connections.h"
 
 
 #ifdef QTGRAPHICS
@@ -415,6 +416,65 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
       }
       else
       {
+
+        map<int, int> phens = dishes[i].CPM->get_phenotype_time();
+        map<int, int> types = dishes[i].CPM->get_AdultTypes();  
+
+        map<pair<int,int>,int> edge_tally{};
+        dishes[i].CPM->set_switches(edge_tally);
+  
+        vector<vector<int>> scc;
+        par.node_threshold = 0;
+        par.prune_edges = true;
+        map<int,int>subcomps{};
+        Graph ungraph(types.size());
+        subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+        scc = ungraph.GetComps(types, 500);
+        for (auto i : scc)
+        {
+            cout << "component: ";
+            for (int j : i)
+            {
+                cout << j << "  ";
+            }
+            cout << std::endl;
+        }
+
+        vector<pair<int,int>> topology{};
+
+        for (int i = 0; i < scc.size(); ++i) 
+        {
+          for (int j = i + 1; j < scc.size(); ++j) 
+          {
+            for (int i1 : scc[i])
+              for (int j1 : scc[j])
+              {
+                pair<int,int> edge1 = make_pair(i1, j1);
+                pair<int,int> edge2 = make_pair(j1, i1);
+
+                for (auto edge : edge_tally)
+                {
+                  if (edge.first == edge1)
+                  {
+                    pair<int,int> scc_edge = make_pair(i, j);
+                    topology.push_back(scc_edge);
+                  }
+                  if (edge.first == edge2)
+                  {
+                    pair<int,int> scc_edge = make_pair(j, i);
+                    topology.push_back(scc_edge);
+                  }
+                }
+              }
+          }
+        }
+
+
+
+
+
+
+
         // do fluctuating selection
         if (t == par.mcs - 1 )
         {
@@ -447,6 +507,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
       string foutput = dirn + "/" + f2 + n2 + ftype;
       new_org.cpmOutput(foutput);
     }
+
   }
 
   delete[] dishes;
@@ -544,7 +605,9 @@ int main(int argc, char *argv[]) {
   par.pickseed = 0;
   par.umap = false;
   par.output_sizes=false;
-  par.mcs = 12000;
+  par.potency_edges = true;
+  par.mcs = 10000;
+  par.adult_begins = 4000;
   
   // this is true for type selection
   par.gene_record = true;
@@ -566,7 +629,8 @@ int main(int argc, char *argv[]) {
       networks.push_back(get_random_network());
     }
   }
-
+  int count1=0;
+  int count2=0;
 
   for (int t=0;t<par.evs;++t)
   {
@@ -579,13 +643,25 @@ int main(int argc, char *argv[]) {
     // {
     //   printn(networks.front(), polarities.front(), fit);
     // }
-    if (t % par.fluctuate_interval == 0)
+    if (par.select_switch)
     {
-      if (par.select_switch == true)
+      ++count1;
+      if (count1 % par.fluctuate_interval1 == 0)
+      {
         par.select_switch = false;
-      else
-        par.select_switch = true;
+        count1=0;
+      }
     }
+    else
+    {
+      ++count2;
+      if (count2 % par.fluctuate_interval2 == 0)
+      {
+        par.select_switch = true;
+        count2=0;
+      }
+    }
+
 
   }
   // finished

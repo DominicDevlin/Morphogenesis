@@ -295,13 +295,6 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int> &nodes, map<int, int> &ty
 	// create SCC. This creates all the components stored in "components"
 	this->SCC();
 
-	// for (auto i : components)
-	// {
-	// 	for (auto j : i)
-	// 		cout << "PRINTING " << j << " ";
-	// 	cout << endl;
-	// }
-
 	// prune SCC to exclude transients
 	for (int i = 0; i < components.size(); ++i)
 	{
