@@ -342,6 +342,70 @@ TIMESTEP {
             }
             cout << std::endl;
         }
+        vector<int> remaining_nodes;
+        for (vector<int> &i : scc)
+          for (int j : i)
+          {
+            remaining_nodes.push_back(j);
+          }
+
+        vector<pair<int,int>> danglers;
+
+        for (auto edge : edge_tally)
+        {
+          int start = edge.first.first;
+          int end = edge.first.second;
+          if (find(remaining_nodes.begin(), remaining_nodes.end(), end) == remaining_nodes.end())
+          {
+            vector<int> attachers;
+            for (auto edge : edge_tally)
+            {
+              
+            }
+          }
+          else
+          {
+            danglers.push_back(edge.first);
+          }
+        }
+
+
+
+ 
+        vector<pair<int,int>> topology{};
+
+        for (int i = 0; i < scc.size(); ++i) 
+        {
+          for (int j = i + 1; j < scc.size(); ++j) 
+          {
+            for (int i1 : scc[i])
+              for (int j1 : scc[j])
+              {
+                pair<int,int> edge1 = make_pair(i1, j1);
+                pair<int,int> edge2 = make_pair(j1, i1);
+
+                for (auto edge : edge_tally)
+                {
+                  cout << edge1.first << '\t' << edge1.second << " +++ " << edge.first.first << '\t' << edge.first.second << endl;
+                  if (edge.first == edge1)
+                  {
+                    pair<int,int> scc_edge = make_pair(i, j);
+                    topology.push_back(scc_edge);
+                  }
+                  if (edge.first == edge2)
+                  {
+                    pair<int,int> scc_edge = make_pair(j, i);
+                    topology.push_back(scc_edge);
+                  }
+                }
+              }
+          }
+        }
+
+        for (auto i : topology)
+        {
+          cout << i.first << '\t' << i.second << endl;
+        }
       }
 
       if (par.potency_edges)
