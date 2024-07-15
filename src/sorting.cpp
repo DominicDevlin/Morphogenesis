@@ -607,11 +607,11 @@ TIMESTEP {
     }
 
     // used to create morphogen stuff
-    // if (t==3000)
-    // {
-    //   dish->PDEfield->PrintAxisConcentrations(false, 125);
-    //   // dish->CPM->OutputProteinNorms();
-    // }
+    if (t==3000)
+    {
+      dish->PDEfield->PrintAxisConcentrations(true, 125);
+      // dish->CPM->OutputProteinNorms();
+    }
 
 
     if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
