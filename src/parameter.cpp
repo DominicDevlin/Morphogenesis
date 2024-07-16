@@ -102,9 +102,9 @@
     node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
 
     // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
-    prune_edges = false;
+    prune_edges = true;
     
-    prune_amount = 8;
+    prune_amount = 5;
 
     cycle_check = false;
 

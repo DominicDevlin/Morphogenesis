@@ -115,6 +115,7 @@ INIT
 
 }
 
+
 TIMESTEP { 
  
   try {
@@ -332,7 +333,7 @@ TIMESTEP {
         map<int,int>subcomps{};
         Graph ungraph(types.size());
         subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-        scc = ungraph.GetComps(types, 500);
+        scc = ungraph.GetComps(types, 1000);
         for (auto i : scc)
         {
             cout << "component: ";
