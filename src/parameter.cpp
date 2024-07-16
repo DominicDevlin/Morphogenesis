@@ -35,9 +35,9 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -118,18 +118,18 @@
     maxJ=24;
     n_mediums=5;
     med_table = new int[n_mediums];
-    med_table[0] = 5;//8;
-    med_table[1] = 4;//5;
+    med_table[0] = 8;//8;
+    med_table[1] = 5;//5;
     med_table[2] = 3;
-    med_table[3] = 2;//1;
+    med_table[3] = 1;//1;
     med_table[4] = 1;
-    n_diffusers=3;
+    n_diffusers=4;
     n_MF=2;
     minM=6;
     gthresh = 2; 
 
     
-    tlength1 = 2; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
+    tlength1 = 2; // target length with 1 gene or 2 genes on. These are multipliers. 2 is approximately circle.
     tlength2 = 6;
 
     // morphogen parameters
@@ -137,21 +137,37 @@
     diff_coeff = new double[n_diffusers];
     decay_rate = new double[n_diffusers];
   
-    secr_rate[0] = 3e-3;
-    decay_rate[0] = 2e-3;
+    secr_rate[0] = 5e-3;
+    decay_rate[0] = 3e-3;
     diff_coeff[0] = 4e-7; 
 
-    secr_rate[1] = 2.4e-3;
-    decay_rate[1] = 2e-3;
-    diff_coeff[1] = 8e-7;
+    secr_rate[1] = 5e-3;
+    decay_rate[1] = 3e-3;
+    diff_coeff[1] = 4e-7;
 
-    secr_rate[2] = 2.4e-3;
-    decay_rate[2] = 2e-3;
-    diff_coeff[2] = 8e-7;
+    secr_rate[2] = 5e-3;
+    decay_rate[2] = 3e-3;
+    diff_coeff[2] = 4e-7;
 
-    // secr_rate[3] = 3e-3;
-    // decay_rate[3] = 2e-3;
-    // diff_coeff[3] = 4e-7;
+    secr_rate[3] = 5e-3;
+    decay_rate[3] = 3e-3;
+    diff_coeff[3] = 4e-7;
+
+    // secr_rate[0] = 2.4e-3;
+    // decay_rate[0] = 2e-3;
+    // diff_coeff[0] = 8e-7; 
+
+    // secr_rate[1] = 2.4e-3;
+    // decay_rate[1] = 2e-3;
+    // diff_coeff[1] = 8e-7; 
+
+    // secr_rate[2] = 2.4e-3;
+    // decay_rate[2] = 2e-3;
+    // diff_coeff[2] = 8e-7; 
+
+
+
+
 
 
 
@@ -285,7 +301,8 @@
     starter = false;
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
     // start from a certain network
-    start_n = { { 1, -1, -1, 0, -1, 0, 0, 0, 0, 0 }, { 2, 0, -2, -1, 0, 0, -2, 0, 0, 0 }, { -2, 0, 0, 0, 0, 1, 0, -1, 0, 0 }, { 0, 0, 1, 1, 0, 0, 0, 0, 0, -1 }, { -1, 2, 1, 0, 1, -2, 0, 2, 1, 1 }, { 0, 0, 0, -1, -2, 2, 0, -1, 1, 0 }, { 0, 0, 1, 1, 0, 0, 2, -2, -1, 0 }, { -1, 0, 0, 0, 0, 0, -1, 0, 1, 0 }, { 0, -2, -1, 0, 0, -1, 0, 0, 1, 0 }, { -2, 1, 0, -1, 1, -2, -1, -2, 0, 0 }, { 0, 0, 0, 0, 1, 1, 1, 1, -1, -2 }, { 0, 1, 0, 2, 1, 0, 0, -1, -1, -2 }, { 0, 1, 1, 0, 0, -1, 1, -1, 0, 1 }, { -1, 1, 0, 1, 1, 0, 0, 0, 0, 1 }, { 0, 0, 0, 0, 1, 2, 1, -1, -1, 0 }, { 0, 0, 0, 0, -1, 1, 1, 0, 0, 0 }, { 0, 0, -1, 0, 1, 0, 0, -2, 2, -1 }, { 0, 0, 1, 0, 1, 0, 0, 0, 0, 0 }, { 0, 0, -1, -1, 2, 1, 0, 0, 0, -2 }, { -1, -2, 0, 0, 2, 2, 0, -2, 2, 0 }, { 2, 1, -1, 0, 0, -1, -1, 1, 0, -1 }, { -1, -1, 1, -1, 1, 0, 0, 0, 1, 0 }, { 0, -2, 1, -1, 0, 0, -1, 0, 2, 0 }, { 0, 0, 0, -1, -1, 1, -1, 0, 0, 0 }, { 1, 0, 0, 2, -1, 1, 0, -2, 1, -1 }, { 1, -1, 0, 1, -1, 0, -2, 0, 1, 0 }, };
+    start_n = { { 0, 0, 0, 0, 0, 1, 0, 0, 0 }, { 0, 1, 0, 1, 0, 1, 1, 0, 0 }, { 0, 2, 0, 1, 1, 0, 0, 1, 0 }, { 0, 1, 2, 2, 0, 0, 0, 2, 1 }, { 0, 2, 0, 0, 1, 0, 0, 0, 2 }, { -1, 0, 1, -1, 1, 2, 0, -1, 0 }, { 0, 0, 0, -1, 0, -1, -1, 0, 0 }, { -1, 0, 0, 2, 0, 0, 0, 0, 2 }, { 0, 1, 0, 0, 0, 2, 0, -1, 0 }, { 0, 1, 2, -1, 1, -2, 1, 0, 0 }, { 0, 0, 0, -1, 1, 2, 0, 1, 1 }, { 1, -1, 1, 1, 0, -2, 0, 0, 1 }, { -1, 0, -1, -1, 1, 0, 0, 1, 2 }, { 1, 0, 0, 0, 0, 0, -1, 0, 2 }, { 0, 0, 1, 0, 2, -2, 0, 2, 0 }, { 1, -1, 0, 2, 0, 0, 0, 0, 0 }, { 1, 0, 0, -1, 1, 1, 0, 0, 0 }, { 0, 0, 0, 0, 0, 1, -1, 1, -1 }, { -1, 1, 1, 0, -1, -2, 0, 0, 0 }, { -1, 0, -1, 0, 0, 0, 0, 1, 0 }, { 1, -1, 1, 0, 0, 0, -1, 0, 0 }, { -2, -1, 0, 0, 1, -1, -1, 1, 0 }, { 0, 0, -1, -2, 1, -1, 0, 2, -2 }, { -1, -1, 0, 1, 0, -2, 0, 0, 1 }, { 0, -1, 0, 1, 0, 0, 0, 0, -1 }, { -1, -1, 0, 0, 0, 1, 0, 1, 0 }, { 0, 0, -1, 0, 1, 0, 1, 0, 2 }, };
+
 
     evo_pics = true;
     pic_gen_interval = 100; 
@@ -312,8 +329,8 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    target_area = 8100;
-    size_init_cells = 90; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
+    target_area = 4900;
+    size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     n_init_cells = 1;
     divisions = 0;
 

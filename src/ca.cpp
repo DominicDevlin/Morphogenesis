@@ -2741,7 +2741,6 @@ void CellularPotts::start_network(vector<vector<double>> start_matrix)
   {
       i.resize(par.n_activators);
   }
-  
   if (par.randomise)
   {
     randomise_network();
@@ -2758,7 +2757,6 @@ void CellularPotts::start_network(vector<vector<double>> start_matrix)
       }
     }     
   } //set matrix to input, either from simulation or par.set_matrix
-
   vector<double> new_g;
   vector<double> new_d;
   for (int i=0;i<par.gene_vector_size;++i)
@@ -2787,7 +2785,6 @@ void CellularPotts::start_network(vector<vector<double>> start_matrix)
       }
     }
   }
-
 }
 
 

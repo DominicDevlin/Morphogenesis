@@ -452,9 +452,8 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
         // get fitness at end of development
         inter_org_fitness[i] = dishes[i].CPM->get_fitness();
 
-        if (par.select_switch)
+        if (par.asym_only == false)
         {
-
           map<int, int> phens = dishes[i].CPM->get_phenotype_time();
           map<int, int> types = dishes[i].CPM->get_AdultTypes();  
 
@@ -462,8 +461,6 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
           dishes[i].CPM->set_switches(edge_tally);
 
           vector<vector<int>> scc;
-          par.node_threshold = 0;
-          par.prune_edges = true;
           map<int,int>subcomps{};
           Graph ungraph(types.size());
           subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
@@ -552,7 +549,8 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
             if (dendrogram[n].size() > max_diffs)
               max_diffs = dendrogram[n].size();
           }
-          inter_org_fitness[i] = 1 * (0.5*max_diffs);
+          cout << "differentiates into: " << max_diffs << endl;
+          inter_org_fitness[i] += inter_org_fitness[i] * (0.5*max_diffs);
 
           // do fluctuating selection
           // if (t == par.mcs - 1 )
@@ -561,7 +559,10 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
           //   // cout << "fitness is: " << inter_org_fitness[i] << endl;
           // }        
         }
-      }        
+        }
+
+
+              
     }
         
     if (i == 1)
@@ -595,7 +596,7 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
   sorter(network_list, inter_org_fitness, dishes);
 
   //output to standard output
-  output_networks(network_list);
+  // output_networks(network_list);
 
   // output to file
   printn(network_list.front(),inter_org_fitness);

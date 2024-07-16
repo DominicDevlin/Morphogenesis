@@ -319,7 +319,7 @@ vector<vector<int>> Graph::CreateDiGraph(map<int, int> &nodes, map<int, int> &ty
 
 	vector<vector<int>> SCC_types{};
 
-	if (par.print_fitness && pruned.size() > 0)
+	if (pruned.size() > 0)
 	{
 		// cout << "new component...." << endl;
 		for (int i = 0; i < pruned.size(); ++i)
@@ -407,6 +407,7 @@ void PruneEdges(map<pair<int, int>, int> &tally, int n_orgs)
 		}
 		else
 		{
+			// cout << "Did not erase edge: " << it->first.first << " " << it->first.second << " " << it->second << endl;
 			++it;
 		}
 	}
