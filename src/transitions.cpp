@@ -67,7 +67,7 @@ TIMESTEP
 }
 
 // function that simulates a population for a single evolutionary step.
-vector<double> process_population(vector<vector<vector<double>>> &network_list, vector<vector<bool>> &pols)
+vector<double> process_population(vector<vector<vector<double>>> &network_list)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -87,7 +87,7 @@ vector<double> process_population(vector<vector<vector<double>>> &network_list, 
 
     int t;
 
-    dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
+    dishes[i].CPM->start_network(network_list.at(i));
 
     // make temperature lower for division section
     dishes[i].CPM->CopyProb(par.T);
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
   par.gene_output = false;
   par.velocities = false;
   Parameter();
-  par.n_orgs = 2;
+  par.n_orgs = 4;
   par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 20 * par.n_orgs);
   // This is currently depracated.
   vector<bool> start_p = {0, 0, 0, 0};
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
     polarities.push_back(start_p);
   }
 
-  process_population(networks, polarities);
+  process_population(networks);
 
   // finished
   par.CleanUp();
