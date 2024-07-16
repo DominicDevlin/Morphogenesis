@@ -566,7 +566,7 @@ TIMESTEP {
     }
 
     // used to create morphogen stuff
-    if (t==500)
+    if (t==3000)
     {
       dish->PDEfield->PrintAxisConcentrations(true, 125);
       // dish->CPM->OutputProteinNorms();

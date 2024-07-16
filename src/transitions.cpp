@@ -67,7 +67,7 @@ TIMESTEP
 }
 
 // function that simulates a population for a single evolutionary step.
-vector<double> process_population(vector<vector<vector<int>>> &network_list, vector<vector<bool>> &pols)
+vector<double> process_population(vector<vector<vector<double>>> &network_list, vector<vector<bool>> &pols)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
   vector<bool> start_p = {0, 0, 0, 0};
 
   // make initial random networks.
-  vector<vector<vector<int>>> networks{};
+  vector<vector<vector<double>>> networks{};
   vector<vector<bool>> polarities{};
   for (int i = 0; i < par.n_orgs; ++i)
   {

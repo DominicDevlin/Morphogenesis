@@ -327,15 +327,16 @@ public:
   Length constraint is documented in Merks et al. 2006, Dev. Biol. 
   */
   inline double TargetLength() const {
-    return 5*sqrt(area/M_PI);
-    // return target_length;
+    // return 5*sqrt(area/M_PI);
+    return target_length;
   }
 
   //! Set the Cell's target length
   inline double SetTargetLength(double l) {
     return target_length=l;
   }
-  
+
+ 
 
   //! Debugging function used to print the cell's current inertia tensor (as used for calculations of the length )
   inline void PrintInertia(void) {
@@ -1067,6 +1068,7 @@ private:
   }
 
 
+
 private:
 //! Increments the cell's actual area by 1 unit.
   inline int IncrementArea() {
@@ -1146,7 +1148,6 @@ protected:
   double EnDif(Cell &cell2);
 
   double SheetDif(Cell &cell2, double &sJ=par.sheet_J);
-
 
 
   // static int maxsigma; // the last cell identity number given out, Dom removed

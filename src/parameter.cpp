@@ -42,7 +42,7 @@
     draw_paths = false;
 
     // Generate a random genome
-    randomise = true;
+    randomise = false;
 
     // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
     // output data for analysis (connectivity, gene expression, state transitions)
@@ -95,7 +95,7 @@
     T = 3;
     target_length = 0;
     lambda = 0.5;
-    lambda2 = 0; // WARNING - do not move from 0 (deltaH function has changed)
+    lambda2 = 0.1; // WARNING - do not move from 0 (deltaH function has changed)
     div_threshold = 100;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
   
@@ -128,30 +128,30 @@
     minM=6;
     gthresh = 2; 
 
-    // depracated
-    tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
-    tlength2 = 2;
+    
+    tlength1 = 2; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
+    tlength2 = 6;
 
     // morphogen parameters
     secr_rate = new double[n_diffusers];
     diff_coeff = new double[n_diffusers];
     decay_rate = new double[n_diffusers];
   
-    secr_rate[0] = 2.6e-3;
+    secr_rate[0] = 3e-3;
     decay_rate[0] = 2e-3;
     diff_coeff[0] = 4e-7; 
 
-    secr_rate[1] = 2.6e-3;
+    secr_rate[1] = 2.4e-3;
     decay_rate[1] = 2e-3;
-    diff_coeff[1] = 4e-7;
+    diff_coeff[1] = 8e-7;
 
-    secr_rate[2] = 2.6e-3;
+    secr_rate[2] = 2.4e-3;
     decay_rate[2] = 2e-3;
-    diff_coeff[2] = 4e-7;
+    diff_coeff[2] = 8e-7;
 
-    // secr_rate[3] = 2.6e-3;
+    // secr_rate[3] = 3e-3;
     // decay_rate[3] = 2e-3;
-    // diff_coeff[3] = 1e-6;
+    // diff_coeff[3] = 4e-7;
 
 
 
@@ -196,7 +196,7 @@
 
 /*iterators */
     shrink = -16;
-    shrink_on = false;
+    shrink_on = true;
     // difference between maximum and minimum cell J
     interval1 = maxJ-minJ;
     // addition of J for each lock and key pair

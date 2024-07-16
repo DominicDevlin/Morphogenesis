@@ -376,9 +376,9 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
   //     DH-=DDH;
   //   }
   // }
-  
-  // if (tsteps > par.end_program)
-  //   lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
+  double lambda2=0;
+  if (tsteps > par.end_program)
+    lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
 
   // const double lambda_r=(*cell)[sxy].get_lambda_2();
   
@@ -386,25 +386,33 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
   // sp is expanding cell, s is retracting cell  
   if (par.lambda2>0)
   {
-    double lambda2=par.lambda2; 
-    if ( sxyp == MEDIUM ) {
-      DH -= (lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength()))
-            - (DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-              (*cell)[sxy].TargetLength())));
+
+    if ( sxyp == MEDIUM ) 
+    {
+      DH -= (lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+            - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+              (*cell)[sxy].TargetLength()) ));
       
     }
-    else if ( sxy == MEDIUM ) {
+    else if ( sxy == MEDIUM ) 
+    {
       DH -= (lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
         -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
       
     }
     else 
     {
+      double other_lam2 = (*cell)[sxy].get_lambda_2();
       DH -= (lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
           -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength()))) +
-          (lambda2* (DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+          (other_lam2* (DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
             - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
             (*cell)[sxy].TargetLength()))) ;
+      // DH -= (lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+      //     -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
+      //     ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+      //       - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+      //       (*cell)[sxy].TargetLength()) )) );
     }
   }
 
@@ -2723,13 +2731,13 @@ void CellularPotts::randomise_network()
 }
 
 
-void CellularPotts::start_network(vector<vector<int>> start_matrix)
+void CellularPotts::start_network(vector<vector<double>> start_matrix)
 {
   matrix.clear();
   matrix.resize(par.n_genes);
 
 
-  for (vector<int> &i : matrix)
+  for (vector<double> &i : matrix)
   {
       i.resize(par.n_activators);
   }
@@ -2966,6 +2974,27 @@ void CellularPotts::update_network(int tsteps)
         m_bool[i] = (meds[i]>0.5) ? true : false;
       }
 
+      if (par.n_length_genes > 0)
+      {
+        if (genes.at(par.tloc1) > 0.5 && genes.at(par.tloc2) > 0.5)
+        {
+          c->SetTargetLength(par.tlength2* sqrt(c->Area() / M_PI)); 
+          c->set_lambda_2(par.lambda2);
+        }
+        else if (genes.at(par.tloc1) > 0.5 || genes.at(par.tloc2) > 0.5)
+        {
+          c->SetTargetLength(par.tlength1* sqrt(c->Area() / M_PI));
+          c->set_lambda_2(par.lambda2);
+        }
+        else
+        {
+          c->SetTargetLength(0.0);
+          c->set_lambda_2(0);    
+        }
+      }
+
+
+
       if (par.gene_record && tsteps > par.end_program)
       {
         if (!par.max_statespace)
@@ -3047,6 +3076,13 @@ void CellularPotts::update_network(int tsteps)
               m_bool[i] = (meds[i]>0.5) ? true : false;
               full_set[i+par.n_lockandkey] = m_bool[i];
             }
+            
+            if (par.n_length_genes)
+            {
+              full_set[par.n_functional-par.n_length_genes] = ((genes.at(par.tloc1)>0.5) ? true : false);
+              full_set[par.n_functional-par.n_length_genes+1] = ((genes.at(par.tloc2)>0.5) ? true : false);     
+            }
+       
 
             for (int i=0;i<par.n_activators;++i)
             {
@@ -3430,9 +3466,12 @@ void CellularPotts::ColourCells()
       {
         full_set[i + par.n_lockandkey] = (meds[i]>0.5) ? true : false;
       }
+      if (par.n_length_genes)
+      {
+        full_set[par.n_functional-par.n_length_genes] = ((genes.at(par.tloc1)>0.5) ? true : false);
+        full_set[par.n_functional-par.n_length_genes+1] = ((genes.at(par.tloc2)>0.5) ? true : false);
+      }
 
-      full_set[par.n_functional-par.n_length_genes] = ((genes.at(par.tloc1)>0.5) ? true : false);
-      full_set[par.n_functional-par.n_length_genes+1] = ((genes.at(par.tloc2)>0.5) ? true : false);
 
       c->Phenotype();
       int ptype=c->GetPhenotype();

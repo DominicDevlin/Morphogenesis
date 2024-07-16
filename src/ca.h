@@ -96,7 +96,7 @@ public:
 
   int CountSomaticCells(void); 
 
-  void start_network(vector<vector<int>> start_matrix);
+  void start_network(vector<vector<double>> start_matrix);
 
   void update_network(int tsteps);
 
@@ -745,7 +745,7 @@ private:
   // list of non-cycling cell types
   map<int,int> type_list;
 
-  vector<vector<int>> matrix;
+  vector<vector<double>> matrix;
   vector<bool> polarity;
   int org_num=1;
 

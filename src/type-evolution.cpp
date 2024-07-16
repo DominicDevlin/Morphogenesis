@@ -75,9 +75,9 @@ void swap(double *xp, double *yp)
   *yp = temp;
 }
 
-void swapv(vector<vector<int>> *xp, vector<vector<int>> *yp)
+void swapv(vector<vector<double>> *xp, vector<vector<double>> *yp)
 {
-  vector<vector<int>> temp = *xp;
+  vector<vector<double>> temp = *xp;
   *xp = *yp;
   *yp = temp;
 
@@ -97,7 +97,7 @@ void swapd(Dish *d, int max_idx, int i)
   d[i] = tmp;
 }
 
-void sorter(vector<vector<vector<int>>> &networks, vector<double> &fitlist, Dish *dishes)
+void sorter(vector<vector<vector<double>>> &networks, vector<double> &fitlist, Dish *dishes)
 {
   int i, j, max_idx;
   int n = par.n_orgs;
@@ -151,9 +151,9 @@ bool isPathExists(vector<pair<int, int>>& edges, vector<int>& nodes, int start, 
 
 
 // randomise a new network.  
-vector<vector<int>> get_random_network()
+vector<vector<double>> get_random_network()
 {
-  vector<vector<int>> matrix;
+  vector<vector<double>> matrix;
   matrix.resize(par.n_genes);
   for (int i=0; i < par.n_genes;++i)
   {
@@ -192,39 +192,51 @@ vector<vector<int>> get_random_network()
 
 
 // mutate a network. Currently no bias towards ON when mutating networks. 
-void mutate(vector<vector<int>> &network)
+void mutate(vector<vector<double>> &network)
 {
   for (int k=0; k < par.n_mutations; ++k)
   {
     double val = double_num(mersenne);
     int i = genes_dist(mersenne);
     int j = activ_dist(mersenne);
-    if (val < 0.05)
+    if (val < 0.5)
     {
-      network[i][j] = -2;
-    }
-    else if (val < 0.20)
-    {
-      network[i][j] = -1;
-    }
-    else if (val < 0.74)
-    {
-      network[i][j] = 0;
-    }
-    else if (val < 0.93)
-    {
-      network[i][j] = 1;
+      network[i][j] -= 0.5;
+      if (network[i][j] < -2)
+        network[i][j] = -2;
     }
     else
     {
-      network[i][j] = 2;
+      network[i][j] += 0.5;
+      if (network[i][j] > 2)
+        network[i][j] = 2;
     }
+    // if (val < 0.05)
+    // {
+    //   network[i][j] = -2;
+    // }
+    // else if (val < 0.20)
+    // {
+    //   network[i][j] = -1;
+    // }
+    // else if (val < 0.74)
+    // {
+    //   network[i][j] = 0;
+    // }
+    // else if (val < 0.93)
+    // {
+    //   network[i][j] = 1;
+    // }
+    // else
+    // {
+    //   network[i][j] = 2;
+    // }
   }
 }
 
 
 
-void output_networks(vector<vector<vector<int>>>& netw)
+void output_networks(vector<vector<vector<double>>>& netw)
 {
   for (int org=0;org<par.n_orgs;++org)
     for (int i=0;i<par.n_genes;++i)
@@ -245,7 +257,7 @@ void output_networks(vector<vector<vector<int>>>& netw)
     }
 }
 
-void record_networks(vector<vector<vector<int>>>& netw, string oname)
+void record_networks(vector<vector<vector<double>>>& netw, string oname)
 {
   string nname = oname + "/" + "genomes.txt";
   std::ofstream outfile;
@@ -274,7 +286,7 @@ void record_networks(vector<vector<vector<int>>>& netw, string oname)
 
 
 
-void printn(vector<vector<int>> netw, vector<double> fitn)
+void printn(vector<vector<double>> netw, vector<double> fitn)
 {
   // create and open file
   std::string var_name = par.data_file + "/gene_networks.txt";
@@ -351,7 +363,7 @@ void printn(vector<vector<int>> netw, vector<double> fitn)
 
 
 // function that simulates a population for a single evolutionary step. 
-vector<double> process_population(vector<vector<vector<int>>>& network_list, int time)
+vector<double> process_population(vector<vector<vector<double>>>& network_list, int time)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -590,7 +602,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
 
 
 
-  vector<vector<vector<int>>> nextgen{};
+  vector<vector<vector<double>>> nextgen{};
   int j = 0;
   for (int i=0; i < par.n_orgs;++i)
   {
@@ -674,17 +686,15 @@ int main(int argc, char *argv[]) {
   par.output_sizes=false;
   par.potency_edges = true;
   par.mcs = 10000;
-  par.adult_begins = 4000;
+  par.adult_begins = 1000;
   
   // this is true for type selection
   par.gene_record = true;
   Parameter();
 
-  // This is currently depracated. 
-  vector<bool> start_p = { 0, 0, 0, 0 };
 
   // make initial random networks. 
-  vector<vector<vector<int>>> networks{};
+  vector<vector<vector<double>>> networks{};
   for (int i=0;i<par.n_orgs;++i)
   {
     if (par.starter)

@@ -243,7 +243,7 @@ class Parameter {
   int max_on; //max number of proteins on before a cell can't divide.
   int max_cells; //max cells as a cap (slows down sims, dont expect to reach this number)
 
-  vector<vector<int>> start_matrix; 
+  vector<vector<double>> start_matrix; 
   vector<bool> start_polarity;
   bool polarity_on;
 
@@ -324,7 +324,7 @@ int fluctuate_interval2;
   bool select_switch;
 
   bool starter;
-  vector<vector<int>> start_n;
+  vector<vector<double>> start_n;
 
   bool set_colours;
 
