@@ -116,6 +116,41 @@ INIT
 
 }
 
+
+void addEdge(map<int, set<int>>& graph, int u, int v) {
+    graph[u].insert(v);
+    // graph[v].insert(u); // Remove this line if the graph is directed
+}
+
+bool dfs(map<int, set<int>>& graph, int current, int target, set<int>& visited) {
+    if (current == target) return true; // target node found
+    visited.insert(current); // mark the current node as visited
+    for (int neighbor : graph[current]) {
+        if (visited.find(neighbor) == visited.end()) { // if neighbor hasn't been visited
+            if (dfs(graph, neighbor, target, visited)) return true;
+        }
+    }
+    return false;
+}
+
+bool isPathExists(vector<pair<int, int>>& edges, vector<int>& nodes, int start, int end) {
+    // Build the graph
+    map<int, set<int>> graph;
+    for (auto edge : edges) {
+        addEdge(graph, edge.first, edge.second);
+    }
+    
+    // Set of visited nodes
+    set<int> visited;
+    
+    // Start DFS from the start node
+    return dfs(graph, start, end, visited);
+}
+
+
+
+
+
 TIMESTEP { 
  
   try {
@@ -153,20 +188,6 @@ TIMESTEP {
     // programmed cell division section
     if (t < par.end_program)
     {
-
-      // // first division
-      // if (t==par.div1)
-      // {
-      //   dish->CPM->Programmed_Division();
-      // }
-      // // second division
-      // if (t==par.div2)
-      // {
-      //   dish->CPM->Programmed_Division();
-      // }
-      // //slow division period
-      // if (t%par.div_freq==200 && t > par.begin_movement)
-      //   dish->CPM->Programmed_Division();
 
       if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
       {
@@ -321,7 +342,6 @@ TIMESTEP {
         dish->CPM->set_switches(edge_tally);
       }
 
-  
 
       vector<vector<int>> scc;
       if (par.insitu_shapes)
@@ -331,7 +351,7 @@ TIMESTEP {
         map<int,int>subcomps{};
         Graph ungraph(types.size());
         subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-        scc = ungraph.GetComps(types, 500);
+        scc = ungraph.GetComps(types, 2000);
         for (auto i : scc)
         {
             cout << "component: ";
@@ -341,157 +361,96 @@ TIMESTEP {
             }
             cout << std::endl;
         }
-
-
-        vector<vector<double>> vec(scc.size());
-        map<int, vector<double>> data = dish->CPM->Get_state_shape_index();
-
-        for (const auto& pair : data )
+        vector<int> remaining_nodes;
+        for (vector<int> &i : scc)
         {
-          int count = 0;
-          for (auto &j : scc)
+          if (i.size() < 1)
+            cerr << "error in scc size!\n";
+          remaining_nodes.push_back(i[0]);
+        }
+        vector<vector<int>> dendrogram(remaining_nodes.size());
+          
+        vector<pair<int,int>> edges{};
+        vector<int> nodes{};
+        for (auto i : edge_tally)
+        {
+          edges.push_back(i.first);
+          if (std::find(nodes.begin(), nodes.end(), i.first.first) == nodes.end())
           {
-            int type = pair.first;
-            auto it = std::find(j.begin(), j.end(), type);
-            if (it != j.end())
-            {
-              for (double val : pair.second)
-              {
-                vec[count].push_back(val);
-              }
-            }
-
-            ++count;
+            nodes.push_back(i.first.first);
+          }
+          if (std::find(nodes.begin(), nodes.end(), i.first.second) == nodes.end())
+          {
+            nodes.push_back(i.first.second);
           }
         }
 
-        ofstream outfile;
-        string switch_out = par.data_file + "/state_shapes.dat";
-        outfile.open(switch_out, ios::app);
-
-        size_t max_size = 0;
-        for (const auto& inner_vec : vec) {
-            if (inner_vec.size() > max_size) 
-            {
-                max_size = inner_vec.size();
-            }
-        }
-        for (size_t i=0;i<vec.size();++i)
+        for (int i = 0; i < remaining_nodes.size(); i++)
         {
-          outfile << "SCC-"+to_string(i+1) << '\t';
-        }
-        outfile << endl;
-
-        for (size_t i = 0; i < max_size; i++) 
-        {
-            for (size_t j = 0; j < vec.size(); j++) 
-            {
-                if (i < vec[j].size()) 
-                {
-                    outfile << vec[j][i];
-                } 
-                else 
-                {
-                    outfile << "NaN"; // Print extra spaces for alignment if no element exists
-                }
-                outfile << "\t";
-            }
-            outfile << std::endl; // Newline after each column is printed
-        }
-        outfile.close();
-
-        // doing the same for adhesion
-        vector<vector<double>> vec2(scc.size());
-        map<int, vector<double>> data2 = dish->CPM->Get_state_Adhesion();
-        
-        for (const auto& pair : data2 )
-        {
-          int count = 0;
-          for (auto &j : scc)
+          for (int j = 0; j < remaining_nodes.size(); j++)
           {
-            int type = pair.first;
-            auto it = std::find(j.begin(), j.end(), type);
-            if (it != j.end())
+            if (j != i)
             {
-              for (double val : pair.second)
+              cout << i << '\t' << j << endl;
+              int start = remaining_nodes[i];
+              int end = remaining_nodes[j];
+              cout << start << '\t' << end << endl;
+              // Check if there is a path from start to end
+              if (isPathExists(edges, nodes, start, end)) 
               {
-                vec2[count].push_back(val);
+                dendrogram[i].push_back(j);
+                std::cout << "There is a path between " << start << " and " << end << std::endl;
+              } 
+              else 
+              {
+                std::cout << "No path exists between " << start << " and " << end << std::endl;
               }
             }
-
-            ++count;
           }
         }
-
-        switch_out = par.data_file + "/state_adhesion.dat";
-        outfile.open(switch_out, ios::app);
-
-        max_size = 0;
-        for (const auto& inner_vec2 : vec2) {
-            if (inner_vec2.size() > max_size) 
-            {
-                max_size = inner_vec2.size();
-            }
-        }
-        for (size_t i=0;i<vec2.size();++i)
+        vector<int> dead_ends{};
+        for (int i = 0; i < dendrogram.size(); i++)
         {
-          outfile << "SCC-"+to_string(i+1) << '\t';
+          if (dendrogram[i].size() == 0)
+          {
+            // cout << "Dead end at " << remaining_nodes[i] << endl;
+            dead_ends.push_back(i);
+          }
         }
-        outfile << endl;
+        set<int> dead_ends_set(dead_ends.begin(), dead_ends.end());
 
-        for (size_t i = 0; i < max_size; i++) 
+        // Filter dendrogram
+        auto new_end = std::remove_if(dendrogram.begin(), dendrogram.end(), [&dead_ends_set](const std::vector<int>& pair) 
         {
-            for (size_t j = 0; j < vec2.size(); j++) 
+          // Check if any element of the pair is not in dead_ends_set
+          for (int elem : pair) 
+          {
+            if (dead_ends_set.find(elem) != dead_ends_set.end()) 
             {
-                if (i < vec2[j].size()) 
-                {
-                    outfile << vec2[j][i];
-                } 
-                else 
-                {
-                    outfile << "NaN"; // Print extra spaces for alignment if no element exists
-                }
-                outfile << "\t";
+              return false; // Keep the element in dendrogram
             }
-            outfile << std::endl; // Newline after each column is printed
+          }
+          return true; // Remove the element from dendrogram
+        });
+
+        // Erase the removed elements
+        dendrogram.erase(new_end, dendrogram.end());
+
+        int max_diffs=0;
+
+        for (int i = 0; i < dendrogram.size(); ++i)
+        {
+          cout << "SCC differentiates into: ";
+          for (int j = 0; j < dendrogram[i].size(); ++j)
+          {
+            cout << remaining_nodes[dendrogram[i][j]] << '\t';
+          }
+          cout << endl;
+          if (dendrogram[i].size() > max_diffs)
+            max_diffs = dendrogram[i].size();
         }
-        outfile.close();
-
-        /* this prints individual cell states */
-        // ofstream outfile;
-        // string switch_out = par.data_file + "/state_shapes.dat";
-        // outfile.open(switch_out, ios::app);
-
-        // size_t maxLength = 0;
-        // for (const auto& pair : data) 
-        // {
-        //     maxLength = std::max(maxLength, pair.second.size());
-        // }
-        // for (const auto& pair : data) 
-        // {
-        //   outfile << pair.first << '\t';
-        // }
-        // outfile << '\n';        
-
-        // // Print the vector elements as columns
-        // for (size_t i = 0; i < maxLength; ++i) 
-        // {
-        //     for (const auto& pair : data) 
-        //     {
-        //         if (i < pair.second.size()) 
-        //         {
-        //             outfile << pair.second[i];
-        //             cout << pair.second[i] << endl;
-        //         } 
-        //         else 
-        //         {
-        //             outfile << "NaN"; // Using NaN for missing values
-        //         }
-        //         outfile << '\t';
-        //     }
-        //     outfile << '\n';
-        // }
       }
+
 
 
       if (par.potency_edges)
@@ -607,7 +566,7 @@ TIMESTEP {
     }
 
     // used to create morphogen stuff
-    if (t==3000)
+    if (t==500)
     {
       dish->PDEfield->PrintAxisConcentrations(true, 125);
       // dish->CPM->OutputProteinNorms();

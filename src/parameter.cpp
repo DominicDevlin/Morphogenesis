@@ -42,7 +42,7 @@
     draw_paths = false;
 
     // Generate a random genome
-    randomise = false;
+    randomise = true;
 
     // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
     // output data for analysis (connectivity, gene expression, state transitions)
@@ -85,7 +85,7 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { -1, 0, 0, 1, 0, 1, 1, 0, -2, 0 }, { 0, 1, 0, -1, -1, 2, 0, 0, 0, 1 }, { 0, 0, 0, 2, 0, 1, 0, 0, -1, 2 }, { 0, 0, 0, -2, 2, -1, 0, 2, 0, 1 }, { 1, -1, 0, 0, 2, 0, 0, 0, 1, -2 }, { -2, 0, -2, -1, 0, 1, -1, 0, 0, 0 }, { 1, 0, -1, 2, -2, 1, 0, 1, 1, 0 }, { 0, 0, 0, -2, 0, 0, 0, 1, -1, 0 }, { 1, 0, 1, 0, 1, 0, -1, -1, 1, -1 }, { 0, 0, 2, -1, 0, 2, 1, 1, -1, -1 }, { 0, 2, 0, 0, 1, -1, 2, 1, 1, 0 }, { 0, 0, 0, 0, 0, 1, 0, 0, 1, 1 }, { 0, -1, 1, -1, -1, -1, 0, 1, 0, 0 }, { 1, 0, 0, 0, 0, 0, 0, 0, 1, 0 }, { 1, 0, 0, 1, -1, 0, 1, 0, -1, 0 }, { 0, 0, 0, -1, 1, 0, 0, 0, 0, -1 }, { 0, -2, 0, 0, 0, 0, 0, 0, 1, -2 }, { 0, 0, 1, -1, 1, 0, 0, -2, 0, 2 }, { 0, 0, -1, -1, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, -2, 1, 0, 0, 0, -1 }, { -1, 0, 0, 0, 0, -1, 0, 1, -2, 1 }, { -1, 0, 0, 0, 1, 0, 0, 0, 0, 1 }, { 2, 0, 1, 1, 2, 0, 1, 0, 0, 1 }, { 0, 0, -1, 0, 0, -1, 0, 2, -1, 0 }, { -2, 0, 0, 0, 0, 2, 0, 0, 0, 0 }, };
+    start_matrix = { { 0, 0, 0, 0, 0, 1, 0, 0, 0 }, { 0, 1, 0, 1, 0, 1, 1, 0, 0 }, { 0, 2, 0, 1, 1, 0, 0, 1, 0 }, { 0, 1, 2, 2, 0, 0, 0, 2, 1 }, { 0, 2, 0, 0, 1, 0, 0, 0, 2 }, { -1, 0, 1, -1, 1, 2, 0, -1, 0 }, { 0, 0, 0, -1, 0, -1, -1, 0, 0 }, { -1, 0, 0, 2, 0, 0, 0, 0, 2 }, { 0, 1, 0, 0, 0, 2, 0, -1, 0 }, { 0, 1, 2, -1, 1, -2, 1, 0, 0 }, { 0, 0, 0, -1, 1, 2, 0, 1, 1 }, { 1, -1, 1, 1, 0, -2, 0, 0, 1 }, { -1, 0, -1, -1, 1, 0, 0, 1, 2 }, { 1, 0, 0, 0, 0, 0, -1, 0, 2 }, { 0, 0, 1, 0, 2, -2, 0, 2, 0 }, { 1, -1, 0, 2, 0, 0, 0, 0, 0 }, { 1, 0, 0, -1, 1, 1, 0, 0, 0 }, { 0, 0, 0, 0, 0, 1, -1, 1, -1 }, { -1, 1, 1, 0, -1, -2, 0, 0, 0 }, { -1, 0, -1, 0, 0, 0, 0, 1, 0 }, { 1, -1, 1, 0, 0, 0, -1, 0, 0 }, { -2, -1, 0, 0, 1, -1, -1, 1, 0 }, { 0, 0, -1, -2, 1, -1, 0, 2, -2 }, { -1, -1, 0, 1, 0, -2, 0, 0, 1 }, { 0, -1, 0, 1, 0, 0, 0, 0, -1 }, { -1, -1, 0, 0, 0, 1, 0, 1, 0 }, { 0, 0, -1, 0, 1, 0, 1, 0, 2 }, };
 
 
 /* Cellular Potts parameters */
@@ -113,17 +113,17 @@
     n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
     n_locks = n_lockandkey / 2;
     n_TF = 4; 
-    n_length_genes = 0;
+    n_length_genes = 2;
     minJ=4;
     maxJ=24;
     n_mediums=5;
     med_table = new int[n_mediums];
-    med_table[0] = 8;
-    med_table[1] = 5;
+    med_table[0] = 5;//8;
+    med_table[1] = 4;//5;
     med_table[2] = 3;
-    med_table[3] = 1;
+    med_table[3] = 2;//1;
     med_table[4] = 1;
-    n_diffusers=4;
+    n_diffusers=3;
     n_MF=2;
     minM=6;
     gthresh = 2; 
@@ -139,19 +139,19 @@
   
     secr_rate[0] = 2.6e-3;
     decay_rate[0] = 2e-3;
-    diff_coeff[0] = 1e-6; 
+    diff_coeff[0] = 4e-7; 
 
     secr_rate[1] = 2.6e-3;
     decay_rate[1] = 2e-3;
-    diff_coeff[1] = 1e-6;
+    diff_coeff[1] = 4e-7;
 
     secr_rate[2] = 2.6e-3;
     decay_rate[2] = 2e-3;
-    diff_coeff[2] = 1e-6;
+    diff_coeff[2] = 4e-7;
 
-    secr_rate[3] = 2.6e-3;
-    decay_rate[3] = 2e-3;
-    diff_coeff[3] = 1e-6;
+    // secr_rate[3] = 2.6e-3;
+    // decay_rate[3] = 2e-3;
+    // diff_coeff[3] = 1e-6;
 
 
 
@@ -251,10 +251,10 @@
     // edges and nodes only at end of simulation (always true).
     potency_edges = true;
     // what mcs to start measuring adult types & differentiation. set to 6000 for all results
-    adult_begins = 2000;
+    adult_begins = 1000;
 
     // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
-    prune_edges = false;
+    prune_edges = true;
     prune_amount = 6;
 
     cycle_check = false;
@@ -275,7 +275,7 @@
     // select for movement of cells towards one side of the boundary.
     asymmetry_selection = true; 
     asym_only = true;
-    swap_selection = 200.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
+    swap_selection = 240.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
     // fluctuating selection interval
     fluctuate_interval1 = 100;
     fluctuate_interval2 = 20;
@@ -292,7 +292,7 @@
     pic_dir = "images";
   
     evs = 10000;
-    insert_randoms = false;
+    insert_randoms = true;
     n_mutations = 1;
     // mut rate for gene network
     mut_rate = 0.5;
@@ -312,8 +312,8 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    target_area = 4900;
-    size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
+    target_area = 8100;
+    size_init_cells = 90; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     n_init_cells = 1;
     divisions = 0;
 

@@ -119,6 +119,36 @@ void sorter(vector<vector<vector<int>>> &networks, vector<double> &fitlist, Dish
   }
 }
 
+void addEdge(map<int, set<int>>& graph, int u, int v) {
+    graph[u].insert(v);
+    // graph[v].insert(u); // Remove this line if the graph is directed
+}
+
+bool dfs(map<int, set<int>>& graph, int current, int target, set<int>& visited) {
+    if (current == target) return true; // target node found
+    visited.insert(current); // mark the current node as visited
+    for (int neighbor : graph[current]) {
+        if (visited.find(neighbor) == visited.end()) { // if neighbor hasn't been visited
+            if (dfs(graph, neighbor, target, visited)) return true;
+        }
+    }
+    return false;
+}
+
+bool isPathExists(vector<pair<int, int>>& edges, vector<int>& nodes, int start, int end) {
+    // Build the graph
+    map<int, set<int>> graph;
+    for (auto edge : edges) {
+        addEdge(graph, edge.first, edge.second);
+    }
+    
+    // Set of visited nodes
+    set<int> visited;
+    
+    // Start DFS from the start node
+    return dfs(graph, start, end, visited);
+}
+
 
 // randomise a new network.  
 vector<vector<int>> get_random_network()
@@ -390,98 +420,135 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
       }
       dishes[i].CPM->AmoebaeMove(t);
     
-
-      if (par.select_switch)
+      // ensure all cells are connected for shape calculations. 
+      if (t % 1000 == 0 || (t<1000 && t>par.end_program && t%100 == 0))
       {
-        // calculate complexity 
-        if (t == par.mcs - 1 )// > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
+        bool check_shape = dishes[i].CPM->CheckShape();
+        if (check_shape == false)
         {
-          // am now doing for curvature as well
-          dishes[i].CPM->update_fitness();
-          // get fitness at end of development
-          inter_org_fitness[i] = dishes[i].CPM->get_fitness();
-        }
-  
-        // ensure all cells are connected for shape calculations. 
-        if (t % 1000 == 0 || (t<1000 && t>par.end_program && t%100 == 0))
-        {
-          bool check_shape = dishes[i].CPM->CheckShape();
-          if (check_shape == false)
-          {
-            inter_org_fitness[i] = 0;
-            t = par.mcs;
-            // cout << "Org number: " << i << " has bad shape. " << endl;
-          }
+          inter_org_fitness[i] = 0;
+          t = par.mcs;
+          // cout << "Org number: " << i << " has bad shape. " << endl;
         }
       }
-      else
+
+      // calculate complexity 
+      if (t == par.mcs - 1 )// > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
       {
+        // am now doing for curvature as well
+        dishes[i].CPM->update_fitness();
+        // get fitness at end of development
+        inter_org_fitness[i] = dishes[i].CPM->get_fitness();
 
-        map<int, int> phens = dishes[i].CPM->get_phenotype_time();
-        map<int, int> types = dishes[i].CPM->get_AdultTypes();  
-
-        map<pair<int,int>,int> edge_tally{};
-        dishes[i].CPM->set_switches(edge_tally);
-  
-        vector<vector<int>> scc;
-        par.node_threshold = 0;
-        par.prune_edges = true;
-        map<int,int>subcomps{};
-        Graph ungraph(types.size());
-        subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-        scc = ungraph.GetComps(types, 500);
-        for (auto i : scc)
+        if (par.select_switch)
         {
-            cout << "component: ";
-            for (int j : i)
-            {
-                cout << j << "  ";
-            }
-            cout << std::endl;
-        }
 
-        vector<pair<int,int>> topology{};
+          map<int, int> phens = dishes[i].CPM->get_phenotype_time();
+          map<int, int> types = dishes[i].CPM->get_AdultTypes();  
 
-        for (int i = 0; i < scc.size(); ++i) 
-        {
-          for (int j = i + 1; j < scc.size(); ++j) 
+          map<pair<int,int>,int> edge_tally{};
+          dishes[i].CPM->set_switches(edge_tally);
+
+          vector<vector<int>> scc;
+          par.node_threshold = 0;
+          par.prune_edges = true;
+          map<int,int>subcomps{};
+          Graph ungraph(types.size());
+          subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+          scc = ungraph.GetComps(types, 2000);
+          for (auto n : scc)
           {
-            for (int i1 : scc[i])
-              for (int j1 : scc[j])
+              cout << "component: ";
+              for (int j : n)
               {
-                pair<int,int> edge1 = make_pair(i1, j1);
-                pair<int,int> edge2 = make_pair(j1, i1);
-
-                for (auto edge : edge_tally)
-                {
-                  if (edge.first == edge1)
-                  {
-                    pair<int,int> scc_edge = make_pair(i, j);
-                    topology.push_back(scc_edge);
-                  }
-                  if (edge.first == edge2)
-                  {
-                    pair<int,int> scc_edge = make_pair(j, i);
-                    topology.push_back(scc_edge);
-                  }
-                }
+                  cout << j << "  ";
               }
+              cout << std::endl;
           }
+          vector<int> remaining_nodes;
+          for (vector<int> &n : scc)
+          {
+            if (n.size() < 1)
+              cerr << "error in scc size!\n";
+            remaining_nodes.push_back(n[0]);
+          }
+          vector<vector<int>> dendrogram(remaining_nodes.size());
+            
+          vector<pair<int,int>> edges{};
+          vector<int> nodes{};
+          for (auto n : edge_tally)
+          {
+            edges.push_back(n.first);
+            if (std::find(nodes.begin(), nodes.end(), n.first.first) == nodes.end())
+            {
+              nodes.push_back(n.first.first);
+            }
+            if (std::find(nodes.begin(), nodes.end(), n.first.second) == nodes.end())
+            {
+              nodes.push_back(n.first.second);
+            }
+          }
+
+          for (int n = 0; n < remaining_nodes.size(); n++)
+          {
+            for (int j = 0; j < remaining_nodes.size(); j++)
+            {
+              if (j != n)
+              {
+                int start = remaining_nodes[n];
+                int end = remaining_nodes[j];
+                // Check if there is a path from start to end
+                if (isPathExists(edges, nodes, start, end)) 
+                {
+                  dendrogram[n].push_back(j);
+                } 
+              }
+            }
+          }
+          vector<int> dead_ends{};
+          for (int n = 0; n < dendrogram.size(); n++)
+          {
+            if (dendrogram[n].size() == 0)
+            {
+              // cout << "Dead end at " << remaining_nodes[i] << endl;
+              dead_ends.push_back(n);
+            }
+          }
+          set<int> dead_ends_set(dead_ends.begin(), dead_ends.end());
+
+          // Filter dendrogram
+          auto new_end = std::remove_if(dendrogram.begin(), dendrogram.end(), [&dead_ends_set](const std::vector<int>& pair) 
+          {
+            // Check if any element of the pair is not in dead_ends_set
+            for (int elem : pair) 
+            {
+              if (dead_ends_set.find(elem) != dead_ends_set.end()) 
+              {
+                return false; // Keep the element in dendrogram
+              }
+            }
+            return true; // Remove the element from dendrogram
+          });
+
+          // Erase the removed elements
+          dendrogram.erase(new_end, dendrogram.end());
+
+          int max_diffs=0;
+
+          for (int n = 0; n < dendrogram.size(); ++n)
+          {
+            if (dendrogram[n].size() > max_diffs)
+              max_diffs = dendrogram[n].size();
+          }
+          inter_org_fitness[i] = 1 * (0.5*max_diffs);
+
+          // do fluctuating selection
+          // if (t == par.mcs - 1 )
+          // {
+          //   inter_org_fitness[i] = dishes[i].CPM->CountStableTypes();
+          //   // cout << "fitness is: " << inter_org_fitness[i] << endl;
+          // }        
         }
-
-
-
-
-
-
-
-        // do fluctuating selection
-        if (t == par.mcs - 1 )
-        {
-          inter_org_fitness[i] = dishes[i].CPM->CountStableTypes();
-          // cout << "fitness is: " << inter_org_fitness[i] << endl;
-        }        
-
       }        
     }
         
@@ -528,7 +595,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
   for (int i=0; i < par.n_orgs;++i)
   {
     // Currently no random networks are added if largest fitness > this
-    if (inter_org_fitness.front() > 30 || !par.insert_randoms || par.select_switch == false)
+    if (inter_org_fitness.front() > 30 || !par.insert_randoms)
     {
       nextgen.push_back(network_list.at(j));
 
@@ -638,29 +705,24 @@ int main(int argc, char *argv[]) {
     // process population. 
     vector<double> fit = process_population(networks, t);
 
-    // output every x evolution steps. 
-    // if (t%1==0)
+    // if (par.select_switch)
     // {
-    //   printn(networks.front(), polarities.front(), fit);
+    //   ++count1;
+    //   if (count1 % par.fluctuate_interval1 == 0)
+    //   {
+    //     par.select_switch = false;
+    //     count1=0;
+    //   }
     // }
-    if (par.select_switch)
-    {
-      ++count1;
-      if (count1 % par.fluctuate_interval1 == 0)
-      {
-        par.select_switch = false;
-        count1=0;
-      }
-    }
-    else
-    {
-      ++count2;
-      if (count2 % par.fluctuate_interval2 == 0)
-      {
-        par.select_switch = true;
-        count2=0;
-      }
-    }
+    // else
+    // {
+    //   ++count2;
+    //   if (count2 % par.fluctuate_interval2 == 0)
+    //   {
+    //     par.select_switch = true;
+    //     count2=0;
+    //   }
+    // }
 
 
   }
