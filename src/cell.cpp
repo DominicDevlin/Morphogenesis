@@ -513,38 +513,67 @@ void Cell::add_to_vectors()
   int j=0;
   int k=0;
   int m=0;
-  for (int i=0;i<par.n_genes;++i)
+  if (!par.phase_evolution)
   {
-    // push back the concentration from respective vector:
-    if (i < par.n_diffusers)
+    for (int i=0;i<par.n_genes;++i)
     {
-      gene_recordings.at(i).push_back(diff_genes.at(i));
-    }
-    else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
-    {
-      gene_recordings.at(i).push_back(genes.at(i));
+      // push back the concentration from respective vector:
+      if (i < par.n_diffusers)
+      {
+        gene_recordings.at(i).push_back(diff_genes.at(i));
+      }
+      else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
+      {
+        gene_recordings.at(i).push_back(genes.at(i));
 
+      }
+      else if (i < par.n_genes - par.n_locks - par.n_mediums)
+      {
+        gene_recordings.at(i).push_back(locks.at(j));
+        ++j; 
+      }
+      else if (i < par.n_genes - par.n_mediums) 
+      {
+        gene_recordings.at(i).push_back(keys.at(k));
+        ++k;
+      }      
+      else 
+      {
+        gene_recordings.at(i).push_back(medp[m]);
+        ++m;
+      }
     }
-    else if (i < par.n_genes - par.n_locks - par.n_mediums)
+    for (int i=0;i<par.n_diffusers;++i)
     {
-      gene_recordings.at(i).push_back(locks.at(j));
-      ++j; 
-    }
-    else if (i < par.n_genes - par.n_mediums) 
-    {
-      gene_recordings.at(i).push_back(keys.at(k));
-      ++k;
-    }      
-    else 
-    {
-      gene_recordings.at(i).push_back(medp[m]);
-      ++m;
-    }
+      gene_recordings.at(par.n_genes + i).push_back(genes.at(i));
+    }    
   }
-  for (int i=0;i<par.n_diffusers;++i)
+  else
   {
-    gene_recordings.at(par.n_genes + i).push_back(genes.at(i));
+    for (int i=0;i<par.n_genes;++i)
+    {
+      // push back the concentration from respective vector:
+      if (i < par.n_diffusers)
+      {
+        gene_recordings.at(i).push_back(diff_genes.at(i));
+      }
+      else if (i < par.n_genes - 1)
+      {
+        gene_recordings.at(i).push_back(genes.at(i));
+
+      }    
+      else 
+      {
+        gene_recordings.at(i).push_back(phase_protein_conc);
+        ++m;
+      }
+    }
+    for (int i=0;i<par.n_diffusers;++i)
+    {
+      gene_recordings.at(par.n_genes + i).push_back(genes.at(i));
+    }      
   }
+
   // get a specific phenotype code
   phenotype_history.push_back(phenotype);
 

@@ -37,7 +37,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -50,7 +50,7 @@
     // gene record needs to always be on to test network connectivity. 
     gene_record = true;
     // include regulatory proteins in the state space 
-    max_statespace = false;
+    max_statespace = true;
 
     //for umap
     umap = false;
@@ -85,13 +85,12 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, 0, 0, 0, 1, 0, 0, 0 }, { 0, 1, 0, 1, 0, 1, 1, 0, 0 }, { 0, 2, 0, 1, 1, 0, 0, 1, 0 }, { 0, 1, 2, 2, 0, 0, 0, 2, 1 }, { 0, 2, 0, 0, 1, 0, 0, 0, 2 }, { -1, 0, 1, -1, 1, 2, 0, -1, 0 }, { 0, 0, 0, -1, 0, -1, -1, 0, 0 }, { -1, 0, 0, 2, 0, 0, 0, 0, 2 }, { 0, 1, 0, 0, 0, 2, 0, -1, 0 }, { 0, 1, 2, -1, 1, -2, 1, 0, 0 }, { 0, 0, 0, -1, 1, 2, 0, 1, 1 }, { 1, -1, 1, 1, 0, -2, 0, 0, 1 }, { -1, 0, -1, -1, 1, 0, 0, 1, 2 }, { 1, 0, 0, 0, 0, 0, -1, 0, 2 }, { 0, 0, 1, 0, 2, -2, 0, 2, 0 }, { 1, -1, 0, 2, 0, 0, 0, 0, 0 }, { 1, 0, 0, -1, 1, 1, 0, 0, 0 }, { 0, 0, 0, 0, 0, 1, -1, 1, -1 }, { -1, 1, 1, 0, -1, -2, 0, 0, 0 }, { -1, 0, -1, 0, 0, 0, 0, 1, 0 }, { 1, -1, 1, 0, 0, 0, -1, 0, 0 }, { -2, -1, 0, 0, 1, -1, -1, 1, 0 }, { 0, 0, -1, -2, 1, -1, 0, 2, -2 }, { -1, -1, 0, 1, 0, -2, 0, 0, 1 }, { 0, -1, 0, 1, 0, 0, 0, 0, -1 }, { -1, -1, 0, 0, 0, 1, 0, 1, 0 }, { 0, 0, -1, 0, 1, 0, 1, 0, 2 }, };
-
+    start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 250;
+    sizex = 150;
     sizey = 250;
-    mcs = 10000;
+    mcs = 2000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -152,50 +151,53 @@
     // decay_rate[3] = 3e-3;
     // diff_coeff[3] = 4e-7;
 
-
-
 /*stem-cell system project params*/
-    n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
-    n_locks = n_lockandkey / 2;
-    n_TF = 4; 
-    n_length_genes = 2;
-    minJ=4;
-    maxJ=24;
-    n_mediums=5;
-    med_table = new int[n_mediums];
-    med_table[0] = 5;//8;
-    med_table[1] = 4;//5;
-    med_table[2] = 3;
-    med_table[3] = 2;//1;
-    med_table[4] = 1;
-    n_diffusers=3;
-    n_MF=2;
-    minM=6;
-    gthresh = 2; 
+    // n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
+    // n_locks = n_lockandkey / 2;
+    // n_TF = 4; 
+    // n_length_genes = 2;
+    // minJ=4;
+    // maxJ=24;
+    // n_mediums=5;
+    // med_table = new int[n_mediums];
+    // med_table[0] = 5;//8;
+    // med_table[1] = 4;//5;
+    // med_table[2] = 3;
+    // med_table[3] = 2;//1;
+    // med_table[4] = 1;
+    // n_diffusers=1;
+    // n_MF=2;
+    // minM=6;
+    // gthresh = 2; 
         
-    tlength1 = 2; // target length with 1 gene or 2 genes on. These are multipliers. 2 is approximately circle.
-    tlength2 = 6;
-
+    // tlength1 = 2; // target length with 1 gene or 2 genes on. These are multipliers. 2 is approximately circle.
+    // tlength2 = 6;
+    n_diffusers=1;
     // morphogen parameters
     secr_rate = new double[n_diffusers];
     diff_coeff = new double[n_diffusers];
     decay_rate = new double[n_diffusers];
   
-    secr_rate[0] = 2.4e-3;
-    decay_rate[0] = 2e-3;
-    diff_coeff[0] = 8e-7; 
+    secr_rate[0] = 1.4e-2;
+    decay_rate[0] = 3e-3;
+    diff_coeff[0] = 4e-7; 
 
-    secr_rate[1] = 2.4e-3;
-    decay_rate[1] = 2e-3;
-    diff_coeff[1] = 8e-7; 
+    // GRN params
+    n_TF = 4; 
+    n_length_genes = 0;
+    n_MF = 2;
 
-    secr_rate[2] = 2.4e-3;
-    decay_rate[2] = 2e-3;
-    diff_coeff[2] = 8e-7; 
+    // secr_rate[1] = 2.4e-3;
+    // decay_rate[1] = 2e-3;
+    // diff_coeff[1] = 8e-7; 
+
+    // secr_rate[2] = 2.4e-3;
+    // decay_rate[2] = 2e-3;
+    // diff_coeff[2] = 8e-7; 
 
 
     // phase transition params;
-    phase_evolution=false;
+    phase_evolution=true;
     J_stem=3;
     J_diff=12;
     J_med=6.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
@@ -204,6 +206,9 @@
     J_med2=J_med;//0.5*J_diff+0.5;
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
+
+
+
 
     melting_adhesion = false;
     tip_max = 50;
@@ -216,7 +221,7 @@
     v_melt = -30;
     v_slope = -4;
 
-    offset = 0;//75
+    offset = 75;//75
     optimization_replicates = 6;
     pics_for_opt = false;
     pics_for_opt_interval = 100;
@@ -228,7 +233,7 @@
 
 /*iterators */
     shrink = -16;
-    shrink_on = true;
+    shrink_on = false;
     // difference between maximum and minimum cell J
     interval1 = maxJ-minJ;
     // addition of J for each lock and key pair
@@ -348,13 +353,13 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    target_area = 8100;
-    size_init_cells = 90; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
+    target_area = 4900;
+    size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     n_init_cells = 1;
     divisions = 0;
 
     //programmed division parameters
-    end_program = 400;
+    end_program = 100;
     begin_network = 50;
     div_freq = 10;
     // begin_movement=1200;

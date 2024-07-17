@@ -4199,8 +4199,7 @@ void CellularPotts::record_GRN()
     if (c->AliveP())
     {
       c->Phenotype();
-      if (!par.phase_evolution)
-        c->add_to_vectors();
+      c->add_to_vectors();
     }
   }
 }

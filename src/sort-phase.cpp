@@ -110,6 +110,42 @@ void Outputter(map<int, vector<double>> data2, vector<vector<int>> scc, string s
 }
 
 
+void ConstructNetwork()
+{
+  int length = par.n_diffusers + par.n_MF + par.n_TF;
+  int total = length + 1;
+  int c_length = 3;
+  int c_total = 4;
+  for (int i = 0; i < total; ++i)
+  {
+    if (i < c_length)
+    {
+      vector<double>& g = par.start_matrix[i];
+      while (g.size() < length)
+      {
+        g.push_back(0.);
+      }
+    }
+    else if (i < length)
+    {
+      vector<double> new_g(8,0.);
+      par.start_matrix.insert(par.start_matrix.begin()+i,new_g);
+    }
+    else
+    {
+      vector<double>& g = par.start_matrix[i];
+      while (g.size() < length)
+      {
+        g.push_back(0.);
+      }      
+    }
+
+
+  }
+}
+
+
+
 INIT 
 {
   try 
@@ -143,7 +179,8 @@ INIT
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
 
-    CPM->start_network(par.start_matrix, par.start_polarity);
+    ConstructNetwork();
+    CPM->start_network(par.start_matrix);
 
     CPM->Set_evoJ(par.J_stem_diff);
 
@@ -222,7 +259,6 @@ TIMESTEP {
       if (par.output_init_concs)
         dish->CPM->OutputInitConcs();
     }
-      
 
     // programmed cell division section
     if (t < par.end_program)
@@ -337,11 +373,16 @@ TIMESTEP {
 
     if (t==4000)
     {
-      dish->PDEfield->PrintAxisConcentrations(true, 125);
+      // dish->PDEfield->PrintAxisConcentrations(true, 125);
     }
 
     if (t == par.mcs - 1)
     {
+      if (mkdir(par.data_file.c_str(), 0777) == -1)
+        cerr << "Error : " << strerror(errno) << endl;
+      else
+        cout << "Directory created." << endl;  
+      dish->CPM->print_cell_GRN();
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();
@@ -398,44 +439,6 @@ TIMESTEP {
         string switch_out = par.data_file + "/state_shapes.dat";
         Outputter(data, scc, switch_out);
 
-        // map<int, vector<double>> data2 = dish->CPM->Get_state_Adhesion();
-        // switch_out = par.data_file + "/state_adhesion.dat";
-        // Outputter(data2, scc, switch_out);
-
-        /* this prints individual cell states */
-        // ofstream outfile;
-        // string switch_out = par.data_file + "/state_shapes.dat";
-        // outfile.open(switch_out, ios::app);
-
-        // size_t maxLength = 0;
-        // for (const auto& pair : data) 
-        // {
-        //     maxLength = std::max(maxLength, pair.second.size());
-        // }
-        // for (const auto& pair : data) 
-        // {
-        //   outfile << pair.first << '\t';
-        // }
-        // outfile << '\n';        
-
-        // // Print the vector elements as columns
-        // for (size_t i = 0; i < maxLength; ++i) 
-        // {
-        //     for (const auto& pair : data) 
-        //     {
-        //         if (i < pair.second.size()) 
-        //         {
-        //             outfile << pair.second[i];
-        //             cout << pair.second[i] << endl;
-        //         } 
-        //         else 
-        //         {
-        //             outfile << "NaN"; // Using NaN for missing values
-        //         }
-        //         outfile << '\t';
-        //     }
-        //     outfile << '\n';
-        // }
       }
 
 
@@ -587,25 +590,6 @@ TIMESTEP {
     {
       // dish->CPM->DestroyCellsByRadius(34.);
     }
-
-    if (t == 12000)
-    {
-      // fft test;
-      // test.AllocateGrid(par.sizex, par.sizey);
-      // test.ImportGrid(dish->CPM->ReturnGrid());//, dish->CPM);
-      // test.PolarTransform();
-      // test.PolarToOutput();
-
-      // test.ShiftGrid(test.GetPolar(), 8);
-
-      // test.PolarToOutput("polar-shift.png");
-
-      // test.ReflectGrid(test.GetPolar());
-      // test.PolarToOutput("polar3.png");
-
-    }
-
-
 
 
 

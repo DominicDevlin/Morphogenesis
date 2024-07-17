@@ -36,7 +36,6 @@ std::uniform_real_distribution<double> double_num(0.0, 1.0);
 std::uniform_int_distribution<> genes_dist(0, par.n_genes-1);
 std::uniform_int_distribution<> activ_dist(0, par.n_activators-1);
 std::uniform_int_distribution<> TF_dist(0, par.n_TF-1);
-std::uniform_int_distribution<> J_dist(0, par.J_diff);
 
 int PDE::MapColour(double val) {
   
@@ -74,9 +73,9 @@ void swap(double *xp, double *yp)
   *yp = temp;
 }
 
-void swapv(vector<vector<int>> *xp, vector<vector<int>> *yp)
+void swapv(vector<vector<double>> *xp, vector<vector<double>> *yp)
 {
-  vector<vector<int>> temp = *xp;
+  vector<vector<double>> temp = *xp;
   *xp = *yp;
   *yp = temp;
 
@@ -89,12 +88,6 @@ void swapb(vector<bool> *xp, vector<bool> *yp)
   *yp = temp;
 }
 
-void swapJ(double *xp, double *yp)
-{
-  double temp = *xp;
-  *xp = *yp;
-  *yp = temp;  
-}
 
 void swapd(Dish *d, int max_idx, int i)
 {
@@ -103,7 +96,7 @@ void swapd(Dish *d, int max_idx, int i)
   d[i] = tmp;
 }
 
-void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, vector<double>& Js, vector<double> &fitlist, Dish *dishes)
+void sorter(vector<vector<vector<double>>> &networks, vector<double> &fitlist, Dish *dishes)
 {
   int i, j, max_idx;
   int n = par.n_orgs;
@@ -119,8 +112,6 @@ void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, ve
     // swap largest element with first element
     swap(&fitlist.at(max_idx), &fitlist.at(i));
     swapv(&networks.at(max_idx), &networks.at(i));
-    swapb(&pol.at(max_idx), &pol.at(i));
-    swapJ(&Js.at(max_idx), &Js.at(i));
     // std::swap(dishes[max_idx], dishes[i]);
 
     // swapd(&dishes[max_idx], &dishes[i]);
@@ -129,9 +120,9 @@ void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, ve
 
 
 // randomise a new network.  
-vector<vector<int>> get_random_network()
+vector<vector<double>> get_random_network()
 {
-  vector<vector<int>> matrix;
+  vector<vector<double>> matrix;
   matrix.resize(par.n_genes);
   for (int i=0; i < par.n_genes;++i)
   {
@@ -168,29 +159,10 @@ vector<vector<int>> get_random_network()
   return matrix;
 }
 
-vector<bool> get_random_pol()
-{
-  vector<bool> pol;
-  pol.resize(par.n_TF);
-  for (int i=0;i<par.n_TF;++i)
-  {
-    double val = double_num(mersenne);
-    if (val < 0.7)
-      pol[i]=0;
-    else
-      pol[i]=1;
-  }
-  return pol;
-}
-
-double get_random_J()
-{
-  return double(J_dist(mersenne));
-}
 
 
 // mutate a network. Currently no bias towards ON when mutating networks. 
-void mutate(vector<vector<int>> &network)
+void mutate(vector<vector<double>> &network)
 {
   for (int k=0; k < par.n_mutations; ++k)
   {
@@ -234,19 +206,9 @@ void mutate_J(double &J)
     J = par.J_stem;
 }
 
-// mutate the TF polarities (whether each TF is passed onto daughter upon cell reproduction)
-void polmutate(vector<bool> &pol)
-{
-  int i = TF_dist(mersenne);
-  double val = double_num(mersenne);
-  if (val > 0.7)
-    pol[i] = true;
-  else
-    pol[i] = false;
-}
 
 
-void output_networks(vector<vector<vector<int>>>& netw)
+void output_networks(vector<vector<vector<double>>>& netw)
 {
   for (int org=0;org<par.n_orgs;++org)
     for (int i=0;i<par.n_genes;++i)
@@ -267,7 +229,7 @@ void output_networks(vector<vector<vector<int>>>& netw)
     }
 }
 
-void record_networks(vector<vector<vector<int>>>& netw, string oname)
+void record_networks(vector<vector<vector<double>>>& netw, string oname)
 {
   string nname = oname + "/" + "genomes.txt";
   std::ofstream outfile;
@@ -320,7 +282,7 @@ void output_Js(vector<double> Js, string oname)
 
 
 
-void printn(vector<vector<int>> netw, vector<bool> pol, vector<double> fitn, string oname)
+void printn(vector<vector<double>> netw, vector<double> fitn, string oname)
 {
   // create and open file
   std::string var_name = oname + "/gene_networks.txt";
@@ -390,7 +352,7 @@ void printn(vector<vector<int>> netw, vector<bool> pol, vector<double> fitn, str
 
 
 // function that simulates a population for a single evolutionary step. 
-vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, vector<double> &Js, int time)
+vector<double> process_population(vector<vector<vector<double>>>& network_list, vector<double> &Js, int time)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -409,7 +371,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
     int t;
 
-    dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
+    dishes[i].CPM->start_network(network_list.at(i));
 
     dishes[i].CPM->Set_evoJ(Js[i]);
 
@@ -516,20 +478,18 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   delete[] dishes;
 
   // do sorting algorithm and return fitness
-  sorter(network_list, pols, Js, inter_org_fitness, dishes);
+  sorter(network_list, inter_org_fitness, dishes);
 
   //output to standard output
   output_networks(network_list);
 
   // output to file
-  printn(network_list.front(), pols.front(), inter_org_fitness, par.data_file);
+  printn(network_list.front(), inter_org_fitness, par.data_file);
 
-  output_Js(Js, par.data_file);
+  // output_Js(Js, par.data_file);
 
 
-  vector<vector<vector<int>>> nextgen{};
-  vector<vector<bool>> nextgenpol{};
-  vector<double> nextgenJs{};
+  vector<vector<vector<double>>> nextgen{};
   int j = 0;
   for (int i=0; i < par.n_orgs;++i)
   {
@@ -537,19 +497,11 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     if (inter_org_fitness.front() > 30 || !par.insert_randoms)
     {
       nextgen.push_back(network_list[j]);
-      nextgenpol.push_back(pols[j]);
-      nextgenJs.push_back(Js[j]);
-
       //mutate network with probability = mut_rate
       double mu = double_num(mersenne);
       if (mu < par.mut_rate)
       {
         mutate(nextgen.back());
-      }
-      double mu2 = double_num(mersenne);
-      if (mu2 < par.J_mutate_probability)
-      {
-        mutate_J(nextgenJs.back());
       }
       ++j; 
       if (j >= par.n_orgs / 4)
@@ -561,14 +513,10 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (i >= (par.n_orgs * 3)/4)
       {
         nextgen.push_back(get_random_network());
-        nextgenpol.push_back(get_random_pol());
-        nextgenJs.push_back(get_random_J());
       }
       else 
       {
         nextgen.push_back(network_list.at(j));
-        nextgenpol.push_back(pols.at(j));
-        nextgenJs.push_back(get_random_J());
       }
 
       //mutate network with probability = 0.5
@@ -576,11 +524,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (mu > par.mut_rate)
       {
         mutate(nextgen.back());
-      }
-      double mu2 = double_num(mersenne);
-      if (mu2 < par.J_mutate_probability)
-      {
-        mutate_J(nextgenJs.back());
       }
 
       ++j;
@@ -593,8 +536,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   for (int i=0;i<par.n_orgs;++i)
   {
     network_list.at(i) = nextgen.at(i);
-    pols.at(i) = nextgenpol.at(i);
-    Js.at(i) = nextgenJs.at(i);
   }
   return inter_org_fitness;
 }
@@ -642,21 +583,17 @@ int main(int argc, char *argv[]) {
   vector<bool> start_p = { 0, 0, 0, 0 };
 
   // make initial random networks. 
-  vector<vector<vector<int>>> networks{};
-  vector<vector<bool>> polarities{};
+  vector<vector<vector<double>>> networks{};
   vector<double>evolveJ;
   for (int i=0;i<par.n_orgs;++i)
   {
     if (par.starter)
     {
-      networks.push_back(par.start_n);
-      polarities.push_back(start_p);
       evolveJ.push_back(par.J_stem_diff);
     }
     else
     {
       networks.push_back(get_random_network());
-      polarities.push_back(get_random_pol());
       evolveJ.push_back(par.J_stem_diff);
     }
   }
@@ -666,7 +603,7 @@ int main(int argc, char *argv[]) {
   {
     cout << "current ev timestep is: " << t+1 << endl;
     // process population. 
-    vector<double> fit = process_population(networks, polarities, evolveJ, t);
+    vector<double> fit = process_population(networks, evolveJ, t);
 
     // output every x evolution steps. 
     // if (t%1==0)
