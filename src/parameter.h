@@ -316,6 +316,8 @@ class Parameter {
   bool asym_only;
   double swap_selection;
   bool growth_selection;
+  bool type_selection;
+  int swap_selection2;
   bool elongation_selection;
   bool evo_pics;
   int pic_gen_interval;

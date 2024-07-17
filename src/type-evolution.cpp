@@ -329,6 +329,11 @@ void printn(vector<vector<double>> netw, vector<double> fitn)
     par.asym_only = false;
   }
 
+  if (!par.asym_only && par.asymmetry_selection && avgfit > par.swap_selection2)
+  {
+    par.type_selection=true;
+  }
+
   //calculate time since begin
   auto end = chrono::steady_clock::now();
   auto diff = end - start;
@@ -452,7 +457,7 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
         // get fitness at end of development
         inter_org_fitness[i] = dishes[i].CPM->get_fitness();
 
-        if (par.asym_only == false)
+        if (par.type_selection)
         {
           map<int, int> phens = dishes[i].CPM->get_phenotype_time();
           map<int, int> types = dishes[i].CPM->get_AdultTypes();  
@@ -460,6 +465,17 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
           map<pair<int,int>,int> edge_tally{};
           dishes[i].CPM->set_switches(edge_tally);
 
+          for (auto it = edge_tally.begin(); it != edge_tally.end();)
+          {
+            if (it->second < par.prune_amount)
+            {
+              it = edge_tally.erase(it);
+            }
+            else
+            {
+              ++it;
+            }
+          }
           vector<vector<int>> scc;
           map<int,int>subcomps{};
           Graph ungraph(types.size());
@@ -531,12 +547,12 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
             // Check if any element of the pair is not in dead_ends_set
             for (int elem : pair) 
             {
-              if (dead_ends_set.find(elem) != dead_ends_set.end()) 
+              if (dead_ends_set.find(elem) == dead_ends_set.end()) 
               {
-                return false; // Keep the element in dendrogram
+                return true; // remove the element in dendrogram
               }
             }
-            return true; // Remove the element from dendrogram
+            return false; // keep the element from dendrogram
           });
 
           // Erase the removed elements
@@ -550,7 +566,7 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
               max_diffs = dendrogram[n].size();
           }
           cout << "differentiates into: " << max_diffs << endl;
-          inter_org_fitness[i] += inter_org_fitness[i] * (0.5*max_diffs);
+          inter_org_fitness[i] += inter_org_fitness[i] * (0.2*max_diffs);
 
           // do fluctuating selection
           // if (t == par.mcs - 1 )
@@ -559,10 +575,7 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
           //   // cout << "fitness is: " << inter_org_fitness[i] << endl;
           // }        
         }
-        }
-
-
-              
+      }              
     }
         
     if (i == 1)
@@ -689,6 +702,13 @@ int main(int argc, char *argv[]) {
   par.mcs = 10000;
   par.adult_begins = 1000;
   
+  par.asymmetry_selection = true; 
+  par.asym_only = true;
+  par.swap_selection = 240.; 
+  par.type_selection=false;
+  par.swap_selection2 = 110;
+  par.n_orgs = 60;
+
   // this is true for type selection
   par.gene_record = true;
   Parameter();
@@ -716,24 +736,6 @@ int main(int argc, char *argv[]) {
     // process population. 
     vector<double> fit = process_population(networks, t);
 
-    // if (par.select_switch)
-    // {
-    //   ++count1;
-    //   if (count1 % par.fluctuate_interval1 == 0)
-    //   {
-    //     par.select_switch = false;
-    //     count1=0;
-    //   }
-    // }
-    // else
-    // {
-    //   ++count2;
-    //   if (count2 % par.fluctuate_interval2 == 0)
-    //   {
-    //     par.select_switch = true;
-    //     count2=0;
-    //   }
-    // }
 
 
   }
