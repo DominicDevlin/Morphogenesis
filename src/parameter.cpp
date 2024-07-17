@@ -35,9 +35,9 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -271,7 +271,7 @@
 
     // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
     prune_edges = true;
-    prune_amount = 6;
+    prune_amount = 3;
 
     cycle_check = false;
 
@@ -292,10 +292,8 @@
     asymmetry_selection = true; 
     asym_only = true;
     swap_selection = 240.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
-    // fluctuating selection interval
-    fluctuate_interval1 = 100;
-    fluctuate_interval2 = 20;
-    select_switch = true;
+    type_selection=false;
+    swap_selection2 = 110;
     growth_selection=false;
     elongation_selection = false;
     starter = false;
@@ -303,6 +301,11 @@
     // start from a certain network
     start_n = { { 0, 0, 0, 0, 0, 1, 0, 0, 0 }, { 0, 1, 0, 1, 0, 1, 1, 0, 0 }, { 0, 2, 0, 1, 1, 0, 0, 1, 0 }, { 0, 1, 2, 2, 0, 0, 0, 2, 1 }, { 0, 2, 0, 0, 1, 0, 0, 0, 2 }, { -1, 0, 1, -1, 1, 2, 0, -1, 0 }, { 0, 0, 0, -1, 0, -1, -1, 0, 0 }, { -1, 0, 0, 2, 0, 0, 0, 0, 2 }, { 0, 1, 0, 0, 0, 2, 0, -1, 0 }, { 0, 1, 2, -1, 1, -2, 1, 0, 0 }, { 0, 0, 0, -1, 1, 2, 0, 1, 1 }, { 1, -1, 1, 1, 0, -2, 0, 0, 1 }, { -1, 0, -1, -1, 1, 0, 0, 1, 2 }, { 1, 0, 0, 0, 0, 0, -1, 0, 2 }, { 0, 0, 1, 0, 2, -2, 0, 2, 0 }, { 1, -1, 0, 2, 0, 0, 0, 0, 0 }, { 1, 0, 0, -1, 1, 1, 0, 0, 0 }, { 0, 0, 0, 0, 0, 1, -1, 1, -1 }, { -1, 1, 1, 0, -1, -2, 0, 0, 0 }, { -1, 0, -1, 0, 0, 0, 0, 1, 0 }, { 1, -1, 1, 0, 0, 0, -1, 0, 0 }, { -2, -1, 0, 0, 1, -1, -1, 1, 0 }, { 0, 0, -1, -2, 1, -1, 0, 2, -2 }, { -1, -1, 0, 1, 0, -2, 0, 0, 1 }, { 0, -1, 0, 1, 0, 0, 0, 0, -1 }, { -1, -1, 0, 0, 0, 1, 0, 1, 0 }, { 0, 0, -1, 0, 1, 0, 1, 0, 2 }, };
 
+
+    select_switch = false;
+    // fluctuating selection interval
+    fluctuate_interval1 = 100;
+    fluctuate_interval2 = 20;
 
     evo_pics = true;
     pic_gen_interval = 100; 

@@ -12,7 +12,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-TARGET = transitions
+TARGET = type-evolution
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 
 message( $$MAINFILE )

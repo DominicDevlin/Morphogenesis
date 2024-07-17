@@ -4065,8 +4065,9 @@ void CellularPotts::update_fitness()
     }
     else
     {
-      asymmetry = asymmetry / 2.;
+      asymmetry = asymmetry / 4.;
       shape_fitness_list.push_back(dev + wspc + asymmetry);
+      cout << "asymmetry: " << asymmetry << "  complexity: " << dev + wspc << endl;
     }
   }
   else 

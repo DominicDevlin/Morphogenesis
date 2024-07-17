@@ -331,16 +331,15 @@ TIMESTEP {
       map<pair<int,int>,int> edge_tally{};
       
       // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)
-      bool cycling = dish->CPM->CycleCheck();
-      if (cycling && par.cycle_check)
-      {
-        cout << "There is cycling!!" << endl;
-        dish->CPM->set_long_switches(edge_tally);
-      }
-      else
-      {
-        dish->CPM->set_switches(edge_tally);
-      }
+      bool cycling = false;//dish->CPM->CycleCheck();
+      // if (cycling && par.cycle_check)
+      // {
+      //   cout << "There is cycling!!" << endl;
+      //   dish->CPM->set_long_switches(edge_tally);
+      // }
+      // else
+      // {
+      dish->CPM->set_switches(edge_tally);
 
 
       vector<vector<int>> scc;
@@ -348,9 +347,24 @@ TIMESTEP {
       {
         par.node_threshold = 0;
         par.prune_edges = true;
+      
+        auto edge_copy = edge_tally;
+        for (auto it = edge_copy.begin(); it != edge_copy.end();)
+        {
+          if (it->second < par.prune_amount)
+          {
+            it = edge_copy.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
+        }
+
         map<int,int>subcomps{};
         Graph ungraph(types.size());
-        subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
+
+        subcomps = ungraph.CreateUnGraph(phens, types, edge_copy);
         scc = ungraph.GetComps(types, 2000);
         for (auto i : scc)
         {
@@ -372,7 +386,7 @@ TIMESTEP {
           
         vector<pair<int,int>> edges{};
         vector<int> nodes{};
-        for (auto i : edge_tally)
+        for (auto i : edge_copy)
         {
           edges.push_back(i.first);
           if (std::find(nodes.begin(), nodes.end(), i.first.first) == nodes.end())
@@ -391,19 +405,19 @@ TIMESTEP {
           {
             if (j != i)
             {
-              cout << i << '\t' << j << endl;
+              // cout << i << '\t' << j << endl;
               int start = remaining_nodes[i];
               int end = remaining_nodes[j];
-              cout << start << '\t' << end << endl;
+              // cout << start << '\t' << end << endl;
               // Check if there is a path from start to end
               if (isPathExists(edges, nodes, start, end)) 
               {
                 dendrogram[i].push_back(j);
-                std::cout << "There is a path between " << start << " and " << end << std::endl;
+                // std::cout << "There is a path between " << start << " and " << end << std::endl;
               } 
               else 
               {
-                std::cout << "No path exists between " << start << " and " << end << std::endl;
+                // std::cout << "No path exists between " << start << " and " << end << std::endl;
               }
             }
           }
@@ -413,7 +427,7 @@ TIMESTEP {
         {
           if (dendrogram[i].size() == 0)
           {
-            // cout << "Dead end at " << remaining_nodes[i] << endl;
+            cout << "Dead end at " << remaining_nodes[i] << endl;
             dead_ends.push_back(i);
           }
         }
@@ -425,12 +439,12 @@ TIMESTEP {
           // Check if any element of the pair is not in dead_ends_set
           for (int elem : pair) 
           {
-            if (dead_ends_set.find(elem) != dead_ends_set.end()) 
+            if (dead_ends_set.find(elem) == dead_ends_set.end()) 
             {
-              return false; // Keep the element in dendrogram
+              return true; // remove the element in dendrogram
             }
           }
-          return true; // Remove the element from dendrogram
+          return false; // keep the element from dendrogram
         });
 
         // Erase the removed elements
@@ -568,7 +582,7 @@ TIMESTEP {
     // used to create morphogen stuff
     if (t==3000)
     {
-      dish->PDEfield->PrintAxisConcentrations(true, 125);
+      // dish->PDEfield->PrintAxisConcentrations(true, 125);
       // dish->CPM->OutputProteinNorms();
     }
 
