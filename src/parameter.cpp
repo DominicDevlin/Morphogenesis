@@ -335,7 +335,7 @@
     swap_selection2 = 110;
     growth_selection=false;
     elongation_selection = false;
-    starter = true;
+    starter = false;
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
     // start from a certain network
     start_n = { { 0, 2, -1 }, { 2, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
