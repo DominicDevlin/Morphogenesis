@@ -234,6 +234,13 @@ void mutate(vector<vector<double>> &network)
   }
 }
 
+// mutate morphogens
+void mutate_morphogens()
+{
+  
+}
+
+
 
 
 void output_networks(vector<vector<vector<double>>>& netw)
@@ -281,8 +288,6 @@ void record_networks(vector<vector<vector<double>>>& netw, string oname)
     }
   outfile.close();
 }
-
-
 
 
 

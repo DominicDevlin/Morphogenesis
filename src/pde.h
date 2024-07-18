@@ -27,6 +27,8 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <float.h>
 #include "graph.h"
 
+using namespace std;
+
 class CellularPotts;
 class PDE {
 
@@ -43,6 +45,7 @@ class PDE {
   */
   PDE(const int layers, const int sizex, 
       const int sizey);
+
       
     
   // destructor must also be virtual
@@ -238,6 +241,8 @@ class PDE {
 
   void FlushGrid();
 
+  void SetMorphs(vector<vector<double>>& morphogens);
+
 
  protected:
 
@@ -257,7 +262,10 @@ class PDE {
   int divisor;
   int jump;
  
- 
+  double * diff_coeff; 
+  double * decay_rate;
+  double * secr_rate;
+
   // Protected member functions
 
   /*! \brief Used in Plot. Takes a color and turns it into a grey value.

@@ -2787,24 +2787,35 @@ void CellularPotts::start_network(vector<vector<double>> start_matrix)
   }
 }
 
-
-double CellularPotts::numeric_step(vector<double>& gene_list, double conc, int gene_n, int tsteps)
+int CellularPotts::CountStableTypes()
 {
-
-  double x_1 = 0;
-
-  for (int j=0; j < par.n_activators; ++j)
+  map<int, int> type_counter;
+  vector<Cell>::iterator c;
+  for (c = cell->begin(), c++; c != cell->end(); c++) 
   {
-    x_1 += matrix[gene_n][j] * gene_list[j]; // (gene_list[j] > 1 ? 1 : gene_list[j]); // max morph at 1 for one test
+    if (c->AliveP())
+    {
+      vector<tuple<int,int,uint64_t>>& switches = c->get_switches();
+      if (switches.size() == 0)
+      {
+        int t = c->GetPhenotype();
+        type_counter[t] += 1;
+        // cout << t << endl;
+      }
+    }
   }
-  x_1 += par.theta;
+  
+  int sum_of_keys = 0;
+  for (const auto& pair : type_counter)
+  {
+    if (pair.second >= 10)
+    {
+      cout << pair.first << '\t' << pair.second << endl;
+      ++sum_of_keys;
+    }
+  }
 
-  // x_1 = (1 / (1 + exp(-20 * x_1))) * 0.25 + conc * par.d_rate;
-  x_1 = ((1 / (1 + exp(-20 * x_1))) - conc*par.d_rate) * par.delta_t + conc;
-    
-
-  return x_1;
-
+  return sum_of_keys;
 }
 
 
@@ -2826,9 +2837,6 @@ void CellularPotts::noise_term(double &x)
       x = 0;
   }
 }
-
-
-
 
 void CellularPotts::add_noise()
 {
@@ -2873,38 +2881,25 @@ void CellularPotts::add_noise()
 
 }
 
-int CellularPotts::CountStableTypes()
+
+double CellularPotts::numeric_step(vector<double>& gene_list, double conc, int gene_n, int tsteps)
 {
-  map<int, int> type_counter;
-  vector<Cell>::iterator c;
-  for (c = cell->begin(), c++; c != cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      vector<tuple<int,int,uint64_t>>& switches = c->get_switches();
-      if (switches.size() == 0)
-      {
-        int t = c->GetPhenotype();
-        type_counter[t] += 1;
-        // cout << t << endl;
-      }
-    }
-  }
-  
-  int sum_of_keys = 0;
-  for (const auto& pair : type_counter)
-  {
-    if (pair.second >= 10)
-    {
-      cout << pair.first << '\t' << pair.second << endl;
-      ++sum_of_keys;
-    }
-  }
 
-  return sum_of_keys;
+  double x_1 = 0;
+
+  for (int j=0; j < par.n_activators; ++j)
+  {
+    x_1 += matrix[gene_n][j] * gene_list[j]; // (gene_list[j] > 1 ? 1 : gene_list[j]); // max morph at 1 for one test
+  }
+  x_1 += par.theta;
+
+  // x_1 = (1 / (1 + exp(-20 * x_1))) * 0.25 + conc * par.d_rate;
+  x_1 = ((1 / (1 + exp(-20 * x_1))) - conc*par.d_rate) * par.delta_t + conc;
+    
+
+  return x_1;
+
 }
-
-
 
 void CellularPotts::update_network(int tsteps)
 {
@@ -3083,7 +3078,10 @@ void CellularPotts::update_network(int tsteps)
 
             for (int i=0;i<par.n_activators;++i)
             {
-              full_set[par.n_functional+i] = ((genes[i]>0.5)? true : false);
+              if (i < par.n_diffusers)
+                full_set[par.n_functional+i] = ((diffusers[i]>0.5)? true : false);
+              else
+                full_set[par.n_functional+i] = ((genes[i]>0.5)? true : false);
             }
             c->AddPhenotype();
             c->RecordLongSwitch(cp, RandomNumber(INT_MAX, s_val));
@@ -3225,9 +3223,12 @@ void CellularPotts::update_phase_network(int tsteps)
 
             full_set[0] = c->GetPhase();
 
-            for (int i=0; i < par.n_genes-1; ++i)
+            for (int i=0; i < par.n_activators; ++i)
             {
-              full_set[1+i] = ((genes[i]>0.5)? true : false);
+              if (i < par.n_diffusers)
+                full_set[par.n_functional+i] = ((diffusers[i]>0.5)? true : false);
+              else
+                full_set[par.n_functional+i] = ((genes[i]>0.5)? true : false);
             }
             c->AddPhenotype();
             c->RecordLongSwitch(cp, RandomNumber(INT_MAX, s_val));
@@ -3317,8 +3318,31 @@ bool CellularPotts::EndOptimizer()
     return true;
     
   return false;
-
 }
+
+double CellularPotts::DistanceTravelled()
+{
+  int miny = sizey;
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        if (y < miny)
+          miny = y;
+      }
+    }
+  
+  // End simulation if we touch any of the walls.
+  double distance = double(sizey - miny);
+    
+  return distance;
+}
+
+
+
+
 
 double CellularPotts::Optimizer()
 {
@@ -3489,11 +3513,19 @@ void CellularPotts::ColourCells(bool phase)
     if (c->AliveP())
     {    
       // make boolean set. 
+      vector<double>& genes = c->get_genes();
+      vector<double>& diffusers = c->get_diffusers();
       vector<bool>& full_set = c->get_set();
-
       full_set[0] = c->GetPhase();
-      full_set[1] = c->getmJ();
 
+
+      for (int i=0; i < par.n_activators; ++i)
+      {
+        if (i < par.n_diffusers)
+          full_set[par.n_functional+i] = ((diffusers[i]>0.5)? true : false);
+        else
+          full_set[par.n_functional+i] = ((genes[i]>0.5)? true : false);
+      }
 
       c->Phenotype();
       int ptype=c->GetPhenotype();

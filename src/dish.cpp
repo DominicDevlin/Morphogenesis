@@ -57,6 +57,14 @@ Dish::Dish()
     } 
 }
 
+void Dish::SetMorphogens(vector<vector<double>>& morphogens)
+{
+  PDEfield->SetMorphs(morphogens);
+}
+
+
+
+
 
 
 Dish::~Dish() {

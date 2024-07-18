@@ -48,7 +48,7 @@ public:
 
   // Dummy constructor
   Dish();
-  
+ 
   /*! \brief Init defines the initial state of the virtual
     cell culture.
     
@@ -79,6 +79,8 @@ public:
   void AverageChemCell(void);
 
   void IntroduceMorphogen(int num, int xloc, int yloc);
+
+  void SetMorphogens(vector<vector<double>>& morphogens);
 
 
 

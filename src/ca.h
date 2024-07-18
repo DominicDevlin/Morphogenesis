@@ -392,6 +392,8 @@ public:
 
   bool EndOptimizer();
 
+  double DistanceTravelled();
+
   pair<double,double> LengthWidth();
 
   void ConstrainedGrowthAndDivision(int time);

@@ -116,6 +116,8 @@ class Parameter {
   int n_pred;
   int n_mutations;
   double mut_rate;
+  double morph_mean_mut;
+  double morph_stdev_mut;
   double polm_rate;
 
   bool IntegerHamiltonian;

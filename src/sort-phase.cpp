@@ -113,34 +113,67 @@ void Outputter(map<int, vector<double>> data2, vector<vector<int>> scc, string s
 void ConstructNetwork()
 {
   int length = par.n_diffusers + par.n_MF + par.n_TF;
-  int total = length + 1;
-  int c_length = 3;
+  int total = par.n_diffusers + par.n_MF + par.n_TF + 1;
+  int old_d = 1;
+  int old_mf = 2;
   int c_total = 4;
   for (int i = 0; i < total; ++i)
   {
-    if (i < c_length)
+    if (i < old_d)
     {
       vector<double>& g = par.start_matrix[i];
-      while (g.size() < length)
+      for (int j=1;j<length;++j)
       {
-        g.push_back(0.);
+        if (j >= old_d && j < par.n_diffusers)
+        {
+          g.insert(g.begin() +j, 0.);
+        }
+        else if (j < length)
+        {
+          g.push_back(0.);
+        }
       }
+    }
+    else if (i < par.n_diffusers)
+    {
+      vector<double> new_g(length,0.);
+      par.start_matrix.insert(par.start_matrix.begin()+i,new_g);
+    }
+    else if (i < par.n_diffusers+old_mf)
+    {
+      vector<double>& g = par.start_matrix[i];
+      for (int j=1;j<length;++j)
+      {
+        if (j >= old_d && j < par.n_diffusers)
+        {
+          g.insert(g.begin() +j, 0.);
+        }
+        else if (j < length)
+        {
+          g.push_back(0.);
+        }
+      }    
     }
     else if (i < length)
     {
-      vector<double> new_g(8,0.);
-      par.start_matrix.insert(par.start_matrix.begin()+i,new_g);
+      vector<double> new_g(length,0.);
+      par.start_matrix.insert(par.start_matrix.begin()+i,new_g);      
     }
     else
     {
       vector<double>& g = par.start_matrix[i];
-      while (g.size() < length)
+      for (int j=1;j<length;++j)
       {
-        g.push_back(0.);
-      }      
+        if (j >= old_d && j < par.n_diffusers)
+        {
+          g.insert(g.begin() +j, 0.);
+        }
+        else if (j < length)
+        {
+          g.push_back(0.);
+        }
+      }     
     }
-
-
   }
 }
 
@@ -242,7 +275,6 @@ TIMESTEP {
     //     counter = 0;
     //   }
     // }
-
   
     static Info *info=new Info(*dish, *this);
     // record initial expression state. This occurs before any time step updates. 
@@ -371,9 +403,9 @@ TIMESTEP {
     dish->CPM->AmoebaeMove(t);
 
 
-    if (t==4000)
+    if (t==3000)
     {
-      // dish->PDEfield->PrintAxisConcentrations(true, 125);
+      dish->PDEfield->PrintAxisConcentrations(true, par.sizex/2);
     }
 
     if (t == par.mcs - 1)

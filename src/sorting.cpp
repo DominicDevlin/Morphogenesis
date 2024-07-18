@@ -166,7 +166,6 @@ TIMESTEP {
       dish->CPM->CopyProb(par.T);
       
     }
-
     static Info *info=new Info(*dish, *this);
     
     // record initial expression state. This occurs before any time step updates. 
@@ -388,15 +387,19 @@ TIMESTEP {
         vector<int> nodes{};
         for (auto i : edge_copy)
         {
-          edges.push_back(i.first);
-          if (std::find(nodes.begin(), nodes.end(), i.first.first) == nodes.end())
+          if (i.second > 10)
           {
-            nodes.push_back(i.first.first);
+            edges.push_back(i.first);
+            if (std::find(nodes.begin(), nodes.end(), i.first.first) == nodes.end())
+            {
+              nodes.push_back(i.first.first);
+            }
+            if (std::find(nodes.begin(), nodes.end(), i.first.second) == nodes.end())
+            {
+              nodes.push_back(i.first.second);
+            }
           }
-          if (std::find(nodes.begin(), nodes.end(), i.first.second) == nodes.end())
-          {
-            nodes.push_back(i.first.second);
-          }
+
         }
 
         for (int i = 0; i < remaining_nodes.size(); i++)

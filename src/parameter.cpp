@@ -85,16 +85,16 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
+    start_matrix = { { 0, 2, -1 }, { 2, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
     sizex = 150;
     sizey = 250;
-    mcs = 2000;
+    mcs = 12100;
     T = 3;
     target_length = 0;
     lambda = 0.5;
-    lambda2 = 0.1; // WARNING - do not move from 0 (deltaH function has changed)
+    lambda2 = 0; // WARNING - do not move from 0 (deltaH function has changed)
     div_threshold = 100;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
   
@@ -105,6 +105,7 @@
     neighbours = 2;
     // high value ensures cells are never broken apart by copy attempts.
     conn_diss = 2000;
+    shrink_on=false;
 
 /* adhesion params */
 
@@ -152,6 +153,7 @@
     // diff_coeff[3] = 4e-7;
 
 /*stem-cell system project params*/
+    // phase_evolution=false;
     // n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
     // n_locks = n_lockandkey / 2;
     // n_TF = 4; 
@@ -159,33 +161,28 @@
     // minJ=4;
     // maxJ=24;
     // n_mediums=5;
+    // n_diffusers=3;
     // med_table = new int[n_mediums];
     // med_table[0] = 5;//8;
     // med_table[1] = 4;//5;
     // med_table[2] = 3;
     // med_table[3] = 2;//1;
     // med_table[4] = 1;
-    // n_diffusers=1;
     // n_MF=2;
     // minM=6;
     // gthresh = 2; 
+    // shrink_on=true;
         
     // tlength1 = 2; // target length with 1 gene or 2 genes on. These are multipliers. 2 is approximately circle.
     // tlength2 = 6;
-    n_diffusers=1;
-    // morphogen parameters
-    secr_rate = new double[n_diffusers];
-    diff_coeff = new double[n_diffusers];
-    decay_rate = new double[n_diffusers];
-  
-    secr_rate[0] = 1.4e-2;
-    decay_rate[0] = 3e-3;
-    diff_coeff[0] = 4e-7; 
 
-    // GRN params
-    n_TF = 4; 
-    n_length_genes = 0;
-    n_MF = 2;
+    // secr_rate = new double[n_diffusers];
+    // diff_coeff = new double[n_diffusers];
+    // decay_rate = new double[n_diffusers];
+  
+    // secr_rate[0] = 2.4e-3;
+    // decay_rate[0] = 2e-3;
+    // diff_coeff[0] = 8e-7; 
 
     // secr_rate[1] = 2.4e-3;
     // decay_rate[1] = 2e-3;
@@ -193,20 +190,43 @@
 
     // secr_rate[2] = 2.4e-3;
     // decay_rate[2] = 2e-3;
-    // diff_coeff[2] = 8e-7; 
+    // diff_coeff[2] = 8e-7;  
 
 
-    // phase transition params;
+/*phase params*/ 
     phase_evolution=true;
-    J_stem=3;
+    J_stem=3.5;
     J_diff=12;
     J_med=6.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
     J_stem_diff=12;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-    Vs_max = 1; // 1;
+    Vs_max = 0.5; // 1;
     Vd_max = 0; // 1; 
 
+    n_diffusers= 3;
+    // morphogen parameters
+    secr_rate = new double[n_diffusers];
+    diff_coeff = new double[n_diffusers];
+    decay_rate = new double[n_diffusers];
+  
+    secr_rate[0] = 4e-3;
+    decay_rate[0] = 3e-3;
+    diff_coeff[0] = 4e-7; 
+
+    secr_rate[1] = 4e-3;
+    decay_rate[1] = 3e-3;
+    diff_coeff[1] = 4e-7; 
+
+    secr_rate[2] = 4e-3;
+    decay_rate[2] = 3e-3;
+    diff_coeff[2] = 4e-7; 
+
+    // GRN params
+    n_TF = 4; 
+    n_length_genes = 0;
+    n_MF = 2;
+    gthresh = 0;
 
 
 
@@ -217,22 +237,18 @@
     slope = 4;
     if (melting_adhesion)
       gthresh = 50;
-
     v_melt = -30;
     v_slope = -4;
-
-    offset = 75;//75
+    penalty=250;
     optimization_replicates = 6;
     pics_for_opt = false;
     pics_for_opt_interval = 100;
     max_div_time = 20000;
 
-    penalty=250;
-
-  
-
+    
 /*iterators */
     shrink = -16;
+    // this is a neutrally evolving gene if needed
     shrink_on = false;
     // difference between maximum and minimum cell J
     interval1 = maxJ-minJ;
@@ -245,6 +261,7 @@
     n_activators = n_diffusers + n_TF+n_MF; //number of genes that can activate network (<= n_genes)
     n_functional = phase_evolution * (1) + !phase_evolution*(n_lockandkey + n_length_genes + n_mediums);
     gene_vector_size = n_diffusers + n_TF + n_MF +  !phase_evolution * (n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers));
+    
 
     //location of maternal factors in genome
     mfloc1 = n_diffusers;
@@ -320,8 +337,7 @@
     starter = false;
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
     // start from a certain network
-    start_n = { { 0, 0, 0, 0, 0, 1, 0, 0, 0 }, { 0, 1, 0, 1, 0, 1, 1, 0, 0 }, { 0, 2, 0, 1, 1, 0, 0, 1, 0 }, { 0, 1, 2, 2, 0, 0, 0, 2, 1 }, { 0, 2, 0, 0, 1, 0, 0, 0, 2 }, { -1, 0, 1, -1, 1, 2, 0, -1, 0 }, { 0, 0, 0, -1, 0, -1, -1, 0, 0 }, { -1, 0, 0, 2, 0, 0, 0, 0, 2 }, { 0, 1, 0, 0, 0, 2, 0, -1, 0 }, { 0, 1, 2, -1, 1, -2, 1, 0, 0 }, { 0, 0, 0, -1, 1, 2, 0, 1, 1 }, { 1, -1, 1, 1, 0, -2, 0, 0, 1 }, { -1, 0, -1, -1, 1, 0, 0, 1, 2 }, { 1, 0, 0, 0, 0, 0, -1, 0, 2 }, { 0, 0, 1, 0, 2, -2, 0, 2, 0 }, { 1, -1, 0, 2, 0, 0, 0, 0, 0 }, { 1, 0, 0, -1, 1, 1, 0, 0, 0 }, { 0, 0, 0, 0, 0, 1, -1, 1, -1 }, { -1, 1, 1, 0, -1, -2, 0, 0, 0 }, { -1, 0, -1, 0, 0, 0, 0, 1, 0 }, { 1, -1, 1, 0, 0, 0, -1, 0, 0 }, { -2, -1, 0, 0, 1, -1, -1, 1, 0 }, { 0, 0, -1, -2, 1, -1, 0, 2, -2 }, { -1, -1, 0, 1, 0, -2, 0, 0, 1 }, { 0, -1, 0, 1, 0, 0, 0, 0, -1 }, { -1, -1, 0, 0, 0, 1, 0, 1, 0 }, { 0, 0, -1, 0, 1, 0, 1, 0, 2 }, };
-
+    start_n = { { 0, 2, -1 }, { 2, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
     select_switch = false;
     // fluctuating selection interval
@@ -339,6 +355,12 @@
     mut_rate = 0.5;
     // mutate for J stem diff (no longer in use)
     J_mutate_probability=0.1;
+
+    // morphogen mutations
+    morph_mean_mut=0.;
+    morph_stdev_mut=0.1;
+
+
     // mutation rate for polarities
     polm_rate = 0.2;
     n_pred = n_orgs / 2;
@@ -357,6 +379,7 @@
     size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     n_init_cells = 1;
     divisions = 0;
+    offset = 75;//75
 
     //programmed division parameters
     end_program = 100;
