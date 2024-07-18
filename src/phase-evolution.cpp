@@ -347,19 +347,19 @@ void mutate_morphogens(vector<vector<double>> &morph)
   double mfac2 = morph_mut_dist(mersenne);
 
   // we only mutate (0)=secretion rate and (2)=diffusion coefficient
-  morph[to_mutate][0]*=mfac1;
+  morph[to_mutate][0]= morph[to_mutate][0] * exp(-mfac1);
   // 1e-1 to 1e-3
   if (morph[to_mutate][0] > 1e-1)
     morph[to_mutate][0] = 1e-1;
   else if (morph[to_mutate][0] < 1e-3)
     morph[to_mutate][0] = 1e-3;
 
-  morph[to_mutate][2]*=mfac2;
+  morph[to_mutate][2]= morph[to_mutate][2] * exp(-mfac2);
   // 1e5 to 1e7
-  if (morph[to_mutate][2] > 1e-5)
-    morph[to_mutate][2] = 1e-5;
-  else if (morph[to_mutate][0] < 1e-7)
-    morph[to_mutate][2] = 1e-7;
+  if (morph[to_mutate][2] > 5e-6)
+    morph[to_mutate][2] = 5e-5;
+  else if (morph[to_mutate][0] < 1e-8)
+    morph[to_mutate][2] = 1e-8;
 
 }
 
@@ -595,7 +595,7 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
           map<int,int>subcomps{};
           Graph ungraph(types.size());
           subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-          scc = ungraph.GetComps(types, 3000);
+          scc = ungraph.GetComps(types, 8000);
           for (auto n : scc)
           {
               cout << "component: ";
@@ -809,8 +809,12 @@ int main(int argc, char *argv[]) {
   par.gene_record = true;
   Parameter();
 
-  bool randomise=true;
-  ConstructNetwork(randomise);
+  if (!par.starter)
+  {
+    bool randomise = true;
+    ConstructNetwork(randomise);
+  }
+    
 
   string dirn = par.data_file;
   if (mkdir(dirn.c_str(), 0777) != -1)

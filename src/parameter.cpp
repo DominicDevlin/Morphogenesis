@@ -85,7 +85,8 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, -1 }, { 2, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
+    start_matrix = { { 0, 0.5, 0, 2, -1, 0, -0.5, 0.5, 0 }, { -1, 0, 2, 0.5, -2, 0, -1, 1, 0 }, { 1, -0.5, 1, 0.5, 0, 0, -2, 0.5, 0 }, { 2, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, -2, 2, -0.5, 0.5, 0, 0 }, { 0, 0, 0, 0, 1, -1, -1, 1.5, 0 }, { 0, -1.5, -1, -1, -1, -1, 1.5, 0, -1 }, { 1, -1, 0, 1.5, 0, 0, 0, 0, 0 }, { -0.5, 0, -0.5, 2, 0.5, 0, 0, 0.5, -2 }, { -1, 0, 0, -1, 1, 0, -0.5, 0, 0 }, };
+
 
 /* Cellular Potts parameters */
     sizex = 150;
@@ -218,9 +219,9 @@
     decay_rate[1] = 3e-3;
     diff_coeff[1] = 4e-7; 
 
-    secr_rate[2] = 4e-3;
+    secr_rate[2] = 0.001;
     decay_rate[2] = 3e-3;
-    diff_coeff[2] = 4e-7; 
+    diff_coeff[2] = 4e-7;//
 
     // GRN params
     n_TF = 4; 
@@ -334,7 +335,7 @@
     swap_selection2 = 110;
     growth_selection=false;
     elongation_selection = false;
-    starter = false;
+    starter = true;
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
     // start from a certain network
     start_n = { { 0, 2, -1 }, { 2, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };

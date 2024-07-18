@@ -177,6 +177,36 @@ void ConstructNetwork()
   }
 }
 
+void addEdge(map<int, set<int>>& graph, int u, int v) {
+    graph[u].insert(v);
+    // graph[v].insert(u); // Remove this line if the graph is directed
+}
+
+bool dfs(map<int, set<int>>& graph, int current, int target, set<int>& visited) {
+    if (current == target) return true; // target node found
+    visited.insert(current); // mark the current node as visited
+    for (int neighbor : graph[current]) {
+        if (visited.find(neighbor) == visited.end()) { // if neighbor hasn't been visited
+            if (dfs(graph, neighbor, target, visited)) return true;
+        }
+    }
+    return false;
+}
+
+bool isPathExists(vector<pair<int, int>>& edges, vector<int>& nodes, int start, int end) {
+    // Build the graph
+    map<int, set<int>> graph;
+    for (auto edge : edges) {
+        addEdge(graph, edge.first, edge.second);
+    }
+    
+    // Set of visited nodes
+    set<int> visited;
+    
+    // Start DFS from the start node
+    return dfs(graph, start, end, visited);
+}
+
 
 
 INIT 
@@ -212,7 +242,7 @@ INIT
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
 
-    ConstructNetwork();
+    // ConstructNetwork();
     CPM->start_network(par.start_matrix);
 
     CPM->Set_evoJ(par.J_stem_diff);
@@ -362,6 +392,9 @@ TIMESTEP {
         dish->CPM->RecordSizes();
       }
 
+
+
+
       // if (par.gene_record)
       // {
       //   dish->CPM->RecordTypes();
@@ -434,6 +467,140 @@ TIMESTEP {
 
       map<pair<int,int>,int> edge_tally{};
       
+      dish->CPM->set_switches(edge_tally);
+
+      for (auto i : edge_tally)
+      {
+        cout << i.first.first << '\t' << i.first.second << '\t' << i.second << endl;
+      }
+
+      par.node_threshold = 0;
+      par.prune_edges = true;
+    
+      auto edge_copy = edge_tally;
+      for (auto it = edge_copy.begin(); it != edge_copy.end();)
+      {
+        if (it->second < par.prune_amount)
+        {
+          it = edge_copy.erase(it);
+        }
+        else
+        {
+          ++it;
+        }
+      }
+
+      map<int,int>subcomps{};
+      Graph ungraph(types.size());
+
+      vector<vector<int>> scc;
+      subcomps = ungraph.CreateUnGraph(phens, types, edge_copy);
+      scc = ungraph.GetComps(types, 8000);
+      for (auto i : scc)
+      {
+          cout << "component: ";
+          for (int j : i)
+          {
+              cout << j << "  ";
+          }
+          cout << std::endl;
+      }
+      vector<int> remaining_nodes;
+      for (vector<int> &i : scc)
+      {
+        if (i.size() < 1)
+          cerr << "error in scc size!\n";
+        remaining_nodes.push_back(i[0]);
+      }
+      vector<vector<int>> dendrogram(remaining_nodes.size());
+        
+      vector<pair<int,int>> edges{};
+      vector<int> nodes{};
+      for (auto i : edge_copy)
+      {
+        if (i.second > 10)
+        {
+          edges.push_back(i.first);
+          if (std::find(nodes.begin(), nodes.end(), i.first.first) == nodes.end())
+          {
+            nodes.push_back(i.first.first);
+          }
+          if (std::find(nodes.begin(), nodes.end(), i.first.second) == nodes.end())
+          {
+            nodes.push_back(i.first.second);
+          }
+        }
+
+      }
+
+      for (int i = 0; i < remaining_nodes.size(); i++)
+      {
+        for (int j = 0; j < remaining_nodes.size(); j++)
+        {
+          if (j != i)
+          {
+            // cout << i << '\t' << j << endl;
+            int start = remaining_nodes[i];
+            int end = remaining_nodes[j];
+            // cout << start << '\t' << end << endl;
+            // Check if there is a path from start to end
+            if (isPathExists(edges, nodes, start, end)) 
+            {
+              dendrogram[i].push_back(j);
+              // std::cout << "There is a path between " << start << " and " << end << std::endl;
+            } 
+            else 
+            {
+              // std::cout << "No path exists between " << start << " and " << end << std::endl;
+            }
+          }
+        }
+      }
+      vector<int> dead_ends{};
+      for (int i = 0; i < dendrogram.size(); i++)
+      {
+        if (dendrogram[i].size() == 0)
+        {
+          cout << "Dead end at " << remaining_nodes[i] << endl;
+          dead_ends.push_back(i);
+        }
+      }
+      set<int> dead_ends_set(dead_ends.begin(), dead_ends.end());
+
+      // Filter dendrogram
+      auto new_end = std::remove_if(dendrogram.begin(), dendrogram.end(), [&dead_ends_set](const std::vector<int>& pair) 
+      {
+        // Check if any element of the pair is not in dead_ends_set
+        for (int elem : pair) 
+        {
+          if (dead_ends_set.find(elem) == dead_ends_set.end()) 
+          {
+            return true; // remove the element in dendrogram
+          }
+        }
+        return false; // keep the element from dendrogram
+      });
+
+      // Erase the removed elements
+      dendrogram.erase(new_end, dendrogram.end());
+
+      int max_diffs=0;
+
+      for (int i = 0; i < dendrogram.size(); ++i)
+      {
+        cout << "SCC differentiates into: ";
+        for (int j = 0; j < dendrogram[i].size(); ++j)
+        {
+          cout << remaining_nodes[dendrogram[i][j]] << '\t';
+        }
+        cout << endl;
+        if (dendrogram[i].size() > max_diffs)
+          max_diffs = dendrogram[i].size();
+      }
+
+
+
+
       // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)
       bool cycling = dish->CPM->CycleCheck();
       if (cycling && par.cycle_check)
@@ -447,8 +614,6 @@ TIMESTEP {
       }
 
 
-
-      vector<vector<int>> scc;
       if (par.insitu_shapes)
       {
         par.node_threshold = 0;
