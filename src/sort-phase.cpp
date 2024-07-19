@@ -436,7 +436,7 @@ TIMESTEP {
     dish->CPM->AmoebaeMove(t);
 
 
-    if (t==3000)
+    if (t==15000)
     {
       dish->PDEfield->PrintAxisConcentrations(true, par.sizex/2);
     }

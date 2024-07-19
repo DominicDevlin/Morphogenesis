@@ -36,7 +36,7 @@ std::uniform_real_distribution<double> double_num(0.0, 1.0);
 std::uniform_int_distribution<> genes_dist(0, par.n_genes-1);
 std::uniform_int_distribution<> activ_dist(0, par.n_activators-1);
 std::uniform_int_distribution<> TF_dist(0, par.n_TF-1);
-std::normal_distribution<> morph_mut_dist(0,0.02);
+std::normal_distribution<> morph_mut_dist(0,0.1);
 
 
 int PDE::MapColour(double val) {
@@ -357,9 +357,9 @@ void mutate_morphogens(vector<vector<double>> &morph)
   morph[to_mutate][2]= morph[to_mutate][2] * exp(-mfac2);
   // 1e5 to 1e7
   if (morph[to_mutate][2] > 5e-6)
-    morph[to_mutate][2] = 5e-5;
-  else if (morph[to_mutate][0] < 1e-8)
-    morph[to_mutate][2] = 1e-8;
+    morph[to_mutate][2] = 5e-6;
+  else if (morph[to_mutate][2] < 5e-9)
+    morph[to_mutate][2] = 5e-9;
 
 }
 
@@ -437,7 +437,7 @@ void printn(vector<vector<double>> netw, vector<vector<double>> morph, vector<do
   }
   for (int i=0;i<par.n_diffusers;++i)
   {
-    outfile << " | " << morph[i][0] << ", " << morph[i][1] << ", " << morph[i][2] << " | ";
+    outfile << "secr_rate[" << i << "] = " << morph[i][0] << "; decay_rate[" << i << "] = " << morph[i][1] << "; diff_coeff[" << i << "] = " << morph[i][2] << "; ";
   } 
   outfile << endl;
 
@@ -618,7 +618,7 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
           vector<int> nodes{};
           for (auto n : edge_tally)
           {
-            if (n.second > 10)
+            if (n.second > 20)
             {
               edges.push_back(n.first);
               if (std::find(nodes.begin(), nodes.end(), n.first.first) == nodes.end())
