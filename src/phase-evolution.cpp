@@ -104,8 +104,8 @@ void ConstructNetwork(bool randomise, vector<vector<vector<double>>>& nets, vect
   int length = par.n_diffusers + par.n_MF + par.n_TF;
   int total = par.n_diffusers + par.n_MF + par.n_TF + 1;
   // we can just alter these appropriately.
-  int old_d = 3;
-  int old_mf = 6; // includes tf + mf
+  int old_d = 1;
+  int old_mf = 2; // includes tf + mf
 
 
   for (auto &net : nets)
