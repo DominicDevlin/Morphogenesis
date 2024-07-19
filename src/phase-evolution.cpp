@@ -840,7 +840,7 @@ int main(int argc, char *argv[]) {
   par.offset=75;
   
   par.mut_rate=0.25;
-  par.n_orgs = 16;
+  par.n_orgs = 60;
 
   // this is true for type selection
   par.gene_record = true;
