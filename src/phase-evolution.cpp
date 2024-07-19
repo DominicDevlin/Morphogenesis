@@ -99,85 +99,115 @@ vector<double> random_gene(int length)
   return g; 
 }
 
-void ConstructNetwork(bool randomise)
+void ConstructNetwork(bool randomise, vector<vector<vector<double>>>& nets, vector<vector<vector<double>>>& morphs)
 {
   int length = par.n_diffusers + par.n_MF + par.n_TF;
   int total = par.n_diffusers + par.n_MF + par.n_TF + 1;
-  int old_d = 1;
-  int old_mf = 2;
-  for (int i = 0; i < total; ++i)
-  {
-    if (i < old_d) // old gene
-    {
-      vector<double>& g = par.start_n[i];
-      for (int j=1;j<length;++j)
-      {
-        if (j >= old_d && j < par.n_diffusers)
-        {
-          g.insert(g.begin() +j, 0.);
-        }
-        else if (j < length)
-        {
-          g.push_back(0.);
-        }
-      }
-    }
-    else if (i < par.n_diffusers) // new gene
-    {
-      if (randomise)
-      {
-        vector<double> new_g = random_gene(length);
-        par.start_n.insert(par.start_n.begin()+i,new_g);
-      }
-      else
-      {
-        vector<double> new_g(length,0.);
-        par.start_n.insert(par.start_n.begin()+i,new_g);
-      }
+  // we can just alter these appropriately.
+  int old_d = 3;
+  int old_mf = 6; // includes tf + mf
 
-    }
-    else if (i < par.n_diffusers+old_mf) // old gene
+
+  for (auto &net : nets)
+  {
+    for (int i = 0; i < total; ++i)
     {
-      vector<double>& g = par.start_n[i];
-      for (int j=1;j<length;++j)
+      if (i < old_d) // old gene
       {
-        if (j >= old_d && j < par.n_diffusers)
+        vector<double>& g = net[i];
+        for (int j=1;j<length;++j)
         {
-          g.insert(g.begin() +j, 0.);
+          if (j >= old_d && j < par.n_diffusers)
+          {
+            g.insert(g.begin() +j, 0.);
+          }
+          else if (j < length)
+          {
+            g.push_back(0.);
+          }
         }
-        else if (j < length)
-        {
-          g.push_back(0.);
-        }
-      }    
-    }
-    else if (i < length) // new gene
-    {
-      if (randomise)
+      }
+      else if (i < par.n_diffusers) // new gene
       {
-        vector<double> new_g = random_gene(length);
-        par.start_n.insert(par.start_n.begin()+i,new_g);
+        if (randomise)
+        {
+          vector<double> new_g = random_gene(length);
+          net.insert(net.begin()+i,new_g);
+        }
+        else
+        {
+          vector<double> new_g(length,0.);
+          net.insert(net.begin()+i,new_g);
+        }
+
+      }
+      else if (i < par.n_diffusers+old_mf) // old gene
+      {
+        vector<double>& g = net[i];
+        for (int j=1;j<length;++j)
+        {
+          if (j >= old_d && j < par.n_diffusers)
+          {
+            g.insert(g.begin() +j, 0.);
+          }
+          else if (j < length)
+          {
+            g.push_back(0.);
+          }
+        }    
+      }
+      else if (i < length) // new gene
+      {
+        if (randomise)
+        {
+          vector<double> new_g = random_gene(length);
+          net.insert(net.begin()+i,new_g);
+        }
+        else
+        {
+          vector<double> new_g(length,0.);
+          net.insert(net.begin()+i,new_g);
+        }    
       }
       else
       {
-        vector<double> new_g(length,0.);
-        par.start_n.insert(par.start_n.begin()+i,new_g);
-      }    
+        vector<double>& g = net[i];
+        for (int j=1;j<length;++j)
+        {
+          if (j >= old_d && j < par.n_diffusers)
+          {
+            g.insert(g.begin() +j, 0.);
+          }
+          else if (j < length)
+          {
+            g.push_back(0.);
+          }
+        }     
+      }
     }
-    else
+  }
+  double loglow = log10(5e-4);
+  double logup = log10(5e-2);
+  uniform_real_distribution<> sec_dis(loglow, logup);
+
+  loglow = log10(5e-9);
+  logup = log10(5e-6);
+  uniform_real_distribution<> dif_dis(loglow, logup);
+
+  for (auto &morph : morphs)
+  {
+    for (int i = 0; i < par.n_diffusers; ++i)
     {
-      vector<double>& g = par.start_n[i];
-      for (int j=1;j<length;++j)
+      if (i >= old_d)
       {
-        if (j >= old_d && j < par.n_diffusers)
-        {
-          g.insert(g.begin() +j, 0.);
-        }
-        else if (j < length)
-        {
-          g.push_back(0.);
-        }
-      }     
+        double secr = sec_dis(mersenne);
+        secr = pow(10, secr);
+        morph[i][0] = secr;
+
+        double dif = dif_dis(mersenne);
+        dif = pow(10, dif);
+        morph[i][2] = dif;
+      }
     }
   }
 }
@@ -348,14 +378,14 @@ void mutate_morphogens(vector<vector<double>> &morph)
 
   // we only mutate (0)=secretion rate and (2)=diffusion coefficient
   morph[to_mutate][0]= morph[to_mutate][0] * exp(-mfac1);
-  // 1e-1 to 1e-3
-  if (morph[to_mutate][0] > 1e-1)
-    morph[to_mutate][0] = 1e-1;
-  else if (morph[to_mutate][0] < 1e-3)
-    morph[to_mutate][0] = 1e-3;
+  // 5e-2 to 5e-4
+  if (morph[to_mutate][0] > 5e-2)
+    morph[to_mutate][0] = 5e-2;
+  else if (morph[to_mutate][0] < 5e-4)
+    morph[to_mutate][0] = 5e-4;
 
   morph[to_mutate][2]= morph[to_mutate][2] * exp(-mfac2);
-  // 1e5 to 1e7
+  // 5e6 to 5e9
   if (morph[to_mutate][2] > 5e-6)
     morph[to_mutate][2] = 5e-6;
   else if (morph[to_mutate][2] < 5e-9)
@@ -385,12 +415,13 @@ void output_networks(vector<vector<vector<double>>>& netw)
     }
 }
 
-void record_networks(vector<vector<vector<double>>>& netw, string oname)
+void record_networks(vector<vector<vector<double>>>& netw, vector<vector<vector<double>>>& morphs, string oname)
 {
   string nname = oname + "/" + "genomes.txt";
   std::ofstream outfile;
   outfile.open(nname, ios::app);
   for (int org=0;org<par.n_orgs;++org)
+  {
     for (int i=0;i<par.n_genes;++i)
     {
       if (i == 0)
@@ -407,6 +438,12 @@ void record_networks(vector<vector<vector<double>>>& netw, string oname)
       if (i == par.n_genes -1)
         outfile << "}" << endl;
     }
+    for (int i=0;i<par.n_diffusers;++i)
+    {
+      outfile << "secr_rate[" << i << "] = " << morphs[org][i][0] << "; decay_rate[" << i << "] = " << morphs[org][i][1] << "; diff_coeff[" << i << "] = " << morphs[org][i][2] << "; ";
+    }
+    outfile << endl; 
+  }
   outfile.close();
 }
 
@@ -700,7 +737,7 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
     string dirn = par.data_file + "/" + to_string(time+1);
     if (mkdir(dirn.c_str(), 0777) != -1)
       cout << "Directory created." << endl;
-    record_networks(network_list, dirn);
+    record_networks(network_list, morphogens, dirn);
     for (int i=0; i < par.n_orgs; ++i)
     {
       // change this function for max state space
@@ -803,17 +840,13 @@ int main(int argc, char *argv[]) {
   par.offset=75;
   
   par.mut_rate=0.25;
-  par.n_orgs = 60;
+  par.n_orgs = 16;
 
   // this is true for type selection
   par.gene_record = true;
   Parameter();
 
-  if (!par.starter)
-  {
-    bool randomise = true;
-    ConstructNetwork(randomise);
-  }
+
     
 
   string dirn = par.data_file;
@@ -840,6 +873,8 @@ int main(int argc, char *argv[]) {
     morphogens.push_back(org_morphs);
   }
 
+  bool randomise = true;
+  ConstructNetwork(randomise, networks, morphogens);
 
   for (int t=0;t<par.evs;++t)
   {

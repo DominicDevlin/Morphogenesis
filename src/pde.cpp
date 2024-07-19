@@ -270,32 +270,29 @@ void PDE::Secrete(CellularPotts *cpm)
 {
   const double dt=par.dt;
 
-  if (!par.enzymes)
+  for (int n = 0;n<par.n_diffusers;++n)
   {
-    for (int n = 0;n<par.n_diffusers;++n)
-    {
-      for (int x=0;x<sizex;x++)
-        for (int y=0;y<sizey;y++) 
-        {
-          double conc{};
-          for (int xp=0;xp<divisor;xp++)
-            for (int yp=0;yp<divisor;yp++)
+    for (int x=0;x<sizex;x++)
+      for (int y=0;y<sizey;y++) 
+      {
+        double conc{};
+        for (int xp=0;xp<divisor;xp++)
+          for (int yp=0;yp<divisor;yp++)
+          {
+            // inside cells with diffuser on (secrete + decay)
+            if (cpm->Sigma((x*divisor+xp),(y*divisor+yp)) > 0) 
             {
-              // inside cells with diffuser on (secrete + decay)
-              if (cpm->Sigma((x*divisor+xp),(y*divisor+yp)) > 0) 
-              {
-                conc += cpm->diffuser_check(n,(x*divisor+xp),(y*divisor+yp));
-                // sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
-              } 
-            }
-          sigma[n][x][y]+= (secr_rate[n]*dt*conc/jump - decay_rate[n]*dt*sigma[n][x][y]);
-          // else 
-          // {
-          // // cells without diffuser on (only decay). 
-          //   sigma[n][x][y]-= par.decay_rate[n]*dt*sigma[n][x][y];
-          // }
-        }
-    }
+              conc += cpm->diffuser_check(n,(x*divisor+xp),(y*divisor+yp));
+              // sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
+            } 
+          }
+        sigma[n][x][y]+= (secr_rate[n]*dt*conc/jump - decay_rate[n]*dt*sigma[n][x][y]);
+        // else 
+        // {
+        // // cells without diffuser on (only decay). 
+        //   sigma[n][x][y]-= par.decay_rate[n]*dt*sigma[n][x][y];
+        // }
+      }
   }
 }
 

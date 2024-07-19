@@ -85,8 +85,8 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, -0.5, 0, 2, -1, -0.5, -0.5, 0, 0 }, { 1, 0.5, -1, 0, 0, -0.5, 1.5, -1.5, 1.5 }, { 0, -0.5, -1.5, 0, 0, 0, 2, 1, -1 }, { 2, 0.5, 0.5, 0, 0, 0, -0.5, 0, 0 }, { 1, 0, 0, -2, 2, 0, -0.5, -0.5, 0 }, { 1.5, -0.5, 1.5, 0, 0, -1, 1, 0, 0 }, { 2, -0.5, -0.5, -0.5, -2, 0, 0, -1, 0 }, { 0, 0.5, 1, 0, 0.5, -1, -1, 0, -1 }, { -0.5, -1, -2, 1, -1, 0.5, 0, 2, 0 }, { -1.5, 0.5, -0.5, -1, 1, -0.5, -1.5, -0.5, -0.5 }, };
-    
+    start_matrix = { { 0, 0, 0, 0, 2, -1, 0, 0, 0, 0 }, { 0, 0, 0, -1, 0, -1, 0, 1, -1, 2 }, { 0, 0, -2, 1, 1, -1, 0, -1, 1, 0 }, { 2, 0, 0, -1, 0, 1, -2, 0, 0, 1 }, { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, -2, 2, 0, 0, 0, 0 }, { 0, 0, 1, 0, 0, 0, 0, 1, 0, -1 }, { 1, 0, 0, 1, 0, -1, 1, -2, 0, 1 }, { 0, 1, 0, 0, 0, -1, 1, 0, 0, 0 }, { 0, 0, 0, 1, 1, 0, -1, 0, 0, 0 }, { -1, 0, 0, 0, -1, 1, 0, 0, 0, 0 }, };
+
 
 /* Cellular Potts parameters */
     sizex = 150;
@@ -205,39 +205,26 @@
     Vs_max = 0.5; // 1;
     Vd_max = 0; // 1; 
 
-    n_diffusers= 3;
+    n_diffusers=4;
     // morphogen parameters
     secr_rate = new double[n_diffusers];
     diff_coeff = new double[n_diffusers];
     decay_rate = new double[n_diffusers];
   
-    secr_rate[0] = 4e-3;
-    decay_rate[0] = 3e-3;
-    diff_coeff[0] = 4e-7; 
-
-    secr_rate[1] = 4e-3;
-    decay_rate[1] = 3e-3;
-    diff_coeff[1] = 4e-7; 
-
-    secr_rate[2] = 0.001;
-    decay_rate[2] = 3e-3;
-    diff_coeff[2] = 4e-7;//
+    secr_rate[0] = 0.004; decay_rate[0] = 0.003; diff_coeff[0] = 4e-07; secr_rate[1] = 0.05; decay_rate[1] = 0.003; diff_coeff[1] = 5e-09; secr_rate[2] = 0.05; decay_rate[2] = 0.003; diff_coeff[2] = 5e-09; secr_rate[3] = 0.05; decay_rate[3] = 0.003; diff_coeff[3] = 5e-09;
 
 
-    secr_rate[0] = 0.00375233;
-    decay_rate[0] = 3e-3;
-    diff_coeff[0] = 4.23754e-07; 
+    // secr_rate[0] = 0.00375233;
+    // decay_rate[0] = 3e-3;
+    // diff_coeff[0] = 4.23754e-07; 
 
-    secr_rate[1] = 0.00121324;
-    decay_rate[1] = 3e-3;
-    diff_coeff[1] = 9.25668e-09; 
+    // secr_rate[1] = 0.00121324;
+    // decay_rate[1] = 3e-3;
+    // diff_coeff[1] = 9.25668e-09; 
 
-    secr_rate[2] = 0.00119461;
-    decay_rate[2] = 3e-3;
-    diff_coeff[2] = 1.15174e-08;//
-
-
-
+    // secr_rate[2] = 0.00119461;
+    // decay_rate[2] = 3e-3;
+    // diff_coeff[2] = 1.15174e-08;//
 
     // GRN params
     n_TF = 4; 
@@ -351,10 +338,15 @@
     swap_selection2 = 110;
     growth_selection=false;
     elongation_selection = false;
-    starter = false;
+    starter = true;
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
     // start from a certain network
-    start_n = { { 0, 2, -1 }, { 2, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
+    start_n = { { 0, -0.5, 0, 2, -1, -0.5, -0.5, 0, 0 }, { 1, 0.5, -1, 0, 0, -0.5, 1.5, -1.5, 1.5 }, { 0, -0.5, -1.5, 0, 0, 0, 2, 1, -1 }, { 2, 0.5, 0.5, 0, 0, 0, -0.5, 0, 0 }, { 1, 0, 0, -2, 2, 0, -0.5, -0.5, 0 }, { 1.5, -0.5, 1.5, 0, 0, -1, 1, 0, 0 }, { 2, -0.5, -0.5, -0.5, -2, 0, 0, -1, 0 }, { 0, 0.5, 1, 0, 0.5, -1, -1, 0, -1 }, { -0.5, -1, -2, 1, -1, 0.5, 0, 2, 0 }, { -1.5, 0.5, -0.5, -1, 1, -0.5, -1.5, -0.5, -0.5 }, };
+
+    if (starter)
+    {
+      secr_rate[0] = 0.00375233; decay_rate[0] = 3e-3; diff_coeff[0] = 4.23754e-07; secr_rate[1] = 0.00121324; decay_rate[1] = 3e-3; diff_coeff[1] = 9.25668e-09; secr_rate[2] = 0.00119461; decay_rate[2] = 3e-3; diff_coeff[2] = 1.15174e-08;      
+    }
 
     select_switch = false;
     // fluctuating selection interval
