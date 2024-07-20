@@ -358,9 +358,9 @@ TIMESTEP {
       if (t % par.update_freq == 0)
       {
         dish->CPM->update_phase_network(t);
-        // if (par.noise && t > par.noise_start)
-          // dish->CPM->add_noise();
-          
+        if (par.noise && t > par.noise_start)
+          dish->CPM->add_noise();
+
         dish->AverageChemCell(); 
         if (par.gene_output)
         {

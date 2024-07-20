@@ -85,13 +85,13 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 0, 0, 0, 2, -1, 0, 0, -0.5, 0 }, { 0, 0, 0, 0, -1, 0, -1, 0, 0, 2 }, { -2, 0, 0.5, 2, 1, 1, 1, 1, -2, 0 }, { 0, 0, 1, 0, -1, -1, 1, 0, 1, 0 }, { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, -2, 2, 0, 0, 0, 0 }, { 0, 1, 1, 1, 1, -1, 2, -0.5, 0, -1 }, { 0, -1, 1, 0, 0, -2, 0, 0, -2, -1 }, { -1, 0, -0.5, 0, 0, -0.5, 0, 0, -1, 0 }, { 0, 0, -1, 0, -1, 2, 0, 1, -0.5, 0.5 }, { -1, 0, 0, 0, -0.5, 1, 0, 0.5, 0, 0.5 }, };
+    start_matrix = { { -1, -0.5, 1.5, 1.5, 2, -1, 0, 0, 0, 0 }, { -0.5, 0, 0.5, -1, -2, -0.5, 1, -1, 0.5, -2 }, { 1.5, 0.5, 0, -0.5, -0.5, 0.5, -0.5, 0, -0.5, -0.5 }, { -0.5, -0.5, -1.5, -1.5, -1.5, -1, -1.5, -0.5, -1.5, -1.5 }, { 2, -1, 0.5, 0, 0.5, 0, 0, 0, 0, 0 }, { 0, -0.5, 1, 1.5, -2, 2, 0, 1.5, 2, 0 }, { -1, 1, -0.5, -2, -1, 1, 1, 0.5, 0, 0 }, { 0, -0.5, -0.5, 0, -1, 0.5, 0.5, -0.5, 0.5, 0.5 }, { -0.5, -1.5, -0.5, 1.5, 0.5, 0.5, 0, 0, 1, -1 }, { -0.5, 1, -1, -0.5, 1.5, 0.5, 0.5, 1, 1.5, 2 }, { -2, 0.5, -1.5, 0, -1.5, 1, -0.5, 0, 0, 0 }, };
 
 
 /* Cellular Potts parameters */
     sizex = 150;
     sizey = 250;
-    mcs = 20100;
+    mcs = 18000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -211,9 +211,7 @@
     diff_coeff = new double[n_diffusers];
     decay_rate = new double[n_diffusers];
   
-secr_rate[0] = 0.00510738; decay_rate[0] = 0.003; diff_coeff[0] = 2.81013e-07; secr_rate[1] = 0.0114117; decay_rate[1] = 0.003; diff_coeff[1] = 2.44297e-08; secr_rate[2] = 0.00183639; decay_rate[2] = 0.003; diff_coeff[2] = 3.93668e-07; secr_rate[3] = 0.001495; decay_rate[3] = 0.003; diff_coeff[3] = 1.90695e-08;
-
-
+secr_rate[0] = 0.0028635; decay_rate[0] = 0.003; diff_coeff[0] = 7.2741e-07; secr_rate[1] = 0.000662251; decay_rate[1] = 0.003; diff_coeff[1] = 1.84986e-07; secr_rate[2] = 0.0161325; decay_rate[2] = 0.003; diff_coeff[2] = 7.70733e-07; secr_rate[3] = 0.00297582; decay_rate[3] = 0.003; diff_coeff[3] = 3.16348e-06;
     // secr_rate[0] = 0.00375233;
     // decay_rate[0] = 3e-3;
     // diff_coeff[0] = 4.23754e-07; 
@@ -410,10 +408,10 @@ secr_rate[0] = 0.00510738; decay_rate[0] = 0.003; diff_coeff[0] = 2.81013e-07; s
     d_rate = 1;
 
     // add noise to regulatory network 
-    noise = false;
+    noise = true;
     // noise amount
-    noise_dose=0.1;
-    noise_start = 6500;
+    noise_dose=0.04;
+    noise_start = 3000;
 
 
 

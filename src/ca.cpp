@@ -2840,44 +2840,69 @@ void CellularPotts::noise_term(double &x)
 
 void CellularPotts::add_noise()
 {
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  if (par.phase_evolution)
   {
-    if (c->AliveP())
-    {    
-      vector<double>& genes = c->get_genes();
-      vector<double>& diffusers = c->get_diffusers(); 
-      vector<double>& locks = c->get_locks();
-      vector<double>& keys = c->get_keys();
-      vector<double>& meds = c->get_medp();
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+    {
+      if (c->AliveP())
+      {    
+        vector<double>& genes = c->get_genes();
+        vector<double>& diffusers = c->get_diffusers(); 
 
-      int j=0;
-      int k=0;
-      int m=0;
-      for (int i = 0; i < par.n_genes; ++i)
-      {
-        if (i < par.n_diffusers)
-          noise_term(diffusers[i]);
-        else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
-          noise_term(genes[i]);
-        else if (i < par.n_genes - par.n_locks - par.n_mediums)
+        int j=0;
+        for (int i = 0; i < par.n_genes; ++i)
         {
-          noise_term(locks[j]);
-          ++j;
+          // if (i < par.n_diffusers)
+          //   noise_term(diffusers[i]);
+          if (i < par.n_genes - 1 && i >= par.n_diffusers)
+            noise_term(genes[i]);
         }
-        else if (i < par.n_genes - par.n_mediums)
+      }
+    }    
+  }
+  else
+  {
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+    {
+      if (c->AliveP())
+      {    
+        vector<double>& genes = c->get_genes();
+        vector<double>& diffusers = c->get_diffusers(); 
+        vector<double>& locks = c->get_locks();
+        vector<double>& keys = c->get_keys();
+        vector<double>& meds = c->get_medp();
+
+        int j=0;
+        int k=0;
+        int m=0;
+        for (int i = 0; i < par.n_genes; ++i)
         {
-          noise_term(keys[k]);
-          ++k;
-        }
-        else 
-        {
-          noise_term(meds[m]);
-          ++m;
+          if (i < par.n_diffusers)
+            noise_term(diffusers[i]);
+          else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
+            noise_term(genes[i]);
+          else if (i < par.n_genes - par.n_locks - par.n_mediums)
+          {
+            noise_term(locks[j]);
+            ++j;
+          }
+          else if (i < par.n_genes - par.n_mediums)
+          {
+            noise_term(keys[k]);
+            ++k;
+          }
+          else 
+          {
+            noise_term(meds[m]);
+            ++m;
+          }
         }
       }
     }
   }
+
 
 }
 
