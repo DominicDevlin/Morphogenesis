@@ -2855,7 +2855,7 @@ void CellularPotts::add_noise()
         {
           // if (i < par.n_diffusers)
           //   noise_term(diffusers[i]);
-          if (i < par.n_genes - 1 && i >= par.n_diffusers)
+          if (i == 8)
             noise_term(genes[i]);
         }
       }

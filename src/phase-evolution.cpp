@@ -186,30 +186,34 @@ void ConstructNetwork(bool randomise, vector<vector<vector<double>>>& nets, vect
       }
     }
   }
-  double loglow = log10(5e-4);
-  double logup = log10(5e-2);
-  uniform_real_distribution<> sec_dis(loglow, logup);
-
-  loglow = log10(5e-9);
-  logup = log10(5e-6);
-  uniform_real_distribution<> dif_dis(loglow, logup);
-
-  for (auto &morph : morphs)
+  if (randomise)
   {
-    for (int i = 0; i < par.n_diffusers; ++i)
-    {
-      if (i >= old_d)
-      {
-        double secr = sec_dis(mersenne);
-        secr = pow(10, secr);
-        morph[i][0] = secr;
+    double loglow = log10(5e-4);
+    double logup = log10(5e-2);
+    uniform_real_distribution<> sec_dis(loglow, logup);
 
-        double dif = dif_dis(mersenne);
-        dif = pow(10, dif);
-        morph[i][2] = dif;
+    loglow = log10(5e-9);
+    logup = log10(5e-6);
+    uniform_real_distribution<> dif_dis(loglow, logup);
+
+    for (auto &morph : morphs)
+    {
+      for (int i = 0; i < par.n_diffusers; ++i)
+      {
+        if (i >= old_d)
+        {
+          double secr = sec_dis(mersenne);
+          secr = pow(10, secr);
+          morph[i][0] = secr;
+
+          double dif = dif_dis(mersenne);
+          dif = pow(10, dif);
+          morph[i][2] = dif;
+        }
       }
     }
   }
+
 }
 
 void swap(double *xp, double *yp)
@@ -459,7 +463,7 @@ void printn(vector<vector<double>> netw, vector<vector<double>> morph, vector<do
   for (int i=0;i<par.n_genes;++i)
   {
     if (i == 0)
-      outfile << "{ ";
+      outfile << "start_matrix = { ";
     for (int j=0;j<par.n_activators;++j)
     {
       if (j==0)
@@ -470,7 +474,7 @@ void printn(vector<vector<double>> netw, vector<vector<double>> morph, vector<do
         outfile << netw[i][j] << ", ";
     }
     if (i == par.n_genes -1)
-      outfile << "}" << endl;
+      outfile << "};" << endl;
   }
   for (int i=0;i<par.n_diffusers;++i)
   {
@@ -872,9 +876,12 @@ int main(int argc, char *argv[]) {
     }
     morphogens.push_back(org_morphs);
   }
+  if (!par.starter)
+  {
+    bool randomise = true;
+    ConstructNetwork(randomise, networks, morphogens);
+  }
 
-  bool randomise = true;
-  ConstructNetwork(randomise, networks, morphogens);
 
   for (int t=0;t<par.evs;++t)
   {
