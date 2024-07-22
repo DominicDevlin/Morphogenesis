@@ -6771,15 +6771,7 @@ void CellularPotts::HexagonalOrder()
     {
       // check if the cell borders the medium
 
-
-
       int celln=c->Sigma();
-      int perim_length{};
-
-      int xcen = c->get_xcen();
-      int ycen = c->get_xcen();
-
-      
       int ** ns = SearchNeighbours();
       int n_size = CountCells();
 
@@ -6796,7 +6788,6 @@ void CellularPotts::HexagonalOrder()
           int j = 0;
           while (ns[i][j] >= 0)
           {
-            ++j;
             med_check = false;
             if (ns[i][j] == 0)
             {
@@ -6811,30 +6802,37 @@ void CellularPotts::HexagonalOrder()
               ycens.push_back(yc);
               ++n_neighbours;
             }
+            ++j;
           }
-          cout << i << '\t' << n_neighbours << endl;
+          // cout << i << '\t' << n_neighbours << endl;
           if (med_check)
             continue;
           
           for (int n1 = 0; n1 < n_neighbours; ++n1)
           {
-            for (int n2 = n1+1; n2 < n_neighbours; ++n2)
-            {
-              double ABx = XCEN - xcens[n1];
-              double ABy = YCEN = ycens[n1];
 
-              double BCx = XCEN - xcens[n1];
-              double BCy = YCEN = ycens[n2];     
-              // calculate dot product
-              double dtpt = ABx + BCx + ABy * BCy;
-              double magAB = sqrt(ABx*ABx + ABy*ABy);
-              double magBC = sqrt(BCx*BCx + BCy*BCy);
-              // use cosine rule
-              double costheta = dtpt / (magAB * magBC);
-              double angle = acos(costheta);
-              cout << angle << endl;
+            double ABx = XCEN - xcens[n1];
+            double ABy = YCEN - ycens[n1];
+            double magAB = sqrt(ABx*ABx + ABy*ABy);
+            for (int n2 = 0; n2 < n_neighbours; ++n2)
+            {
+              if (n1 != n2)
+              {
+                double BCx = XCEN - xcens[n1];
+                double BCy = YCEN - ycens[n2];     
+                // calculate dot product
+                double dtpt = ABx*BCx + ABy*BCy;
+                double magBC = sqrt(BCx*BCx + BCy*BCy);
+                // cout << XCEN << '\t' << xcens[n1] << '\t' << magAB << '\t' << magBC << endl;
+                // use cosine rule
+                double costheta = dtpt / (magAB * magBC);
+                double angle = acos(costheta);
+                cout << angle << '\t';  
+                // choose the angle closest to 0 and angle closest to pi. These are the two nearest neighbours.
+              }
 
             }
+            cout << endl;
           }
         }
       }
