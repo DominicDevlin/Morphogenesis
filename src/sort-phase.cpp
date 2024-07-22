@@ -570,24 +570,25 @@ TIMESTEP {
     }
 
 
-    if (t == 4000)
+    if (t == 2500)
     {
-      int ** ns = dish->CPM->SearchNeighbours();
-      int n_size = dish->CountCells();
+      // int ** ns = dish->CPM->SearchNeighbours();
+      // int n_size = dish->CountCells();
 
-      for (int i = 0; i < n_size; ++i)
-      {
-        cout << "cell: " << i << " neighbours: ";
-        for (int j = 0; j < n_size; ++j)
-        {
-          if (ns[i][j] < 0)
-            break;
-          else
-            cout << ns[i][j] << '\t';
-        }
+      // for (int i = 0; i < n_size; ++i)
+      // {
+      //   cout << "cell: " << i << " neighbours: ";
+      //   for (int j = 0; j < n_size; ++j)
+      //   {
+      //     if (ns[i][j] < 0)
+      //       break;
+      //     else
+      //       cout << ns[i][j] << '\t';
+      //   }
 
-        cout << endl;
-      }
+      //   cout << endl;
+      // }
+      dish->CPM->HexagonalOrder();
       // dish->CPM->ConvertToStem(125,95,40,11907, dish->PDEfield, true, 45);
       // dish->IntroduceMorphogen(1, 120, 90);
     }
