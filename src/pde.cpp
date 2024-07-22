@@ -163,10 +163,10 @@ void PDE::ContourPlot(Graphics *g, int l, int colour) {
   {for (int i=0;i<sizey;i++)
     y[i]=i;}
   
-  for (int i=0;i<sizex*sizey;i++) 
-  {
-    cout << i << '\t' << sigma[l][0][i] << endl;
-  }
+  // for (int i=0;i<sizex*sizey;i++) 
+  // {
+  //   cout << i << '\t' << sigma[l][0][i] << endl;
+  // }
 
   conrec(sigma[l],0,sizex-1,0,sizey-1,x,y,nc,z,g,colour);
   

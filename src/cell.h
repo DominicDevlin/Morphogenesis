@@ -846,6 +846,16 @@ private:
     ycen = y;
   }
 
+  inline double get_xcen()
+  {
+    return xcen;
+  }
+
+  inline double get_ycen()
+  {
+    return ycen;
+  }
+
   inline void RecordMass()
   {
     xcens.push_back(xcen);

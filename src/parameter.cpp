@@ -88,7 +88,7 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 250;
+    sizex = 150;
     sizey = 250;
     mcs = 80000;
     T = 3;
@@ -142,7 +142,7 @@
     Vs_max = 1; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.0014;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.003;//126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
@@ -300,8 +300,8 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    target_area = 8100;
-    size_init_cells = 90; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
+    target_area = 4900;
+    size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     n_init_cells = 1;
     divisions = 0;
 

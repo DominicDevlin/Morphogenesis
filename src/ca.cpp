@@ -6759,6 +6759,130 @@ void CellularPotts::ShapeIndex()
 
 
 
+void CellularPotts::HexagonalOrder()
+{
+  initVolume();
+  adjustPerimeters();
+  int **Neighbours = SearchNeighbours();
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      // check if the cell borders the medium
+
+
+
+      int celln=c->Sigma();
+      int perim_length{};
+
+      int xcen = c->get_xcen();
+      int ycen = c->get_xcen();
+
+      
+      int ** ns = SearchNeighbours();
+      int n_size = CountCells();
+
+      for (int i = 1; i < n_size; ++i)
+      {
+        if (cell->at(i).AliveP())
+        {
+          double XCEN = cell->at(i).get_xcen();
+          double YCEN = cell->at(i).get_ycen();
+          vector<double> xcens{};
+          vector<double> ycens{};
+          int n_neighbours=0;
+          bool med_check=false;
+          for (int j = 1; j < n_size; ++j)
+          {
+            if (ns[i][j] < 0)
+            {
+              med_check=true;
+              break;
+            }
+            else
+            {
+              double xc = cell->at(ns[i][j]).get_xcen();
+              double yc = cell->at(ns[i][j]).get_ycen();
+              xcens.push_back(xc);
+              ycens.push_back(yc);
+              ++n_neighbours;
+
+            }
+          }
+          if (med_check)
+            break;
+          
+          for (int n1 = 0; n1 < n_neighbours; ++n1)
+          {
+            for (int n2 = n1+1; n2 < n_neighbours; ++n2)
+            {
+              
+            }
+          }
+        }
+
+
+      }
+
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+              continue;
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          } 
+        }
+      }
+      // cout << corrected_perim << '\t' << vlist[p] << endl;
+      double corrected_perim = perim_length / correction; 
+      double sindex = corrected_perim / sqrt(double(vlist[celln]));
+      c->SetShapeIndex(sindex);
+    }
+  }  
+  free(Neighbours);  
+}
+
+
+
+
+
 void CellularPotts::SimpleShapeIndex()
 {
   initVolume();
@@ -6902,7 +7026,8 @@ void CellularPotts::ShapeIndexByState()
       state_shape_index[p].push_back(sindex);
       // toreturn.push_back(correted_perim);      
     }
-  }  
+  } 
+ 
 }
 
 

@@ -406,6 +406,9 @@ public:
 
   void ColourCellsByIndex();
 
+  void HexagonalOrder();
+
+
 
 
 
