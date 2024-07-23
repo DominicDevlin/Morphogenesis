@@ -505,20 +505,98 @@ TIMESTEP {
           }
           cout << std::endl;
       }
-      vector<int> remaining_nodes;
-      for (vector<int> &i : scc)
+      // vector<vector<int>> remaining_nodes;
+      // for (vector<int> &i : scc)
+      // {
+      //   if (i.size() < 1)
+      //     cerr << "error in scc size!\n";
+      //   remaining_nodes.push_back(i[0]);
+      // }
+
+
+      vector<vector<int>> temp_dendrogram(scc.size());
+        
+      vector<pair<int,int>> temp_edges{};
+      vector<int> temp_nodes{};
+      for (auto i : edge_copy)
       {
-        if (i.size() < 1)
-          cerr << "error in scc size!\n";
-        remaining_nodes.push_back(i[0]);
+        if (i.second >= par.prune_amount)
+        {
+          temp_edges.push_back(i.first);
+          if (std::find(temp_nodes.begin(), temp_nodes.end(), i.first.first) == temp_nodes.end())
+          {
+            temp_nodes.push_back(i.first.first);
+          }
+          if (std::find(temp_nodes.begin(), temp_nodes.end(), i.first.second) == temp_nodes.end())
+          {
+            temp_nodes.push_back(i.first.second);
+          }
+        }
       }
-      vector<vector<int>> dendrogram(remaining_nodes.size());
+
+      for (int i = 0; i < scc.size(); i++)
+      {
+        for (int j = 0; j < scc.size(); j++)
+        {
+          if (j != i)
+          {
+            for (int x=0; x <scc[i].size();++x)
+            {
+              for (int y = 0; y < scc[j].size();++y)
+              {
+                // cout << i << '\t' << j << endl;
+                int start = scc[i][x];
+                int end = scc[j][y];
+                // cout << start << '\t' << end << endl;
+                // Check if there is a path from start to end
+                if (isPathExists(temp_edges, temp_nodes, start, end)) 
+                {
+                  temp_dendrogram[i].push_back(j);
+                  y=scc[j].size();
+                  x=scc[i].size();
+                  // std::cout << "There is a path between " << start << " and " << end << std::endl;
+                } 
+                else 
+                {
+                  // std::cout << "No path exists between " << start << " and " << end << std::endl;
+                }
+              }
+            }
+
+          }
+        }
+      }
+
+      for (auto i : temp_dendrogram)
+      {
+        for (int j : i)
+        {
+          cout << j << '\t';
+        }
+        cout << endl;
+      }
+
+      vector<int> dead_ends{};
+      for (int i = 0; i < temp_dendrogram.size(); i++)
+      {
+        if (temp_dendrogram[i].size() == 0)
+        {
+          cout << "Dead end at " << scc[i][0] << endl;
+          dead_ends.push_back(i);
+        }
+      }
+      set<int> dead_ends_set(dead_ends.begin(), dead_ends.end());
+
+
+
+      // now do proper
+      vector<vector<int>> dendrogram(scc.size());
         
       vector<pair<int,int>> edges{};
       vector<int> nodes{};
       for (auto i : edge_copy)
       {
-        if (i.second > 10)
+        if (i.second > 20)
         {
           edges.push_back(i.first);
           if (std::find(nodes.begin(), nodes.end(), i.first.first) == nodes.end())
@@ -530,59 +608,59 @@ TIMESTEP {
             nodes.push_back(i.first.second);
           }
         }
-
       }
 
-      for (int i = 0; i < remaining_nodes.size(); i++)
+      for (int i = 0; i < scc.size(); i++)
       {
-        for (int j = 0; j < remaining_nodes.size(); j++)
+        for (int j = 0; j < scc.size(); j++)
         {
           if (j != i)
           {
-            // cout << i << '\t' << j << endl;
-            int start = remaining_nodes[i];
-            int end = remaining_nodes[j];
-            // cout << start << '\t' << end << endl;
-            // Check if there is a path from start to end
-            if (isPathExists(edges, nodes, start, end)) 
+            for (int x=0; x <scc[i].size();++x)
             {
-              dendrogram[i].push_back(j);
-              // std::cout << "There is a path between " << start << " and " << end << std::endl;
-            } 
-            else 
-            {
-              // std::cout << "No path exists between " << start << " and " << end << std::endl;
+              for (int y = 0; y < scc[j].size();++y)
+              {
+                // cout << i << '\t' << j << endl;
+                int start = scc[i][x];
+                int end = scc[j][y];
+                // cout << start << '\t' << end << endl;
+                // Check if there is a path from start to end
+                if (isPathExists(edges, nodes, start, end)) 
+                {
+                  dendrogram[i].push_back(j);
+                  y=scc[j].size();
+                  x=scc[i].size();
+                  std::cout << "There is a path between " << start << " and " << end << std::endl;
+                } 
+                else 
+                {
+                  std::cout << "No path exists between " << start << " and " << end << std::endl;
+                }
+              }
             }
+
           }
         }
       }
-      vector<int> dead_ends{};
-      for (int i = 0; i < dendrogram.size(); i++)
+
+      for (auto i : dendrogram)
       {
-        if (dendrogram[i].size() == 0)
+        for (int j : i)
         {
-          cout << "Dead end at " << remaining_nodes[i] << endl;
-          dead_ends.push_back(i);
+          cout << j << '\t';
         }
+        cout << endl;
       }
-      set<int> dead_ends_set(dead_ends.begin(), dead_ends.end());
+
 
       // Filter dendrogram
-      auto new_end = std::remove_if(dendrogram.begin(), dendrogram.end(), [&dead_ends_set](const std::vector<int>& pair) 
-      {
-        // Check if any element of the pair is not in dead_ends_set
-        for (int elem : pair) 
-        {
-          if (dead_ends_set.find(elem) == dead_ends_set.end()) 
-          {
-            return true; // remove the element in dendrogram
-          }
-        }
-        return false; // keep the element from dendrogram
-      });
 
-      // Erase the removed elements
-      dendrogram.erase(new_end, dendrogram.end());
+      for (auto& vec : dendrogram) 
+      {
+          // Remove elements not in dead_end_set
+        vec.erase(std::remove_if(vec.begin(), vec.end(),[&dead_ends_set](int x) { return dead_ends_set.find(x) == dead_ends_set.end(); }), vec.end());
+      }
+
 
       int max_diffs=0;
 
@@ -591,14 +669,12 @@ TIMESTEP {
         cout << "SCC differentiates into: ";
         for (int j = 0; j < dendrogram[i].size(); ++j)
         {
-          cout << remaining_nodes[dendrogram[i][j]] << '\t';
+          cout << scc[dendrogram[i][j]][0] << '\t';
         }
         cout << endl;
         if (dendrogram[i].size() > max_diffs)
           max_diffs = dendrogram[i].size();
       }
-
-
 
 
       // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)

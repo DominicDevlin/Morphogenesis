@@ -646,15 +646,72 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
               }
               cout << std::endl;
           }
-          vector<int> remaining_nodes;
-          for (vector<int> &n : scc)
-          {
-            if (n.size() < 1)
-              cerr << "error in scc size!\n";
-            remaining_nodes.push_back(n[0]);
-          }
-          vector<vector<int>> dendrogram(remaining_nodes.size());
+
+          vector<vector<int>> temp_dendrogram(scc.size());
             
+          vector<pair<int,int>> temp_edges{};
+          vector<int> temp_nodes{};
+          for (auto n : edge_tally)
+          {
+            if (n.second >= par.prune_amount)
+            {
+              temp_edges.push_back(n.first);
+              if (std::find(temp_nodes.begin(), temp_nodes.end(), n.first.first) == temp_nodes.end())
+              {
+                temp_nodes.push_back(n.first.first);
+              }
+              if (std::find(temp_nodes.begin(), temp_nodes.end(), n.first.second) == temp_nodes.end())
+              {
+                temp_nodes.push_back(n.first.second);
+              }
+            }
+          }
+
+          for (int n = 0; n < scc.size(); n++)
+          {
+            for (int j = 0; j < scc.size(); j++)
+            {
+              if (j != n)
+              {
+                for (int x=0; x <scc[n].size();++x)
+                {
+                  for (int y = 0; y < scc[j].size();++y)
+                  {
+                    // cout << i << '\t' << j << endl;
+                    int start = scc[n][x];
+                    int end = scc[j][y];
+                    // cout << start << '\t' << end << endl;
+                    // Check if there is a path from start to end
+                    if (isPathExists(temp_edges, temp_nodes, start, end)) 
+                    {
+                      temp_dendrogram[n].push_back(j);
+                      y=scc[j].size();
+                      x=scc[n].size();
+                      // std::cout << "There is a path between " << start << " and " << end << std::endl;
+                    } 
+                    else 
+                    {
+                      // std::cout << "No path exists between " << start << " and " << end << std::endl;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          vector<int> dead_ends{};
+          for (int i = 0; i < temp_dendrogram.size(); i++)
+          {
+            if (temp_dendrogram[i].size() == 0)
+            {
+              cout << "Dead end at " << scc[i][0] << endl;
+              dead_ends.push_back(i);
+            }
+          }
+          set<int> dead_ends_set(dead_ends.begin(), dead_ends.end());
+
+
+          vector<vector<int>> dendrogram(scc.size());
           vector<pair<int,int>> edges{};
           vector<int> nodes{};
           for (auto n : edge_tally)
@@ -671,52 +728,46 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
                 nodes.push_back(n.first.second);
               }
             }
-
           }
 
-          for (int n = 0; n < remaining_nodes.size(); n++)
+          for (int n = 0; n < scc.size(); n++)
           {
-            for (int j = 0; j < remaining_nodes.size(); j++)
+            for (int j = 0; j < scc.size(); j++)
             {
               if (j != n)
               {
-                int start = remaining_nodes[n];
-                int end = remaining_nodes[j];
-                // Check if there is a path from start to end
-                if (isPathExists(edges, nodes, start, end)) 
+                for (int x=0; x <scc[n].size();++x)
                 {
-                  dendrogram[n].push_back(j);
-                } 
+                  for (int y = 0; y < scc[j].size();++y)
+                  {
+                    // cout << i << '\t' << j << endl;
+                    int start = scc[n][x];
+                    int end = scc[j][y];
+                    // cout << start << '\t' << end << endl;
+                    // Check if there is a path from start to end
+                    if (isPathExists(edges, nodes, start, end)) 
+                    {
+                      dendrogram[n].push_back(j);
+                      y=scc[j].size();
+                      x=scc[n].size();
+                      std::cout << "There is a path between " << start << " and " << end << std::endl;
+                    } 
+                    else 
+                    {
+                      std::cout << "No path exists between " << start << " and " << end << std::endl;
+                    }
+                  }
+                }
               }
             }
           }
-          vector<int> dead_ends{};
-          for (int n = 0; n < dendrogram.size(); n++)
-          {
-            if (dendrogram[n].size() == 0)
-            {
-              // cout << "Dead end at " << remaining_nodes[i] << endl;
-              dead_ends.push_back(n);
-            }
-          }
-          set<int> dead_ends_set(dead_ends.begin(), dead_ends.end());
 
           // Filter dendrogram
-          auto new_end = std::remove_if(dendrogram.begin(), dendrogram.end(), [&dead_ends_set](const std::vector<int>& pair) 
+          for (auto& vec : dendrogram) 
           {
-            // Check if any element of the pair is not in dead_ends_set
-            for (int elem : pair) 
-            {
-              if (dead_ends_set.find(elem) == dead_ends_set.end()) 
-              {
-                return true; // remove the element in dendrogram
-              }
-            }
-            return false; // keep the element from dendrogram
-          });
-
-          // Erase the removed elements
-          dendrogram.erase(new_end, dendrogram.end());
+              // Remove elements not in dead_end_set
+            vec.erase(std::remove_if(vec.begin(), vec.end(),[&dead_ends_set](int x) { return dead_ends_set.find(x) == dead_ends_set.end(); }), vec.end());
+          }
 
           int max_diffs=0;
 
@@ -807,19 +858,170 @@ vector<double> process_population(vector<vector<vector<double>>>& network_list, 
 
 
 // Main function
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
+  vector<vector<double>> start_genome;
+  if (par.starter)
+    start_genome = par.start_matrix;
+  else
+    start_genome = par.start_n;
+  vector<vector<double>> start_morph;
+  for (int j = 0; j < par.n_diffusers; ++j)
+  {
+    vector<double> values{par.secr_rate[j], par.decay_rate[j], par.diff_coeff[j]};
+    // cout << par.secr_rate[j] << '\t' <<  par.decay_rate[j] << '\t' << par.diff_coeff[j] << endl;
+    start_morph.push_back(values);
+  }
+  string dirn = "evo-data";
+
+  if (par.file_genomes && argc > 1)
+  {
+    dirn = dirn + "-" + argv[1];
+    ifstream file("genomes.txt");
+    vector<vector<vector<double>>> genomes;
+    string line;
+    while (getline(file, line)) 
+    {
+      vector<vector<double>> genome;
+
+      vector<double> row{};
+      stringstream ss(line);
+      string value;
+      while (ss >> value)
+      {
+        for (int i=0;i < value.size();++i)
+        {
+          
+          if (value[i] == '-')
+          {
+            string ns{ value[i] };
+            ++i;
+            bool check = true;
+            while (check)
+            {
+              if (isdigit(value[i]) || value[i] == '.' )
+              {
+                ns = ns + value[i];
+                string nsn = ns;
+                ++i;
+              }
+              else
+              {
+                check = false;
+              }
+            }
+            row.push_back(stod(ns));
+          }
+          else if (isdigit(value[i]))
+          {
+            string ns{ value[i] };
+            ++i;
+            bool check = true;
+            while (check)
+            {
+              if (isdigit(value[i]) || value[i] == '.' )
+              {
+                ns = ns + value[i];
+                string nsn = ns;
+                ++i;
+              }
+              else
+              {
+                check = false;
+              }
+            }
+            row.push_back(stod(ns));
+          }
+        }      
+
+        if (row.size() == par.n_activators)
+        {
+          genome.push_back(row);
+          row.clear();
+        }          
+
+      }
+      genomes.push_back(genome);
+    }
+
+    int itera = stoi(argv[1]);
+    start_genome = genomes[itera];
+
+    ifstream nextfile("params.txt");
+    vector<vector<vector<double>>> morphs;
+    while (getline(nextfile, line)) 
+    {
+      vector<vector<double>> mph;
+
+      vector<double> row{};
+      stringstream ss(line);
+      string value;
+      while (ss >> value)
+      {
+        for (int i=0;i < value.size();++i)
+        {
+          
+          if (value[i] == '.')
+          {
+            string ns{ value[i-1] };
+            ns += value[i];
+            ++i;
+            bool check = true;
+            while (check)
+            {
+              if (isdigit(value[i]) || value[i] == 'e' || value[i] == '+' || value[i] == '-')
+              {
+                ns = ns + value[i];
+                string nsn = ns;
+                ++i;
+              }
+              else
+              {
+                check = false;
+              }
+            }
+            row.push_back(stod(ns));
+          }
+        }      
+
+        if (row.size() == 3)
+        {
+          mph.push_back(row);
+          row.clear();
+        }          
+
+      }
+      morphs.push_back(mph);
+    }
+
+    for (auto i : morphs)
+    {
+      for (auto j : i)
+        for (double k : j)
+        {
+          cout << k << '\t';
+        }
+      cout << endl;
+    }
+    start_morph = morphs[itera];
+  }
 
 #ifdef QTGRAPHICS
   if (par.evo_pics)
   {
     QApplication* a = new QApplication(argc, argv);
-    par.data_file = "evo-data";
-    if (mkdir(par.data_file.c_str(), 0777) != -1)
-      cout << "Directory created." << endl;
+    // par.data_file = "evo-data";
+    // if (mkdir(par.data_file.c_str(), 0777) != -1)
+    //   cout << "Directory created." << endl;
   }
   
 #endif
 
+  
+  if (mkdir(dirn.c_str(), 0777) != -1)
+    cout << "Directory created." << endl;
+  
+  par.data_file = dirn;
 
   par.graphics=false;
   par.contours=false;
@@ -846,41 +1048,31 @@ int main(int argc, char *argv[]) {
   par.mut_rate=0.25;
   par.n_orgs = 60;
 
+  par.prune_edges=true;
+  par.prune_amount=5;
+
   // this is true for type selection
   par.gene_record = true;
   Parameter();
-
-
-    
-
-  string dirn = par.data_file;
-  if (mkdir(dirn.c_str(), 0777) != -1)
-    cout << "Directory created." << endl;
 
 
   // make initial random networks. 
   vector<vector<vector<double>>> networks{};
   for (int i=0;i<par.n_orgs;++i)
   {
-    networks.push_back(par.start_n);
+    networks.push_back(start_genome);
   }
   vector<vector<vector<double>>> morphogens;
   for (int i = 0; i < par.n_orgs; ++i)
   {
-    vector<vector<double>> org_morphs;
-    for (int j = 0; j < par.n_diffusers; ++j)
-    {
-      vector<double> values{par.secr_rate[j], par.decay_rate[j], par.diff_coeff[j]};
-      // cout << par.secr_rate[j] << '\t' <<  par.decay_rate[j] << '\t' << par.diff_coeff[j] << endl;
-      org_morphs.push_back(values);
-    }
-    morphogens.push_back(org_morphs);
+    morphogens.push_back(start_morph);
   }
-  if (!par.starter)
+  if (!par.starter && !par.file_genomes)
   {
     bool randomise = true;
     ConstructNetwork(randomise, networks, morphogens);
   }
+
 
 
   for (int t=0;t<par.evs;++t)

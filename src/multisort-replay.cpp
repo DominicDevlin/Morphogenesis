@@ -452,8 +452,6 @@ int main(int argc, char *argv[]) {
     string value;
     while (ss >> value)
     {
-
-
       for (int i=0;i < value.size();++i)
       {
         if (value[i] == '-')
@@ -480,7 +478,6 @@ int main(int argc, char *argv[]) {
 
     }
     genomes.push_back(genome);
-
   }
 
   file.close();

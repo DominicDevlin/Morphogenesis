@@ -66,7 +66,7 @@
     output_gamma = false;
 
     // read genomes from file
-    file_genomes = false;
+    file_genomes = true;
 
     //name of data file
     data_file = "org-data";
@@ -128,9 +128,10 @@
     diff_coeff = new double[n_diffusers];
     decay_rate = new double[n_diffusers];
 
-start_matrix = { { 0, 1, 0, 1.5, 2, -1, 0, 0, 0, -1.5 }, { 0.5, 0, 0.5, 0, -0.5, 0.5, -1, -1, -0.5, 1.5 }, { -1.5, -0.5, -0.5, 1.5, -2, 0.5, -1, -1.5, -0.5, 1 }, { 1, 1, -0.5, 0.5, -0.5, 0, -1.5, 0.5, -0.5, 0.5 }, { 2, 0.5, 0, 0, 0, 0, 0, 0, 0, 0.5 }, { 0.5, 0, -0.5, 0, -2, 2, 0, 0, 0, 1 }, { -1, 0, 0, 0, 1, 2, 0.5, 1, 0, 0 }, { -0.5, -1, 0.5, 1, -2, 0.5, 0.5, -0.5, 1, 1.5 }, { 0, -0.5, 0.5, 0, 0.5, 1.5, -1, 2, 1, -1 }, { -0.5, 0, 0, -1.5, -0.5, 0, -1, -1, 0, -0.5 }, { -2, -1.5, -0.5, 0.5, -1, 1, -0.5, 0, 0, 0 }, };
-secr_rate[0] = 0.00627327; decay_rate[0] = 0.003; diff_coeff[0] = 2.24883e-07; secr_rate[1] = 0.000572562; decay_rate[1] = 0.003; diff_coeff[1] = 1.06945e-08; secr_rate[2] = 0.00193564; decay_rate[2] = 0.003; diff_coeff[2] = 1.50898e-08; secr_rate[3] = 0.0206116; decay_rate[3] = 0.003; diff_coeff[3] = 1.44081e-07;
+start_matrix = { { 1, 1, 1, 2, 1.5, -1, 0, 2, 0, -2 }, { -1, -0.5, -2, -1, 1.5, -1.5, -0.5, -0.5, -2, -0.5 }, { -0.5, 1, 2, -1.5, -1.5, -1.5, 0, -1.5, -1, 0 }, { -0.5, -1, 1, 2, -1, -2, 2, -0.5, -0.5, -0.5 }, { 2, 1.5, -1, 1.5, 0, 0, 0, 0, 0, 2 }, { 0.5, 2, 0, -0.5, -2, 2, 0, 1, 0, 0.5 }, { -1, 0, -1, -0.5, 0, 1.5, 0.5, 1, 0, -1.5 }, { 0.5, -0.5, -2, 1.5, -0.5, -1, 0.5, -2, -1, -1.5 }, { 0.5, -1.5, -2, 0, 2, 2, 1, 0.5, 1, -2 }, { -1.5, -1, -1.5, 0.5, 0, -2, -0.5, 1.5, 1, -0.5 }, { -2, 1, -1, -1, -0.5, 1, 0, 1, -0.5, 2 }, };
 
+secr_rate[0] = 0.00726056; decay_rate[0] = 0.003; diff_coeff[0] = 1.83193e-07; secr_rate[1] = 0.00549626; decay_rate[1] = 0.003; diff_coeff[1] = 1.54835e-08; secr_rate[2] = 0.00479913; decay_rate[2] = 0.003; diff_coeff[2] = 1.68352e-08; secr_rate[3] = 0.000603469; decay_rate[3] = 0.003; diff_coeff[3] = 5.4008e-08;
+ 
     // GRN params
     n_TF = 4; 
     n_length_genes = 0;
@@ -218,7 +219,7 @@ secr_rate[0] = 0.00627327; decay_rate[0] = 0.003; diff_coeff[0] = 2.24883e-07; s
 
     // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
     prune_edges = true;
-    prune_amount = 3;
+    prune_amount = 5;
 
     cycle_check = false;
 

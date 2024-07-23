@@ -49,7 +49,7 @@ INIT
   try
   {
     CPM->set_seed();
-    CPM->GrowInCells(par.n_init_cells, par.size_init_cells, par.subfield);
+    CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
     CPM->ConstructInitCells(*this);
     CPM->SetRandomTypes();
   }
@@ -75,6 +75,7 @@ vector<double> process_population(vector<vector<vector<double>>> &network_list)
 
   // create memory for dishes.
   Dish *dishes = new Dish[par.n_orgs];
+  
 
   // run organisms in parallel.
   omp_set_num_threads(par.n_orgs);
@@ -88,6 +89,8 @@ vector<double> process_population(vector<vector<vector<double>>> &network_list)
     int t;
 
     dishes[i].CPM->start_network(network_list.at(i));
+    dishes[i].CPM->Set_evoJ(par.J_stem_diff);
+
 
     // make temperature lower for division section
     dishes[i].CPM->CopyProb(par.T);
@@ -107,7 +110,10 @@ vector<double> process_population(vector<vector<vector<double>>> &network_list)
 
         if (t >= par.begin_network && t % par.update_freq == 0)
         {
-          dishes[i].CPM->update_network(t);
+          if (par.phase_evolution)
+            dishes[i].CPM->update_phase_network(t);
+          else
+            dishes[i].CPM->update_network(t);
           dishes[i].AverageChemCell();
           for (int r = 0; r < par.program_its; r++)
           {
@@ -122,7 +128,10 @@ vector<double> process_population(vector<vector<vector<double>>> &network_list)
 
         if (t % par.update_freq == 0)
         {
-          dishes[i].CPM->update_network(t);
+          if (par.phase_evolution)
+            dishes[i].CPM->update_phase_network(t);
+          else
+            dishes[i].CPM->update_network(t);
           dishes[i].AverageChemCell();
         }
 
@@ -132,15 +141,18 @@ vector<double> process_population(vector<vector<vector<double>>> &network_list)
           dishes[i].PDEfield->Secrete(dishes[i].CPM);
           dishes[i].PDEfield->Diffuse(1);
         }
-        dishes[i].CPM->CellGrowthAndDivision(t);
+        if (par.phase_evolution)
+          dishes[i].CPM->ConstrainedGrowthAndDivision(t);
+        else
+          dishes[i].CPM->CellGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
 
-      // calculate the diversity over last 20% of time steps.
-      if (t > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
+      bool check_end = dishes[i].CPM->EndOptimizer();
+      if (check_end)
       {
-        // am now doing for curvature as well (taking mean)
-        dishes[i].CPM->update_fitness();
+        cout << "made to end" << endl;
+        t = par.mcs-1;
       }
 
       if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
@@ -159,10 +171,10 @@ vector<double> process_population(vector<vector<vector<double>>> &network_list)
         // cout << "Org number: " << i << " has bad shape. N-cells: " << dishes[i].CPM->CountCells() << endl;
       }
       // get fitness at end of development
-      if (t == par.mcs - 1)
-      {
-        inter_org_fitness[i] = dishes[i].CPM->get_fitness();
-      }
+      // if (t == par.mcs - 1)
+      // {
+      //   inter_org_fitness[i] = dishes[i].CPM->get_fitness();
+      // }
     }
 
     if (i == 1)
@@ -183,7 +195,7 @@ vector<double> process_population(vector<vector<vector<double>>> &network_list)
   if (shape_checking)
     cout << shape_checking << " times were organisms not connected in space." << endl;
 
-
+  
   storage stores;
   map<pair<int,int>,int> edge_tally{};
 
@@ -266,16 +278,20 @@ int main(int argc, char *argv[])
   Parameter();
   par.n_orgs = 4;
   par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 20 * par.n_orgs);
-  // This is currently depracated.
-  vector<bool> start_p = {0, 0, 0, 0};
+
+  par.sizex=150;
+  par.sizey=250;
+  par.end_program = 100;
+  par.adult_begins = 1000;
+  par.offset=75;
+
+
 
   // make initial random networks.
   vector<vector<vector<double>>> networks{};
-  vector<vector<bool>> polarities{};
   for (int i = 0; i < par.n_orgs; ++i)
   {
     networks.push_back(par.start_matrix);
-    polarities.push_back(start_p);
   }
 
   process_population(networks);
