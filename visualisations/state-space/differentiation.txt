@@ -1,0 +1,12 @@
+Component # 0  contains  2  big states.
+The states  ['750', '622']  are differentiated.
+Component # 1  contains  2  big states.
+The states  ['742', '614']  are differentiated.
+Component # 2  contains  1  big states.
+The states  ['866']  are differentiated.
+Component # 3  contains  1  big states.
+The states  ['766']  are differentiated.
+Component # 4  contains  1  big states.
+The states  ['570']  are differentiated.
+Component # 5  contains  1  big states.
+The states  ['1054']  are stem.
