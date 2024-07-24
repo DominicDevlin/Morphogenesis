@@ -570,7 +570,7 @@ TIMESTEP {
     }
 
 
-    if (t == 2500)
+    if (t == 8000)
     {
       // int ** ns = dish->CPM->SearchNeighbours();
       // int n_size = dish->CountCells();

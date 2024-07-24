@@ -6758,86 +6758,142 @@ void CellularPotts::ShapeIndex()
 }
 
 
+struct vec2d
+{
+  double x, y;
+  vec2d(double x, double y) : x(x), y(y) {}
+
+  // Magnitude of the vector
+  double magnitude() const {
+      return sqrt(x*x + y*y);
+  }
+
+  // Dot product of two vectors
+  double dot(const vec2d& other) const {
+      return x * other.x + y * other.y;
+  }
+};
+
+// Comparator function to sort vectors clockwise
+bool compareVec(const vec2d& v1, const vec2d& v2) {
+    // Calculate angles
+    double angle1 = atan2(v1.y, v1.x);
+    double angle2 = atan2(v2.y, v2.x);
+
+    // Return true if angle1 is less than angle2
+    return angle1 > angle2; // Change to '<' for counter-clockwise
+}
+
 
 void CellularPotts::HexagonalOrder()
 {
+  int count_on{};
+  int count_off{};
+  double sum_on{};
+  double sum_off{};
+
   SetCellCenters();
-  int **Neighbours = SearchNeighbours();
-
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  for (int i = 1; i < n_size; ++i)
   {
-    if (c->AliveP())
+    if (cell->at(i).AliveP())
     {
-      // check if the cell borders the medium
-
-      int celln=c->Sigma();
-      int ** ns = SearchNeighbours();
-      int n_size = CountCells();
-
-      for (int i = 1; i < n_size; ++i)
+      bool phaser = cell->at(i).GetPhase();
+      double XCEN = cell->at(i).get_xcen();
+      double YCEN = cell->at(i).get_ycen();
+      vector<double> xcens{};
+      vector<double> ycens{};
+      int n_neighbours=0;
+      bool med_check=false;
+      int j = 0;
+      while (ns[i][j] >= 0)
       {
-        if (cell->at(i).AliveP())
+        med_check = false;
+        if (ns[i][j] == 0)
         {
-          double XCEN = cell->at(i).get_xcen();
-          double YCEN = cell->at(i).get_ycen();
-          vector<double> xcens{};
-          vector<double> ycens{};
-          int n_neighbours=0;
-          bool med_check=false;
-          int j = 0;
-          while (ns[i][j] >= 0)
+          med_check=true;
+          break;
+        }
+        else
+        {
+          bool neigh_phase = cell->at(ns[i][j]).GetPhase();
+          // all neighbours must be same phase.
+          if (neigh_phase == phaser)
           {
-            med_check = false;
-            if (ns[i][j] == 0)
-            {
-              med_check=true;
-              break;
-            }
-            else
-            {
-              double xc = cell->at(ns[i][j]).get_xcen();
-              double yc = cell->at(ns[i][j]).get_ycen();
-              xcens.push_back(xc);
-              ycens.push_back(yc);
-              ++n_neighbours;
-            }
-            ++j;
+            double xc = cell->at(ns[i][j]).get_xcen();
+            double yc = cell->at(ns[i][j]).get_ycen();
+            xcens.push_back(xc);
+            ycens.push_back(yc);
+            ++n_neighbours;
           }
-          // cout << i << '\t' << n_neighbours << endl;
-          if (med_check)
-            continue;
-          
-          for (int n1 = 0; n1 < n_neighbours; ++n1)
+          else
           {
-
-            double ABx = XCEN - xcens[n1];
-            double ABy = YCEN - ycens[n1];
-            double magAB = sqrt(ABx*ABx + ABy*ABy);
-            for (int n2 = 0; n2 < n_neighbours; ++n2)
-            {
-              if (n1 != n2)
-              {
-                double BCx = XCEN - xcens[n1];
-                double BCy = YCEN - ycens[n2];     
-                // calculate dot product
-                double dtpt = ABx*BCx + ABy*BCy;
-                double magBC = sqrt(BCx*BCx + BCy*BCy);
-                // cout << XCEN << '\t' << xcens[n1] << '\t' << magAB << '\t' << magBC << endl;
-                // use cosine rule
-                double costheta = dtpt / (magAB * magBC);
-                double angle = acos(costheta);
-                cout << angle << '\t';  
-                // choose the angle closest to 0 and angle closest to pi. These are the two nearest neighbours.
-              }
-
-            }
-            cout << endl;
+            med_check = true;
+            break;
           }
         }
+        ++j;
       }
+      // cout << i << '\t' << n_neighbours << endl;
+
+      if (med_check) // I'm not sure if medium matters or not. Maybe it doesn't.
+        continue;
+
+      vector<vec2d> com_vectors{};
+      vec2d reference_axis(1.0,0.0);
+
+      for (int n1 = 0; n1 < n_neighbours; ++n1)
+      {
+        double max_angle=0;
+        double min_angle=M_PI;
+        double ABx = XCEN - xcens[n1];
+        double ABy = YCEN - ycens[n1];
+        vec2d newvec = vec2d(ABx, ABy);
+        com_vectors.push_back(newvec);
+      }
+      sort(com_vectors.begin(), com_vectors.end(), compareVec);
+      // for (auto v : com_vectors)
+      //   cout << v.x << '\t' << v.y << '\t';
+
+      // cout << endl;
+      vector<double> angles;
+      for (size_t iter = 0; iter < com_vectors.size(); ++iter) 
+      {
+        const vec2d& current = com_vectors[iter];
+
+        double dotProduct = current.dot(reference_axis);
+        double magnitudes = current.magnitude() * reference_axis.magnitude(); // Reference magnitude is 1 (cosmetic)
+        double angle = acos(dotProduct / magnitudes); // Angle in radians between current vector and x-axis
+
+        angles.push_back(angle);
+      }
+      // Now use angles to calculate psi_6 for each particle
+      complex<double> psi_sum;
+      for (size_t iter = 0; iter < angles.size(); ++iter) 
+      {
+          psi_sum += std::exp(complex<double>(0, 6 * angles[iter]));
+      }
+      psi_sum = psi_sum / static_cast<double>(angles.size());
+      double psi_mag = std::abs(psi_sum);
+      if (phaser)
+      {
+        ++count_on;
+        sum_on += psi_mag;
+      }
+      else
+      {
+        ++count_off;
+        sum_off += psi_mag;
+      }
+      // cout << psi_sum << endl;
+      // cout << psi_mag << '\t' << cell->at(i).GetPhase() << endl;
+
     }
   }
+  sum_on /= count_on;
+  sum_off /= count_off;
+  cout << "ON RESULT: " << sum_on << "  OFF RESULT: " << sum_off << endl;
 }
 
 
