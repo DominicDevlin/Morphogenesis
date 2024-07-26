@@ -6781,11 +6781,95 @@ bool compareVec(const vec2d& v1, const vec2d& v2) {
     double angle2 = atan2(v2.y, v2.x);
 
     // Return true if angle1 is less than angle2
-    return angle1 > angle2; // Change to '<' for counter-clockwise
+    return angle1 < angle2; // Change to '<' for counter-clockwise
 }
 
 
-void CellularPotts::HexagonalOrder()
+vector<double> CellularPotts::GetHexes()
+{
+  vector<double> hexes{};
+  SetCellCenters();
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      bool phaser = cell->at(i).GetPhase();
+      double XCEN = cell->at(i).get_xcen();
+      double YCEN = cell->at(i).get_ycen();
+      if (XCEN < 50 || XCEN > double(sizex-50) || YCEN < 50 || YCEN > double(sizey-50))
+      {
+        continue;
+      }
+      vector<double> xcens{};
+      vector<double> ycens{};
+      int n_neighbours=0;
+      bool med_check=false;
+      int j = 0;
+      while (ns[i][j] >= 0)
+      {
+        med_check = false;
+        if (ns[i][j] == 0)
+        {
+          med_check=true;
+          break;
+        }
+        else
+        {
+          double xc = cell->at(ns[i][j]).get_xcen();
+          double yc = cell->at(ns[i][j]).get_ycen();
+          xcens.push_back(xc);
+          ycens.push_back(yc);
+          ++n_neighbours;
+        }
+        ++j;
+      }
+      // cout << i << '\t' << n_neighbours << endl;
+
+      if (med_check) // I'm not sure if medium matters or not. Maybe it doesn't.
+        continue;
+
+      vector<vec2d> com_vectors{};
+      vec2d reference_axis(1.0,0.0);
+
+      for (int n1 = 0; n1 < n_neighbours; ++n1)
+      {
+        double ABx = XCEN - xcens[n1];
+        double ABy = YCEN - ycens[n1];
+        vec2d newvec(ABx, ABy);
+        com_vectors.push_back(newvec);
+      }
+      sort(com_vectors.begin(), com_vectors.end(), compareVec);
+      // for (auto v : com_vectors)
+      //   cout << v.x << '\t' << v.y << '\t';
+
+      std::vector<double> angles;
+      for (const auto& vec : com_vectors) 
+      {
+        double angle = atan2(vec.y, vec.x);
+        angles.push_back(angle);
+      }
+
+      // Now use angles to calculate psi_6 for each particle
+      std::complex<double> psi_sum(0, 0);
+      for (const auto& angle : angles) {
+        psi_sum += std::exp(std::complex<double>(0, 6 * angle));
+      }
+      psi_sum /= static_cast<double>(angles.size());
+      double psi_mag = std::abs(psi_sum);
+      hexes.push_back(psi_mag);
+      // cout << psi_sum << endl;
+      // cout << psi_mag << '\t' << cell->at(i).GetPhase() << endl;
+    }
+  }
+  return hexes;
+}
+
+
+
+
+void CellularPotts::HexaticOrder()
 {
   int count_on{};
   int count_off{};
@@ -6799,6 +6883,7 @@ void CellularPotts::HexagonalOrder()
   {
     if (cell->at(i).AliveP())
     {
+      cell->at(i).set_phase_state();
       bool phaser = cell->at(i).GetPhase();
       double XCEN = cell->at(i).get_xcen();
       double YCEN = cell->at(i).get_ycen();
@@ -6869,7 +6954,7 @@ void CellularPotts::HexagonalOrder()
         angles.push_back(angle);
       }
       // Now use angles to calculate psi_6 for each particle
-      complex<double> psi_sum;
+      complex<double> psi_sum(0,0);
       for (size_t iter = 0; iter < angles.size(); ++iter) 
       {
           psi_sum += std::exp(complex<double>(0, 6 * angles[iter]));
@@ -6900,7 +6985,7 @@ void CellularPotts::HexagonalOrder()
 
 
 
-void CellularPotts::SimpleShapeIndex()
+void CellularPotts::PhaseShapeIndex()
 {
   initVolume();
   adjustPerimeters();

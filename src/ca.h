@@ -366,7 +366,7 @@ public:
 
   void ShapeIndexByState();
 
-  void SimpleShapeIndex();
+  void PhaseShapeIndex();
 
   vector<double> GetVolumes();
 
@@ -406,8 +406,9 @@ public:
 
   void ColourCellsByIndex();
 
-  void HexagonalOrder();
+  void HexaticOrder();
 
+  vector<double> GetHexes();
 
 
 

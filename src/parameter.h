@@ -202,7 +202,7 @@ class Parameter {
   int waiting_time;
   int equilibriate;
   bool highT;
-  bool highT_temp;
+  double highT_temp;
   int highT_time;
   double sheet_minJ;
   double sheet_maxJ;

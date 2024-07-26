@@ -82,10 +82,10 @@ TIMESTEP
   cerr << "Error" << endl;
 }
 
-void process_population()
+void process_population(vector<vector<vector<double>>> &hex_order, vector<vector<vector<double>>> &shape_index, int counter)
 {
 
-  vector<vector<double>> shape_index(par.n_orgs);
+  bool record_hex = true;
   vector<vector<double>> cell_displacements;
 
   Dish *dishes = new Dish[par.n_orgs];
@@ -99,20 +99,20 @@ void process_population()
     dishes[i].Init();
 
     // equilibriate cells with high T
-    if (par.highT)
-    {
-      dishes[i].CPM->CopyProb(par.highT_temp);
-    }
-    else
-    {
-      dishes[i].CPM->CopyProb(par.T);
-    }
+
+    dishes[i].CPM->CopyProb(par.T);
     dishes[i].CPM->Set_J(par.sheet_J);
 
     int t;
 
     for (t = 0; t < par.mcs; t++)
     {              
+      if (par.highT && t < par.highT_time)
+      {
+        double diff = par.highT_temp - par.T;
+        double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
+        dishes[i].CPM->CopyProb(toT);
+      }
       if (t==par.highT_time)
         dishes[i].CPM->CopyProb(par.T);
 
@@ -120,6 +120,35 @@ void process_population()
       {
         dishes[i].CPM->RecordMasses();
       }
+
+      if (t % 500 == 0 && t > par.equilibriate && record_hex)
+      {
+        dishes[i].CPM->initVolume();
+        dishes[i].CPM->adjustPerimeters();
+        // vector<double> tperims = dishes[i].CPM->PerimitersRadiusN(sqrt(13));
+        vector<double> tperims = dishes[i].CPM->TruePerimeters();
+        vector<double> volumes = dishes[i].CPM->GetVolumes();
+
+        vector<double> tadhesion = dishes[i].CPM->TrueAdhesion();
+
+        double avg{};
+        for (int j = 0; j < tperims.size(); ++j)
+        {
+          double sindex = tperims[j] / sqrt(volumes[j]);
+          // cout << i << '\t';
+          avg+=sindex;
+          shape_index[counter][i].push_back(sindex);
+        }
+        avg/=tperims.size();
+
+        // now do hexatic order
+        vector<double> hexes = dishes[i].CPM->GetHexes();
+        for (auto &j : hexes)
+        {
+          hex_order[counter][i].push_back(j);
+        }
+      }
+
       // if (par.output_sizes)
       // {
       //   dishes[i].CPM->RecordSizes();
@@ -215,19 +244,94 @@ int main(int argc, char *argv[]) {
   }
   
   vector<double> Jlist;
-  int n_trials = ceil((par.sheet_maxJ-par.sheet_minJ)/par.J_width);;
+  int n_trials = ceil((par.sheet_maxJ-par.sheet_minJ)/par.J_width)+1;
   for (int i = 0; i < n_trials; ++i)
   {
     double J = par.sheet_minJ + par.J_width*i;
     Jlist.push_back(J);
   }
-  
+
+  vector<vector<double>> hex(par.n_orgs);
+  vector<vector<double>> shape(par.n_orgs);
+
+  vector<vector<vector<double>>> hex_order{};
+  vector<vector<vector<double>>> shape_index{};
+
   for (int i = 0; i < n_trials; ++i)
   {
+    hex_order.push_back(hex);
+    shape_index.push_back(shape);
     par.sheet_J = Jlist[i];
     cout << par.sheet_J << endl;
-    process_population();
+    process_population(hex_order, shape_index, i);
   }
+
+
+
+  string var_name = par.data_file + "/shapes-" + s + ".dat";
+  ofstream outfile;
+  outfile.open(var_name, ios::app);  
+
+  size_t length=0;
+  for (const auto& inner_vec : shape_index) 
+  {
+    size_t inlength=0;
+    for (const auto& inin_vec : inner_vec)
+    {
+      inlength += inin_vec.size();
+    }
+    if (inlength > length) 
+    {
+      length = inner_vec.size();
+    }
+  }
+  // Print the vector of vectors as columns
+  for (size_t i = 0; i < length; i++) {
+    for (size_t j = 0; j < shape_index.size(); j++) 
+    {
+      for (size_t k=0; k < )
+      if (i < shape_index[j].size()) 
+      {
+        outfile << shape_index[j][i] << "\t";
+      } 
+    }
+    outfile << std::endl; // Newline after each column is printed
+  }
+  outfile.close();
+
+
+  // now do same for hexatic order
+  var_name = par.data_file + "/hex-order-" + s + ".dat";
+  outfile.open(var_name, ios::app);  
+  length=0;
+  for (const auto& inner_vec : hex_order) 
+  {
+      if (inner_vec.size() > length) 
+      {
+          length = inner_vec.size();
+      }
+  }
+  // Print the vector of vectors as columns
+  for (size_t i = 0; i < length; i++) {
+      for (size_t j = 0; j < hex_order.size(); j++) 
+      {
+          if (i < hex_order[j].size()) 
+          {
+              outfile << hex_order[j][i] << "\t";
+          } 
+      }
+      outfile << std::endl; // Newline after each column is printed
+  }
+  outfile.close();  
+
+
+
+
+
+
+
+
+
 
   // finished
   par.CleanUp();

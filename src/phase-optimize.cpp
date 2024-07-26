@@ -319,7 +319,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (t % 500 == 0 && par.insitu_shapes)
       {
         // cout << 'here' << endl;
-        dishes[i].CPM->SimpleShapeIndex();
+        dishes[i].CPM->PhaseShapeIndex();
         // dish->CPM->AdhesionByState();
       }
 

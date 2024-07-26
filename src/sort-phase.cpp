@@ -279,7 +279,7 @@ TIMESTEP {
       if (par.insitu_shapes && t % 500 == 0)
       {
         // dish->CPM->ShapeIndexByState();
-        dish->CPM->SimpleShapeIndex();
+        dish->CPM->PhaseShapeIndex();
         // dish->CPM->AdhesionByState();
       }
       
@@ -588,7 +588,7 @@ TIMESTEP {
 
       //   cout << endl;
       // }
-      dish->CPM->HexagonalOrder();
+      dish->CPM->HexaticOrder();
       // dish->CPM->ConvertToStem(125,95,40,11907, dish->PDEfield, true, 45);
       // dish->IntroduceMorphogen(1, 120, 90);
     }

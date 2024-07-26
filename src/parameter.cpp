@@ -157,7 +157,7 @@
     v_melt = -30;
     v_slope = -4;
 
-    offset = 50;//75
+    offset = 75;//75
     optimization_replicates = 6;
     pics_for_opt = false;
     pics_for_opt_interval = 100;
@@ -215,20 +215,20 @@
 
 
 /* sheet related parameters */
-    sheet=false;
-    sheet_J = 1.5;
+    sheet=true;
+    sheet_J = 10;
     sheet_minJ=1;
     sheet_maxJ=12;
     J_width=0.5;
 
     // diffusion parameters
     waiting_time = 2000;
+    // equilibrate MUST be bigger than highT_time (pref 2000, 1000)
     equilibriate = 2000;
 
-
     highT=true;
-    highT_time = 100;
-    highT_temp = 10;
+    highT_time = 1000;
+    highT_temp = 10.;
 
     // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
     // dH is calculated on the fly. 

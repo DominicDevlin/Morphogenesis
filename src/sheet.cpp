@@ -143,6 +143,14 @@ TIMESTEP {
       dish->CPM->Set_J(par.sheet_J);
         
     }
+
+    if (par.highT && t < par.highT_time)
+    {
+      double diff = par.highT_temp - par.T;
+      double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
+      dish->CPM->CopyProb(toT);
+    }
+
     
     if (t==par.highT_time)
       dish->CPM->CopyProb(par.T);
@@ -201,6 +209,20 @@ TIMESTEP {
       dish->CPM->RecordSizes();
     }
     dish->CPM->AmoebaeMove(t);
+
+    if (t % 200 == 0)
+    {
+      vector<double> hexes = dish->CPM->GetHexes();
+      double mean = 0;
+      for (auto &h : hexes)
+      {
+        cout << h << '\t';
+        mean += h;
+      }
+      mean /= hexes.size();
+      cout << " MEAN IS: " << mean << endl;
+    }
+
 
     if (t == par.mcs-1 && par.gene_output)
     {
@@ -300,13 +322,6 @@ TIMESTEP {
       else 
         dish->Plot(this);
 
-      if (t>par.end_program && par.contours)
-      {
-        
-        dish->PDEfield->ContourPlot(this,0,293);
-        dish->PDEfield->ContourPlot(this,2,292);
-        dish->PDEfield->ContourPlot(this,1,291);
-      }
       
       EndScene();
     
