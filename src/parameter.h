@@ -209,6 +209,7 @@ class Parameter {
   double J_width;
   bool sheet;
   double sheet_J;
+  bool sheet_hex;
 
   double J_stem;
   double J_diff;

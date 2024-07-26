@@ -216,6 +216,7 @@
 
 /* sheet related parameters */
     sheet=true;
+    sheet_hex = true;
     sheet_J = 10;
     sheet_minJ=1;
     sheet_maxJ=12;
