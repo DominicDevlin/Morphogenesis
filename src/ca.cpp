@@ -6844,7 +6844,7 @@ vector<double> CellularPotts::GetHexes()
       // for (auto v : com_vectors)
       //   cout << v.x << '\t' << v.y << '\t';
 
-      std::vector<double> angles;
+      std::vector<double> angles{};
       for (const auto& vec : com_vectors) 
       {
         double angle = atan2(vec.y, vec.x);
@@ -6871,10 +6871,13 @@ vector<double> CellularPotts::GetHexes()
 
 void CellularPotts::HexaticOrder()
 {
-  int count_on{};
-  int count_off{};
-  double sum_on{};
-  double sum_off{};
+  // int count_on{};
+  // int count_off{};
+  // double sum_on{};
+  // double sum_off{};
+
+  vector<double> p_on_hexes{};
+  vector<double> p_off_hexes{};
 
   SetCellCenters();
   int **ns = SearchNeighbours();
@@ -6930,11 +6933,9 @@ void CellularPotts::HexaticOrder()
 
       for (int n1 = 0; n1 < n_neighbours; ++n1)
       {
-        double max_angle=0;
-        double min_angle=M_PI;
         double ABx = XCEN - xcens[n1];
         double ABy = YCEN - ycens[n1];
-        vec2d newvec = vec2d(ABx, ABy);
+        vec2d newvec(ABx, ABy);
         com_vectors.push_back(newvec);
       }
       sort(com_vectors.begin(), com_vectors.end(), compareVec);
@@ -6942,43 +6943,74 @@ void CellularPotts::HexaticOrder()
       //   cout << v.x << '\t' << v.y << '\t';
 
       // cout << endl;
-      vector<double> angles;
-      for (size_t iter = 0; iter < com_vectors.size(); ++iter) 
+      vector<double> angles{};
+      for (const auto& vec : com_vectors) 
       {
-        const vec2d& current = com_vectors[iter];
-
-        double dotProduct = current.dot(reference_axis);
-        double magnitudes = current.magnitude() * reference_axis.magnitude(); // Reference magnitude is 1 (cosmetic)
-        double angle = acos(dotProduct / magnitudes); // Angle in radians between current vector and x-axis
-
+        double angle = atan2(vec.y, vec.x);
         angles.push_back(angle);
       }
       // Now use angles to calculate psi_6 for each particle
       complex<double> psi_sum(0,0);
-      for (size_t iter = 0; iter < angles.size(); ++iter) 
-      {
-          psi_sum += std::exp(complex<double>(0, 6 * angles[iter]));
+      for (const auto& angle : angles) {
+        psi_sum += std::exp(std::complex<double>(0, 6 * angle));
       }
-      psi_sum = psi_sum / static_cast<double>(angles.size());
+      psi_sum /= static_cast<double>(angles.size());
       double psi_mag = std::abs(psi_sum);
+
       if (phaser)
       {
-        ++count_on;
-        sum_on += psi_mag;
+        p_on_hexes.push_back(psi_mag);
+        state_hexatic_order[phaser].push_back(psi_mag);
       }
       else
       {
-        ++count_off;
-        sum_off += psi_mag;
+        p_off_hexes.push_back(psi_mag);
+        state_hexatic_order[phaser].push_back(psi_mag);
       }
       // cout << psi_sum << endl;
       // cout << psi_mag << '\t' << cell->at(i).GetPhase() << endl;
 
     }
   }
-  sum_on /= count_on;
-  sum_off /= count_off;
-  cout << "ON RESULT: " << sum_on << "  OFF RESULT: " << sum_off << endl;
+
+  // if (p_on_hexes.size() && p_off_hexes.size())
+  // {
+  //   double on_sum = 0;
+  //   double on_median = 0;
+  //   double off_sum = 0;
+  //   double off_median = 0;
+
+  //   for (size_t i = 0; i < p_on_hexes.size(); ++i) {
+  //       on_sum += p_on_hexes[i];
+  //   }
+  //   on_sum = on_sum / p_on_hexes.size();
+
+  //   std::sort(p_on_hexes.begin(), p_on_hexes.end());
+  //   if (p_on_hexes.size() % 2 == 0) {
+  //       on_median = (p_on_hexes[p_on_hexes.size() / 2 - 1] + p_on_hexes[p_on_hexes.size() / 2]) / 2;
+  //   } else {
+  //       on_median = p_on_hexes[p_on_hexes.size() / 2];
+  //   }
+
+  //   for (size_t i = 0; i < p_off_hexes.size(); ++i) {
+  //       off_sum += p_off_hexes[i];
+  //   }
+  //   off_sum = off_sum / p_off_hexes.size();
+
+  //   std::sort(p_off_hexes.begin(), p_off_hexes.end());
+  //   if (p_off_hexes.size() % 2 == 0) {
+  //       off_median = (p_off_hexes[p_off_hexes.size() / 2 - 1] + p_off_hexes[p_off_hexes.size() / 2]) / 2;
+  //   } else {
+  //       off_median = p_off_hexes[p_off_hexes.size() / 2];
+  //   }
+  //   cout << "ON mean and median: " << on_sum << "\t" << on_median << '\t'
+  //   << endl << "OFF mean and median: " << off_sum << "\t" << off_median << endl;
+  // }
+}
+
+map<int,vector<double>> CellularPotts::GetHexaticOrderList()
+{
+  return state_hexatic_order;
 }
 
 
@@ -7131,9 +7163,6 @@ void CellularPotts::ShapeIndexByState()
   } 
  
 }
-
-
-
 
 
 map<int,vector<double>> CellularPotts::Get_state_shape_index()

@@ -132,10 +132,10 @@
     // phase transition params;
     phase_evolution=true;
     
-    J_stem=1;
-    J_diff=3.5;
-    J_med=6.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
-    J_stem_diff=12;//J_diff + 0.5;//(J_diff - J_stem);
+    J_stem=3;
+    J_diff=8;
+    J_med=4.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
+    J_stem_diff=8;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
 
@@ -215,7 +215,7 @@
 
 
 /* sheet related parameters */
-    sheet=true;
+    sheet=false;
     sheet_hex = true;
     sheet_J = 10;
     sheet_minJ=1;

@@ -114,8 +114,7 @@ double calculateRange(const std::vector<double>& data) {
 void OutputShapes(map<int, vector<double>> data2, string &oname, int time)
 {
   ofstream outfile;
-  std::string var_name = oname + "/shape-data.txt";
-  outfile.open(var_name, ios::app);
+  outfile.open(oname, ios::app);
 
   outfile << time << '\t';
   for (const auto& [key, values] : data2)
@@ -311,8 +310,9 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           dishes[i].PDEfield->Secrete(dishes[i].CPM);
           dishes[i].PDEfield->Diffuse(1); 
         }  
-        // dishes[i].CPM->ConstrainedGrowthAndDivision(t);
-        dishes[i].CPM->CellGrowthAndDivision(t);
+        // WE ARE GOING TO CHANGE THIS SO THAT IT JUST RANDOMLY ADDS MASS TO ONE OF THE STEM CELLS!! (can also do sigmoidal function?)
+        dishes[i].CPM->ConstrainedGrowthAndDivision(t);
+        // dishes[i].CPM->CellGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
     
@@ -321,6 +321,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         // cout << 'here' << endl;
         dishes[i].CPM->PhaseShapeIndex();
         // dish->CPM->AdhesionByState();
+        dishes[i].CPM->HexaticOrder();
       }
 
       bool check_end = dishes[i].CPM->EndOptimizer();
@@ -372,7 +373,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   for (int i = 1; i < par.optimization_replicates;++i)
   {
-    map<int, vector<double>> next = dishes[0].CPM->Get_state_shape_index();
+    map<int, vector<double>> next = dishes[i].CPM->Get_state_shape_index();
     for (auto&kv : next)
     {
       int key = kv.first;
@@ -387,7 +388,37 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       }
     }
   }
-  OutputShapes(data, par.data_file, time);
+  string oname = par.data_file + "/shape-data.txt";
+  OutputShapes(data, oname, time);
+
+  // combine maps together:
+  map<int, vector<double>> hexdata = dishes[0].CPM->GetHexaticOrderList();
+
+  for (int i = 1; i < par.optimization_replicates;++i)
+  {
+    map<int, vector<double>> next = dishes[i].CPM->GetHexaticOrderList();
+    for (auto&kv : next)
+    {
+      int key = kv.first;
+      vector<double>& vec = kv.second;
+      if (hexdata.find(key) != hexdata.end()) {
+          hexdata[key].insert(hexdata[key].end(), vec.begin(), vec.end());
+      } 
+      else 
+      {
+          // If key does not exist, insert the new key-value pair
+          hexdata[key] = vec;
+      }
+    }
+  }
+  string hname = par.data_file + "/hexatic-data.txt";
+  OutputShapes(hexdata, hname, time);
+
+
+
+
+
+
 
   vector<double> lengths;
   vector<double> variances;

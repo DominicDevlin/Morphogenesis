@@ -410,6 +410,7 @@ public:
 
   vector<double> GetHexes();
 
+  map<int,vector<double>> GetHexaticOrderList();
 
 
 
@@ -709,6 +710,8 @@ private:
   double evo_J;
 
   map<int,vector<double>> state_shape_index;
+
+  map<int,vector<double>> state_hexatic_order;
 
   map<int,vector<double>> state_adhesion;
 
