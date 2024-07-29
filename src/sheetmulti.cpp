@@ -49,12 +49,6 @@ INIT
 
     CPM->FillGrid();
     CPM->ConstructInitCells(*this);
-
-    par.sheet=true;
-    par.periodic_boundaries=true;
-
-    if (par.velocities)
-      par.output_sizes = true;
     
     // for (int i=0;i<par.divisions;i++) {
     //   CPM->DivideCells();
@@ -224,7 +218,13 @@ int main(int argc, char *argv[]) {
   par.sizex=200;
   par.sizey=200;
   par.end_program=0;
+  par.sheet=true;
+  par.periodic_boundaries=true;
+
+  if (par.velocities)
+    par.output_sizes = true;
   Parameter();
+
 
   if (par.sheet_hex)
   {

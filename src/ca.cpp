@@ -1955,6 +1955,104 @@ void CellularPotts::CellGrowthAndDivision(int time)
 }
 
 
+
+void CellularPotts::DiscreteGrowthAndDivision(int time)
+{
+  leftover_mass_stem += par.Vs_max;
+  vector<bool> to_increase_stem(cell->size(), 0);
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      bool state = c->GetPhase();
+      if (state)
+      {
+        to_increase_stem[c->Sigma()] = true;
+      }
+    }
+  }
+
+  int sum_numbers = accumulate(to_increase_stem.begin(), to_increase_stem.end(), 0);
+  if (sum_numbers > 0)
+  {
+    vector<double> probabilities(cell->size());
+    for (int i = 0; i < cell->size(); ++i)
+    {
+        probabilities[i] = double(to_increase_stem[i]) / double(sum_numbers);
+    }
+    vector<double> cdf(cell->size(), 0);
+    partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+    while (leftover_mass_stem > 1.)
+    {
+      double dnum = RANDOM(s_val);
+      auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
+      int number = distance(cdf.begin(), it_num);
+      // cout << "NUMBER IS: " << number << endl;
+      if (cell->at(number).AliveP() == false)
+      {
+        cerr << "ERROR IN DISC.DIST\n";
+        // cout << "jump is: " << to_increase_stem[number] << endl;
+        // cout << "probability: " << probabilities[number] << endl;
+
+      }
+      cell->at(number).IncrementTargetArea();
+      leftover_mass_stem -= 1;
+    }
+  }
+
+  vector<bool> which_cells(cell->size());
+  int cell_division=0;
+
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      int area = c->Area();
+      if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+      {
+        which_cells[c->Sigma()]=true;
+        cell_division++;
+      }        
+    }
+  }
+  // now do death
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+
+
+      int TA = c->TargetArea();
+      int area = c->Area();
+      int sthresh=par.shrink;
+
+      if ( (area-TA)<sthresh ) 
+      {
+        int count=TA-area;
+        while (c->TargetArea() > 0 && count > 0)
+        {
+          c->DecrementTargetArea();
+          --count;
+        }
+      }
+      else if (area < 2)
+      {
+        c->SetTargetArea(0);
+        c->set_lambda(100);
+      }
+    }
+  }
+  // Divide scheduled cells
+  if (cell_division) 
+  {
+    DivideCells(which_cells, time);
+  }  
+
+}
+
+
+
 void CellularPotts::ConstrainedGrowthAndDivision(int time)
 {
   // ADD LEFTOVER MASS HERE

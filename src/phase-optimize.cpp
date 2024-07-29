@@ -218,17 +218,15 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   // create memory for dishes. 
   Dish* dishes = new Dish[par.optimization_replicates];
   int time{};
-  time = int(params[4]);
+  time = int(params[5]);
 
   par.secr_rate[0] = params[0];
-  // par.J_med = params[1];
-  // par.J_med2 = params[1];
-  // par.J_stem_diff = params[1];
-  par.gthresh = params[1];
+  par.Vs_max = params[1];
+  par.J_stem_diff = params[2];
   // constant params
-  par.J_stem = params[2];
+  par.J_stem = params[3];
   par.mcs= 40000 + int(par.J_stem)*25000;
-  par.J_diff = params[3];
+  par.J_diff = params[4];
 
   if (par.J_stem > par.J_diff)
     par.J_stem_diff = par.J_stem;
@@ -295,7 +293,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         }
         
       }
-      else 
+      else
       {
         // Normal division stage
 
@@ -467,11 +465,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
 // Main function
-int main(int argc, char *argv[]) {
-
-
-
-  
+int main(int argc, char *argv[]) 
+{
 
   vector<double> params;
   for (int i = 1; i < argc; ++i)
@@ -481,8 +476,8 @@ int main(int argc, char *argv[]) {
   }
   cout << endl;
 
-  par.pic_dir = par.pic_dir + "-" + argv[3] + "-" + argv[4];
-  par.data_file = par.data_file + "-" + argv[3] + "-" + argv[4];
+  par.pic_dir = par.pic_dir + "-" + argv[4] + "-" + argv[5];
+  par.data_file = par.data_file + "-" + argv[4] + "-" + argv[5];
 
 #ifdef QTGRAPHICS
   if (par.pics_for_opt)
