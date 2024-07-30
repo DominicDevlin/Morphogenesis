@@ -210,6 +210,8 @@ class Parameter {
   bool sheet;
   double sheet_J;
   bool sheet_hex;
+  int start_sheet_measure;
+  int end_sheet_measure;
 
   double J_stem;
   double J_diff;

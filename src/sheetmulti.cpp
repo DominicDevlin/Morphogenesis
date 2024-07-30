@@ -103,8 +103,9 @@ void process_population(vector<vector<vector<double>>> &hex_order, vector<vector
     {              
       if (par.highT && t < par.highT_time)
       {
-        double diff = par.highT_temp - par.T;
-        double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
+        // double diff = par.highT_temp - par.T;
+        // double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
+        double toT = par.highT_temp;
         dishes[i].CPM->CopyProb(toT);
       }
       if (t==par.highT_time)
@@ -115,7 +116,7 @@ void process_population(vector<vector<vector<double>>> &hex_order, vector<vector
         dishes[i].CPM->RecordMasses();
       }
 
-      if (t % 500 == 0 && t > par.equilibriate && par.sheet_hex)
+      if (t % 25 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
       {
         dishes[i].CPM->initVolume();
         dishes[i].CPM->adjustPerimeters();
@@ -142,6 +143,8 @@ void process_population(vector<vector<vector<double>>> &hex_order, vector<vector
           hex_order[counter][i].push_back(j);
         }
       }
+
+
 
       // if (par.output_sizes)
       // {

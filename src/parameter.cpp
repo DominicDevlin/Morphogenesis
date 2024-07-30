@@ -225,11 +225,14 @@
     // diffusion parameters
     waiting_time = 2000;
     // equilibrate MUST be bigger than highT_time (pref 2000, 1000)
-    equilibriate = 2000;
+    equilibriate = 0;
 
     highT=true;
-    highT_time = 1000;
+    highT_time = 100;
     highT_temp = 10.;
+
+    start_sheet_measure = highT_time;
+    end_sheet_measure = start_sheet_measure + 500;
 
     // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
     // dH is calculated on the fly. 
