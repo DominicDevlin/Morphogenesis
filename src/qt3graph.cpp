@@ -61,7 +61,10 @@ QtGraphics::QtGraphics(int xfield, int yfield, const char *movie_file)
   //  pic.save( "file.png" );
   
   // Allocate colors
-  pens = new QPen[256];
+  if (par.sheet)
+    pens = new QPen[1024];
+  else
+    pens = new QPen[256];
 
   
   ReadColorTable(pens);
@@ -132,14 +135,30 @@ void QtGraphics::ReadColorTable(QPen *pens)
    
   int r,g,b;
   int i;
-  while (fscanf(fpc,"%d",&i) != EOF) {
-    fscanf(fpc,"%d %d %d\n",&r,&g,&b);
-    QPen p(QColor(r,g,b));
-    pens[i]=p;
-  }
-   
-  fclose(fpc);
+  cout << "GOT HERE" << endl;
 
+  if (par.sheet)
+  {
+    for (int x = 0; x < 1024; ++x)
+    {
+      r = rand() % 256;
+      g = rand() % 256;
+      b = rand() % 256;    
+      QPen p(QColor(r,g,b));
+      pens[i]=p; 
+      cout << r << '\t' << g << '\t' b << endl;
+    }
+  }
+  else
+  {
+    while (fscanf(fpc,"%d",&i) != EOF) 
+    {
+      fscanf(fpc,"%d %d %d\n",&r,&g,&b);
+      QPen p(QColor(r,g,b));
+      pens[i]=p;
+    }
+  }   
+  fclose(fpc);
 }
 
 //Of course, we also want to see the image

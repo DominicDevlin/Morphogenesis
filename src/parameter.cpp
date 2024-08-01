@@ -88,9 +88,9 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 150;
-    sizey = 250;
-    mcs = 80000;
+    sizex = 200;
+    sizey = 200;
+    mcs = 15000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -217,7 +217,7 @@
 /* sheet related parameters */
     sheet=false;
     sheet_hex = true;
-    sheet_J = 10;
+    sheet_J = 3.5;
     sheet_minJ=1;
     sheet_maxJ=12;
     J_width=0.5;
