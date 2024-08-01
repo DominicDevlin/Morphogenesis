@@ -231,8 +231,8 @@
     highT_time = 100;
     highT_temp = 10.;
 
-    start_sheet_measure = highT_time;
-    end_sheet_measure = start_sheet_measure + 500;
+    start_sheet_measure = highT_time + 50000;
+    end_sheet_measure = start_sheet_measure + 1000;
 
     // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
     // dH is calculated on the fly. 

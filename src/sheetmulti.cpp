@@ -76,10 +76,12 @@ TIMESTEP
   cerr << "Error" << endl;
 }
 
-void process_population(vector<vector<vector<double>>> &hex_order, vector<vector<vector<double>>> &shape_index, int counter)
+void process_population()
 {
 
-  
+  vector<vector<double>> hex_order(par.n_orgs);
+  vector<vector<double>> shape_index(par.n_orgs);
+
   vector<vector<double>> cell_displacements;
 
   Dish *dishes = new Dish[par.n_orgs];
@@ -132,7 +134,7 @@ void process_population(vector<vector<vector<double>>> &hex_order, vector<vector
           double sindex = tperims[j] / sqrt(volumes[j]);
           // cout << i << '\t';
           avg+=sindex;
-          shape_index[counter][i].push_back(sindex);
+          shape_index[i].push_back(sindex);
         }
         avg/=tperims.size();
 
@@ -140,7 +142,7 @@ void process_population(vector<vector<vector<double>>> &hex_order, vector<vector
         vector<double> hexes = dishes[i].CPM->GetHexes();
         for (auto &j : hexes)
         {
-          hex_order[counter][i].push_back(j);
+          hex_order[i].push_back(j);
         }
       }
 
@@ -155,6 +157,14 @@ void process_population(vector<vector<vector<double>>> &hex_order, vector<vector
     }
   }
 
+  if (mkdir(par.data_file.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;
+
+
+
+
   if (par.output_sizes)
   {
     for (int i = 0; i < par.n_orgs; ++i)
@@ -163,42 +173,73 @@ void process_population(vector<vector<vector<double>>> &hex_order, vector<vector
       for (auto i : displc)
         cell_displacements.push_back(i);
     }
-  }
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(1) << par.T << "-" << par.sheet_J;
+    string s = stream.str();
 
-  if (mkdir(par.data_file.c_str(), 0777) == -1)
-    cerr << "Error : " << strerror(errno) << endl;
-  else
-    cout << "Directory created." << endl;
+    string var_name = par.data_file + "/msd" + s + ".dat"; 
+    ofstream outfile;
+    outfile.open(var_name, ios::app);  
 
-  // string sTemp = to_string(par.T);
-  // string sJ = to_string(par.minJ);
-
-  std::stringstream stream;
-  stream << std::fixed << std::setprecision(1) << par.T << "-" << par.sheet_J;
-  string s = stream.str();
-
-  string var_name = par.data_file + "/msd" + s + ".dat"; 
-  ofstream outfile;
-  outfile.open(var_name, ios::app);  
-
-  int timer = 1;
-  for (auto j=0;j<par.mcs-par.equilibriate-1;++j)
-  {
-    double msd=0;
-    int n = 0;
-
-    for (auto i=0;i<cell_displacements.size();++i)
+    int timer = 1;
+    for (auto j=0;j<par.mcs-par.equilibriate-1;++j)
     {
-      msd += cell_displacements[i][j];
-      ++n;
-    }
-    // outfile << timer << "\t" << msd/((double)n) << endl;
-    outfile << (msd)/((double)n) << endl;
+      double msd=0;
+      int n = 0;
 
-    ++timer;
+      for (auto i=0;i<cell_displacements.size();++i)
+      {
+        msd += cell_displacements[i][j];
+        ++n;
+      }
+      // outfile << timer << "\t" << msd/((double)n) << endl;
+      outfile << (msd)/((double)n) << endl;
+
+      ++timer;
+    }
+
+    outfile.close();
   }
 
-  outfile.close();
+  if (par.sheet_hex)
+  {
+
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(1) << par.sheet_J;
+    string s = stream.str();
+    string var_name = par.data_file + "/shapes-" + s + ".dat"; 
+    ofstream outfile;
+    outfile.open(var_name, ios::app);  
+
+    // Print the vector of vectors as columns
+    for (size_t i = 0; i < shape_index.size(); i++) 
+    {
+      for (size_t j = 0; j < shape_index[i].size(); j++) 
+      {
+
+        outfile << shape_index[i][j] << endl;
+      }
+    }
+    outfile.close();  
+
+
+    // now do same for hexatic order
+    var_name = par.data_file + "/hex-order-" + s + ".dat";
+    outfile.open(var_name, ios::app);  
+    // Print the vector of vectors as columns
+    for (size_t i = 0; i < hex_order.size(); i++) 
+    {
+      for (size_t j = 0; j < hex_order[i].size(); j++) 
+      {
+
+        outfile << hex_order[i][j] << endl;
+      }
+    }
+    outfile.close();  
+  }
+
+
+
   delete[] dishes;
 
 }
@@ -271,87 +312,80 @@ int main(int argc, char *argv[]) {
     shape_index.push_back(shape);
     par.sheet_J = Jlist[i];
     cout << par.sheet_J << endl;
-    process_population(hex_order, shape_index, i);
+    process_population();
   }
 
 
-  if (par.sheet_hex)
-  {
+  // if (par.sheet_hex)
+  // {
+  //   // collapse into one vector
+  //   vector<vector<double>> shape_final(n_trials);
+  //   vector<vector<double>> hex_final(n_trials);
 
-
-    // collapse into one vector
-    vector<vector<double>> shape_final(n_trials);
-    vector<vector<double>> hex_final(n_trials);
-
-    for (int i = 0; i < n_trials; ++i)
-    {
-      for (auto &j : shape_index[i])
-        for (double &k : j)
-        {
-          shape_final[i].push_back(k);
-        }
-      for (auto &j : hex_order[i])
-        for (double &k : j)
-        {
-          hex_final[i].push_back(k);
-        }
-    }
-    string var_name = par.data_file + "/shapes.dat";
-    ofstream outfile;
-    outfile.open(var_name, ios::app);  
-    int length=0;
-    for (const auto& inner_vec : shape_final) 
-    {
-        if (inner_vec.size() > length) 
-        {
-            length = inner_vec.size();
-        }
-    }
-    // Print the vector of vectors as columns
-    for (size_t i = 0; i < length; i++) 
-    {
-      for (size_t j = 0; j < shape_final.size(); j++) 
-      {
-        int k = 0;
-        if (i < shape_final[j].size()) 
-        {
-            outfile << shape_final[j][i] << "\t";
-        } 
-      }
-      outfile << std::endl; // Newline after each column is printed
-    }
-    outfile.close();  
-
-
-
-    // now do same for hexatic order
-    var_name = par.data_file + "/hex-order.dat";
-    outfile.open(var_name, ios::app);  
-    length=0;
-    for (const auto& inner_vec : hex_final) 
-    {
-        if (inner_vec.size() > length) 
-        {
-            length = inner_vec.size();
-        }
-    }
-    // Print the vector of vectors as columns
-    for (size_t i = 0; i < length; i++) 
-    {
-      for (size_t j = 0; j < hex_final.size(); j++) 
-      {
-        int k = 0;
-        if (i < hex_final[j].size()) 
-        {
-            outfile << hex_final[j][i] << "\t";
-        } 
-      }
-      outfile << std::endl; // Newline after each column is printed
-    }
-    outfile.close();  
-
-
-  }
+  //   for (int i = 0; i < n_trials; ++i)
+  //   {
+  //     for (auto &j : shape_index[i])
+  //       for (double &k : j)
+  //       {
+  //         shape_final[i].push_back(k);
+  //       }
+  //     for (auto &j : hex_order[i])
+  //       for (double &k : j)
+  //       {
+  //         hex_final[i].push_back(k);
+  //       }
+  //   }
+  //   string var_name = par.data_file + "/shapes.dat";
+  //   ofstream outfile;
+  //   outfile.open(var_name, ios::app);  
+  //   int length=0;
+  //   for (const auto& inner_vec : shape_final) 
+  //   {
+  //       if (inner_vec.size() > length) 
+  //       {
+  //           length = inner_vec.size();
+  //       }
+  //   }
+  //   // Print the vector of vectors as columns
+  //   for (size_t i = 0; i < length; i++) 
+  //   {
+  //     for (size_t j = 0; j < shape_final.size(); j++) 
+  //     {
+  //       int k = 0;
+  //       if (i < shape_final[j].size()) 
+  //       {
+  //           outfile << shape_final[j][i] << "\t";
+  //       } 
+  //     }
+  //     outfile << std::endl; // Newline after each column is printed
+  //   }
+  //   outfile.close();  
+  //   // now do same for hexatic order
+  //   var_name = par.data_file + "/hex-order.dat";
+  //   outfile.open(var_name, ios::app);  
+  //   length=0;
+  //   for (const auto& inner_vec : hex_final) 
+  //   {
+  //       if (inner_vec.size() > length) 
+  //       {
+  //           length = inner_vec.size();
+  //       }
+  //   }
+  //   // Print the vector of vectors as columns
+  //   for (size_t i = 0; i < length; i++) 
+  //   {
+  //     for (size_t j = 0; j < hex_final.size(); j++) 
+  //     {
+  //       int k = 0;
+  //       if (i < hex_final[j].size()) 
+  //       {
+  //           outfile << hex_final[j][i] << "\t";
+  //       } 
+  //     }
+  //     outfile << std::endl; // Newline after each column is printed
+  //   }
+  //   outfile.close();  
+  // }
   
   // finished
   par.CleanUp();
