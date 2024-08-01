@@ -80,8 +80,7 @@ void process_population()
 {
 
   vector<vector<double>> hex_order(par.n_orgs);
-  vector<vector<double>> shape_index(par.n_orgs);
-
+  vector<vector<double>> shape_index(par.n_orgs);  
   vector<vector<double>> cell_displacements;
 
   Dish *dishes = new Dish[par.n_orgs];
@@ -272,7 +271,7 @@ int main(int argc, char *argv[]) {
 
   if (par.sheet_hex)
   {
-    par.mcs = 10000 + par.equilibriate;
+    par.mcs = par.end_sheet_measure + par.equilibriate;
   }
 
   par.periodic_boundaries = true;

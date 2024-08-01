@@ -34,6 +34,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <QPaintEvent>
 #include <QResizeEvent>
 #include "graph.h"
+#include "parameter.h"
 
 
 
