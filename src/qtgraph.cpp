@@ -154,17 +154,17 @@ void QtGraphics::ReadColorTable(QPen *pens)
     QPen p(QColor(r,g,b));
     pens[i]=p;
   }
-  if (true)
-  {
-    for (int x = 10; x < 512; ++x)
-    {
-      r = rand() % 256;
-      g = rand() % 256;
-      b = rand() % 256;    
-      QPen p(QColor(r,g,b));
-      pens[x]=p; 
-    }
-  }  
+  // if (true)
+  // {
+  //   for (int x = 10; x < 512; ++x)
+  //   {
+  //     r = rand() % 256;
+  //     g = rand() % 256;
+  //     b = rand() % 256;    
+  //     QPen p(QColor(r,g,b));
+  //     pens[x]=p; 
+  //   }
+  // }  
   fclose(fpc);
 
 }

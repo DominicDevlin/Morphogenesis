@@ -3374,6 +3374,20 @@ bool CellularPotts::EndOptimizer()
 
 }
 
+int CellularPotts::PhaseOnCells()
+{
+  int amount{};
+  vector<Cell>::iterator i;
+  for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
+  {
+    if (i->AliveP() && i->GetPhase()) 
+    {
+      amount++;
+    }
+  }
+  return amount;
+}
+
 double CellularPotts::Optimizer()
 {
 
@@ -3414,7 +3428,15 @@ double CellularPotts::Optimizer()
 
   double length = pow(maxy - miny, 2);
 
-  return (variance / length);
+  int n_phase = PhaseOnCells();
+  
+  int to_return = variance / length;
+
+  if (n_phase > par.min_phase_cells)
+    return to_return;
+  else
+    return to_return*3;
+
 
 
   // int miny = sizey;

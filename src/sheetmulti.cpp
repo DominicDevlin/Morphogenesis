@@ -117,7 +117,7 @@ void process_population()
         dishes[i].CPM->RecordMasses();
       }
 
-      if (t % 25 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
+      if (t % 10 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
       {
         dishes[i].CPM->initVolume();
         dishes[i].CPM->adjustPerimeters();
@@ -256,7 +256,6 @@ int main(int argc, char *argv[]) {
   par.gene_output=false;
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
-  par.output_sizes = true;
   par.mcs=100000 + par.equilibriate;
   par.sizex=200;
   par.sizey=200;
@@ -266,6 +265,8 @@ int main(int argc, char *argv[]) {
 
   if (par.velocities)
     par.output_sizes = true;
+  else
+    par.output_sizes = false;
   Parameter();
 
 
@@ -278,7 +279,7 @@ int main(int argc, char *argv[]) {
   par.flush_cells = true;
 
 
-  par.n_orgs = 10;
+  par.n_orgs = 60;
 
   vector<bool> start_p = {0, 0, 0, 0};
 

@@ -225,6 +225,7 @@ class Parameter {
   int pics_for_opt_interval;
   int max_div_time;
   bool phase_evolution;
+  int min_phase_cells;
   int offset;
   double J_mutate_probability;
   int penalty;

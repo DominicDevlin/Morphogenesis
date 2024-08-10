@@ -124,41 +124,49 @@ void OutputShapes(map<int, vector<double>> data2, string &oname, int time)
     double median = calculateMedian(tempValues);
     auto [q1, q3] = calculateIQR(tempValues);
     double range = calculateRange(values);
+    int observations = tempValues.size();
 
-    outfile << key << '\t' << mean << '\t' << median << '\t' << q1 << '\t' << q3 << '\t' << range << '\t';
+    outfile << key << '\t' << mean << '\t' << median << '\t' << q1 << '\t' << q3 << '\t' << range << '\t' << observations << '\t'; 
   }
   outfile << endl;
 
   outfile.close();  
 }
 
-void OutputResults(vector<double>& lengths, vector<double>& variances, string& oname, int time)
+void OutputResults(vector<double>& lengths, vector<double>& variances, vector<bool>& phase_remained, string& oname, int time)
 {
 
   //average fitness
   double avg_length = 0;
   double avg_variance = 0;
+  double avg_phase_remained = 0;
   vector<double> vec;
   for (int i = 0; i < lengths.size(); ++i)
   {
     double fitness = pow(lengths[i],2) / variances[i];
+    if (!phase_remained[i])
+      fitness /= 2.;
     vec.push_back(fitness);
 
     avg_length += lengths[i];
     avg_variance += variances[i];
+    avg_phase_remained += phase_remained[i];
   }
   avg_length = avg_length / lengths.size();
   avg_variance = avg_variance / lengths.size();
+  avg_phase_remained = avg_phase_remained / lengths.size();
+  
+  int half = par.optimization_replicates / 2;
 
   std::sort(vec.begin(), vec.end(), std::greater<int>());
-  double avgfit = std::accumulate(vec.begin(), vec.begin() + 3, 0.0) / 3;
+  double avgfit = std::accumulate(vec.begin(), vec.begin() + half, 0.0) / half;
 
 
   std::string var_name = oname + "/results.txt";
   std::ofstream outfile;
   outfile.open(var_name, ios::app);
 
-  outfile << time << '\t' << avgfit << '\t' << avg_length << '\t' << avg_variance << endl;
+  outfile << time << '\t' << avgfit << '\t' << avg_length << '\t' << avg_variance << '\t' << avg_phase_remained << endl;
   outfile.close();
 
 }
@@ -420,14 +428,22 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   vector<double> lengths;
   vector<double> variances;
+  vector<bool> phase_remained;
 
   for (int i = 0; i < par.optimization_replicates;++i)
   {
     pair<double,double> lw = dishes[i].CPM->LengthWidth();
     lengths.push_back(lw.first);
     variances.push_back(lw.second);
+    
+    int n_phase = dishes[i].CPM->PhaseOnCells();
+    if (n_phase > par.min_phase_cells)
+      phase_remained.push_back(true);
+    else
+      phase_remained.push_back(false);
+
   }
-  OutputResults(lengths, variances, par.data_file, time);
+  OutputResults(lengths, variances, phase_remained, par.data_file, time);
   
 
 

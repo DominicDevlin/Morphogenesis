@@ -56,7 +56,7 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = true;
+    velocities = false;
     record_directions = false;
 
     // record cell sizes
@@ -157,12 +157,12 @@
     v_melt = -30;
     v_slope = -4;
 
-    offset = 75;//75
+    offset = 70;//75
     optimization_replicates = 6;
     pics_for_opt = true;
     pics_for_opt_interval = 100;
     max_div_time = 20000;
-
+    min_phase_cells = 20;
     penalty=250;
 
   
@@ -218,8 +218,8 @@
     sheet=false;
     sheet_hex = true;
     sheet_J = 3.5;
-    sheet_minJ=1;
-    sheet_maxJ=12;
+    sheet_minJ=0.5;
+    sheet_maxJ=12.5;
     J_width=0.5;
 
     // diffusion parameters
@@ -231,8 +231,8 @@
     highT_time = 100;
     highT_temp = 10.;
 
-    start_sheet_measure = highT_time + 50000;
-    end_sheet_measure = start_sheet_measure + 1000;
+    start_sheet_measure = highT_time + 100;
+    end_sheet_measure = start_sheet_measure + 100;
 
     // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
     // dH is calculated on the fly. 

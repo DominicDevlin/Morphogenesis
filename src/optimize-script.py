@@ -62,8 +62,8 @@ def f(x, time=0):
     os.system(name)
 
     data = pd.read_csv(file_path, delimiter='\t')
-    # 0 is average, 1 is best. we are going to use best. 
-    n = (data.iloc[-1][1])
+    # 0 is average of three best, 1 is best. we are going to use average. 
+    n = (data.iloc[-1][0])
     print(n)
     return float(n)
 

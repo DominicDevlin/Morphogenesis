@@ -390,6 +390,8 @@ public:
 
   bool EndOptimizer();
 
+  int PhaseOnCells();
+
   pair<double,double> LengthWidth();
 
   void ConstrainedGrowthAndDivision(int time);
