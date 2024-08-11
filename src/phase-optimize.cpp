@@ -322,7 +322,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       }
       dishes[i].CPM->AmoebaeMove(t);
     
-      if (t % 500 == 0 && par.insitu_shapes)
+      if (t % 250 == 0 && par.insitu_shapes)
       {
         // cout << 'here' << endl;
         dishes[i].CPM->PhaseShapeIndex();

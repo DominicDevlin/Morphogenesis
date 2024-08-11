@@ -3430,12 +3430,12 @@ double CellularPotts::Optimizer()
 
   int n_phase = PhaseOnCells();
   
-  int to_return = variance / length;
+  double to_return = variance / length;
 
   if (n_phase > par.min_phase_cells)
     return to_return;
   else
-    return to_return*3;
+    return to_return*2;
 
 
 
