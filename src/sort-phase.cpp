@@ -329,7 +329,10 @@ TIMESTEP {
         dish->CPM->ColourCellsByShape();
       }
       else
+      {
         dish->CPM->DiscreteGrowthAndDivision(t);
+        // dish->CPM->ConstrainedGrowthAndDivision(t);        
+      }
     }
     dish->CPM->AmoebaeMove(t);
 

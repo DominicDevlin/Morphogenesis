@@ -241,8 +241,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   else
     par.J_stem_diff = par.J_diff;
 
-  par.J_med = 0.5*par.J_diff+0.5;
-  par.J_med2 = 0.5*par.J_diff+0.5;
+  par.J_med = 0.5*par.J_diff+0.25;
+  par.J_med2 = 0.5*par.J_diff+0.25;
 
   // run organisms in parallel. 
   omp_set_num_threads(par.optimization_replicates);
@@ -317,7 +317,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           dishes[i].PDEfield->Diffuse(1); 
         }  
         // WE ARE GOING TO CHANGE THIS SO THAT IT JUST RANDOMLY ADDS MASS TO ONE OF THE STEM CELLS!! (can also do sigmoidal function?)
-        dishes[i].CPM->ConstrainedGrowthAndDivision(t);
+        dishes[i].CPM->DiscreteGrowthAndDivision(t);
         // dishes[i].CPM->CellGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
@@ -483,6 +483,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 // Main function
 int main(int argc, char *argv[]) 
 {
+  par.sizex = 150;
+  par.sizey = 250;
 
   vector<double> params;
   for (int i = 1; i < argc; ++i)
