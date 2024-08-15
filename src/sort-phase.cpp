@@ -58,20 +58,23 @@ void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const strin
 
   // First, find the maximum number of rows required
   int max_rows = 0;
+  vector<int> rows{};
   for (const auto& [key, vec] : shapedata) {
     for (const auto& [index, value] : vec) 
     {
-      if (index + 1 > max_rows) {
+      if (index + 1 > max_rows) 
+      {
           max_rows = index + 1;
+          rows.push_back(index);
       }
     }
   }
-  cout << max_rows << " MAX ROWS" << endl;
 
   // Write the header
   outfile << fixed << setprecision(6);
   
-  for (int row = 0; row < max_rows; ++row) {
+  for (int &row : rows) 
+  {
     bool first_col = true;
     
     // Iterate over the map entries
@@ -90,17 +93,21 @@ void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const strin
       int count = 0;
       for (const auto& [index, value] : vec) 
       {
-        if (index == row) {
+        if (index == row) 
+        {
           sum += value;
           ++count;
         }
       }
 
-      if (count > 0) {
+      if (count > 0) 
+      {
         double average = sum / count;
         outfile << "\t" << average;  // Output the average in the second column
       } 
-      else {
+      else 
+      {
+        cout << "Error in time output" << endl;
         outfile << "\t";  // No data for this row, leave empty
       }
 
@@ -211,7 +218,6 @@ INIT
 
 
     par.print_fitness = true;
-    par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
 
     if (par.set_colours)
     {
@@ -339,7 +345,7 @@ TIMESTEP {
 
       }
 
-      if (t % 1 == 0 && par.measure_time_order_params)
+      if (t % 10 == 0 && t > 200 && par.measure_time_order_params)
       {
         dish->CPM->PhaseShapeIndex(t);
         dish->CPM->HexaticOrder(t);
@@ -401,21 +407,24 @@ TIMESTEP {
 
     if (t == par.mcs - 1)
     {
+
+      if (mkdir(par.data_file.c_str(), 0777) == -1)
+        cerr << "Error : " << strerror(errno) << endl;
+      else
+        cout << "Directory created." << endl;
+
       if (par.measure_time_order_params)
       {
         map<int, vector<pair<int,double>>> shapedata = dish->CPM->Get_time_shape_index();
         map<int, vector<pair<int,double>>> hexdata = dish->CPM->Get_time_hexatic_order();
 
-        string oname = "hex_time.dat";
+        string oname = par.data_file + "/hex_time.dat";
         WriteData(hexdata, oname);
 
-        oname = "shape_time.dat";
+        oname = par.data_file + "/shape_time.dat";
         WriteData(shapedata, oname);
 
       }
-
-
-
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();
@@ -834,7 +843,6 @@ int PDE::MapColour(double val) {
   
   return (((int)((val/((val)+1.))*100))%100)+155;
 }
-
 
 
 
