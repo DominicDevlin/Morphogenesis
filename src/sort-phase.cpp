@@ -51,6 +51,69 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 using namespace std;
 
 
+void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const string& oname)
+{
+  ofstream outfile;
+  outfile.open(oname, ios::app);  // Append mode
+
+  // First, find the maximum number of rows required
+  int max_rows = 0;
+  for (const auto& [key, vec] : shapedata) {
+    for (const auto& [index, value] : vec) 
+    {
+      if (index + 1 > max_rows) {
+          max_rows = index + 1;
+      }
+    }
+  }
+  cout << max_rows << " MAX ROWS" << endl;
+
+  // Write the header
+  outfile << fixed << setprecision(6);
+  
+  for (int row = 0; row < max_rows; ++row) {
+    bool first_col = true;
+    
+    // Iterate over the map entries
+    for (const auto& [key, vec] : shapedata) 
+    {
+      // Output the first column (the integer index)
+      if (!first_col) 
+      {
+        outfile << "\t";  // Separate columns with a tab
+      }
+
+      outfile << row;
+
+      // Calculate the average for this row if there are matching pairs
+      double sum = 0.0;
+      int count = 0;
+      for (const auto& [index, value] : vec) 
+      {
+        if (index == row) {
+          sum += value;
+          ++count;
+        }
+      }
+
+      if (count > 0) {
+        double average = sum / count;
+        outfile << "\t" << average;  // Output the average in the second column
+      } 
+      else {
+        outfile << "\t";  // No data for this row, leave empty
+      }
+
+      first_col = false;  // Set this to false after the first column
+    }
+
+    outfile << endl;  // Newline after each row
+  }
+
+  outfile.close();  
+}
+
+
 void Outputter(map<int, vector<double>> data2, vector<vector<int>> scc, string switch_out)
 {
   ofstream outfile;
@@ -276,11 +339,10 @@ TIMESTEP {
 
       }
 
-      if (par.insitu_shapes && t % 500 == 0)
+      if (t % 1 == 0 && par.measure_time_order_params)
       {
-        // dish->CPM->ShapeIndexByState();
-        dish->CPM->PhaseShapeIndex();
-        // dish->CPM->AdhesionByState();
+        dish->CPM->PhaseShapeIndex(t);
+        dish->CPM->HexaticOrder(t);
       }
       
       if (par.velocities)
@@ -339,6 +401,21 @@ TIMESTEP {
 
     if (t == par.mcs - 1)
     {
+      if (par.measure_time_order_params)
+      {
+        map<int, vector<pair<int,double>>> shapedata = dish->CPM->Get_time_shape_index();
+        map<int, vector<pair<int,double>>> hexdata = dish->CPM->Get_time_hexatic_order();
+
+        string oname = "hex_time.dat";
+        WriteData(hexdata, oname);
+
+        oname = "shape_time.dat";
+        WriteData(shapedata, oname);
+
+      }
+
+
+
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();

@@ -6989,15 +6989,9 @@ vector<double> CellularPotts::GetHexes()
 
 
 
-void CellularPotts::HexaticOrder()
+void CellularPotts::HexaticOrder(int time)
 {
-  // int count_on{};
-  // int count_off{};
-  // double sum_on{};
-  // double sum_off{};
 
-  vector<double> p_on_hexes{};
-  vector<double> p_off_hexes{};
 
   SetCellCenters();
   int **ns = SearchNeighbours();
@@ -7077,55 +7071,20 @@ void CellularPotts::HexaticOrder()
       psi_sum /= static_cast<double>(angles.size());
       double psi_mag = std::abs(psi_sum);
 
-      if (phaser)
+
+      if (par.measure_time_order_params)
       {
-        p_on_hexes.push_back(psi_mag);
-        state_hexatic_order[phaser].push_back(psi_mag);
+        pair<int,double> toreturn = {time, psi_mag};
+        time_hexatic_order[phaser].push_back(toreturn);
       }
       else
-      {
-        p_off_hexes.push_back(psi_mag);
         state_hexatic_order[phaser].push_back(psi_mag);
-      }
       // cout << psi_sum << endl;
       // cout << psi_mag << '\t' << cell->at(i).GetPhase() << endl;
 
     }
   }
 
-  // if (p_on_hexes.size() && p_off_hexes.size())
-  // {
-  //   double on_sum = 0;
-  //   double on_median = 0;
-  //   double off_sum = 0;
-  //   double off_median = 0;
-
-  //   for (size_t i = 0; i < p_on_hexes.size(); ++i) {
-  //       on_sum += p_on_hexes[i];
-  //   }
-  //   on_sum = on_sum / p_on_hexes.size();
-
-  //   std::sort(p_on_hexes.begin(), p_on_hexes.end());
-  //   if (p_on_hexes.size() % 2 == 0) {
-  //       on_median = (p_on_hexes[p_on_hexes.size() / 2 - 1] + p_on_hexes[p_on_hexes.size() / 2]) / 2;
-  //   } else {
-  //       on_median = p_on_hexes[p_on_hexes.size() / 2];
-  //   }
-
-  //   for (size_t i = 0; i < p_off_hexes.size(); ++i) {
-  //       off_sum += p_off_hexes[i];
-  //   }
-  //   off_sum = off_sum / p_off_hexes.size();
-
-  //   std::sort(p_off_hexes.begin(), p_off_hexes.end());
-  //   if (p_off_hexes.size() % 2 == 0) {
-  //       off_median = (p_off_hexes[p_off_hexes.size() / 2 - 1] + p_off_hexes[p_off_hexes.size() / 2]) / 2;
-  //   } else {
-  //       off_median = p_off_hexes[p_off_hexes.size() / 2];
-  //   }
-  //   cout << "ON mean and median: " << on_sum << "\t" << on_median << '\t'
-  //   << endl << "OFF mean and median: " << off_sum << "\t" << off_median << endl;
-  // }
 }
 
 map<int,vector<double>> CellularPotts::GetHexaticOrderList()
@@ -7133,11 +7092,20 @@ map<int,vector<double>> CellularPotts::GetHexaticOrderList()
   return state_hexatic_order;
 }
 
+map<int, vector<pair<int,double>>> CellularPotts::Get_time_hexatic_order()
+{
+  return time_hexatic_order;
+}
+
+map<int, vector<pair<int,double>>> CellularPotts::Get_time_shape_index()
+{
+  return time_shape_index;
+}
 
 
 
 
-void CellularPotts::PhaseShapeIndex()
+void CellularPotts::PhaseShapeIndex(int time)
 {
   initVolume();
   adjustPerimeters();
@@ -7203,8 +7171,16 @@ void CellularPotts::PhaseShapeIndex()
       double corrected_perim = perim_length / correction; 
       double sindex = corrected_perim / sqrt(double(vlist[celln]));
       // cout << sindex << endl;
-      state_shape_index[p].push_back(sindex);
-      // toreturn.push_back(correted_perim);      
+      
+      // toreturn.push_back(correted_perim);
+      if (par.measure_time_order_params)
+      {
+        pair<int,double> toreturn = {time, sindex};
+        time_shape_index[p].push_back(toreturn);
+      }
+      else
+        state_shape_index[p].push_back(sindex);
+      
     }
   }  
 }

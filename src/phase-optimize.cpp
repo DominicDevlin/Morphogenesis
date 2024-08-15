@@ -527,6 +527,7 @@ int main(int argc, char *argv[])
   par.mcs = 100000;
   par.phase_evolution = true;
   par.insitu_shapes = true;
+  par.measure_time_order_params=false;
   
 
   Parameter();

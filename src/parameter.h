@@ -230,6 +230,8 @@ class Parameter {
   double J_mutate_probability;
   int penalty;
 
+  bool measure_time_order_params;
+
   bool melting_adhesion;  
   int tip_max;
   int tip_min;

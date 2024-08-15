@@ -366,7 +366,7 @@ public:
 
   void ShapeIndexByState();
 
-  void PhaseShapeIndex();
+  void PhaseShapeIndex(int time=0);
 
   vector<double> GetVolumes();
 
@@ -410,11 +410,15 @@ public:
 
   void ColourCellsByIndex();
 
-  void HexaticOrder();
+  void HexaticOrder(int time=0);
 
   vector<double> GetHexes();
 
   map<int,vector<double>> GetHexaticOrderList();
+
+  map<int, vector<pair<int,double>>> Get_time_hexatic_order();
+
+  map<int, vector<pair<int,double>>> Get_time_shape_index();
 
 
 
@@ -716,6 +720,11 @@ private:
   map<int,vector<double>> state_shape_index;
 
   map<int,vector<double>> state_hexatic_order;
+
+  map<int, vector<pair<int,double>>> time_hexatic_order;
+
+  map<int, vector<pair<int,double>>> time_shape_index;
+
 
   map<int,vector<double>> state_adhesion;
 
