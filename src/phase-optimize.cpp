@@ -143,9 +143,9 @@ void OutputResults(vector<double>& lengths, vector<double>& variances, vector<bo
   vector<double> vec;
   for (int i = 0; i < lengths.size(); ++i)
   {
-    double fitness = pow(lengths[i],2) / variances[i];
+    double fitness = pow(lengths[i],2) / sqrt(variances[i]);
     if (!phase_remained[i])
-      fitness /= 2.;
+      fitness /= 4.;
     vec.push_back(fitness);
 
     avg_length += lengths[i];
@@ -156,10 +156,11 @@ void OutputResults(vector<double>& lengths, vector<double>& variances, vector<bo
   avg_variance = avg_variance / lengths.size();
   avg_phase_remained = avg_phase_remained / lengths.size();
   
+  int start = 1;
   int half = par.optimization_replicates / 2;
 
   std::sort(vec.begin(), vec.end(), std::greater<int>());
-  double avgfit = std::accumulate(vec.begin(), vec.begin() + half, 0.0) / half;
+  double avgfit = std::accumulate(vec.begin() + start, vec.begin() + start + half, 0.0) / half;
 
 
   std::string var_name = oname + "/results.txt";
@@ -185,10 +186,14 @@ void printn(vector<double> &fitn, string &oname, vector<double> &params)
   double min_fit = SIZE_MAX;
   double max_fit = 0;
 
+  // we are going to skip the highest fitness one
+  int start = 1;
+
+  // use the next 3 highest fitness
   int half = par.optimization_replicates / 2;
   // need three lowest
   std::sort(fitn.begin(), fitn.end());
-  double avgfit = std::accumulate(fitn.begin(), fitn.begin() + half, 0.0) / half;
+  double avgfit = std::accumulate(fitn.begin() + start, fitn.begin() + half + start, 0.0) / half;
 
   for (double i : fitn)
   {
@@ -483,7 +488,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 // Main function
 int main(int argc, char *argv[]) 
 {
-  par.sizex = 150;
+  par.sizex = 200;
   par.sizey = 250;
 
   vector<double> params;
