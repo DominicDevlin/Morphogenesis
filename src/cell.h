@@ -133,6 +133,9 @@ public:
     medium_protein_conc = src.medium_protein_conc;
     medium_state = src.medium_state;
 
+    temp_hexes = src.temp_hexes;
+    temp_shapes = src.temp_shapes;
+
     diffs = new double[par.n_diffusers];
 
     for (int i=0;i<par.n_diffusers;i++)
@@ -230,6 +233,8 @@ public:
     medium_protein_conc = src.medium_protein_conc;
     medium_state = src.medium_state;
 
+    temp_hexes = src.temp_hexes;
+    temp_shapes = src.temp_shapes;
 
     diffs = new double[par.n_diffusers];
 
@@ -1076,6 +1081,43 @@ private:
     return phase_state;
   }
 
+  inline void AddHex(double &h)
+  {
+    temp_hexes.push_back(h);
+  }
+
+  inline double GetTempHexes()
+  {
+    double ret_hex{};
+    for (double &i : temp_hexes)
+    {
+      ret_hex += i;
+    }
+    ret_hex /= temp_hexes.size();
+    temp_hexes.clear();
+    return ret_hex;
+  }
+
+  inline void AddShape(double &s)
+  {
+    temp_shapes.push_back(s);
+  }
+
+  inline double GetTempShape()
+  {
+    double ret_shape{};
+    for (double &i : temp_shapes)
+    {
+      ret_shape += i;
+    }
+    ret_shape /= temp_shapes.size();
+    temp_shapes.clear();
+    return ret_shape;
+  }
+
+
+
+
 
 private:
 //! Increments the cell's actual area by 1 unit.
@@ -1182,6 +1224,9 @@ protected:
   vector<vector<bool>> cycles; 
 
   vector<vector<double>> gene_recordings;
+
+  vector<double> temp_hexes;
+  vector<double> temp_shapes;
 
 
   bool death_tag=false;

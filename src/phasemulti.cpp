@@ -209,7 +209,7 @@ void process_population(vector<vector<vector<int>>>& network_list)
           }
         }
 
-        if (t % 10 == 0 && t > 200 && par.measure_time_order_params)
+        if (t > 200 && par.measure_time_order_params)
         {
           dishes[i].CPM->PhaseShapeIndex(t);
           dishes[i].CPM->HexaticOrder(t);
@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
   par.phase_evolution = true;
 
 
-  par.n_orgs = 6;
+  par.n_orgs = 30;
 
   // make initial random networks.
   vector<vector<vector<int>>> networks{};
