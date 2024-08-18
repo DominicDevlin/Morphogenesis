@@ -90,7 +90,7 @@
 /* Cellular Potts parameters */
     sizex = 150;
     sizey = 250;
-    mcs = 5000;
+    mcs = 100000;
     T = 3;
     target_length = 0;
     lambda = 0.5;

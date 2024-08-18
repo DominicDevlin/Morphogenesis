@@ -1122,7 +1122,7 @@ private:
   inline double GetTempShape()
   {
     double ret_shape{};
-    for (auto &i : temp_hexes)
+    for (auto &i : temp_shapes)
     {
       ret_shape += i.second;
     }

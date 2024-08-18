@@ -354,7 +354,7 @@ int main(int argc, char *argv[])
   par.phase_evolution = true;
 
 
-  par.n_orgs = 2;
+  par.n_orgs = 60;
 
   // make initial random networks.
   vector<vector<vector<int>>> networks{};
