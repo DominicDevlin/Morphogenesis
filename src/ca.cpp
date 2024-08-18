@@ -1128,7 +1128,7 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
                 }
 
             }
-
+            daughterp->SetTimeCreated(t);
             if (par.gene_record)
             {
               daughterp->RecordDivision(t); // record division only in daughter cell.
@@ -7074,12 +7074,23 @@ void CellularPotts::HexaticOrder(int time)
 
       if (par.measure_time_order_params)
       {
-        cell->at(i).AddHex(psi_mag);
-        if (time % 100 == 0)
+        cell->at(i).AddHex(psi_mag, time);
+        if (phaser && time % par.measure_interval == 0)
         {
           double psi_avg = cell->at(i).GetTempHexes();
           pair<int,double> toreturn = {time, psi_avg};
           time_hexatic_order[phaser].push_back(toreturn);
+        }
+        else
+        {
+          int time_created = cell->at(i).get_time_created();
+          int delta_time = time - time_created;
+          if (delta_time % par.measure_interval == 0)
+          {
+            double psi_avg = cell->at(i).GetTempHexes();
+            pair<int,double> toreturn = {delta_time, psi_avg};
+            time_hexatic_order[phaser].push_back(toreturn);
+          }
         }
       }
       else
@@ -7180,12 +7191,23 @@ void CellularPotts::PhaseShapeIndex(int time)
       // toreturn.push_back(correted_perim);
       if (par.measure_time_order_params)
       {
-        c->AddShape(sindex);
-        if (time % 50 == 0)
+        c->AddShape(sindex, time);
+        if (p && time % par.measure_interval == 0)
         {
           double shape_avg = c->GetTempShape();
           pair<int,double> toreturn = {time, shape_avg};
           time_shape_index[p].push_back(toreturn);
+        }
+        else
+        {
+          int time_created = c->get_time_created();
+          int delta_time = time - time_created;
+          if (delta_time % par.measure_interval == 0)
+          {
+            double shape_avg = c->GetTempShape();
+            pair<int,double> toreturn = {delta_time, shape_avg};
+            time_shape_index[p].push_back(toreturn);
+          }
         }
       }
       else

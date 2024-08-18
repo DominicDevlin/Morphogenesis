@@ -239,6 +239,11 @@ void process_population(vector<vector<vector<int>>>& network_list)
       // }
 
       dishes[i].CPM->AmoebaeMove(t);
+      bool if_end = dishes[i].CPM->EndOptimizer();
+      if (if_end == true)
+      {
+        t = par.mcs;
+      }
     }
   }
 
@@ -349,7 +354,7 @@ int main(int argc, char *argv[])
   par.phase_evolution = true;
 
 
-  par.n_orgs = 30;
+  par.n_orgs = 2;
 
   // make initial random networks.
   vector<vector<vector<int>>> networks{};

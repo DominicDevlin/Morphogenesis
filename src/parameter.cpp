@@ -90,7 +90,7 @@
 /* Cellular Potts parameters */
     sizex = 150;
     sizey = 250;
-    mcs = 30000;
+    mcs = 5000;
     T = 3;
     target_length = 0;
     lambda = 0.5;
@@ -166,6 +166,7 @@
     penalty=250;
 
     measure_time_order_params = true;
+    measure_interval = 100;
 
   
     // GRN params

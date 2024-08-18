@@ -28,6 +28,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <math.h>
 #include <unordered_map>
 #include <utility>
+#include <map>
 
 
 extern Parameter par;
@@ -990,6 +991,11 @@ private:
     return shape_index;
   }
 
+  inline void SetTimeCreated(int &time)
+  {
+    time_created = time;
+  }
+
 
   inline void RecordDivision(int time)
   {
@@ -1001,7 +1007,7 @@ private:
       div_phen.push_back(newt);
       // cout << "division recorded with phenotype: " << phenotype << endl;
     }
-    time_created = time;
+    
     
     if (par.division_anisotropy && time > par.end_program)
     {
@@ -1081,34 +1087,44 @@ private:
     return phase_state;
   }
 
-  inline void AddHex(double &h)
+  inline void AddHex(double &h, int &t)
   {
-    temp_hexes.push_back(h);
+    int back_time = t-100;
+    temp_hexes[t] = h;
+    if (!temp_hexes.empty() && temp_hexes.begin()->first == back_time)
+    {
+      temp_hexes.erase(temp_hexes.begin());
+    }
   }
 
   inline double GetTempHexes()
   {
     double ret_hex{};
-    for (double &i : temp_hexes)
+    for (auto &i : temp_hexes)
     {
-      ret_hex += i;
+      ret_hex += i.second;
     }
     ret_hex /= temp_hexes.size();
     temp_hexes.clear();
     return ret_hex;
   }
 
-  inline void AddShape(double &s)
+  inline void AddShape(double &s, int &t)
   {
-    temp_shapes.push_back(s);
+    int back_time = t-100;
+    temp_shapes[t] = s;
+    if (!temp_shapes.empty() && temp_shapes.begin()->first == back_time)
+    {
+      temp_shapes.erase(temp_shapes.begin());
+    }
   }
 
   inline double GetTempShape()
   {
     double ret_shape{};
-    for (double &i : temp_shapes)
+    for (auto &i : temp_hexes)
     {
-      ret_shape += i;
+      ret_shape += i.second;
     }
     ret_shape /= temp_shapes.size();
     temp_shapes.clear();
@@ -1225,8 +1241,8 @@ protected:
 
   vector<vector<double>> gene_recordings;
 
-  vector<double> temp_hexes;
-  vector<double> temp_shapes;
+  map<int, double> temp_hexes;
+  map<int, double> temp_shapes;
 
 
   bool death_tag=false;

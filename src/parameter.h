@@ -231,6 +231,7 @@ class Parameter {
   int penalty;
 
   bool measure_time_order_params;
+  int measure_interval;
 
   bool melting_adhesion;  
   int tip_max;
