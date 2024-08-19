@@ -652,17 +652,16 @@ private:
     diff_genes = new_diff;
   }
 
-  inline void set_phase_state()
+  inline void set_phase_state(int &t)
   {
     if (phase_protein_conc > 0.5)
       phase_state = true;
-    else
+    else if (phase_state == true)
+    {
       phase_state = false;
+      phase_change_time = t;
+    }
 
-    // if (medium_protein_conc > 0.5)
-    //   medium_state = true;
-    // else
-    //   medium_state = false;
   }
 
   inline double& get_phase_J(void)
@@ -1100,14 +1099,30 @@ private:
   inline double GetTempHexes()
   {
     double ret_hex{};
+    vector<double> hex_values{};
     for (auto &i : temp_hexes)
     {
-      ret_hex += i.second;
+      hex_values.push_back(i.second);
     }
-    ret_hex /= temp_hexes.size();
-    temp_hexes.clear();
+    if (hex_values.size() % 2 == 0)
+    {
+      // If even, average the two middle elements
+      ret_hex = (hex_values[hex_values.size() / 2 - 1] + hex_values[hex_values.size() / 2]) / 2.0;
+    }
+    else
+    {
+      // If odd, take the middle element
+      ret_hex = hex_values[hex_values.size() / 2];
+    }
+    hex_values.clear();
     return ret_hex;
   }
+
+  inline int GetShapeHexStartTime()
+  {
+    return phase_change_time;
+  }
+
 
   inline void AddShape(double &s, int &t)
   {
@@ -1122,11 +1137,21 @@ private:
   inline double GetTempShape()
   {
     double ret_shape{};
+    vector<double> shape_values{};
     for (auto &i : temp_shapes)
     {
-      ret_shape += i.second;
+      shape_values.push_back(i.second);
     }
-    ret_shape /= temp_shapes.size();
+    if (shape_values.size() % 2 == 0)
+    {
+      // If even, average the two middle elements
+      ret_shape = (shape_values[shape_values.size() / 2 - 1] + shape_values[shape_values.size() / 2]) / 2.0;
+    }
+    else
+    {
+      // If odd, take the middle element
+      ret_shape = shape_values[shape_values.size() / 2];
+    }
     temp_shapes.clear();
     return ret_shape;
   }
@@ -1243,6 +1268,7 @@ protected:
 
   map<int, double> temp_hexes;
   map<int, double> temp_shapes;
+  int phase_change_time=0;
 
 
   bool death_tag=false;

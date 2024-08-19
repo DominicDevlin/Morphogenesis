@@ -3210,7 +3210,7 @@ void CellularPotts::update_phase_network(int tsteps)
         //   mediumJ = numeric_step(gene_copy, mediumJ, i, tsteps);
         // }
       }
-      c->set_phase_state();
+      c->set_phase_state(tsteps);
 
       // for (auto n : genes)
       // {
@@ -7000,7 +7000,7 @@ void CellularPotts::HexaticOrder(int time)
   {
     if (cell->at(i).AliveP())
     {
-      cell->at(i).set_phase_state();
+      cell->at(i).set_phase_state(time);
       bool phaser = cell->at(i).GetPhase();
       double XCEN = cell->at(i).get_xcen();
       double YCEN = cell->at(i).get_ycen();
@@ -7039,7 +7039,7 @@ void CellularPotts::HexaticOrder(int time)
       }
       // cout << i << '\t' << n_neighbours << endl;
 
-      if (med_check) // I'm not sure if medium matters or not. Maybe it doesn't.
+      if (med_check) 
         continue;
 
       vector<vec2d> com_vectors{};
@@ -7083,7 +7083,7 @@ void CellularPotts::HexaticOrder(int time)
         }
         else
         {
-          int time_created = cell->at(i).get_time_created();
+          int time_created = cell->at(i).GetShapeHexStartTime();
           int delta_time = time - time_created;
           if (delta_time % par.measure_interval == 0)
           {
@@ -7137,7 +7137,7 @@ void CellularPotts::PhaseShapeIndex(int time)
     {
       int celln=c->Sigma();
       int perim_length{};
-      c->set_phase_state();
+      c->set_phase_state(time);
       bool p = c->GetPhase();
 
       for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
@@ -7200,7 +7200,7 @@ void CellularPotts::PhaseShapeIndex(int time)
         }
         else
         {
-          int time_created = c->get_time_created();
+          int time_created = c->GetShapeHexStartTime();
           int delta_time = time - time_created;
           if (delta_time % par.measure_interval == 0)
           {

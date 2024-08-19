@@ -71,21 +71,25 @@ void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const strin
       outfile << row;
 
       // Calculate the average for this row if there are matching pairs
-      double sum = 0.0;
-      int count = 0;
+      vector<double> values;
       for (const auto& [index, value] : vec) 
       {
         if (index == row) 
         {
-          sum += value;
-          ++count;
+          values.push_back(value);
         }
       }
 
-      if (count > 0) 
+      if (!values.empty()) 
       {
-        double average = sum / count;
-        outfile << "\t" << average;  // Output the average in the second column
+        sort(values.begin(), values.end());
+        double median;
+        int size = values.size();
+        if (size % 2 == 0)
+            median = (values[size / 2 - 1] + values[size / 2]) / 2.0;
+        else
+            median = values[size / 2];
+        outfile << "\t" << median;  // Output the average in the second column
       } 
       else 
       {
