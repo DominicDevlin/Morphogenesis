@@ -302,7 +302,7 @@ void process_population(vector<vector<vector<int>>>& network_list)
     oname = par.data_file + "/shape_time.dat";
     WriteData(shapedata, oname);    
   }
-  if (true)
+  if (par.pics_for_opt)
   {
     string dirn = par.pic_dir;
     if (mkdir(dirn.c_str(), 0777) != -1)
