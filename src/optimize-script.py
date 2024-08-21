@@ -72,17 +72,19 @@ def f(x, time=0):
 
 # differentiation rate, will just be the secretion constant (2.4e-3 is default, 1.5 is about minimum before 0 becomes equilibrium)
 diff_rate = [1.4e-3,0.025]
-# J of cells with medium
-# Jmed = [1.0, 16.0]
 # J of stem to diff
-Jsd = [J_diff, 2*J_diff]
+Jsd = []
+if J_stem < J_diff:
+    Jsd = [J_diff, 2*J_diff]
+else:
+    Jsd = [J_stem, 2*J_stem]
 # max growth rate per DTS OF stem cells. Taking this out for now.
 V_smax = [0.,1.]
 # V_dmax = [0.,1.]
 # v-V threshold, usually 2
 # gthresh = [0.,3.]
 
-# 5 dimensional param space
+# n dimensional param space
 var_list = [diff_rate, V_smax, Jsd]
 
 # do random sampling
@@ -132,16 +134,6 @@ punt_vsmax = 0.25
 # punt_vdmax = 1
 # punt_gthresh = 1
 inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])
-
-# punt_sec_rate = 0.0223029*pow((J_stem+0.757648),-1.79529)+0.00182658
-# if punt_sec_rate > diff_rate[1]:
-#     punt_sec_rate = diff_rate[1]
-# punt_J_med = J_stem+1
-# punt_J_sd = punt_J_med*2
-# # punt_vsmax = 1
-# # punt_vdmax = 1
-# punt_gthresh = 0
-# inits.append([punt_sec_rate, punt_J_med, punt_J_sd, punt_gthresh])
 
 # acq_func_kwargs = {"xi: ": 10}
 

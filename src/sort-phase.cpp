@@ -658,6 +658,17 @@ TIMESTEP {
       dish->CPM->ConvertToStem(100,230,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius);  
     }
 
+    // ensure all cells are connected for shape calculations. 
+    if (t > 0 && t % 500 == 0)
+    {
+      bool check_shape = dish->CPM->CheckShape();
+      if (check_shape == false)
+      {
+        cout << "shape failed at " << t << endl;
+        // cout << "Org number: " << i << " has bad shape. " << endl;
+      }
+    }
+
 
     if (t % 500 == 0)
     {
