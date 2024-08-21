@@ -133,7 +133,7 @@ void OutputShapes(map<int, vector<double>> data2, string &oname, int time)
   outfile.close();  
 }
 
-void OutputResults(vector<double>& lengths, vector<double>& variances, vector<bool>& phase_remained, string& oname, int time)
+void OutputResults(vector<double>& lengths, vector<double>& variances, vector<int>& phase_remained, string& oname, int time)
 {
 
   //average fitness
@@ -143,9 +143,7 @@ void OutputResults(vector<double>& lengths, vector<double>& variances, vector<bo
   vector<double> vec;
   for (int i = 0; i < lengths.size(); ++i)
   {
-    double fitness = pow(lengths[i],2) / sqrt(variances[i]);
-    if (!phase_remained[i])
-      fitness /= 4.;
+    double fitness = pow(lengths[i],2) / variances[i];
     vec.push_back(fitness);
 
     avg_length += lengths[i];
@@ -246,8 +244,17 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   else
     par.J_stem_diff = par.J_diff;
 
-  par.J_med = 0.5*par.J_diff+0.25;
-  par.J_med2 = 0.5*par.J_diff+0.25;
+  if (par.J_diff > par.J_stem)
+  {
+    par.J_med = 0.5*par.J_diff+0.25;
+    par.J_med2 = 0.5*par.J_diff+0.25;
+  }
+  if (par.J_med < par.J_stem)
+  {
+    par.J_med = par.J_stem;
+    par.J_med2 = par.J_stem;
+  }
+
 
   // run organisms in parallel. 
   omp_set_num_threads(par.optimization_replicates);
@@ -335,7 +342,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         dishes[i].CPM->HexaticOrder();
       }
 
-      bool check_end = dishes[i].CPM->EndOptimizer();
+      bool check_end = dishes[i].CPM->EndOptimizer(t);
       if (check_end)
         t = par.mcs;
 
@@ -426,14 +433,9 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   OutputShapes(hexdata, hname, time);
 
 
-
-
-
-
-
   vector<double> lengths;
   vector<double> variances;
-  vector<bool> phase_remained;
+  vector<int> phase_cells;
 
   for (int i = 0; i < par.optimization_replicates;++i)
   {
@@ -441,17 +443,12 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     lengths.push_back(lw.first);
     variances.push_back(lw.second);
     
-    int n_phase = dishes[i].CPM->PhaseOnCells();
-    if (n_phase > par.min_phase_cells)
-      phase_remained.push_back(true);
-    else
-      phase_remained.push_back(false);
+    int n_phase = dishes[i].CPM->CountPhaseOnCells();
+    phase_cells.push_back(n_phase);
 
   }
-  OutputResults(lengths, variances, phase_remained, par.data_file, time);
+  OutputResults(lengths, variances, phase_cells, par.data_file, time);
   
-
-
   // output to file
   printn(opt_out, par.data_file, params);
 

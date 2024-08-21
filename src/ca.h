@@ -388,9 +388,9 @@ public:
 
   double Optimizer();
 
-  bool EndOptimizer();
+  bool EndOptimizer(int time);
 
-  int PhaseOnCells();
+  int CountPhaseOnCells();
 
   pair<double,double> LengthWidth();
 

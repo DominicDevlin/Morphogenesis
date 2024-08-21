@@ -88,7 +88,7 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 150;
+    sizex = 200;
     sizey = 250;
     mcs = 100000;
     T = 3;
@@ -132,16 +132,16 @@
     // phase transition params;
     phase_evolution=true;
 
-    J_stem=3;
-    J_diff=10;
-    J_med=5.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
-    J_stem_diff=10;//J_diff + 0.5;//(J_diff - J_stem);
+    J_stem=2;
+    J_diff=12;
+    J_med=6.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
+    J_stem_diff=12;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-    Vs_max = 0.254526; // 1;
+    Vs_max = 0.449976; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.00319479; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.00486489; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 

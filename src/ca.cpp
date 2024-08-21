@@ -3343,8 +3343,14 @@ void CellularPotts::Init_Optimizer()
 
 
 
-bool CellularPotts::EndOptimizer()
+bool CellularPotts::EndOptimizer(int time)
 {
+
+  // end simulation if number of shape-making cells is too small
+  int count = CountPhaseOnCells();
+  if (count < par.min_phase_cells && time > 200)
+    return true;
+
   int miny = sizey;
   int minx=sizex;
   int maxx=0;
@@ -3369,12 +3375,14 @@ bool CellularPotts::EndOptimizer()
     return true;
   if (miny < 3)
     return true;
+
+  
     
   return false;
 
 }
 
-int CellularPotts::PhaseOnCells()
+int CellularPotts::CountPhaseOnCells()
 {
   int amount{};
   vector<Cell>::iterator i;
@@ -3426,18 +3434,19 @@ double CellularPotts::Optimizer()
   }
   double variance = sumOfSquaredDifferences / widths.size();
 
-  double length = pow(maxy - miny, 2);
+  // double length = pow(maxy - miny, 2);  
+  // double to_return = sqrt(variance) / length;
+  double length = maxy-miny;
 
-  int n_phase = PhaseOnCells();
-  
-  double to_return = sqrt(variance) / length;
+  double to_return = sizey-length;
 
-  if (n_phase > par.min_phase_cells)
-    return to_return;
-  else
-    return to_return*4;
+  return to_return;
 
-
+  // int n_phase = CountPhaseOnCells();
+  // if (n_phase > par.min_phase_cells)
+  //   return to_return;
+  // else
+  //   return to_return*4;
 
   // int miny = sizey;
   // // int minx=sizex;
