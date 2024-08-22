@@ -229,6 +229,10 @@ public:
 
   void SetCellCenters();
 
+  void StartSheetTypes();
+
+  void RandomSheetType();
+
   vector<int> CellsFromCAC(vector<array<int,2>> cac);
 
   void DrawPerimeter(Graphics *g, vector<int> pcells);
@@ -493,6 +497,11 @@ public:
     internal_J = J;
   }
 
+  inline void set_mixJ(double mixJ)
+  {
+    internal_mixJ=mixJ;
+  }
+
   inline void Set_evoJ(double J)
   {
     evo_J = J;
@@ -714,6 +723,8 @@ private:
   double internal_T;
 
   double internal_J;
+
+  double internal_mixJ;
 
   double evo_J;
 

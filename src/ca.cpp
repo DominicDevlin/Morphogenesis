@@ -307,7 +307,18 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
       // - 
       if (par.sheet)
       {
-        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J);
+        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
+        // This is going to be an anisotropic adhesion function that adds an adhesion energy along one axis
+        double xcen = (*cell)[sxy].get_xcen();
+        double xcenp = (*cell)[sxyp].get_xcen();
+        // if (x > xcen + 4 || x < xcen - 4)
+        // {
+        //   DH -= par.lambda3;
+        // }
+        // if (xp > xcenp + 4 || xp < xcenp - 4)
+        // {
+        //   DH += par.lambda3;
+        // }
       }
       else if (par.melting_adhesion)
       {
@@ -6241,6 +6252,45 @@ void CellularPotts::CellVelocities()
     outfile << t.first << "\t" << t.second << "\t" << varveltally[t.first] << "\t" << velphentally[t.first] << endl;
   }
   outfile.close();
+}
+
+
+void CellularPotts::StartSheetTypes()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      double rand = RANDOM(s_val);
+      if (rand < 0.5)
+      {
+        c->SetSheetType(true);
+      }
+      else
+      {
+        c->SetSheetType(false);
+      }
+
+    }
+  }
+}
+
+void CellularPotts::RandomSheetType()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      double rand = RANDOM(s_val);
+      if (rand < par.mix_swaprate)
+      {
+        c->SwapSheetType();
+      }
+
+    }
+  }
 }
 
 

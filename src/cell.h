@@ -1156,6 +1156,34 @@ private:
     return ret_shape;
   }
 
+  void SetSheetType(bool tp)
+  {
+    sheet_type = tp;
+    if (sheet_type)
+      c_type = par.sheetcol1;
+    else
+      c_type = par.sheetcol2;
+  }
+
+  void SwapSheetType()
+  {
+    if (sheet_type)
+    {
+      sheet_type = false;
+      c_type = par.sheetcol1;
+    }
+    else
+    {
+      sheet_type = true;
+      c_type = par.sheetcol2;
+    }
+  }  
+
+  bool GetSheetType()
+  {
+    return sheet_type;
+  }
+
 
 
 
@@ -1238,7 +1266,7 @@ protected:
 
   double EnDif(Cell &cell2);
 
-  double SheetDif(Cell &cell2, double &sJ=par.sheet_J);
+  double SheetDif(Cell &cell2, double &sJ=par.sheet_J, double &sheetmix=par.sheetmixJ);
 
 
 
@@ -1321,6 +1349,7 @@ protected:
   // gradient of a chemical (to be extended to the total number chemicals)
   double grad[2];
   
+  bool sheet_type;
 
   double *diffs; // concentration of diffusers based on PDE field. 
 

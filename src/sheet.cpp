@@ -139,6 +139,12 @@ TIMESTEP {
         dish->CPM->CopyProb(par.T);
       }
       dish->CPM->Set_J(par.sheet_J);
+      dish->CPM->set_mixJ(par.sheetmixJ);
+
+      if (par.sheetmix)
+      {
+        dish->CPM->StartSheetTypes();
+      }
         
     }
 
@@ -149,6 +155,11 @@ TIMESTEP {
       dish->CPM->CopyProb(toT);
     }
 
+    // dish->CPM->SetCellCenters();
+    if (par.sheetmix)
+    {
+      dish->CPM->RandomSheetType();
+    }
     
     if (t==par.highT_time)
       dish->CPM->CopyProb(par.T);
@@ -273,7 +284,8 @@ TIMESTEP {
     //cerr << "Done\n";
     if (par.graphics && t%freq==0)// !(t%par.screen_freq)) 
     {
-      dish->CPM->ColourCellsByIndex();
+      if (!par.sheetmix)
+        dish->CPM->ColourCellsByIndex();
 
       BeginScene();
       ClearImage();

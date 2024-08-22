@@ -97,7 +97,12 @@ void process_population()
 
     dishes[i].CPM->CopyProb(par.T);
     dishes[i].CPM->Set_J(par.sheet_J);
+    dishes[i].CPM->set_mixJ(par.sheetmixJ);
+    if (par.sheetmix)
+    {
+      dishes[i].CPM->StartSheetTypes();
 
+    }
     int t;
 
     for (t = 0; t < par.mcs; t++)
@@ -115,6 +120,11 @@ void process_population()
       if (par.velocities)
       {
         dishes[i].CPM->RecordMasses();
+      }
+
+      if (par.sheetmix)
+      {
+        dishes[i].CPM->RandomSheetType();
       }
 
       if (t % 10 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
@@ -311,6 +321,8 @@ int main(int argc, char *argv[]) {
     hex_order.push_back(hex);
     shape_index.push_back(shape);
     par.sheet_J = Jlist[i];
+    if (par.sheetmix)
+      par.sheetmixJ = 2*par.sheet_J;
     cout << par.sheet_J << endl;
     process_population();
   }

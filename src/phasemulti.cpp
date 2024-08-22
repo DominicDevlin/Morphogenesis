@@ -243,7 +243,7 @@ void process_population(vector<vector<vector<int>>>& network_list)
       // }
 
       dishes[i].CPM->AmoebaeMove(t);
-      bool if_end = dishes[i].CPM->EndOptimizer();
+      bool if_end = dishes[i].CPM->EndOptimizer(t);
       if (if_end == true)
       {
         t = par.mcs;
