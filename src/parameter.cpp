@@ -56,7 +56,7 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = true;
+    velocities = false;
     record_directions = false;
 
     // record cell sizes
@@ -145,7 +145,7 @@
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
-    melting_adhesion = true;
+    melting_adhesion = false;
     tip_max = 50;
     tip_min = 0;
     melt = -30;
@@ -161,7 +161,7 @@
 
     offset = 65;//75
     optimization_replicates = 6;
-    pics_for_opt = false;
+    pics_for_opt = true;
     pics_for_opt_interval = 100;
     max_div_time = 20000;
     min_phase_cells = 20;
@@ -227,7 +227,7 @@
     sheet_maxJ=12.5;
     J_width=0.5;
 
-    sheetmix=true;
+    sheetmix=false;
     sheetmixJ=2*sheet_J;
     sheetcol1=4;
     sheetcol2=6;

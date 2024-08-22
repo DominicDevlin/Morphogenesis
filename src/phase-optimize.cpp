@@ -236,7 +236,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   par.J_stem_diff = params[2];
   // constant params
   par.J_stem = params[3];
-  // par.mcs= 40000 + int(par.J_stem)*25000;
+  par.mcs= 40000 + int(par.J_stem)*25000;
   par.J_diff = params[4];
 
   // if (par.J_stem > par.J_diff)
@@ -344,7 +344,10 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
       bool check_end = dishes[i].CPM->EndOptimizer(t);
       if (check_end)
+      {
+        cout << "here@@" << endl;
         t = par.mcs;
+      }
 
       
       if (t == par.end_program)
@@ -355,6 +358,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         int n_cells = dishes[i].CPM->CountCells();
         if (n_cells <= cell_counter[i])
         {
+          cout << "here!!" << endl;
           t = par.mcs;
         }
         else

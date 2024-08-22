@@ -309,8 +309,6 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
       {
         DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
         // This is going to be an anisotropic adhesion function that adds an adhesion energy along one axis
-        double xcen = (*cell)[sxy].get_xcen();
-        double xcenp = (*cell)[sxyp].get_xcen();
         // if (x > xcen + 4 || x < xcen - 4)
         // {
         //   DH -= par.lambda3;
@@ -3360,7 +3358,10 @@ bool CellularPotts::EndOptimizer(int time)
   // end simulation if number of shape-making cells is too small
   int count = CountPhaseOnCells();
   if (count < par.min_phase_cells && time > 200)
+  {
     return true;
+
+  }
 
   int miny = sizey;
   int minx=sizex;
@@ -3387,7 +3388,6 @@ bool CellularPotts::EndOptimizer(int time)
   if (miny < 3)
     return true;
 
-  
     
   return false;
 
