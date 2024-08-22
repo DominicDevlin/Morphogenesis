@@ -291,7 +291,7 @@ TIMESTEP {
         dish->CPM->OutputInitConcs();
     }
       
-
+    
     // programmed cell division section
     if (t < par.end_program)
     {
@@ -388,13 +388,13 @@ TIMESTEP {
     }
     if (t > par.end_program)
     {
-      if (t % 20 == 0 && par.melting_adhesion)
+      if (t % par.addition_rate == 0 && par.melting_adhesion)
       {
         dish->CPM->SetXTip();
         dish->CPM->VolumeAddition();
         dish->CPM->CellGrowthAndDivision(t);
-        dish->CPM->ShapeIndex();
-        dish->CPM->ColourCellsByShape();
+        // dish->CPM->ShapeIndex();
+        // dish->CPM->ColourCellsByShape();
       }
       else
       {

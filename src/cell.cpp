@@ -252,10 +252,14 @@ double Cell::EnDif(Cell &cell2)
 }
 
 
-double Cell::SheetDif(Cell &cell2, double &sJ)
+double Cell::SheetDif(Cell &cell2, double &sJ, double &sheetmixJ)
 {
   if (sigma==cell2.sigma) 
     return 0;
+  else if (sheet_type != cell2.GetSheetType())
+  {
+    return sheetmixJ;
+  }
   return sJ;
 
 }

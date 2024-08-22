@@ -56,7 +56,7 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = false;
+    velocities = true;
     record_directions = false;
 
     // record cell sizes
@@ -88,8 +88,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 200;
-    sizey = 250;
+    sizex = 150;
+    sizey = 150;
     mcs = 100000;
     T = 3;
     target_length = 0;
@@ -132,10 +132,10 @@
     // phase transition params;
     phase_evolution=true;
 
-    J_stem=6;
-    J_diff=9;
-    J_med=4.75;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
-    J_stem_diff=9.4;//J_diff + 0.5;//(J_diff - J_stem);
+    J_stem=2;
+    J_diff=12;
+    J_med=6.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
+    J_stem_diff=10;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
     Vs_max = 0.890289; // 1;
@@ -145,16 +145,19 @@
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
-    melting_adhesion = false;
+    melting_adhesion = true;
     tip_max = 50;
     tip_min = 0;
-    melt = -50;
+    melt = -30;
     slope = 4;
+    addition_rate=1;
     if (melting_adhesion)
+    {
       gthresh = 50;
-
+    }
+    // volume addition params
     v_melt = -30;
-    v_slope = -4;
+    v_slope = -2;
 
     offset = 65;//75
     optimization_replicates = 6;
@@ -218,11 +221,21 @@
 
 /* sheet related parameters */
     sheet=false;
-    sheet_hex = true;
-    sheet_J = 3.5;
+    sheet_hex = false;
+    sheet_J = 10;
     sheet_minJ=0.5;
     sheet_maxJ=12.5;
     J_width=0.5;
+
+    sheetmix=true;
+    sheetmixJ=2*sheet_J;
+    sheetcol1=4;
+    sheetcol2=6;
+    mix_swaprate=0.001;
+
+
+    // sheet anisotropy adhesion;
+    lambda3=1;
 
     // diffusion parameters
     waiting_time = 2000;

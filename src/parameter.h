@@ -212,6 +212,12 @@ class Parameter {
   bool sheet_hex;
   int start_sheet_measure;
   int end_sheet_measure;
+  double lambda3;
+  double sheetmixJ;
+  bool sheetmix;
+  int sheetcol1;
+  int sheetcol2;
+  double mix_swaprate;
 
   double J_stem;
   double J_diff;
@@ -241,6 +247,7 @@ class Parameter {
 
   double v_melt;
   double v_slope;
+  int addition_rate;
   
   bool insitu_shapes;
 
