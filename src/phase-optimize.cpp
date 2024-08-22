@@ -236,7 +236,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   par.J_stem_diff = params[2];
   // constant params
   par.J_stem = params[3];
-  par.mcs= 40000 + int(par.J_stem)*25000;
+  // par.mcs= 40000 + int(par.J_stem)*25000;
   par.J_diff = params[4];
 
   // if (par.J_stem > par.J_diff)

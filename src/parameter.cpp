@@ -161,7 +161,7 @@
 
     offset = 65;//75
     optimization_replicates = 6;
-    pics_for_opt = true;
+    pics_for_opt = false;
     pics_for_opt_interval = 100;
     max_div_time = 20000;
     min_phase_cells = 20;

@@ -23,7 +23,7 @@ prepend = ""
 if (len(sys.argv) > 1):
     index = int(sys.argv[1])
     print("INDEX IS: ", index)
-    prepend = "xvfb-run -a "
+    # prepend = "xvfb-run -a "
 
 
 J_stem = 1.
