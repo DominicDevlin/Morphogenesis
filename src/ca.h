@@ -231,6 +231,10 @@ public:
 
   void SetCellCenters();
 
+  void StartSheetTypes();
+
+  void RandomSheetType();
+
   vector<int> CellsFromCAC(vector<array<int,2>> cac);
 
   void DrawPerimeter(Graphics *g, vector<int> pcells);
@@ -368,7 +372,7 @@ public:
 
   void ShapeIndexByState();
 
-  void SimpleShapeIndex();
+  void PhaseShapeIndex(int time=0);
 
   vector<double> GetVolumes();
 
@@ -390,13 +394,17 @@ public:
 
   double Optimizer();
 
-  bool EndOptimizer();
+  bool EndOptimizer(int time);
+
+  int CountPhaseOnCells();
 
   double DistanceTravelled();
 
   pair<double,double> LengthWidth();
 
   void ConstrainedGrowthAndDivision(int time);
+
+  void DiscreteGrowthAndDivision(int time);
 
   // void TypeGrowDivide(bool state, vector<bool> &which_cells);
 
@@ -410,6 +418,15 @@ public:
 
   void ColourCellsByIndex();
 
+  void HexaticOrder(int time=0);
+
+  vector<double> GetHexes();
+
+  map<int,vector<double>> GetHexaticOrderList();
+
+  map<int, vector<pair<int,double>>> Get_time_hexatic_order();
+
+  map<int, vector<pair<int,double>>> Get_time_shape_index();
 
 
 
@@ -482,6 +499,11 @@ public:
   inline void Set_J(double J)
   {
     internal_J = J;
+  }
+
+  inline void set_mixJ(double mixJ)
+  {
+    internal_mixJ=mixJ;
   }
 
   inline void Set_evoJ(double J)
@@ -706,9 +728,18 @@ private:
 
   double internal_J;
 
+  double internal_mixJ;
+
   double evo_J;
 
   map<int,vector<double>> state_shape_index;
+
+  map<int,vector<double>> state_hexatic_order;
+
+  map<int, vector<pair<int,double>>> time_hexatic_order;
+
+  map<int, vector<pair<int,double>>> time_shape_index;
+
 
   map<int,vector<double>> state_adhesion;
 

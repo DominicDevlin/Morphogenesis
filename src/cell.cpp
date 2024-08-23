@@ -128,6 +128,9 @@ void Cell::CellBirth(Cell &mother_cell) {
   medium_protein_conc = mother_cell.medium_protein_conc;
   medium_state = mother_cell.medium_state;
 
+  temp_hexes = mother_cell.temp_hexes;
+  temp_shapes = mother_cell.temp_shapes;
+
   for (int i=0;i<par.n_diffusers;i++)
   {
     diffs[i]=mother_cell.diffs[i];
@@ -249,10 +252,14 @@ double Cell::EnDif(Cell &cell2)
 }
 
 
-double Cell::SheetDif(Cell &cell2, double &sJ)
+double Cell::SheetDif(Cell &cell2, double &sJ, double &sheetmixJ)
 {
   if (sigma==cell2.sigma) 
     return 0;
+  else if (sheet_type != cell2.GetSheetType())
+  {
+    return sheetmixJ;
+  }
   return sJ;
 
 }

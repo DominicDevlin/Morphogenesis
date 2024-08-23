@@ -51,6 +51,76 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 using namespace std;
 
 
+void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const string& oname)
+{
+  ofstream outfile;
+  outfile.open(oname, ios::app);  // Append mode
+
+  // First, find the maximum number of rows required
+  int max_rows = 0;
+  vector<int> rows{};
+  for (const auto& [key, vec] : shapedata) {
+    for (const auto& [index, value] : vec) 
+    {
+      if (index + 1 > max_rows) 
+      {
+          max_rows = index + 1;
+          rows.push_back(index);
+      }
+    }
+  }
+
+  // Write the header
+  outfile << fixed << setprecision(6);
+  
+  for (int &row : rows) 
+  {
+    bool first_col = true;
+    
+    // Iterate over the map entries
+    for (const auto& [key, vec] : shapedata) 
+    {
+      // Output the first column (the integer index)
+      if (!first_col) 
+      {
+        outfile << "\t";  // Separate columns with a tab
+      }
+
+      outfile << row;
+
+      // Calculate the average for this row if there are matching pairs
+      double sum = 0.0;
+      int count = 0;
+      for (const auto& [index, value] : vec) 
+      {
+        if (index == row) 
+        {
+          sum += value;
+          ++count;
+        }
+      }
+
+      if (count > 0) 
+      {
+        double average = sum / count;
+        outfile << "\t" << average;  // Output the average in the second column
+      } 
+      else 
+      {
+        cout << "Error in time output" << endl;
+        outfile << "\t";  // No data for this row, leave empty
+      }
+
+      first_col = false;  // Set this to false after the first column
+    }
+
+    outfile << endl;  // Newline after each row
+  }
+
+  outfile.close();  
+}
+
+
 void Outputter(map<int, vector<double>> data2, vector<vector<int>> scc, string switch_out)
 {
   ofstream outfile;
@@ -249,7 +319,6 @@ INIT
 
 
     par.print_fitness = true;
-    par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
 
     if (par.set_colours)
     {
@@ -321,7 +390,6 @@ TIMESTEP {
       if (par.output_init_concs)
         dish->CPM->OutputInitConcs();
     }
-
     // programmed cell division section
     if (t < par.end_program)
     {
@@ -375,11 +443,10 @@ TIMESTEP {
 
       }
 
-      if (par.insitu_shapes && t % 500 == 0)
+      if (t % 10 == 0 && t > 200 && par.measure_time_order_params)
       {
-        // dish->CPM->ShapeIndexByState();
-        dish->CPM->SimpleShapeIndex();
-        // dish->CPM->AdhesionByState();
+        dish->CPM->PhaseShapeIndex(t);
+        dish->CPM->HexaticOrder(t);
       }
       
       if (par.velocities)
@@ -422,16 +489,19 @@ TIMESTEP {
     }
     if (t > par.end_program)
     {
-      if (t % 20 == 0 && par.melting_adhesion)
+      if (t % par.addition_rate == 0 && par.melting_adhesion)
       {
         dish->CPM->SetXTip();
         dish->CPM->VolumeAddition();
         dish->CPM->CellGrowthAndDivision(t);
-        dish->CPM->ShapeIndex();
-        dish->CPM->ColourCellsByShape();
+        // dish->CPM->ShapeIndex();
+        // dish->CPM->ColourCellsByShape();
       }
       else
-        dish->CPM->ConstrainedGrowthAndDivision(t);
+      {
+        dish->CPM->DiscreteGrowthAndDivision(t);
+        // dish->CPM->ConstrainedGrowthAndDivision(t);        
+      }
     }
     dish->CPM->AmoebaeMove(t);
 
@@ -448,6 +518,24 @@ TIMESTEP {
       else
         cout << "Directory created." << endl;  
       dish->CPM->print_cell_GRN();
+
+      if (mkdir(par.data_file.c_str(), 0777) == -1)
+        cerr << "Error : " << strerror(errno) << endl;
+      else
+        cout << "Directory created." << endl;
+
+      if (par.measure_time_order_params)
+      {
+        map<int, vector<pair<int,double>>> shapedata = dish->CPM->Get_time_shape_index();
+        map<int, vector<pair<int,double>>> hexdata = dish->CPM->Get_time_hexatic_order();
+
+        string oname = par.data_file + "/hex_time.dat";
+        WriteData(hexdata, oname);
+
+        oname = par.data_file + "/shape_time.dat";
+        WriteData(shapedata, oname);
+
+      }
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();
@@ -851,9 +939,25 @@ TIMESTEP {
       dish->CPM->ConvertToStem(100,230,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius);  
     }
 
-
-    if (t == 6998)
+    if (t % 500 == 0)
     {
+      // int ** ns = dish->CPM->SearchNeighbours();
+      // int n_size = dish->CountCells();
+
+      // for (int i = 0; i < n_size; ++i)
+      // {
+      //   cout << "cell: " << i << " neighbours: ";
+      //   for (int j = 0; j < n_size; ++j)
+      //   {
+      //     if (ns[i][j] < 0)
+      //       break;
+      //     else
+      //       cout << ns[i][j] << '\t';
+      //   }
+
+      //   cout << endl;
+      // }
+      dish->CPM->HexaticOrder();
       // dish->CPM->ConvertToStem(125,95,40,11907, dish->PDEfield, true, 45);
       // dish->IntroduceMorphogen(1, 120, 90);
     }
@@ -1000,7 +1104,6 @@ int PDE::MapColour(double val) {
   
   return (((int)((val/((val)+1.))*100))%100)+155;
 }
-
 
 
 

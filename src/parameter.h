@@ -207,13 +207,22 @@ class Parameter {
   int waiting_time;
   int equilibriate;
   bool highT;
-  bool highT_temp;
+  double highT_temp;
   int highT_time;
   double sheet_minJ;
   double sheet_maxJ;
   double J_width;
   bool sheet;
   double sheet_J;
+  bool sheet_hex;
+  int start_sheet_measure;
+  int end_sheet_measure;
+  double lambda3;
+  double sheetmixJ;
+  bool sheetmix;
+  int sheetcol1;
+  int sheetcol2;
+  double mix_swaprate;
 
   double J_stem;
   double J_diff;
@@ -227,9 +236,13 @@ class Parameter {
   int pics_for_opt_interval;
   int max_div_time;
   bool phase_evolution;
+  int min_phase_cells;
   int offset;
   double J_mutate_probability;
   int penalty;
+
+  bool measure_time_order_params;
+  int measure_interval;
 
   bool melting_adhesion;  
   int tip_max;
@@ -239,6 +252,7 @@ class Parameter {
 
   double v_melt;
   double v_slope;
+  int addition_rate;
   
   bool insitu_shapes;
 

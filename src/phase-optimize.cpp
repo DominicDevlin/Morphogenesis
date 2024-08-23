@@ -114,8 +114,7 @@ double calculateRange(const std::vector<double>& data) {
 void OutputShapes(map<int, vector<double>> data2, string &oname, int time)
 {
   ofstream outfile;
-  std::string var_name = oname + "/shape-data.txt";
-  outfile.open(var_name, ios::app);
+  outfile.open(oname, ios::app);
 
   outfile << time << '\t';
   for (const auto& [key, values] : data2)
@@ -125,20 +124,22 @@ void OutputShapes(map<int, vector<double>> data2, string &oname, int time)
     double median = calculateMedian(tempValues);
     auto [q1, q3] = calculateIQR(tempValues);
     double range = calculateRange(values);
+    int observations = tempValues.size();
 
-    outfile << key << '\t' << mean << '\t' << median << '\t' << q1 << '\t' << q3 << '\t' << range << '\t';
+    outfile << key << '\t' << mean << '\t' << median << '\t' << q1 << '\t' << q3 << '\t' << range << '\t' << observations << '\t'; 
   }
   outfile << endl;
 
   outfile.close();  
 }
 
-void OutputResults(vector<double>& lengths, vector<double>& variances, string& oname, int time)
+void OutputResults(vector<double>& lengths, vector<double>& variances, vector<int>& phase_remained, string& oname, int time)
 {
 
   //average fitness
   double avg_length = 0;
   double avg_variance = 0;
+  double avg_phase_remained = 0;
   vector<double> vec;
   for (int i = 0; i < lengths.size(); ++i)
   {
@@ -147,19 +148,24 @@ void OutputResults(vector<double>& lengths, vector<double>& variances, string& o
 
     avg_length += lengths[i];
     avg_variance += variances[i];
+    avg_phase_remained += phase_remained[i];
   }
   avg_length = avg_length / lengths.size();
   avg_variance = avg_variance / lengths.size();
+  avg_phase_remained = avg_phase_remained / lengths.size();
+  
+  int start = 1;
+  int half = par.optimization_replicates / 2;
 
   std::sort(vec.begin(), vec.end(), std::greater<int>());
-  double avgfit = std::accumulate(vec.begin(), vec.begin() + 3, 0.0) / 3;
+  double avgfit = std::accumulate(vec.begin() + start, vec.begin() + start + half, 0.0) / half;
 
 
   std::string var_name = oname + "/results.txt";
   std::ofstream outfile;
   outfile.open(var_name, ios::app);
 
-  outfile << time << '\t' << avgfit << '\t' << avg_length << '\t' << avg_variance << endl;
+  outfile << time << '\t' << avgfit << '\t' << avg_length << '\t' << avg_variance << '\t' << avg_phase_remained << endl;
   outfile.close();
 
 }
@@ -178,10 +184,14 @@ void printn(vector<double> &fitn, string &oname, vector<double> &params)
   double min_fit = SIZE_MAX;
   double max_fit = 0;
 
+  // we are going to skip the highest fitness one
+  int start = 1;
+
+  // use the next 3 highest fitness
   int half = par.optimization_replicates / 2;
   // need three lowest
   std::sort(fitn.begin(), fitn.end());
-  double avgfit = std::accumulate(fitn.begin(), fitn.begin() + half, 0.0) / half;
+  double avgfit = std::accumulate(fitn.begin() + start, fitn.begin() + half + start, 0.0) / half;
 
   for (double i : fitn)
   {
@@ -219,25 +229,32 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   // create memory for dishes. 
   Dish* dishes = new Dish[par.optimization_replicates];
   int time{};
-  time = int(params[4]);
+  time = int(params[5]);
 
   par.secr_rate[0] = params[0];
-  // par.J_med = params[1];
-  // par.J_med2 = params[1];
-  // par.J_stem_diff = params[1];
-  par.gthresh = params[1];
+  par.Vs_max = params[1];
+  par.J_stem_diff = params[2];
   // constant params
-  par.J_stem = params[2];
-  par.mcs= 40000 + int(par.J_stem)*25000;
-  par.J_diff = params[3];
+  par.J_stem = params[3];
+  par.mcs= 40000 + int(par.J_stem)*15000;
+  par.J_diff = params[4];
 
-  if (par.J_stem > par.J_diff)
-    par.J_stem_diff = par.J_stem;
-  else
-    par.J_stem_diff = par.J_diff;
+  // if (par.J_stem > par.J_diff)
+  //   par.J_stem_diff = par.J_stem;
+  // else
+  //   par.J_stem_diff = par.J_diff;
 
-  par.J_med = 0.5*par.J_diff+0.5;
-  par.J_med2 = 0.5*par.J_diff+0.5;
+  if (par.J_diff > par.J_stem)
+  {
+    par.J_med = 0.5*par.J_diff+0.25;
+    par.J_med2 = 0.5*par.J_diff+0.25;
+  }
+  if (par.J_med < par.J_stem)
+  {
+    par.J_med = par.J_stem;
+    par.J_med2 = par.J_stem;
+  }
+
 
   // run organisms in parallel. 
   omp_set_num_threads(par.optimization_replicates);
@@ -296,7 +313,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         }
         
       }
-      else 
+      else
       {
         // Normal division stage
 
@@ -311,21 +328,26 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           dishes[i].PDEfield->Secrete(dishes[i].CPM);
           dishes[i].PDEfield->Diffuse(1); 
         }  
-        // dishes[i].CPM->ConstrainedGrowthAndDivision(t);
-        dishes[i].CPM->CellGrowthAndDivision(t);
+        // WE ARE GOING TO CHANGE THIS SO THAT IT JUST RANDOMLY ADDS MASS TO ONE OF THE STEM CELLS!! (can also do sigmoidal function?)
+        dishes[i].CPM->DiscreteGrowthAndDivision(t);
+        // dishes[i].CPM->CellGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
     
-      if (t % 500 == 0 && par.insitu_shapes)
+      if (t % 250 == 0 && par.insitu_shapes)
       {
         // cout << 'here' << endl;
-        dishes[i].CPM->SimpleShapeIndex();
+        dishes[i].CPM->PhaseShapeIndex();
         // dish->CPM->AdhesionByState();
+        dishes[i].CPM->HexaticOrder();
       }
 
-      bool check_end = dishes[i].CPM->EndOptimizer();
+      bool check_end = dishes[i].CPM->EndOptimizer(t);
       if (check_end)
+      {
+        cout << "here@@" << endl;
         t = par.mcs;
+      }
 
       
       if (t == par.end_program)
@@ -336,6 +358,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         int n_cells = dishes[i].CPM->CountCells();
         if (n_cells <= cell_counter[i])
         {
+          cout << "here!!" << endl;
           t = par.mcs;
         }
         else
@@ -372,7 +395,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   for (int i = 1; i < par.optimization_replicates;++i)
   {
-    map<int, vector<double>> next = dishes[0].CPM->Get_state_shape_index();
+    map<int, vector<double>> next = dishes[i].CPM->Get_state_shape_index();
     for (auto&kv : next)
     {
       int key = kv.first;
@@ -387,21 +410,49 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       }
     }
   }
-  OutputShapes(data, par.data_file, time);
+  string oname = par.data_file + "/shape-data.txt";
+  OutputShapes(data, oname, time);
+
+  // combine maps together:
+  map<int, vector<double>> hexdata = dishes[0].CPM->GetHexaticOrderList();
+
+  for (int i = 1; i < par.optimization_replicates;++i)
+  {
+    map<int, vector<double>> next = dishes[i].CPM->GetHexaticOrderList();
+    for (auto&kv : next)
+    {
+      int key = kv.first;
+      vector<double>& vec = kv.second;
+      if (hexdata.find(key) != hexdata.end()) {
+          hexdata[key].insert(hexdata[key].end(), vec.begin(), vec.end());
+      } 
+      else 
+      {
+          // If key does not exist, insert the new key-value pair
+          hexdata[key] = vec;
+      }
+    }
+  }
+  string hname = par.data_file + "/hexatic-data.txt";
+  OutputShapes(hexdata, hname, time);
+
 
   vector<double> lengths;
   vector<double> variances;
+  vector<int> phase_cells;
 
   for (int i = 0; i < par.optimization_replicates;++i)
   {
     pair<double,double> lw = dishes[i].CPM->LengthWidth();
     lengths.push_back(lw.first);
     variances.push_back(lw.second);
+    
+    int n_phase = dishes[i].CPM->CountPhaseOnCells();
+    phase_cells.push_back(n_phase);
+
   }
-  OutputResults(lengths, variances, par.data_file, time);
+  OutputResults(lengths, variances, phase_cells, par.data_file, time);
   
-
-
   // output to file
   printn(opt_out, par.data_file, params);
 
@@ -436,11 +487,10 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
 // Main function
-int main(int argc, char *argv[]) {
-
-
-
-  
+int main(int argc, char *argv[]) 
+{
+  par.sizex = 200;
+  par.sizey = 250;
 
   vector<double> params;
   for (int i = 1; i < argc; ++i)
@@ -450,8 +500,8 @@ int main(int argc, char *argv[]) {
   }
   cout << endl;
 
-  par.pic_dir = par.pic_dir + "-" + argv[3] + "-" + argv[4];
-  par.data_file = par.data_file + "-" + argv[3] + "-" + argv[4];
+  par.pic_dir = par.pic_dir + "-" + argv[4] + "-" + argv[5];
+  par.data_file = par.data_file + "-" + argv[4] + "-" + argv[5];
 
 #ifdef QTGRAPHICS
   if (par.pics_for_opt)
@@ -478,6 +528,7 @@ int main(int argc, char *argv[]) {
   par.mcs = 100000;
   par.phase_evolution = true;
   par.insitu_shapes = true;
+  par.measure_time_order_params=false;
   
 
   Parameter();

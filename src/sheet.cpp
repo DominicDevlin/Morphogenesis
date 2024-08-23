@@ -65,7 +65,6 @@ INIT
     CPM->FillGrid();
     CPM->ConstructInitCells(*this);
 
-    par.sheet=true;
 
     if (par.velocities)
       par.output_sizes = true;
@@ -73,7 +72,6 @@ INIT
     // for (int i=0;i<par.divisions;i++) {
     //   CPM->DivideCells();
     // }
-
 
     CPM->FractureSheet();
     
@@ -130,22 +128,48 @@ TIMESTEP {
     { 
       cout << "calling init" << endl;
       dish->Init();
-      
+
       // equilibriate cells with high T
       if (par.highT)
       {
         dish->CPM->CopyProb(par.highT_temp);
+        dish->CPM->Set_J(0.5);
+        dish->CPM->set_mixJ(1);
       }
       else
       {
         dish->CPM->CopyProb(par.T);
+        dish->CPM->Set_J(par.sheet_J);
+        dish->CPM->set_mixJ(par.sheetmixJ);
       }
-      dish->CPM->Set_J(par.sheet_J);
+
+
+      if (par.sheetmix)
+      {
+        dish->CPM->StartSheetTypes();
+      }
         
+    }
+
+    // if (par.highT && t < par.highT_time)
+    // {
+    //   double diff = par.highT_temp - par.T;
+    //   double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
+    //   dish->CPM->CopyProb(toT);
+    // }
+
+    // dish->CPM->SetCellCenters();
+    if (par.sheetmix)
+    {
+      dish->CPM->RandomSheetType();
     }
     
     if (t==par.highT_time)
+    {
       dish->CPM->CopyProb(par.T);
+      dish->CPM->Set_J(par.sheet_J);
+      dish->CPM->set_mixJ(par.sheetmixJ);
+    }
 
 
     static Info *info=new Info(*dish, *this);
@@ -156,7 +180,6 @@ TIMESTEP {
     {
       // N_index.clear();
       // shape_index.clear();
-      cout << (par.periodic_boundaries) << endl;
       dish->CPM->initVolume();
       dish->CPM->adjustPerimeters();
       vector<double> tperims = dish->CPM->TruePerimeters();
@@ -183,7 +206,7 @@ TIMESTEP {
       double median = findMedian(shape_index);
       avg/=tperims.size();
       // n_avg/=tperims.size();
-      cout << endl << avg << '\t' << median << endl;
+      // cout << endl << avg << '\t' << median << endl;
 
   
       cout << t << " TIME STEPS HAVE PASSED." << endl;
@@ -201,6 +224,20 @@ TIMESTEP {
       dish->CPM->RecordSizes();
     }
     dish->CPM->AmoebaeMove(t);
+
+    // if (t % 200 == 0)
+    // {
+    //   vector<double> hexes = dish->CPM->GetHexes();
+    //   double mean = 0;
+    //   for (auto &h : hexes)
+    //   {
+    //     cout << h << '\t';
+    //     mean += h;
+    //   }
+    //   mean /= hexes.size();
+    //   cout << " MEAN IS: " << mean << endl;
+    // }
+
 
     if (t == par.mcs-1 && par.gene_output)
     {
@@ -222,6 +259,7 @@ TIMESTEP {
       if (par.output_sizes)
       {
         dish->CPM->OutputSizes();
+        dish->CPM->Vectorfield();
         dish->CPM->MeanSquareDisplacement();
       }
         
@@ -253,8 +291,9 @@ TIMESTEP {
     //cerr << "Done\n";
     if (par.graphics && t%freq==0)// !(t%par.screen_freq)) 
     {
-      dish->CPM->ColourCellsByIndex();
-      
+      if (!par.sheetmix)
+        dish->CPM->ColourCellsByIndex();
+
       BeginScene();
       ClearImage();
 
@@ -264,7 +303,7 @@ TIMESTEP {
       else 
         dish->Plot(this);
         
-    
+
     
       static bool c1 = false;
       static bool c2 = false;
@@ -283,14 +322,14 @@ TIMESTEP {
       //ChangeTitle(title);
       EndScene();
       info->Menu();
-     
+
     }
   
     // storage function. 
     if (par.store && !(t%par.storage_stride)) {
       char fname[200];
       sprintf(fname,"%s/extend%07d.png",par.datadir,t);
-    
+
       BeginScene();
       ClearImage();    
 
@@ -300,18 +339,11 @@ TIMESTEP {
       else 
         dish->Plot(this);
 
-      if (t>par.end_program && par.contours)
-      {
-        
-        dish->PDEfield->ContourPlot(this,0,293);
-        dish->PDEfield->ContourPlot(this,2,292);
-        dish->PDEfield->ContourPlot(this,1,291);
-      }
       
       EndScene();
     
       Write(fname);
-        
+
     }
 
     t++;
@@ -340,11 +372,12 @@ int main(int argc, char *argv[]) {
   
 	try 
   {
-    par.sizex=150;
-    par.sizey=150;
+    // par.sizex=200;
+    // par.sizey=200;
     par.end_program=0;
     par.periodic_boundaries = true;
     par.flush_cells = true;
+    par.sheet=true;
 
 #ifdef QTGRAPHICS
     QApplication a(argc, argv);

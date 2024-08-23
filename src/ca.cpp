@@ -307,7 +307,16 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
       // - 
       if (par.sheet)
       {
-        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J);
+        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
+        // This is going to be an anisotropic adhesion function that adds an adhesion energy along one axis
+        // if (x > xcen + 4 || x < xcen - 4)
+        // {
+        //   DH -= par.lambda3;
+        // }
+        // if (xp > xcenp + 4 || xp < xcenp - 4)
+        // {
+        //   DH += par.lambda3;
+        // }
       }
       else if (par.melting_adhesion)
       {
@@ -1137,7 +1146,7 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
                 }
 
             }
-
+            daughterp->SetTimeCreated(t);
             if (par.gene_record)
             {
               daughterp->RecordDivision(t); // record division only in daughter cell.
@@ -1962,6 +1971,106 @@ void CellularPotts::CellGrowthAndDivision(int time)
   }
   //Function that partitions the TF by polarity (mother, daughter, neither) is in divide cells  
 }
+
+
+
+void CellularPotts::DiscreteGrowthAndDivision(int time)
+{
+  double n_stem = double(CountPhaseOnCells());
+  double tally = 0.1*sqrt(n_stem);
+  leftover_mass_stem += par.Vs_max;
+  vector<bool> to_increase_stem(cell->size(), 0);
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      bool state = c->GetPhase();
+      if (state)
+      {
+        to_increase_stem[c->Sigma()] = true;
+      }
+    }
+  }
+
+  int sum_numbers = accumulate(to_increase_stem.begin(), to_increase_stem.end(), 0);
+  if (sum_numbers > 0)
+  {
+    vector<double> probabilities(cell->size());
+    for (int i = 0; i < cell->size(); ++i)
+    {
+        probabilities[i] = double(to_increase_stem[i]) / double(sum_numbers);
+    }
+    vector<double> cdf(cell->size(), 0);
+    partial_sum(probabilities.begin(), probabilities.end(), cdf.begin());
+    while (leftover_mass_stem > 1.)
+    {
+      double dnum = RANDOM(s_val);
+      auto it_num = upper_bound(cdf.begin(), cdf.end(), dnum);
+      int number = distance(cdf.begin(), it_num);
+      // cout << "NUMBER IS: " << number << endl;
+      if (cell->at(number).AliveP() == false)
+      {
+        cerr << "ERROR IN DISC.DIST\n";
+        // cout << "jump is: " << to_increase_stem[number] << endl;
+        // cout << "probability: " << probabilities[number] << endl;
+
+      }
+      cell->at(number).IncrementTargetArea();
+      leftover_mass_stem -= 1;
+    }
+  }
+
+  vector<bool> which_cells(cell->size());
+  int cell_division=0;
+
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      int area = c->Area();
+      if (area>par.div_threshold) // && c->checkforcycles(par.cycle_threshold) == false)
+      {
+        which_cells[c->Sigma()]=true;
+        cell_division++;
+      }        
+    }
+  }
+  // now do death
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+
+
+      int TA = c->TargetArea();
+      int area = c->Area();
+      int sthresh=par.shrink;
+
+      if ( (area-TA)<sthresh ) 
+      {
+        int count=TA-area;
+        while (c->TargetArea() > 0 && count > 0)
+        {
+          c->DecrementTargetArea();
+          --count;
+        }
+      }
+      else if (area < 2)
+      {
+        c->SetTargetArea(0);
+        c->set_lambda(100);
+      }
+    }
+  }
+  // Divide scheduled cells
+  if (cell_division) 
+  {
+    DivideCells(which_cells, time);
+  }  
+
+}
+
 
 
 void CellularPotts::ConstrainedGrowthAndDivision(int time)
@@ -3179,7 +3288,7 @@ void CellularPotts::update_phase_network(int tsteps)
         //   mediumJ = numeric_step(gene_copy, mediumJ, i, tsteps);
         // }
       }
-      c->set_phase_state();
+      c->set_phase_state(tsteps);
 
       // for (auto n : genes)
       // {
@@ -3315,8 +3424,17 @@ void CellularPotts::Init_Optimizer()
 
 
 
-bool CellularPotts::EndOptimizer()
+bool CellularPotts::EndOptimizer(int time)
 {
+
+  // end simulation if number of shape-making cells is too small
+  int count = CountPhaseOnCells();
+  if (count < par.min_phase_cells && time > 200)
+  {
+    return true;
+
+  }
+
   int miny = sizey;
   int minx=sizex;
   int maxx=0;
@@ -3341,33 +3459,24 @@ bool CellularPotts::EndOptimizer()
     return true;
   if (miny < 3)
     return true;
+
     
   return false;
 }
 
-double CellularPotts::DistanceTravelled()
+int CellularPotts::CountPhaseOnCells()
 {
-  int miny = sizey;
-
-  for (int x=1; x<sizex; ++x)
-    for (int y=1; y<sizey; ++y)
+  int amount{};
+  vector<Cell>::iterator i;
+  for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
+  {
+    if (i->AliveP() && i->GetPhase()) 
     {
-      if (sigma[x][y] > 0)
-      {
-        if (y < miny)
-          miny = y;
-      }
+      amount++;
     }
-  
-  // End simulation if we touch any of the walls.
-  double distance = double(sizey - miny);
-    
-  return distance;
+  }
+  return amount;
 }
-
-
-
-
 
 double CellularPotts::Optimizer()
 {
@@ -3407,10 +3516,19 @@ double CellularPotts::Optimizer()
   }
   double variance = sumOfSquaredDifferences / widths.size();
 
-  double length = pow(maxy - miny, 2);
+  // double length = pow(maxy - miny, 2);  
+  // double to_return = sqrt(variance) / length;
+  double length = maxy-miny;
 
-  return (variance / length);
+  double to_return = sizey-length + sqrt(variance);
 
+  return to_return;
+
+  // int n_phase = CountPhaseOnCells();
+  // if (n_phase > par.min_phase_cells)
+  //   return to_return;
+  // else
+  //   return to_return*4;
 
   // int miny = sizey;
   // // int minx=sizex;
@@ -6219,6 +6337,45 @@ void CellularPotts::CellVelocities()
 }
 
 
+void CellularPotts::StartSheetTypes()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      double rand = RANDOM(s_val);
+      if (rand < 0.5)
+      {
+        c->SetSheetType(true);
+      }
+      else
+      {
+        c->SetSheetType(false);
+      }
+
+    }
+  }
+}
+
+void CellularPotts::RandomSheetType()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      double rand = RANDOM(s_val);
+      if (rand < par.mix_swaprate)
+      {
+        c->SwapSheetType();
+      }
+
+    }
+  }
+}
+
+
 
 
 void CellularPotts::OutputProteinNorms()
@@ -6862,8 +7019,250 @@ void CellularPotts::ShapeIndex()
 }
 
 
+struct vec2d
+{
+  double x, y;
+  vec2d(double x, double y) : x(x), y(y) {}
 
-void CellularPotts::SimpleShapeIndex()
+  // Magnitude of the vector
+  double magnitude() const {
+      return sqrt(x*x + y*y);
+  }
+
+  // Dot product of two vectors
+  double dot(const vec2d& other) const {
+      return x * other.x + y * other.y;
+  }
+};
+
+// Comparator function to sort vectors clockwise
+bool compareVec(const vec2d& v1, const vec2d& v2) {
+    // Calculate angles
+    double angle1 = atan2(v1.y, v1.x);
+    double angle2 = atan2(v2.y, v2.x);
+
+    // Return true if angle1 is less than angle2
+    return angle1 < angle2; // Change to '<' for counter-clockwise
+}
+
+
+vector<double> CellularPotts::GetHexes()
+{
+  vector<double> hexes{};
+  SetCellCenters();
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      bool phaser = cell->at(i).GetPhase();
+      double XCEN = cell->at(i).get_xcen();
+      double YCEN = cell->at(i).get_ycen();
+      if (XCEN < 50 || XCEN > double(sizex-50) || YCEN < 50 || YCEN > double(sizey-50))
+      {
+        continue;
+      }
+      vector<double> xcens{};
+      vector<double> ycens{};
+      int n_neighbours=0;
+      bool med_check=false;
+      int j = 0;
+      while (ns[i][j] >= 0)
+      {
+        med_check = false;
+        if (ns[i][j] == 0)
+        {
+          med_check=true;
+          break;
+        }
+        else
+        {
+          double xc = cell->at(ns[i][j]).get_xcen();
+          double yc = cell->at(ns[i][j]).get_ycen();
+          xcens.push_back(xc);
+          ycens.push_back(yc);
+          ++n_neighbours;
+        }
+        ++j;
+      }
+      // cout << i << '\t' << n_neighbours << endl;
+
+      if (med_check) // I'm not sure if medium matters or not. Maybe it doesn't.
+        continue;
+
+      vector<vec2d> com_vectors{};
+      vec2d reference_axis(1.0,0.0);
+
+      for (int n1 = 0; n1 < n_neighbours; ++n1)
+      {
+        double ABx = XCEN - xcens[n1];
+        double ABy = YCEN - ycens[n1];
+        vec2d newvec(ABx, ABy);
+        com_vectors.push_back(newvec);
+      }
+      sort(com_vectors.begin(), com_vectors.end(), compareVec);
+      // for (auto v : com_vectors)
+      //   cout << v.x << '\t' << v.y << '\t';
+
+      std::vector<double> angles{};
+      for (const auto& vec : com_vectors) 
+      {
+        double angle = atan2(vec.y, vec.x);
+        angles.push_back(angle);
+      }
+
+      // Now use angles to calculate psi_6 for each particle
+      std::complex<double> psi_sum(0, 0);
+      for (const auto& angle : angles) {
+        psi_sum += std::exp(std::complex<double>(0, 6 * angle));
+      }
+      psi_sum /= static_cast<double>(angles.size());
+      double psi_mag = std::abs(psi_sum);
+      hexes.push_back(psi_mag);
+      // cout << psi_sum << endl;
+      // cout << psi_mag << '\t' << cell->at(i).GetPhase() << endl;
+    }
+  }
+  return hexes;
+}
+
+
+
+
+void CellularPotts::HexaticOrder(int time)
+{
+
+
+  SetCellCenters();
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      cell->at(i).set_phase_state(time);
+      bool phaser = cell->at(i).GetPhase();
+      double XCEN = cell->at(i).get_xcen();
+      double YCEN = cell->at(i).get_ycen();
+      vector<double> xcens{};
+      vector<double> ycens{};
+      int n_neighbours=0;
+      bool med_check=false;
+      int j = 0;
+      while (ns[i][j] >= 0)
+      {
+        med_check = false;
+        if (ns[i][j] == 0)
+        {
+          med_check=true;
+          break;
+        }
+        else
+        {
+          bool neigh_phase = cell->at(ns[i][j]).GetPhase();
+          // all neighbours must be same phase.
+          if (neigh_phase == phaser)
+          {
+            double xc = cell->at(ns[i][j]).get_xcen();
+            double yc = cell->at(ns[i][j]).get_ycen();
+            xcens.push_back(xc);
+            ycens.push_back(yc);
+            ++n_neighbours;
+          }
+          else
+          {
+            med_check = true;
+            break;
+          }
+        }
+        ++j;
+      }
+      // cout << i << '\t' << n_neighbours << endl;
+
+      if (med_check) 
+        continue;
+
+      vector<vec2d> com_vectors{};
+      vec2d reference_axis(1.0,0.0);
+
+      for (int n1 = 0; n1 < n_neighbours; ++n1)
+      {
+        double ABx = XCEN - xcens[n1];
+        double ABy = YCEN - ycens[n1];
+        vec2d newvec(ABx, ABy);
+        com_vectors.push_back(newvec);
+      }
+      sort(com_vectors.begin(), com_vectors.end(), compareVec);
+      // for (auto v : com_vectors)
+      //   cout << v.x << '\t' << v.y << '\t';
+
+      // cout << endl;
+      vector<double> angles{};
+      for (const auto& vec : com_vectors) 
+      {
+        double angle = atan2(vec.y, vec.x);
+        angles.push_back(angle);
+      }
+      // Now use angles to calculate psi_6 for each particle
+      complex<double> psi_sum(0,0);
+      for (const auto& angle : angles) {
+        psi_sum += std::exp(std::complex<double>(0, 6 * angle));
+      }
+      psi_sum /= static_cast<double>(angles.size());
+      double psi_mag = std::abs(psi_sum);
+
+
+      if (par.measure_time_order_params)
+      {
+        cell->at(i).AddHex(psi_mag, time);
+        if (phaser && time % par.measure_interval == 0)
+        {
+          double psi_avg = cell->at(i).GetTempHexes();
+          pair<int,double> toreturn = {time, psi_avg};
+          time_hexatic_order[phaser].push_back(toreturn);
+        }
+        else
+        {
+          int time_created = cell->at(i).GetShapeHexStartTime();
+          int delta_time = time - time_created;
+          if (delta_time % par.measure_interval == 0)
+          {
+            double psi_avg = cell->at(i).GetTempHexes();
+            pair<int,double> toreturn = {delta_time, psi_avg};
+            time_hexatic_order[phaser].push_back(toreturn);
+          }
+        }
+      }
+      else
+        state_hexatic_order[phaser].push_back(psi_mag);
+      // cout << psi_sum << endl;
+      // cout << psi_mag << '\t' << cell->at(i).GetPhase() << endl;
+
+    }
+  }
+
+}
+
+map<int,vector<double>> CellularPotts::GetHexaticOrderList()
+{
+  return state_hexatic_order;
+}
+
+map<int, vector<pair<int,double>>> CellularPotts::Get_time_hexatic_order()
+{
+  return time_hexatic_order;
+}
+
+map<int, vector<pair<int,double>>> CellularPotts::Get_time_shape_index()
+{
+  return time_shape_index;
+}
+
+
+
+
+void CellularPotts::PhaseShapeIndex(int time)
 {
   initVolume();
   adjustPerimeters();
@@ -6879,7 +7278,7 @@ void CellularPotts::SimpleShapeIndex()
     {
       int celln=c->Sigma();
       int perim_length{};
-      c->set_phase_state();
+      c->set_phase_state(time);
       bool p = c->GetPhase();
 
       for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
@@ -6929,8 +7328,32 @@ void CellularPotts::SimpleShapeIndex()
       double corrected_perim = perim_length / correction; 
       double sindex = corrected_perim / sqrt(double(vlist[celln]));
       // cout << sindex << endl;
-      state_shape_index[p].push_back(sindex);
-      // toreturn.push_back(correted_perim);      
+      
+      // toreturn.push_back(correted_perim);
+      if (par.measure_time_order_params)
+      {
+        c->AddShape(sindex, time);
+        if (p && time % par.measure_interval == 0)
+        {
+          double shape_avg = c->GetTempShape();
+          pair<int,double> toreturn = {time, shape_avg};
+          time_shape_index[p].push_back(toreturn);
+        }
+        else
+        {
+          int time_created = c->GetShapeHexStartTime();
+          int delta_time = time - time_created;
+          if (delta_time % par.measure_interval == 0)
+          {
+            double shape_avg = c->GetTempShape();
+            pair<int,double> toreturn = {delta_time, shape_avg};
+            time_shape_index[p].push_back(toreturn);
+          }
+        }
+      }
+      else
+        state_shape_index[p].push_back(sindex);
+      
     }
   }  
 }
@@ -7005,11 +7428,9 @@ void CellularPotts::ShapeIndexByState()
       state_shape_index[p].push_back(sindex);
       // toreturn.push_back(correted_perim);      
     }
-  }  
+  } 
+ 
 }
-
-
-
 
 
 map<int,vector<double>> CellularPotts::Get_state_shape_index()

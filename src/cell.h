@@ -28,6 +28,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <math.h>
 #include <unordered_map>
 #include <utility>
+#include <map>
 
 
 extern Parameter par;
@@ -133,6 +134,9 @@ public:
     medium_protein_conc = src.medium_protein_conc;
     medium_state = src.medium_state;
 
+    temp_hexes = src.temp_hexes;
+    temp_shapes = src.temp_shapes;
+
     diffs = new double[par.n_diffusers];
 
     for (int i=0;i<par.n_diffusers;i++)
@@ -230,6 +234,8 @@ public:
     medium_protein_conc = src.medium_protein_conc;
     medium_state = src.medium_state;
 
+    temp_hexes = src.temp_hexes;
+    temp_shapes = src.temp_shapes;
 
     diffs = new double[par.n_diffusers];
 
@@ -647,17 +653,16 @@ private:
     diff_genes = new_diff;
   }
 
-  inline void set_phase_state()
+  inline void set_phase_state(int &t)
   {
     if (phase_protein_conc > 0.5)
       phase_state = true;
-    else
+    else if (phase_state == true)
+    {
       phase_state = false;
+      phase_change_time = t;
+    }
 
-    // if (medium_protein_conc > 0.5)
-    //   medium_state = true;
-    // else
-    //   medium_state = false;
   }
 
   inline double& get_phase_J(void)
@@ -847,6 +852,16 @@ private:
     ycen = y;
   }
 
+  inline double get_xcen()
+  {
+    return xcen;
+  }
+
+  inline double get_ycen()
+  {
+    return ycen;
+  }
+
   inline void RecordMass()
   {
     xcens.push_back(xcen);
@@ -976,6 +991,11 @@ private:
     return shape_index;
   }
 
+  inline void SetTimeCreated(int &time)
+  {
+    time_created = time;
+  }
+
 
   inline void RecordDivision(int time)
   {
@@ -987,7 +1007,7 @@ private:
       div_phen.push_back(newt);
       // cout << "division recorded with phenotype: " << phenotype << endl;
     }
-    time_created = time;
+    
     
     if (par.division_anisotropy && time > par.end_program)
     {
@@ -1066,6 +1086,107 @@ private:
   {
     return phase_state;
   }
+
+  inline void AddHex(double &h, int &t)
+  {
+    int back_time = t-100;
+    temp_hexes[t] = h;
+    if (!temp_hexes.empty() && temp_hexes.begin()->first == back_time)
+    {
+      temp_hexes.erase(temp_hexes.begin());
+    }
+  }
+
+  inline double GetTempHexes()
+  {
+    double ret_hex{};
+    vector<double> hex_values{};
+    for (auto &i : temp_hexes)
+    {
+      hex_values.push_back(i.second);
+    }
+    if (hex_values.size() % 2 == 0)
+    {
+      // If even, average the two middle elements
+      ret_hex = (hex_values[hex_values.size() / 2 - 1] + hex_values[hex_values.size() / 2]) / 2.0;
+    }
+    else
+    {
+      // If odd, take the middle element
+      ret_hex = hex_values[hex_values.size() / 2];
+    }
+    hex_values.clear();
+    return ret_hex;
+  }
+
+  inline int GetShapeHexStartTime()
+  {
+    return phase_change_time;
+  }
+
+
+  inline void AddShape(double &s, int &t)
+  {
+    int back_time = t-100;
+    temp_shapes[t] = s;
+    if (!temp_shapes.empty() && temp_shapes.begin()->first == back_time)
+    {
+      temp_shapes.erase(temp_shapes.begin());
+    }
+  }
+
+  inline double GetTempShape()
+  {
+    double ret_shape{};
+    vector<double> shape_values{};
+    for (auto &i : temp_shapes)
+    {
+      shape_values.push_back(i.second);
+    }
+    if (shape_values.size() % 2 == 0)
+    {
+      // If even, average the two middle elements
+      ret_shape = (shape_values[shape_values.size() / 2 - 1] + shape_values[shape_values.size() / 2]) / 2.0;
+    }
+    else
+    {
+      // If odd, take the middle element
+      ret_shape = shape_values[shape_values.size() / 2];
+    }
+    temp_shapes.clear();
+    return ret_shape;
+  }
+
+  void SetSheetType(bool tp)
+  {
+    sheet_type = tp;
+    if (sheet_type)
+      c_type = par.sheetcol1;
+    else
+      c_type = par.sheetcol2;
+  }
+
+  void SwapSheetType()
+  {
+    if (sheet_type)
+    {
+      sheet_type = false;
+      c_type = par.sheetcol1;
+    }
+    else
+    {
+      sheet_type = true;
+      c_type = par.sheetcol2;
+    }
+  }  
+
+  bool GetSheetType()
+  {
+    return sheet_type;
+  }
+
+
+
 
 
 
@@ -1147,7 +1268,7 @@ protected:
 
   double EnDif(Cell &cell2);
 
-  double SheetDif(Cell &cell2, double &sJ=par.sheet_J);
+  double SheetDif(Cell &cell2, double &sJ=par.sheet_J, double &sheetmix=par.sheetmixJ);
 
 
   // static int maxsigma; // the last cell identity number given out, Dom removed
@@ -1173,6 +1294,10 @@ protected:
   vector<vector<bool>> cycles; 
 
   vector<vector<double>> gene_recordings;
+
+  map<int, double> temp_hexes;
+  map<int, double> temp_shapes;
+  int phase_change_time=0;
 
 
   bool death_tag=false;
@@ -1225,6 +1350,7 @@ protected:
   // gradient of a chemical (to be extended to the total number chemicals)
   double grad[2];
   
+  bool sheet_type;
 
   double *diffs; // concentration of diffusers based on PDE field. 
 

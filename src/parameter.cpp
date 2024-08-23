@@ -142,9 +142,11 @@ secr_rate[0] = 0.0045879; decay_rate[0] = 0.003; diff_coeff[0] = 2.61153e-07; se
     melting_adhesion = false;
     tip_max = 50;
     tip_min = 0;
-    melt = -50;
+    melt = -30;
     slope = 4;
+    addition_rate=1;
     if (melting_adhesion)
+    {
       gthresh = 50;
     v_melt = -30;
     v_slope = -4;
@@ -190,18 +192,34 @@ secr_rate[0] = 0.0045879; decay_rate[0] = 0.003; diff_coeff[0] = 2.61153e-07; se
 
 /* sheet related parameters */
     sheet=false;
-    sheet_J = 1.5;
-    sheet_minJ=1;
-    sheet_maxJ=12;
+    sheet_hex = false;
+    sheet_J = 6;
+    sheet_minJ=0.5;
+    sheet_maxJ=12.5;
     J_width=0.5;
+
+    sheetmix=true;
+    sheetmixJ=2*sheet_J;
+    sheetcol1=4;
+    sheetcol2=6;
+    mix_swaprate=0.;
+
+
+    // sheet anisotropy adhesion;
+    lambda3=1;
+
+
+    highT=true;
+    highT_time = 10000;
+    highT_temp = 5.;
+
+    start_sheet_measure = highT_time + 100;
+    end_sheet_measure = start_sheet_measure + 100;
 
     // diffusion parameters
     waiting_time = 2000;
-    equilibriate = 2000;
-
-    highT=true;
-    highT_time = 100;
-    highT_temp = 10;
+    // equilibrate MUST be bigger than highT_time (pref 2000, 1000)
+    equilibriate = highT_time + 1000;
 
     // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
     // dH is calculated on the fly. 
