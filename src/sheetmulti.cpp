@@ -93,29 +93,47 @@ void process_population()
     // does init block above.
     dishes[i].Init();
 
-    // equilibriate cells with high T
 
-    dishes[i].CPM->CopyProb(par.T);
-    dishes[i].CPM->Set_J(par.sheet_J);
-    dishes[i].CPM->set_mixJ(par.sheetmixJ);
+
     if (par.sheetmix)
     {
       dishes[i].CPM->StartSheetTypes();
 
     }
+    if (par.highT)
+    {
+      // double diff = par.highT_temp - par.T;
+      // double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
+      double toT = par.highT_temp;
+      dishes[i].CPM->CopyProb(toT);
+      dishes[i].CPM->Set_J(0.5);
+      dishes[i].CPM->set_mixJ(1);      
+    }
+    else
+    {
+      dishes[i].CPM->CopyProb(par.T);
+      dishes[i].CPM->Set_J(par.sheet_J);
+      dishes[i].CPM->set_mixJ(par.sheetmixJ);
+    }
+
+
     int t;
 
     for (t = 0; t < par.mcs; t++)
     {              
-      if (par.highT && t < par.highT_time)
+      // if (par.highT && t < par.highT_time)
+      // {
+      //   // double diff = par.highT_temp - par.T;
+      //   // double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
+      //   double toT = par.highT_temp;
+      //   dishes[i].CPM->CopyProb(toT);
+      // }
+      if (par.highT && t==par.highT_time)
       {
-        // double diff = par.highT_temp - par.T;
-        // double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
-        double toT = par.highT_temp;
-        dishes[i].CPM->CopyProb(toT);
-      }
-      if (t==par.highT_time)
         dishes[i].CPM->CopyProb(par.T);
+        dishes[i].CPM->Set_J(par.sheet_J);
+        dishes[i].CPM->set_mixJ(par.sheetmixJ);
+      }
 
       if (par.velocities)
       {

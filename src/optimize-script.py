@@ -71,7 +71,7 @@ def f(x, time=0):
 ### specify ranges to optimize, each is a tuple with min and max
 
 # differentiation rate, will just be the secretion constant (2.4e-3 is default, 1.5 is about minimum before 0 becomes equilibrium)
-diff_rate = [1.4e-3,0.025]
+diff_rate = [1e-3,0.025]
 # J of stem to diff
 Jsd = []
 if J_stem < J_diff:
@@ -79,10 +79,10 @@ if J_stem < J_diff:
 else:
     Jsd = [J_stem, 2*J_stem]
 # max growth rate per DTS OF stem cells. Taking this out for now.
-V_smax = [0.,1.]
-# V_dmax = [0.,1.]
-# v-V threshold, usually 2
-# gthresh = [0.,3.]
+# growth rate should depnd on J_stem
+Vmax = 1.5 / (1 + J_stem)
+V_smax = [0.,Vmax]
+
 
 # n dimensional param space
 var_list = [diff_rate, V_smax, Jsd]
@@ -116,7 +116,7 @@ if punt_J_sd < Jsd[0]:
     punt_J_sd = Jsd[0]
 elif punt_J_sd > Jsd[1]:
     punt_J_sd = Jsd[1]
-punt_vsmax = 1
+punt_vsmax = Vmax - 0.01
 # punt_vdmax = 1
 # punt_gthresh = 2
 inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])
@@ -125,7 +125,7 @@ inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])
 punt_sec_rate = 128.123*pow((J_stem+3.66212),-5.64574)+0.00194831
 # punt_J_med = 0.5*J_diff+2
 punt_J_sd = J_diff + (J_diff*0.2)
-punt_vsmax = 0.3
+punt_vsmax = Vmax-0.01
 if punt_J_sd < Jsd[0]:
     punt_J_sd = Jsd[0]
 elif punt_J_sd > Jsd[1]:
@@ -137,7 +137,7 @@ inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])
 punt_sec_rate = 0.00242
 # punt_J_med = 0.5*J_diff+2
 punt_J_sd = J_diff + (J_diff*0.15)
-punt_vsmax = 0.25
+punt_vsmax = Vmax-0.01
 if punt_J_sd < Jsd[0]:
     punt_J_sd = Jsd[0]
 elif punt_J_sd > Jsd[1]:

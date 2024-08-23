@@ -1967,6 +1967,8 @@ void CellularPotts::CellGrowthAndDivision(int time)
 
 void CellularPotts::DiscreteGrowthAndDivision(int time)
 {
+  double n_stem = double(CountPhaseOnCells());
+  double tally = 0.1*sqrt(n_stem);
   leftover_mass_stem += par.Vs_max;
   vector<bool> to_increase_stem(cell->size(), 0);
   vector<Cell>::iterator c;

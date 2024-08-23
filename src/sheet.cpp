@@ -133,13 +133,16 @@ TIMESTEP {
       if (par.highT)
       {
         dish->CPM->CopyProb(par.highT_temp);
+        dish->CPM->Set_J(0.5);
+        dish->CPM->set_mixJ(1);
       }
       else
       {
         dish->CPM->CopyProb(par.T);
+        dish->CPM->Set_J(par.sheet_J);
+        dish->CPM->set_mixJ(par.sheetmixJ);
       }
-      dish->CPM->Set_J(par.sheet_J);
-      dish->CPM->set_mixJ(par.sheetmixJ);
+
 
       if (par.sheetmix)
       {
@@ -148,12 +151,12 @@ TIMESTEP {
         
     }
 
-    if (par.highT && t < par.highT_time)
-    {
-      double diff = par.highT_temp - par.T;
-      double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
-      dish->CPM->CopyProb(toT);
-    }
+    // if (par.highT && t < par.highT_time)
+    // {
+    //   double diff = par.highT_temp - par.T;
+    //   double toT = par.highT_temp - diff * (double(t) / double(par.highT_time));
+    //   dish->CPM->CopyProb(toT);
+    // }
 
     // dish->CPM->SetCellCenters();
     if (par.sheetmix)
@@ -162,7 +165,11 @@ TIMESTEP {
     }
     
     if (t==par.highT_time)
+    {
       dish->CPM->CopyProb(par.T);
+      dish->CPM->Set_J(par.sheet_J);
+      dish->CPM->set_mixJ(par.sheetmixJ);
+    }
 
 
     static Info *info=new Info(*dish, *this);

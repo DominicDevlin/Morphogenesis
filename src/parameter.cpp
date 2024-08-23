@@ -89,7 +89,7 @@
 
 /* Cellular Potts parameters */
     sizex = 150;
-    sizey = 150;
+    sizey = 250;
     mcs = 100000;
     T = 3;
     target_length = 0;
@@ -132,16 +132,16 @@
     // phase transition params;
     phase_evolution=true;
 
-    J_stem=2;
-    J_diff=12;
-    J_med=6.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
-    J_stem_diff=10;//J_diff + 0.5;//(J_diff - J_stem);
+    J_stem=1;
+    J_diff=8;
+    J_med=J_diff/2 + 0.25;//0.5*J_diff+0.5;//0.25 + 0.5*J_diff;//0.5+0.5*J_diff;
+    J_stem_diff=9;//J_diff + 0.5;//(J_diff - J_stem);
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-    Vs_max = 0.890289; // 1;
+    Vs_max = 0.430617; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.00346712; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.00666638; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
@@ -161,7 +161,7 @@
 
     offset = 65;//75
     optimization_replicates = 6;
-    pics_for_opt = true;
+    pics_for_opt = false;
     pics_for_opt_interval = 100;
     max_div_time = 20000;
     min_phase_cells = 20;
@@ -222,32 +222,34 @@
 /* sheet related parameters */
     sheet=false;
     sheet_hex = false;
-    sheet_J = 10;
+    sheet_J = 6;
     sheet_minJ=0.5;
     sheet_maxJ=12.5;
     J_width=0.5;
 
-    sheetmix=false;
+    sheetmix=true;
     sheetmixJ=2*sheet_J;
     sheetcol1=4;
     sheetcol2=6;
-    mix_swaprate=0.001;
+    mix_swaprate=0.;
 
 
     // sheet anisotropy adhesion;
     lambda3=1;
 
-    // diffusion parameters
-    waiting_time = 2000;
-    // equilibrate MUST be bigger than highT_time (pref 2000, 1000)
-    equilibriate = 0;
+
 
     highT=true;
-    highT_time = 100;
-    highT_temp = 10.;
+    highT_time = 10000;
+    highT_temp = 5.;
 
     start_sheet_measure = highT_time + 100;
     end_sheet_measure = start_sheet_measure + 100;
+
+    // diffusion parameters
+    waiting_time = 2000;
+    // equilibrate MUST be bigger than highT_time (pref 2000, 1000)
+    equilibriate = highT_time + 1000;
 
     // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
     // dH is calculated on the fly. 
