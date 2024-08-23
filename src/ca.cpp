@@ -145,11 +145,13 @@ CellularPotts::CellularPotts(void) {
   CopyProb(par.T);
 
   // fill borders with special border state
-  for (int x=0;x<sizex;x++) {
+  for (int x=0;x<sizex;x++) 
+  {
     sigma[x][0]=-1;
     sigma[x][sizey-1]=-1;
   }
-  for (int y=0;y<sizey;y++) {
+  for (int y=0;y<sizey;y++) 
+  {
     sigma[0][y]=-1;
     sigma[sizex-1][y]=-1;
   }
@@ -757,6 +759,160 @@ int **CellularPotts::SearchNandPlot(Graphics *g, bool get_neighbours)
   else 
     return 0;
 
+}
+
+
+bool containsTargetVector(const vector<int>& target, const vector<std::vector<int>>& vec) 
+{
+  int tcount = target.size();
+  for (const auto& subVec : vec) 
+  {
+    std::unordered_set<int> subVecSet(subVec.begin(), subVec.end());  // Convert subVec to a set for easy lookup
+    bool containsAll = true;
+    int counter=0;
+    // Check if all elements in the target are in the current sub-vector
+    for (int num : target) 
+    {
+      if (subVecSet.find(num) != subVecSet.end()) 
+      {
+        ++counter;
+      }
+    }
+    if (counter == tcount)
+    {
+      return true;
+    }
+  }
+  return false;  // No such vector found
+}
+
+
+
+vector<vector<int>> CellularPotts::SearchNforVertices()
+{
+  int x, y,q;
+  int neighsite;
+  vector<vector<int>> neighbours;
+  
+
+  for ( x = 1; x < sizex-1; x++ )
+    for ( y = 1; y < sizey-1; y++ ) 
+    {
+      int curcell=sigma[x][y];
+      vector<int> tempn{};
+      tempn.push_back(curcell);
+      for (int i=1;i<=n_nb;i++) 
+      {
+        int xp2,yp2;
+        xp2=x+nx[i]; yp2=y+ny[i];
+        if (par.periodic_boundaries)
+        {
+
+          if (xp2<=0)
+            xp2=sizex-2+xp2;
+          if (yp2<=0)
+            yp2=sizey-2+yp2;
+          if (xp2>=sizex-1)
+            xp2=xp2-sizex+2;
+          if (yp2>=sizey-1)
+            yp2=yp2-sizey+2;
+        
+          neighsite=sigma[xp2][yp2];
+          
+          // cout << "WHAT THE.." << neighsite << endl;
+      
+        } 
+        else 
+        {
+          if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            neighsite=-1;
+          else
+            neighsite=sigma[xp2][yp2];
+        }
+        if (curcell != neighsite && neighsite > 0)
+        {
+          if (find(tempn.begin(), tempn.end(), neighsite) == tempn.end())
+          {
+            tempn.push_back(neighsite);
+          }
+        }
+      } 
+      // must be at least three cells for it to be a vertex
+      if (tempn.size() > 2)
+      {
+        bool is_in = containsTargetVector(tempn, neighbours);
+        if (!is_in)
+        {
+          neighbours.push_back(tempn);
+        }
+      }
+    }
+
+  return neighbours;
+}
+
+
+vector<vector<int>> CellularPotts::SearchNforEdges()
+{
+  int x, y,q;
+  int neighsite;
+  vector<vector<int>> neighbours;
+  
+
+  for ( x = 1; x < sizex-1; x++ )
+    for ( y = 1; y < sizey-1; y++ ) 
+    {
+      int curcell=sigma[x][y];
+      vector<int> tempn{};
+      tempn.push_back(curcell);
+      for (int i=1;i<=n_nb;i++) 
+      {
+        int xp2,yp2;
+        xp2=x+nx[i]; yp2=y+ny[i];
+        if (par.periodic_boundaries)
+        {
+
+          if (xp2<=0)
+            xp2=sizex-2+xp2;
+          if (yp2<=0)
+            yp2=sizey-2+yp2;
+          if (xp2>=sizex-1)
+            xp2=xp2-sizex+2;
+          if (yp2>=sizey-1)
+            yp2=yp2-sizey+2;
+        
+          neighsite=sigma[xp2][yp2];
+          
+          // cout << "WHAT THE.." << neighsite << endl;
+      
+        } 
+        else 
+        {
+          if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            neighsite=-1;
+          else
+            neighsite=sigma[xp2][yp2];
+        }
+        if (curcell != neighsite && neighsite > 0)
+        {
+          if (find(tempn.begin(), tempn.end(), neighsite) == tempn.end())
+          {
+            tempn.push_back(neighsite);
+          }
+          }
+        // must be at least three cells for it to be a vertex
+        if (tempn.size() == 2)
+        {
+          bool is_in = containsTargetVector(tempn, neighbours);
+          if (!is_in)
+          {
+            neighbours.push_back(tempn);
+          }
+        }
+      } 
+    }
+
+  return neighbours;
 }
 
 

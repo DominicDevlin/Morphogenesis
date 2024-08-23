@@ -405,6 +405,8 @@ TIMESTEP {
     dish->CPM->AmoebaeMove(t);
 
 
+
+
     if (t == par.mcs - 1)
     {
 

@@ -171,6 +171,23 @@ TIMESTEP {
       dish->CPM->set_mixJ(par.sheetmixJ);
     }
 
+    if (t==1000)
+    {
+      vector<vector<int>> vertices = dish->CPM->SearchNforVertices();
+
+     vector<vector<int>> edges = dish->CPM->SearchNforEdges();
+      // for (auto &i : edges)
+      // {
+      //   for (int &j : i)
+      //   {
+      //     cout << j << '\t';
+      //   }
+      //   cout << endl;
+      // }
+      double z_value = (2* double(edges.size())) / (double(vertices.size()));
+
+      cout << "Z VALUE IS: " << z_value << endl;
+    }
 
     static Info *info=new Info(*dish, *this);
     

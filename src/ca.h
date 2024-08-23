@@ -472,7 +472,12 @@ public:
    cells and for searching the neighbours the cell borders have to be
    determined. */
   int **SearchNandPlot(Graphics *g=0, bool get_neighbours=true);
+
+  vector<vector<int>> SearchNforVertices();
+
+  vector<vector<int>> SearchNforEdges();
   
+
   //! Plot the dish to Graphics window g
   inline void Plot(Graphics *g) {
     SearchNandPlot(g, false);

@@ -88,8 +88,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 200;
-    sizey = 250;
+    sizex = 150;
+    sizey = 150;
     mcs = 100000;
     T = 3;
     target_length = 0;
@@ -100,7 +100,7 @@
   
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
     
-    periodic_boundaries = false;
+    periodic_boundaries = true;
     // keep this at 2= moore neighbourhood. 2 used in simulations. 
     neighbours = 2;
     // high value ensures cells are never broken apart by copy attempts.
@@ -240,7 +240,7 @@
 
 
     highT=true;
-    highT_time = 10000;
+    highT_time = 100;
     highT_temp = 5.;
 
     start_sheet_measure = highT_time + 100;
