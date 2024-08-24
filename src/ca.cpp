@@ -851,6 +851,90 @@ vector<vector<int>> CellularPotts::SearchNforVertices()
   return neighbours;
 }
 
+#include <tuple>
+
+// Function to calculate the cross product of vectors ab and ac
+double crossProduct(double ax, double ay, double bx, double by, double cx, double cy) {
+    return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+}
+
+// Function to reorder points in counterclockwise order
+void reorderCounterClockwise(double &ax, double &ay, double &bx, double &by, double &cx, double &cy) {
+    // Calculate the cross product of vectors ab and ac
+    double cross = crossProduct(ax, ay, bx, by, cx, cy);
+
+    // If the cross product is negative, the points are in clockwise order, so we swap b and c
+    if (cross < 0) {
+        std::swap(bx, cx);
+        std::swap(by, cy);
+    }
+    // If cross product is zero, the points are collinear, and no reordering is needed.
+}
+
+vector<vector<double>> InverseEquiTriangle(vector<vector<double>> &matrix)
+{
+  // Result matrix to store the multiplication result
+  vector<vector<double>> result = {{0.,0.},{0.,0.}};
+
+  // Define the inverse of the equilateral triangle shape tensor matrix
+  double inverse_triangle_matrix[2][2] = {{1, -1 / std::sqrt(3)},
+                                          {0, 2 / std::sqrt(3)}};
+
+  // Perform matrix multiplication: result = shape_matrix * inverse_triangle_matrix
+  for (int i = 0; i < 2; ++i) 
+  {
+    for (int j = 0; j < 2; ++j) 
+    {
+      for (int k = 0; k < 2; ++k) 
+      {
+          result[i][j] += matrix[i][k] * inverse_triangle_matrix[k][j];
+      }
+    }
+  }
+  return result;
+}
+
+void CellularPotts::ComputeShapeAlignment()
+{
+  // first, get cell centres:
+  SetCellCenters();
+  //get vertices:
+  vector<vector<int>> vertices = SearchNforVertices();
+
+  /*compute every shape tensor:
+  rxb - rxa     rxc - rxa
+  ryb - rya     r yc - rya
+  1               1/2
+  0              sqrt(3) / 2
+  In the case where there is a manyfold vertex with M cells, 
+  we create M traingles.
+  */ 
+  for (vector<int>& vertex : vertices)
+  {
+    // need to account for manyfold vertices later
+    if (vertex.size() == 3)
+    {
+      double rxa = cell->at(vertex[0]).get_xcen();
+      double rxb = cell->at(vertex[1]).get_xcen();
+      double rxc = cell->at(vertex[2]).get_xcen();
+
+      double rya = cell->at(vertex[0]).get_ycen();
+      double ryb = cell->at(vertex[1]).get_ycen();
+      double ryc = cell->at(vertex[2]).get_ycen();
+      reorderCounterClockwise(rxa, rya, rxb, ryb, rxc, ryc);
+      vector<vector<double>> n_matrix{{rxb - rxa,  rxc - rxa}, {ryb - rya, ryc - rya}};
+      vector<vector<double>> shape_matrix = InverseEquiTriangle(n_matrix);
+
+
+      // now just need to compute the rest!!
+
+
+    }
+  }
+
+}
+
+
 
 vector<vector<int>> CellularPotts::SearchNforEdges()
 {

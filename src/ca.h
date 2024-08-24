@@ -402,6 +402,8 @@ public:
 
   void DiscreteGrowthAndDivision(int time);
 
+  void ComputeShapeAlignment();
+
   // void TypeGrowDivide(bool state, vector<bool> &which_cells);
 
   // void TypeGrowDivideDistribution(vector<int> &to_increase);
