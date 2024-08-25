@@ -92,9 +92,10 @@
     sizey = 200;
     mcs = 100000;
     T = 3;
-    target_length = 0;
+    // currently multiplied by sqrt of area to get actual target length
+    target_length = sqrt(M_PI)*2;
     lambda = 0.5;
-    lambda2 = 0; // WARNING - do not move from 0 (deltaH function has changed)
+    lambda2 = 0; 
     div_threshold = 100;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
   
@@ -222,7 +223,7 @@
 /* sheet related parameters */
     sheet=false;
     sheet_hex = false;
-    sheet_J = 8;
+    sheet_J = 3.5;
     sheet_minJ=0.5;
     sheet_maxJ=12.5;
     J_width=0.5;

@@ -291,6 +291,7 @@ public:
 
   inline void set_ctype(const int col)
   {
+    // cout << sigma << '\t' << c_type << endl;
     c_type = col;
     // if (sigma == 97)
     // {
@@ -327,7 +328,7 @@ public:
   Length constraint is documented in Merks et al. 2006, Dev. Biol. 
   */
   inline double TargetLength() const {
-    return sqrt(area);
+    return sqrt(area)*par.target_length;
     // return target_length;
   }
 

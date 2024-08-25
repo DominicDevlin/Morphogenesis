@@ -853,23 +853,58 @@ vector<vector<int>> CellularPotts::SearchNforVertices()
 
 #include <tuple>
 
-// Function to calculate the cross product of vectors ab and ac
-double crossProduct(double ax, double ay, double bx, double by, double cx, double cy) {
-    return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+// // Function to calculate the cross product of vectors ab and ac
+// double crossProduct(double ax, double ay, double bx, double by, double cx, double cy) {
+//     return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+// }
+
+// // Function to reorder points in counterclockwise order
+// void reorderCounterClockwise(double &ax, double &ay, double &bx, double &by, double &cx, double &cy) {
+//     // Calculate the cross product of vectors ab and ac
+//     double cross = crossProduct(ax, ay, bx, by, cx, cy);
+
+//     // If the cross product is negative, the points are in clockwise order, so we swap b and c
+//     if (cross < 0) {
+//         std::swap(bx, cx);
+//         std::swap(by, cy);
+//     }
+//     // If cross product is zero, the points are collinear, and no reordering is needed.
+// }
+
+struct cellPoint {
+    double x, y;
+};
+
+// Function to calculate the cross product of two vectors (p0p1) and (p0p2)
+double crossProduct(const cellPoint &p0, const cellPoint &p1, const cellPoint &p2) {
+    return (p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x);
+}
+
+// Function to find the centroid of a set of points
+cellPoint calculateCentroid(const std::vector<cellPoint> &points) {
+    double cx = 0, cy = 0;
+    for (const auto &point : points) {
+        cx += point.x;
+        cy += point.y;
+    }
+    return { cx / points.size(), cy / points.size() };
 }
 
 // Function to reorder points in counterclockwise order
-void reorderCounterClockwise(double &ax, double &ay, double &bx, double &by, double &cx, double &cy) {
-    // Calculate the cross product of vectors ab and ac
-    double cross = crossProduct(ax, ay, bx, by, cx, cy);
+void reorderCounterClockwise(std::vector<cellPoint> &points) {
+    if (points.size() <= 1) return; // No need to reorder if there's 1 or fewer points
 
-    // If the cross product is negative, the points are in clockwise order, so we swap b and c
-    if (cross < 0) {
-        std::swap(bx, cx);
-        std::swap(by, cy);
-    }
-    // If cross product is zero, the points are collinear, and no reordering is needed.
+    // Calculate the centroid of the points as the reference point
+    cellPoint centroid = calculateCentroid(points);
+
+    // Sort the points based on the angle relative to the centroid
+    std::sort(points.begin(), points.end(), [&centroid](const cellPoint &a, const cellPoint &b) {
+        double cross = crossProduct(centroid, a, b);
+        return cross > 0;  // Counterclockwise order
+    });
 }
+
+
 
 vector<vector<double>> InverseEquiTriangle(vector<vector<double>> &matrix)
 {
@@ -907,11 +942,9 @@ std::vector<std::vector<double>> multiplyMatrices(const vector<std::vector<doubl
 
 
 
-vector<vector<double>> CalculateQTensor(double &rxa, double &rya, double &rxb, double &ryb, double &rxc, double &ryc)
+vector<vector<double>> CalculateQTensor(vector<cellPoint>& points)
 {
-  reorderCounterClockwise(rxa, rya, rxb, ryb, rxc, ryc);
-
-  vector<vector<double>> n_matrix{{rxb - rxa,  rxc - rxa}, {ryb - rya, ryc - rya}};
+  vector<vector<double>> n_matrix{{points[1].x - points[0].x, points[2].x-points[0].x}, {points[1].y - points[0].y, points[2].y-points[0].y}};
   vector<vector<double>> smatrix = InverseEquiTriangle(n_matrix);
 
   double smatrix_det = (smatrix[0][0]*smatrix[1][1]) - (smatrix[0][1] * smatrix[1][0]);
@@ -927,7 +960,7 @@ vector<vector<double>> CalculateQTensor(double &rxa, double &rya, double &rxb, d
   vector<vector<double>> tless_sym = {{(smatrix[0][0]-smatrix[1][1])/2, (smatrix[0][1]+smatrix[1][0])/2},
                                       {(smatrix[1][0]+smatrix[0][1])/2, (smatrix[1][1]-smatrix[0][0])/2}};
 
-  double tless_sym_mag = sqrt( 2 * ( pow(tless_sym[0][0], 2) + pow(tless_sym[0][1], 2)));
+  double tless_sym_mag = sqrt( ( pow(tless_sym[0][0], 2) + pow(tless_sym[0][1], 2)));
   
 
   vector<vector<double>> antisym = {{0., (smatrix[0][1]-smatrix[1][0])/2},
@@ -935,7 +968,7 @@ vector<vector<double>> CalculateQTensor(double &rxa, double &rya, double &rxb, d
 
   // theta = arctan2 of (s^a_yx, txx)
   double theta = atan2(antisym[1][0], trace_part);
-  vector<vector<double>> rotation_matrix = {{std::cos(theta), std::sin(theta)}, {-std::sin(theta), std::cos(theta)}};
+  vector<vector<double>> rotation_matrix = {{std::cos(-theta), std::sin(-theta)}, {-std::sin(-theta), std::cos(-theta)}};
 
   vector<vector<double>> q = multiplyMatrices(tless_sym, rotation_matrix);
 
@@ -970,6 +1003,9 @@ void CellularPotts::ComputeShapeAlignment()
   double qyy=0;
   double sum_area=0;
 
+  double avg_mag=0;
+  int count = 0;
+
   for (vector<int>& vertex : vertices)
   {
 
@@ -981,42 +1017,83 @@ void CellularPotts::ComputeShapeAlignment()
       xpoints[i] = cell->at(vertex[i]).get_xcen();
       ypoints[i] = cell->at(vertex[i]).get_ycen();
     }
-    if (xpoints[0] < 30 || xpoints[0] > double(sizex-30) || xpoints[0] < 30 || ypoints[0] > double(sizey-30))
+    if (xpoints[0] < 40 || xpoints[0] > double(sizex-40) || ypoints[0] < 40 || ypoints[0] > double(sizey-40))
     {
       continue;
     }
-    // Generate all combinations of 3 elements
-    for (int i = 0; i < N - 2; ++i) 
+    if (vertex.size() == 3)
     {
-      for (int j = i + 1; j < N - 1; ++j) 
+      double rxa = cell->at(vertex[0]).get_xcen();
+      double rxb = cell->at(vertex[1]).get_xcen();
+      double rxc = cell->at(vertex[2]).get_xcen();
+
+      double rya = cell->at(vertex[0]).get_ycen();
+      double ryb = cell->at(vertex[1]).get_ycen();
+      double ryc = cell->at(vertex[2]).get_ycen();
+      double t_area = 0.5 * abs(
+          rxa * (ryb - ryc) +
+          rxb * (ryc - rya) +
+          rxc * (rya - ryb)
+      );    
+      cellPoint pa = {rxa, rya};
+      cellPoint pb = {rxb, ryb};
+      cellPoint pc = {rxc, ryc};
+      vector<cellPoint> points = {pa,pb,pc};
+      reorderCounterClockwise(points);
+      // area of triangle
+  
+
+      vector<vector<double>> q = CalculateQTensor(points);
+      sum_area += t_area;
+      qxx += (q[0][0] * t_area);
+      qxy += (q[0][1] * t_area);
+      qyx += (q[1][0] * t_area);
+      qyy += (q[1][1] * t_area);
+
+      double newq = sqrt( pow(q[0][0], 2) + pow(q[0][1], 2));
+      // cout << q[0][0] << '\t' << q[0][1] << '\t' << newq << "   and area: " << t_area << endl;
+      avg_mag += newq * t_area;
+
+      count +=1;
+    }
+    else
+    {
+      int N = vertex.size();
+      vector<cellPoint> points{};
+      for (int i = 0; i < N;++i)
       {
-        for (int k = j + 1; k < N; ++k) 
-        {
-          double rxa = xpoints[i];
-          double rxb = xpoints[j];
-          double rxc = xpoints[k];
+        double rx = cell->at(vertex[i]).get_xcen();
+        double ry = cell->at(vertex[i]).get_ycen();        
+        cellPoint newp = {rx, ry};
+        points.push_back(newp);
+      }
+      reorderCounterClockwise(points);
+      cellPoint centroid = calculateCentroid(points);
+      for (int i = 0; i < N-1; ++i)
+      {
+        vector<cellPoint> triangle = {points[i], points[i+1], centroid};
+        reorderCounterClockwise(triangle);
+        double t_area = 0.5 * abs(
+            triangle[0].x * (triangle[1].y - triangle[2].y) +
+            triangle[1].x * (triangle[2].y - triangle[0].y) +
+            triangle[2].x * (triangle[0].y - triangle[1].y)
+        );   
 
-          double rya = ypoints[i];
-          double ryb = ypoints[j];
-          double ryc = ypoints[k];
-
-          // area of triangle
-          double t_area = 0.5 * abs(
-              rxa * (ryb - ryc) +
-              rxb * (ryc - rya) +
-              rxc * (rya - ryb)
-          );      
-          vector<vector<double>> q = CalculateQTensor(rxa, rya, rxb, ryb, rxc, ryc);
-          sum_area += t_area;
-          qxx += q[0][0] * t_area;
-          qxy += q[0][1] * t_area;
-          qyx += q[1][0] * t_area;
-          qyy += q[1][1] * t_area;
-        }
+        vector<vector<double>> q = CalculateQTensor(triangle);
+        sum_area += t_area;
+        qxx += q[0][0] * t_area;
+        qxy += q[0][0] * t_area;
+        qyx += q[1][0] * t_area;
+        qyy += q[1][1] * t_area;
+        double newq = sqrt( pow(q[0][0], 2) + pow(q[0][1], 2));
+        avg_mag += newq * t_area;
+        count +=1;
       }
     }
   }
   // now we need to do averaging
+  cout << qxx << '\t' << qxy << '\n' << qyx << '\t' << qyy << endl;
+  cout << "total area: " << sum_area << "   n_counts: " << count << " average: " << sum_area / count << endl;
   qxx /= sum_area;
   qxy /= sum_area;
   qyx /= sum_area;
@@ -1024,6 +1101,7 @@ void CellularPotts::ComputeShapeAlignment()
   double qmag = sqrt( pow(qxx, 2) + pow(qxy, 2));
   cout << qxx << '\t' << qxy << '\n' << qyx << '\t' << qyy << endl;
   cout << "magnitude: " << qmag << endl;
+  cout << "no-size average: " << avg_mag / sum_area << endl;
   
 
 }
@@ -5713,67 +5791,76 @@ void CellularPotts::PrintTypesTime(bool prune)
 
 void CellularPotts::Vectorfield()
 {
-  int i = 0;
-  int interval = 1;
-  vector<vector<double>> xdata{};
-  vector<vector<double>> ydata{};
-
-  for (; i < par.mcs-par.end_program;i+=interval)
+  if (par.velocities)
   {
-    vector<double> xpoint{};
-    vector<double> ypoint{};
+    int i = 0;
+    int interval = 1;
+    vector<vector<double>> xdata{};
+    vector<vector<double>> ydata{};
 
-    vector<Cell>::iterator c;
-    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    for (; i < par.mcs-par.end_program;i+=interval)
     {
-      if (c->AliveP())
+      vector<double> xpoint{};
+      vector<double> ypoint{};
+
+      vector<Cell>::iterator c;
+      for ( (c=cell->begin(), c++);c!=cell->end();c++) 
       {
-        vector<double>& xm = c->get_xcens();
-        vector<double>& ym = c->get_ycens();
-
-      
-        // we want displacement from a while ago to account for back and forth motion
-        double x2 = xm[i];
-        double y2 = ym[i];
-
-        xpoint.push_back(x2);
-        ypoint.push_back(y2);
+        if (c->AliveP())
+        {
+          vector<double>& xm = c->get_xcens();
+          vector<double>& ym = c->get_ycens();
 
         
+          // we want displacement from a while ago to account for back and forth motion
+          cout << i << xm.size() << endl;
+          double x2 = xm[i];
+          double y2 = ym[i];
+
+          xpoint.push_back(x2);
+          ypoint.push_back(y2);
+
+          
+        }
       }
+      xdata.push_back(xpoint);
+      ydata.push_back(ypoint);
     }
-    xdata.push_back(xpoint);
-    ydata.push_back(ypoint);
-  }
 
-  string var_name = data_file + "/xvector-data.dat";
-  ofstream outfile;
-  outfile.open(var_name, ios::app);
+    string var_name = data_file + "/xvector-data.dat";
+    ofstream outfile;
+    outfile.open(var_name, ios::app);
 
-  for (vector<double>& i : xdata)
-  {
-    for (double &j : i)
+    for (vector<double>& i : xdata)
     {
-      outfile << j << '\t';
+      for (double &j : i)
+      {
+        outfile << j << '\t';
+      }
+      outfile << endl;
     }
-    outfile << endl;
-  }
-  
-  outfile.close();
+    
+    outfile.close();
 
-  var_name = data_file + "/yvector-data.dat";
-  outfile.open(var_name, ios::app);
+    var_name = data_file + "/yvector-data.dat";
+    outfile.open(var_name, ios::app);
 
-  for (vector<double>& i : ydata)
-  {
-    for (double &j : i)
+    for (vector<double>& i : ydata)
     {
-      outfile << j << '\t';
+      for (double &j : i)
+      {
+        outfile << j << '\t';
+      }
+      outfile << endl;
     }
-    outfile << endl;
+
+    outfile.close();
+  }
+  else 
+  {
+    cout << "called centroids without setting velocities to true" << endl;
   }
 
-  outfile.close();
 
 }
 

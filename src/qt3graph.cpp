@@ -146,7 +146,6 @@ void QtGraphics::ReadColorTable(QPen *pens)
       b = rand() % 256;    
       QPen p(QColor(r,g,b));
       pens[i]=p; 
-      cout << r << '\t' << g << '\t' b << endl;
     }
   }
   else

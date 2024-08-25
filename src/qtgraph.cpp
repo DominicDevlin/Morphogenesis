@@ -42,6 +42,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <QResizeEvent>
 #include "qtgraph.h"
 #include "parameter.h"
+extern Parameter par;
 
 using namespace std;
 QtGraphics::QtGraphics(int xfield, int yfield, const char *movie_file)
@@ -71,7 +72,7 @@ QtGraphics::QtGraphics(int xfield, int yfield, const char *movie_file)
   //  pic.save( "file.png" );
   
   // Allocate colors
-  pens = new QPen[512];
+  pens = new QPen[1024];
 
 	
   
@@ -154,17 +155,17 @@ void QtGraphics::ReadColorTable(QPen *pens)
     QPen p(QColor(r,g,b));
     pens[i]=p;
   }
-  // if (true)
-  // {
-  //   for (int x = 10; x < 512; ++x)
-  //   {
-  //     r = rand() % 256;
-  //     g = rand() % 256;
-  //     b = rand() % 256;    
-  //     QPen p(QColor(r,g,b));
-  //     pens[x]=p; 
-  //   }
-  // }  
+  if (par.sheet)
+  {
+    for (int x = 10; x < 1024; ++x)
+    {
+      r = rand() % 256;
+      g = rand() % 256;
+      b = rand() % 256;    
+      QPen p(QColor(r,g,b));
+      pens[x]=p; 
+    }
+  }  
   fclose(fpc);
 
 }

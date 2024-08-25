@@ -148,6 +148,10 @@ TIMESTEP {
       {
         dish->CPM->StartSheetTypes();
       }
+      else
+      {
+        dish->CPM->ColourCellsByIndex();
+      }
         
     }
 
@@ -163,6 +167,7 @@ TIMESTEP {
     {
       dish->CPM->RandomSheetType();
     }
+
     
     if (t==par.highT_time)
     {
