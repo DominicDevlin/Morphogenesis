@@ -894,6 +894,61 @@ vector<vector<double>> InverseEquiTriangle(vector<vector<double>> &matrix)
   return result;
 }
 
+// Function to multiply two 2x2 matrices
+std::vector<std::vector<double>> multiplyMatrices(const vector<std::vector<double>>& a, const vector<std::vector<double>>& b) 
+{
+  std::vector<std::vector<double>> result(2, std::vector<double>(2, 0.0));
+  result[0][0] = a[0][0] * b[0][0] + a[0][1] * b[1][0];
+  result[0][1] = a[0][0] * b[0][1] + a[0][1] * b[1][1];
+  result[1][0] = a[1][0] * b[0][0] + a[1][1] * b[1][0];
+  result[1][1] = a[1][0] * b[0][1] + a[1][1] * b[1][1];
+  return result;
+}
+
+
+
+vector<vector<double>> CalculateQTensor(double &rxa, double &rya, double &rxb, double &ryb, double &rxc, double &ryc)
+{
+  reorderCounterClockwise(rxa, rya, rxb, ryb, rxc, ryc);
+
+  vector<vector<double>> n_matrix{{rxb - rxa,  rxc - rxa}, {ryb - rya, ryc - rya}};
+  vector<vector<double>> smatrix = InverseEquiTriangle(n_matrix);
+
+  double smatrix_det = (smatrix[0][0]*smatrix[1][1]) - (smatrix[0][1] * smatrix[1][0]);
+
+  // we now have the shape matrix, and need to compute 
+  // the trace, symmetric, traceless part  and antisymmetric part
+
+  // first compute trace:
+  double trace = smatrix[0][0] + smatrix[1][1];
+  double trace_part = trace/2;
+
+  // traceless symmetric part:
+  vector<vector<double>> tless_sym = {{(smatrix[0][0]-smatrix[1][1])/2, (smatrix[0][1]+smatrix[1][0])/2},
+                                      {(smatrix[1][0]+smatrix[0][1])/2, (smatrix[1][1]-smatrix[0][0])/2}};
+
+  double tless_sym_mag = sqrt( 2 * ( pow(tless_sym[0][0], 2) + pow(tless_sym[0][1], 2)));
+  
+
+  vector<vector<double>> antisym = {{0., (smatrix[0][1]-smatrix[1][0])/2},
+                                    {(smatrix[1][0]-smatrix[0][1])/2, 0.}};
+
+  // theta = arctan2 of (s^a_yx, txx)
+  double theta = atan2(antisym[1][0], trace_part);
+  vector<vector<double>> rotation_matrix = {{std::cos(theta), std::sin(theta)}, {-std::sin(theta), std::cos(theta)}};
+
+  vector<vector<double>> q = multiplyMatrices(tless_sym, rotation_matrix);
+
+  double prefactor = (1.0 / tless_sym_mag) * asinh(tless_sym_mag / sqrt(smatrix_det));
+
+  q[0][0] *= prefactor;
+  q[0][1] *= prefactor;
+  q[1][0] *= prefactor;
+  q[1][1] *= prefactor;
+  return q;
+}
+
+
 void CellularPotts::ComputeShapeAlignment()
 {
   // first, get cell centres:
@@ -909,28 +964,67 @@ void CellularPotts::ComputeShapeAlignment()
   In the case where there is a manyfold vertex with M cells, 
   we create M traingles.
   */ 
+  double qxx=0;
+  double qxy=0;
+  double qyx=0;
+  double qyy=0;
+  double sum_area=0;
+
   for (vector<int>& vertex : vertices)
   {
-    // need to account for manyfold vertices later
-    if (vertex.size() == 3)
+
+    int N = vertex.size();
+    vector<double> xpoints(N);
+    vector<double> ypoints(N);
+    for (int i = 0; i < N; ++i)
     {
-      double rxa = cell->at(vertex[0]).get_xcen();
-      double rxb = cell->at(vertex[1]).get_xcen();
-      double rxc = cell->at(vertex[2]).get_xcen();
+      xpoints[i] = cell->at(vertex[i]).get_xcen();
+      ypoints[i] = cell->at(vertex[i]).get_ycen();
+    }
+    if (xpoints[0] < 30 || xpoints[0] > double(sizex-30) || xpoints[0] < 30 || ypoints[0] > double(sizey-30))
+    {
+      continue;
+    }
+    // Generate all combinations of 3 elements
+    for (int i = 0; i < N - 2; ++i) 
+    {
+      for (int j = i + 1; j < N - 1; ++j) 
+      {
+        for (int k = j + 1; k < N; ++k) 
+        {
+          double rxa = xpoints[i];
+          double rxb = xpoints[j];
+          double rxc = xpoints[k];
 
-      double rya = cell->at(vertex[0]).get_ycen();
-      double ryb = cell->at(vertex[1]).get_ycen();
-      double ryc = cell->at(vertex[2]).get_ycen();
-      reorderCounterClockwise(rxa, rya, rxb, ryb, rxc, ryc);
-      vector<vector<double>> n_matrix{{rxb - rxa,  rxc - rxa}, {ryb - rya, ryc - rya}};
-      vector<vector<double>> shape_matrix = InverseEquiTriangle(n_matrix);
+          double rya = ypoints[i];
+          double ryb = ypoints[j];
+          double ryc = ypoints[k];
 
-
-      // now just need to compute the rest!!
-
-
+          // area of triangle
+          double t_area = 0.5 * abs(
+              rxa * (ryb - ryc) +
+              rxb * (ryc - rya) +
+              rxc * (rya - ryb)
+          );      
+          vector<vector<double>> q = CalculateQTensor(rxa, rya, rxb, ryb, rxc, ryc);
+          sum_area += t_area;
+          qxx += q[0][0] * t_area;
+          qxy += q[0][1] * t_area;
+          qyx += q[1][0] * t_area;
+          qyy += q[1][1] * t_area;
+        }
+      }
     }
   }
+  // now we need to do averaging
+  qxx /= sum_area;
+  qxy /= sum_area;
+  qyx /= sum_area;
+  qyy /= sum_area;
+  double qmag = sqrt( pow(qxx, 2) + pow(qxy, 2));
+  cout << qxx << '\t' << qxy << '\n' << qyx << '\t' << qyy << endl;
+  cout << "magnitude: " << qmag << endl;
+  
 
 }
 

@@ -88,8 +88,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 150;
-    sizey = 150;
+    sizex = 200;
+    sizey = 200;
     mcs = 100000;
     T = 3;
     target_length = 0;
@@ -222,12 +222,12 @@
 /* sheet related parameters */
     sheet=false;
     sheet_hex = false;
-    sheet_J = 6;
+    sheet_J = 8;
     sheet_minJ=0.5;
     sheet_maxJ=12.5;
     J_width=0.5;
 
-    sheetmix=true;
+    sheetmix=false;
     sheetmixJ=2*sheet_J;
     sheetcol1=4;
     sheetcol2=6;

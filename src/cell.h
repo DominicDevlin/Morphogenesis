@@ -288,12 +288,6 @@ public:
     return colour=new_colour;
   }
 
-  inline int GetColour(void)
-  {
-    return colour;
-  }
-
-
 
   inline void set_ctype(const int col)
   {
