@@ -4011,7 +4011,7 @@ double CellularPotts::Optimizer()
   // double to_return = sqrt(variance) / length;
   double length = maxy-miny;
 
-  double to_return = sizey-length + sqrt(variance);
+  double to_return = sizey-length + sqrt(variance)/2;
 
   return to_return;
 

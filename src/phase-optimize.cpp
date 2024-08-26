@@ -345,7 +345,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       bool check_end = dishes[i].CPM->EndOptimizer(t);
       if (check_end)
       {
-        cout << "here@@" << endl;
         t = par.mcs;
       }
 
