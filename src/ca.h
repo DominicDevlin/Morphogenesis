@@ -404,6 +404,8 @@ public:
 
   void ComputeShapeAlignment();
 
+  void ShapeAlignmentByPhase();
+
   // void TypeGrowDivide(bool state, vector<bool> &which_cells);
 
   // void TypeGrowDivideDistribution(vector<int> &to_increase);

@@ -637,7 +637,7 @@ TIMESTEP {
 
       cout << "DISTANCE TO TOP: " << dish->CPM->Optimizer() << endl;
 
-      // dish->CPM->prop_success();
+      dish->CPM->ShapeAlignmentByPhase();
     }
 
     // used to create morphogen stuff

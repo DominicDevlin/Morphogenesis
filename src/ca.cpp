@@ -1092,19 +1092,167 @@ void CellularPotts::ComputeShapeAlignment()
     }
   }
   // now we need to do averaging
-  cout << qxx << '\t' << qxy << '\n' << qyx << '\t' << qyy << endl;
-  cout << "total area: " << sum_area << "   n_counts: " << count << " average: " << sum_area / count << endl;
+  // cout << "total area: " << sum_area << "   n_counts: " << count << " average: " << sum_area / count << endl;
   qxx /= sum_area;
   qxy /= sum_area;
   qyx /= sum_area;
   qyy /= sum_area;
   double qmag = sqrt( pow(qxx, 2) + pow(qxy, 2));
-  cout << qxx << '\t' << qxy << '\n' << qyx << '\t' << qyy << endl;
-  cout << "magnitude: " << qmag << endl;
-  cout << "no-size average: " << avg_mag / sum_area << endl;
+  // cout << qxx << '\t' << qxy << '\n' << qyx << '\t' << qyy << endl;
+  cout << "shape alignment is: " << qmag << endl;
+  // cout << "no-size average: " << avg_mag / sum_area << endl;
   
-
 }
+
+void CellularPotts::ShapeAlignmentByPhase()
+{
+
+  SetCellCenters();
+  //get vertices:
+  vector<vector<int>> vertices = SearchNforVertices();
+
+  /*compute every shape tensor:
+  rxb - rxa     rxc - rxa
+  ryb - rya     r yc - rya
+  1               1/2
+  0              sqrt(3) / 2
+  In the case where there is a manyfold vertex with M cells, 
+  we create M traingles.
+  */ 
+  double on_qxx=0;
+  double on_qxy=0;
+  double on_qyx=0;
+  double on_qyy=0;
+  double on_sum_area=0;
+
+  double off_qxx=0;
+  double off_qxy=0;
+  double off_qyx=0;
+  double off_qyy=0;
+  double off_sum_area=0;
+
+  for (vector<int>& vertex : vertices)
+  {
+
+    int N = vertex.size();
+    vector<cellPoint> points{};
+    vector<bool> phases{};
+    bool found_med = false;
+    for (int i = 0; i < N; ++i)
+    {
+      if (vertex[i] == 0)
+      {
+        found_med = true;
+        continue;
+      }
+      double rx = cell->at(vertex[i]).get_xcen();
+      double ry = cell->at(vertex[i]).get_ycen();        
+      cellPoint newp = {rx, ry};
+      points.push_back(newp);
+      phases.push_back(cell->at(vertex[i]).GetPhase());
+      
+    }
+    bool allPhaseOn = all_of(phases.begin(), phases.end(), [] (bool val) {return val;});
+    bool allPhaseOff = all_of(phases.begin(), phases.end(), [] (bool val) {return !val;});   
+    if (allPhaseOn == false && allPhaseOff == false)
+    {
+      // cout << allPhaseOn << '\t' << allPhaseOff << '\t' << found_med << endl;
+      continue;
+    }
+    if (found_med == true)
+    {
+      continue;
+    }
+
+    if (N == 3)
+    {
+      double t_area = 0.5 * abs(
+          points[0].x * (points[1].y - points[2].y) +
+          points[1].x * (points[2].y - points[0].y) +
+          points[2].x * (points[0].y - points[1].y)
+      );   
+
+      reorderCounterClockwise(points);
+
+      vector<vector<double>> q = CalculateQTensor(points);
+      if (allPhaseOn)
+      {
+        on_sum_area += t_area;
+        on_qxx += (q[0][0] * t_area);
+        on_qxy += (q[0][1] * t_area);
+        on_qyx += (q[1][0] * t_area);
+        on_qyy += (q[1][1] * t_area);
+        // cout << "phase on: " << q[0][0] << '\t' << q[0][1] << endl;
+        // cout << "area: " << t_area << endl;
+        // cout << "Cell numbers: " << vertex[0] << '\t' << vertex[1] << '\t' << vertex[2] << endl;
+        
+      }
+      else if (allPhaseOff)
+      {
+        off_sum_area += t_area;
+        off_qxx += (q[0][0] * t_area);
+        off_qxy += (q[0][1] * t_area);
+        off_qyx += (q[1][0] * t_area);
+        off_qyy += (q[1][1] * t_area);
+      }
+    }
+    else
+    {
+      reorderCounterClockwise(points);
+      cellPoint centroid = calculateCentroid(points);
+      for (int i = 0; i < N-1; ++i)
+      {
+        vector<cellPoint> triangle = {points[i], points[i+1], centroid};
+        reorderCounterClockwise(triangle);
+        double t_area = 0.5 * abs(
+            triangle[0].x * (triangle[1].y - triangle[2].y) +
+            triangle[1].x * (triangle[2].y - triangle[0].y) +
+            triangle[2].x * (triangle[0].y - triangle[1].y)
+        );   
+
+        vector<vector<double>> q = CalculateQTensor(triangle);
+        if (allPhaseOn)
+        {
+          on_sum_area += t_area;
+          on_qxx += (q[0][0] * t_area);
+          on_qxy += (q[0][1] * t_area);
+          on_qyx += (q[1][0] * t_area);
+          on_qyy += (q[1][1] * t_area);
+        }
+        else if (allPhaseOff)
+        {
+          off_sum_area += t_area;
+          off_qxx += (q[0][0] * t_area);
+          off_qxy += (q[0][1] * t_area);
+          off_qyx += (q[1][0] * t_area);
+          off_qyy += (q[1][1] * t_area);
+        }
+      }
+    }
+  }
+  // now we need to do averaging
+  // cout << "total area: " << sum_area << "   n_counts: " << count << " average: " << sum_area / count << endl;
+  on_qxx /= on_sum_area;
+  on_qxy /= on_sum_area;
+  on_qyx /= on_sum_area;
+  on_qyy /= on_sum_area;
+
+  off_qxx /= off_sum_area;
+  off_qxy /= off_sum_area;
+  off_qyx /= off_sum_area;
+  off_qyy /= off_sum_area;
+
+  double on_qmag = sqrt( pow(on_qxx, 2) + pow(on_qxy, 2));
+  double off_qmag = sqrt( pow(off_qxx, 2) + pow(off_qxy, 2));
+
+
+  // cout << qxx << '\t' << qxy << '\n' << qyx << '\t' << qyy << endl;
+  cout << "phase on shape alignment: " << on_qmag << endl;
+  cout << "phase off shape alignment: " << off_qmag << endl;
+  
+}
+
+
 
 
 

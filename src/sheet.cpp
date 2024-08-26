@@ -176,36 +176,23 @@ TIMESTEP {
       dish->CPM->set_mixJ(par.sheetmixJ);
     }
 
-    // if (t==1000)
-    // {
-    //   vector<vector<int>> vertices = dish->CPM->SearchNforVertices();
-
-    //   vector<vector<int>> edges = dish->CPM->SearchNforEdges();
-    //   // for (auto &i : edges)
-    //   // {
-    //   //   for (int &j : i)
-    //   //   {
-    //   //     cout << j << '\t';
-    //   //   }
-    //   //   cout << endl;
-    //   // }
-    //   double z_value = (2* double(edges.size())) / (double(vertices.size()));
-
-    //   cout << "Z VALUE IS: " << z_value << endl;
-    // }
-
-    if (t % 500 == 0)
-    {
-      dish->CPM->ComputeShapeAlignment();
-    }
-
 
     static Info *info=new Info(*dish, *this);
     
     // static vector<double> N_index;
-    static vector<double> shape_index;
+    // static vector<double> shape_index;
     if (t % 1000 == 0 && t > 0)
     {
+
+      dish->CPM->ComputeShapeAlignment();
+
+      vector<vector<int>> vertices = dish->CPM->SearchNforVertices();
+      vector<vector<int>> edges = dish->CPM->SearchNforEdges();
+      double z_value = (2* double(edges.size())) / (double(vertices.size()));
+
+      cout << "Z VALUE IS: " << z_value << endl;
+
+
       // N_index.clear();
       // shape_index.clear();
       dish->CPM->initVolume();
@@ -214,7 +201,6 @@ TIMESTEP {
       vector<double> volumes = dish->CPM->GetVolumes();
       // vector<double> Nperims = dish->CPM->PerimitersRadiusN(sqrt(5), 11);
       // cout << tperims[1] << '\t' << Nperims[1] << '\t' << volumes[1] << endl;
-
       double avg{};
       // double n_avg{};
       for (int i = 0; i < tperims.size(); ++i)
@@ -223,7 +209,7 @@ TIMESTEP {
         double sindex = tperims[i] / sqrt(volumes[i]);
         // cout << i << '\t';
         avg+=sindex;
-        shape_index.push_back(sindex);
+        // shape_index.push_back(sindex);
 
         // sindex = (Nperims[i]) / (sqrt(volumes[i]));
         // cout << i << '\t';
@@ -231,14 +217,13 @@ TIMESTEP {
         // N_index.push_back(sindex);
 
       }
-      double median = findMedian(shape_index);
+      // double median = findMedian(shape_index);
       avg/=tperims.size();
       // n_avg/=tperims.size();
-      // cout << endl << avg << '\t' << median << endl;
+      cout << "Shape index: " << avg << endl;
 
   
       cout << t << " TIME STEPS HAVE PASSED." << endl;
-      cout << "ORG MASS IS: " << dish->CPM->Mass() << endl;
     }
       
 
