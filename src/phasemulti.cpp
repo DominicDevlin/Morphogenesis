@@ -33,10 +33,12 @@
 using namespace std;
 
 
-void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const string& oname)
+int WriteData(const map<int, vector<pair<int, double>>>& shapedata, const string& oname)
 {
   ofstream outfile;
   outfile.open(oname, ios::app);  // Append mode
+
+  int phase_counts{};
 
   // First, find the maximum number of rows required
   int max_rows = 0;
@@ -49,6 +51,10 @@ void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const strin
           max_rows = index + 1;
           rows.push_back(index);
       }
+      if (key==1) // phase on
+      {
+        ++phase_counts;
+      }      
     }
   }
 
@@ -103,7 +109,8 @@ void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const strin
     outfile << endl;  // Newline after each row
   }
 
-  outfile.close();  
+  outfile.close(); 
+  return phase_counts; 
 }
 
 int PDE::MapColour(double val)
@@ -145,28 +152,41 @@ TIMESTEP
   cerr << "Error" << endl;
 }
 
-void process_population(vector<vector<vector<int>>>& network_list)
+void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 {
+  if (argn > 0)
+  {
+    par.data_file = "org-data-" + to_string(argn);
+    par.pic_dir = "images-" + to_string(argn);
+  }
 
   Dish *dishes = new Dish[par.n_orgs];
+
+  int n_times_apart{};
+  int total_steps{};
 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
   for (int i = 0; i < par.n_orgs; ++i)
   {
+
     dishes[i].CPM->set_num(i + 1);
     // does init block above.
     dishes[i].Init();
     dishes[i].CPM->start_network(network_list.at(i));
     dishes[i].CPM->Set_evoJ(par.J_stem_diff);
 
+    bool stayed_together=true;
+
     // equilibriate cells with high T
     dishes[i].CPM->CopyProb(par.T);
 
-    int t;
+    int t=0;
 
-    for (t = 0; t < par.mcs; t++)
-    {              
+    for (; t < par.mcs; t++)
+    {  
+      // if (t % 1000 == 0)
+      //   cout << t << endl;        
       if (par.gene_record && t == 100)
         dishes[i].CPM->record_GRN();
       if (t < par.end_program)
@@ -213,7 +233,7 @@ void process_population(vector<vector<vector<int>>>& network_list)
           }
         }
 
-        if (t > 200 && par.measure_time_order_params)
+        if (t > 200 && par.measure_time_order_params && t % 5 == 0)
         {
           dishes[i].CPM->PhaseShapeIndex(t);
           dishes[i].CPM->HexaticOrder(t);
@@ -236,7 +256,16 @@ void process_population(vector<vector<vector<int>>>& network_list)
 
         dishes[i].CPM->DiscreteGrowthAndDivision(t);
       }
-
+      // ensure all cells are connected for shape calculations. 
+      if (t > 0 && t % 5000 == 0 && stayed_together==true)
+      {
+        bool check_shape = dishes[i].CPM->CheckShape();
+        if (check_shape == false)
+        {
+          ++n_times_apart;
+          stayed_together=false;
+        }
+      }
       // if (par.output_sizes)
       // {
       //   dishes[i].CPM->RecordSizes();
@@ -249,6 +278,7 @@ void process_population(vector<vector<vector<int>>>& network_list)
         t = par.mcs;
       }
     }
+    total_steps += t;
   }
 
   if (mkdir(par.data_file.c_str(), 0777) == -1)
@@ -257,6 +287,8 @@ void process_population(vector<vector<vector<int>>>& network_list)
     cout << "Directory created." << endl;
 
 
+  int t_shape_count{};
+  int t_hex_count{};
 
   if (par.measure_time_order_params)
   {
@@ -297,11 +329,20 @@ void process_population(vector<vector<vector<int>>>& network_list)
       }
     }
     string oname = par.data_file + "/hex_time.dat";
-    WriteData(hexdata, oname);
+    t_hex_count = WriteData(hexdata, oname);
 
     oname = par.data_file + "/shape_time.dat";
-    WriteData(shapedata, oname);    
+    t_shape_count = WriteData(shapedata, oname);    
   }
+
+  ofstream outfile;
+  string infoname = par.data_file + "/info.txt";
+  outfile.open(infoname, ios::app);  // Append mode
+  outfile << total_steps << '\t' << double(total_steps) / 60 << '\t' << t_hex_count << '\t' << t_shape_count 
+  << '\t' << double(t_hex_count) / total_steps * par.measure_interval << '\t' << double(t_shape_count) / total_steps * par.measure_interval << '\t' << n_times_apart << endl;
+
+
+
   if (par.pics_for_opt)
   {
     string dirn = par.pic_dir;
@@ -333,11 +374,54 @@ void process_population(vector<vector<vector<int>>>& network_list)
 int main(int argc, char *argv[]) 
 {
 
+  bool read_in = true;
+  vector<vector<double>> params_data;
+  if (read_in)
+  {
+    std::string filename = "params-list.txt";  // the file containing the params data
+    std::ifstream infile(filename);
+
+    // Check if file is open
+    if (!infile.is_open()) 
+    {
+      std::cerr << "Could not open the file!" << std::endl;
+      return 1;
+    }
+
+    std::string line;
+    // Read the file line by line
+    while (std::getline(infile, line)) 
+    {
+      std::vector<double> row;
+      std::stringstream ss(line);
+      std::string value;
+
+      // Split the line by tab characters and convert to double
+      while (std::getline(ss, value, '\t')) 
+      {
+        try 
+        {
+          double num = std::stod(value);  // Convert string to double
+          row.push_back(num);  // Add to the current row
+        } 
+        catch (const std::invalid_argument& e) 
+        {
+          std::cerr << "Invalid number found in the file: " << value << std::endl;
+        }
+      }
+      
+      // Add the row to the params_data
+      params_data.push_back(row);
+    }
+    infile.close();    
+  }
+
+
 #ifdef QTGRAPHICS
   {
     QApplication* a = new QApplication(argc, argv);
-    if (mkdir(par.pic_dir.c_str(), 0777) != -1)
-      cout << "Directory created." << endl;
+    // if (mkdir(par.pic_dir.c_str(), 0777) != -1)
+    //   cout << "Directory created." << endl;
   }
 #endif
 
@@ -348,7 +432,7 @@ int main(int argc, char *argv[])
   par.gene_output=false;
   par.gene_record=true;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
-
+  par.velocities=false;
   if (par.velocities)
     par.output_sizes = true;
   else
@@ -356,19 +440,40 @@ int main(int argc, char *argv[])
   Parameter();
 
   par.phase_evolution = true;
+  par.min_phase_cells=10;
 
 
-  par.n_orgs = 60;
-
-  // make initial random networks.
+  par.n_orgs = 20;
   vector<vector<vector<int>>> networks{};
-  vector<vector<bool>> polarities{};
   for (int i = 0; i < par.n_orgs; ++i)
   {
     networks.push_back(par.start_matrix);
   }
-  
-  process_population(networks);
+  if (!read_in)
+  {
+    process_population(networks);
+  }
+  else
+  {
+    int argnumber=1;
+    for (vector<double> &params: params_data)
+    {
+      par.secr_rate[0] = params[0];
+      par.Vs_max = params[1];
+      par.J_stem_diff = params[2];
+      par.J_stem = params[3];
+      par.J_diff = params[4];
+      par.J_med=par.J_diff/2 + 0.25;
+      if (par.J_stem > par.J_med)
+        par.J_med = par.J_stem;
+      par.J_med2 = par.J_med;
+      cout << par.J_stem << '\t' << par.J_diff << '\t' << par.J_med << endl;
+      process_population(networks, argnumber);
+      ++argnumber;
+    }
+  }
+
+
 
 
   // if (par.sheet_hex)
