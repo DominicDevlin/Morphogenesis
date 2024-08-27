@@ -187,7 +187,7 @@ TIMESTEP {
       dish->CPM->ComputeShapeAlignment();
 
       vector<vector<int>> vertices = dish->CPM->SearchNforVertices();
-      vector<vector<int>> edges = dish->CPM->SearchNforEdges();
+      vector<pair<int,int>> edges = dish->CPM->SearchNforEdges();
       double z_value = (2* double(edges.size())) / (double(vertices.size()));
 
       cout << "Z VALUE IS: " << z_value << endl;

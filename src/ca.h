@@ -406,6 +406,8 @@ public:
 
   void ShapeAlignmentByPhase();
 
+  pair<double,double> PhaseZValues();
+
   // void TypeGrowDivide(bool state, vector<bool> &which_cells);
 
   // void TypeGrowDivideDistribution(vector<int> &to_increase);
@@ -479,7 +481,7 @@ public:
 
   vector<vector<int>> SearchNforVertices();
 
-  vector<vector<int>> SearchNforEdges();
+  vector<pair<int,int>> SearchNforEdges();
   
 
   //! Plot the dish to Graphics window g

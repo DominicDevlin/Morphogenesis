@@ -334,6 +334,19 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     oname = par.data_file + "/shape_time.dat";
     t_shape_count = WriteData(shapedata, oname);    
   }
+  /*
+    NOTES:
+
+
+    NEED TO OUTPUT:
+    Z-value (time based)
+    shape alignment (time based)
+    average fitness (length2 / variance)
+    
+  
+  
+  
+  */
 
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";

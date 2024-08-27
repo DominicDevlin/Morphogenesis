@@ -1256,11 +1256,11 @@ void CellularPotts::ShapeAlignmentByPhase()
 
 
 
-vector<vector<int>> CellularPotts::SearchNforEdges()
+vector<pair<int,int>> CellularPotts::SearchNforEdges()
 {
   int x, y,q;
   int neighsite;
-  vector<vector<int>> neighbours;
+  vector<pair<int,int>> neighbours;
   
 
   for ( x = 1; x < sizex-1; x++ )
@@ -1307,10 +1307,10 @@ vector<vector<int>> CellularPotts::SearchNforEdges()
         // must be at least three cells for it to be a vertex
         if (tempn.size() == 2)
         {
-          bool is_in = containsTargetVector(tempn, neighbours);
-          if (!is_in)
+          pair<int,int> edge = {tempn[0], tempn[1]};
+          if (find(neighbours.begin(), neighbours.end(), edge) == neighbours.end())
           {
-            neighbours.push_back(tempn);
+            neighbours.push_back(edge);
           }
         }
       } 
@@ -1318,6 +1318,58 @@ vector<vector<int>> CellularPotts::SearchNforEdges()
 
   return neighbours;
 }
+
+pair<double,double> CellularPotts::PhaseZValues()
+{
+  int phase_on_edges{};
+  int phase_off_edges{};
+  int phase_on_vertices{};
+  int phase_off_vertices{};
+  vector<pair<int,int>> neighbours = SearchNforEdges();
+  for (auto &i : neighbours)
+  {
+    if (i.first != 0 && i.second != 0)
+    {
+      bool phase1 = cell->at(i.first).GetPhase();
+      bool phase2 = cell->at(i.second).GetPhase();
+      if (phase1==phase2==true)
+      {
+        ++phase_on_vertices;
+      }
+      else if (phase1==phase2==false)
+      {
+        ++phase_off_vertices;
+      }
+    }
+  }
+  vector<vector<int>> vertices = SearchNforVertices();
+  for (auto &i : vertices)
+  {
+    bool phase_on = true;
+    bool phase_off = false;
+    for (int &j : i)
+    {
+      if (j == 0)
+      {
+        break;
+      }
+      bool phase = cell->at(j).GetPhase();
+      if (phase != phase_on)
+        phase_on = false;
+      if (phase != phase_off)
+        phase_off = true;
+    }
+    if (phase_on)
+      ++phase_on_vertices;
+    if (!phase_off)
+      ++phase_off_vertices;
+  }
+  double Z_on = 2 * double(phase_on_edges) / double(phase_on_vertices);
+  double Z_off = 2 * double(phase_off_edges) / double(phase_off_vertices);
+  pair<double,double> toreturn = {Z_off, Z_on};
+  return toreturn;
+}
+
 
 
 // void CellularPotts::ReadZygotePicture(void) {
