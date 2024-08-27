@@ -171,7 +171,7 @@
     penalty=250;
 
     measure_time_order_params = true;
-    measure_interval = 100;
+    measure_interval = 50;
 
   
     // GRN params

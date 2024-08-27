@@ -7613,6 +7613,8 @@ vector<double> CellularPotts::GetHexes()
       // cout << psi_mag << '\t' << cell->at(i).GetPhase() << endl;
     }
   }
+  free(ns[0]);
+  free(ns);
   return hexes;
 }
 
@@ -7621,8 +7623,6 @@ vector<double> CellularPotts::GetHexes()
 
 void CellularPotts::HexaticOrder(int time)
 {
-
-
   SetCellCenters();
   int **ns = SearchNeighbours();
   int n_size = CountCells();
@@ -7730,6 +7730,8 @@ void CellularPotts::HexaticOrder(int time)
 
     }
   }
+  free(ns[0]);
+  free(ns);
 
 }
 
