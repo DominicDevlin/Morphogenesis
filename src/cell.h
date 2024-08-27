@@ -1083,34 +1083,44 @@ private:
 
   inline void AddHex(double &h, int &t)
   {
-    int back_time = t-100;
-    temp_hexes[t] = h;
-    if (!temp_hexes.empty() && temp_hexes.begin()->first == back_time)
-    {
-      temp_hexes.erase(temp_hexes.begin());
-    }
+    temp_hexes.push_back(h);
   }
 
   inline double GetTempHexes()
   {
     double ret_hex{};
-    vector<double> hex_values{};
-    for (auto &i : temp_hexes)
-    {
-      hex_values.push_back(i.second);
-    }
-    if (hex_values.size() % 2 == 0)
+    if (temp_hexes.size() % 2 == 0)
     {
       // If even, average the two middle elements
-      ret_hex = (hex_values[hex_values.size() / 2 - 1] + hex_values[hex_values.size() / 2]) / 2.0;
+      ret_hex = (temp_hexes[temp_hexes.size() / 2 - 1] + temp_hexes[temp_hexes.size() / 2]) / 2.0;
     }
     else
     {
       // If odd, take the middle element
-      ret_hex = hex_values[hex_values.size() / 2];
+      ret_hex = temp_hexes[temp_hexes.size() / 2];
     }
-    hex_values.clear();
+    temp_hexes.clear();
     return ret_hex;
+
+
+    // double ret_hex{};
+    // vector<double> hex_values{};
+    // for (auto &i : temp_hexes)
+    // {
+    //   hex_values.push_back(i.second);
+    // }
+    // if (hex_values.size() % 2 == 0)
+    // {
+    //   // If even, average the two middle elements
+    //   ret_hex = (hex_values[hex_values.size() / 2 - 1] + hex_values[hex_values.size() / 2]) / 2.0;
+    // }
+    // else
+    // {
+    //   // If odd, take the middle element
+    //   ret_hex = hex_values[hex_values.size() / 2];
+    // }
+    // temp_hexes.clear();
+    // return ret_hex;
   }
 
   inline int GetShapeHexStartTime()
@@ -1121,34 +1131,50 @@ private:
 
   inline void AddShape(double &s, int &t)
   {
-    int back_time = t-100;
-    temp_shapes[t] = s;
-    if (!temp_shapes.empty() && temp_shapes.begin()->first == back_time)
-    {
-      temp_shapes.erase(temp_shapes.begin());
-    }
+    temp_shapes.push_back(s);
+    // int back_time = t-100;
+    // temp_shapes[t] = s;
+    // if (!temp_shapes.empty() && temp_shapes.begin()->first == back_time)
+    // {
+    //   temp_shapes.erase(temp_shapes.begin());
+    // }
   }
 
   inline double GetTempShape()
   {
     double ret_shape{};
-    vector<double> shape_values{};
-    for (auto &i : temp_shapes)
-    {
-      shape_values.push_back(i.second);
-    }
-    if (shape_values.size() % 2 == 0)
+    if (temp_shapes.size() % 2 == 0)
     {
       // If even, average the two middle elements
-      ret_shape = (shape_values[shape_values.size() / 2 - 1] + shape_values[shape_values.size() / 2]) / 2.0;
+      ret_shape = (temp_shapes[temp_shapes.size() / 2 - 1] + temp_shapes[temp_shapes.size() / 2]) / 2.0;
     }
     else
     {
       // If odd, take the middle element
-      ret_shape = shape_values[shape_values.size() / 2];
+      ret_shape = temp_shapes[temp_shapes.size() / 2];
     }
     temp_shapes.clear();
     return ret_shape;
+
+
+    // double ret_shape{};
+    // vector<double> shape_values{};
+    // for (auto &i : temp_shapes)
+    // {
+    //   shape_values.push_back(i.second);
+    // }
+    // if (shape_values.size() % 2 == 0)
+    // {
+    //   // If even, average the two middle elements
+    //   ret_shape = (shape_values[shape_values.size() / 2 - 1] + shape_values[shape_values.size() / 2]) / 2.0;
+    // }
+    // else
+    // {
+    //   // If odd, take the middle element
+    //   ret_shape = shape_values[shape_values.size() / 2];
+    // }
+    // temp_shapes.clear();
+    // return ret_shape;
   }
 
   void SetSheetType(bool tp)
@@ -1289,8 +1315,8 @@ protected:
 
   vector<vector<double>> gene_recordings;
 
-  map<int, double> temp_hexes;
-  map<int, double> temp_shapes;
+  vector<double> temp_hexes;
+  vector<double> temp_shapes;
   int phase_change_time=0;
 
 
