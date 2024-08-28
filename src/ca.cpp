@@ -4748,10 +4748,8 @@ void CellularPotts::update_fitness()
   {
     // Fitness is a combination of Circle Deviation (deformation - force applied) and segments (coordinated cell movements) = complexity
 
-
-
     // deformation from circle
-    double dev = (OldDeviationFromCircle()) * 1.4; 
+    double dev = NewDeviationFromCircle() * 2.5; 
     double wspc = sqrt((WhiteSpace())) * 2;
     double asymmetry = 0;
     if (par.asymmetry_selection)
@@ -10729,6 +10727,8 @@ double CellularPotts::NewDeviationFromCircle()
   org1.AllocateGrid(par.sizex, par.sizey);
   org1.ImportGrid(ReturnGrid());
   org1.PolarTransform(0, 0, true);
+  double dev = org1.DeviationFromCircle();
+  return dev;
 }
 
 
