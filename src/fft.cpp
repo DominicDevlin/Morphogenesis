@@ -251,6 +251,8 @@ void fft::PolarTransform(int xcen, int ycen, bool com)
 				y = yorigin + round(r*sin(qn));				
 			}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
 =======
 
 			if (x >= sizex -1 || x <= 0 || y >= sizex-1 || y <= 0)
@@ -262,6 +264,31 @@ void fft::PolarTransform(int xcen, int ycen, bool com)
 		}
 	}
 
+}
+
+// finish this later.
+double fft::DeviationFromCircle()
+{
+	for (int q = 0; q < rho; ++q)
+	{
+		for (int r=0; r < sizer;++r)
+		{
+			// need to turn q into radians
+			double qn = q * M_PI / 180.;
+
+			int x = xorigin + round(r*cos(qn));
+			int y = yorigin + round(r*sin(qn));
+
+>>>>>>> d961444 (.)
+
+			if (x >= sizex -1 || x <= 0 || y >= sizex-1 || y <= 0)
+			{
+				polar[q][r] = 0;
+			}
+			else
+				polar[q][r] = grid[x][y];
+		}
+	}
 }
 
 // finish this later.
