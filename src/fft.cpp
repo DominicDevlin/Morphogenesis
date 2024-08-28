@@ -197,9 +197,9 @@ void fft::ImportCPM(CellularPotts *cpm)
 	m_CPM = cpm;
 }
 
-void fft::PolarTransform(int xcen, int ycen)
+void fft::PolarTransform(int xcen, int ycen, bool com)
 {
-	ClearPolar();
+  ClearPolar();
 
   // find c.o.m
   int center[] = {0,0};
@@ -239,6 +239,40 @@ void fft::PolarTransform(int xcen, int ycen)
 			// need to turn q into radians
 			double qn = q * M_PI / 180.;
 
+			int x;
+			int y;
+			if (com)
+			{
+				x = center[0] + round(r*cos(qn));
+				y = center[1] + round(r*sin(qn));				
+			}
+			else
+			{
+				x = xorigin + round(r*cos(qn));
+				y = yorigin + round(r*sin(qn));				
+			}
+
+			if (x >= sizex -1 || x <= 0 || y >= sizex-1 || y <= 0)
+			{
+				polar[q][r] = 0;
+			}
+			else
+				polar[q][r] = grid[x][y];
+		}
+	}
+
+}
+
+// finish this later.
+double fft::DeviationFromCircle()
+{
+	for (int q = 0; q < rho; ++q)
+	{
+		for (int r=0; r < sizer;++r)
+		{
+			// need to turn q into radians
+			double qn = q * M_PI / 180.;
+
 			int x = xorigin + round(r*cos(qn));
 			int y = yorigin + round(r*sin(qn));
 
@@ -251,7 +285,6 @@ void fft::PolarTransform(int xcen, int ycen)
 				polar[q][r] = grid[x][y];
 		}
 	}
-
 }
 
 

@@ -4751,7 +4751,7 @@ void CellularPotts::update_fitness()
 
 
     // deformation from circle
-    double dev = (DeviationFromCircle()) * 1.4; 
+    double dev = (OldDeviationFromCircle()) * 1.4; 
     double wspc = sqrt((WhiteSpace())) * 2;
     double asymmetry = 0;
     if (par.asymmetry_selection)
@@ -4791,7 +4791,7 @@ void CellularPotts::update_fitness()
 double CellularPotts::get_fitness()
 {
 
-  // Calculate the shape. All connected has been checked for every 2000 steps in "evolution.cpp".
+  // Calculate the shape. All connected has been checked for every n steps in "evolution.cpp".
   double shp{};
   // double circumference = 0;
   if (ShapeMaintained && shape_fitness_list.size() > 0)
@@ -10519,9 +10519,6 @@ double CellularPotts::CircleNegGrad(double m, double *center, double rad)
 }
 
 
-
-
-
 // positive gradient
 double CellularPotts::CirclePosGrad(double m, double *center, double rad)
 {
@@ -10601,9 +10598,7 @@ double CellularPotts::CirclePosGrad(double m, double *center, double rad)
 }
 
 
-
-
-double CellularPotts::DeviationFromCircle()
+double CellularPotts::OldDeviationFromCircle()
 {
   long cellmass = TotalArea();
   
@@ -10723,6 +10718,23 @@ double CellularPotts::DeviationFromCircle()
 
   return dev;  
 }
+
+
+
+
+
+double CellularPotts::NewDeviationFromCircle()
+{
+  fft org1;
+  org1.AllocateGrid(par.sizex, par.sizey);
+  org1.ImportGrid(ReturnGrid());
+  org1.PolarTransform(0, 0, true);
+}
+
+
+
+
+
 
 
 void CellularPotts::DeviationCheck()
