@@ -463,7 +463,7 @@ TIMESTEP {
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
-
+      dish->CPM->update_fitness();
 
       dish->CPM->print_random_cell();
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
