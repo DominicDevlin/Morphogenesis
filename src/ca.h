@@ -159,7 +159,9 @@ public:
 
   void get_center(double* center);
 
-  double DeviationFromCircle();
+  double OldDeviationFromCircle();
+
+  double NewDeviationFromCircle();
 
   double BresenhamForCircle(int x1, int y1, int x2, int y2, int dx, int dy, int decide, double *center, double rad);
 
