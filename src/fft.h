@@ -72,6 +72,8 @@ private:
 
 	int sizex;
 	int sizey;
+  	int mass{};
+
 
 	int optimal;
 

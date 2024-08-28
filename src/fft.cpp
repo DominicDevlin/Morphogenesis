@@ -205,7 +205,6 @@ void fft::PolarTransform(int xcen, int ycen)
   int center[] = {0,0};
   int xtotal{};
   int ytotal{};
-  int mass{};
 
   for (int x=1;x<sizex;++x)
     for (int y=1;y<sizey;++y)
@@ -239,9 +238,18 @@ void fft::PolarTransform(int xcen, int ycen)
 			// need to turn q into radians
 			double qn = q * M_PI / 180.;
 
-			int x = xorigin + round(r*cos(qn));
-			int y = yorigin + round(r*sin(qn));
-
+			int x;
+			int y;
+			if (com)
+			{
+				x = center[0] + round(r*cos(qn));
+				y = center[1] + round(r*sin(qn));				
+			}
+			else
+			{
+				x = xorigin + round(r*cos(qn));
+				y = yorigin + round(r*sin(qn));				
+			}
 
 			if (x >= sizex -1 || x <= 0 || y >= sizex-1 || y <= 0)
 			{
@@ -252,6 +260,39 @@ void fft::PolarTransform(int xcen, int ycen)
 		}
 	}
 
+}
+
+// finish this later.
+double fft::DeviationFromCircle()
+{
+	double dev=0;
+	// get expected radius from mass.
+	double rad = sqrt((double)(mass) / M_PI);
+	int rad_count{};
+
+	for (int q = 0; q < rho; ++q)
+	{
+		int max_r=0;
+
+		for (int r=0; r < sizer;++r)
+		{
+			// need to turn q into radians
+			if (polar[q][r] > 0 && r > max_r)
+			{
+				max_r = r;
+			}
+
+		}
+		// calculate vector based on max y for every x
+		double deviation = abs(double(max_r)-rad);
+
+		// Divide by radius to normalise by size (dividing by sqrt(rad) increases values for large radius)
+		dev += abs(max_r - rad);// rad;
+		++rad_count;
+	}
+	cout << "dev" << '\t' << rad_count << '\t' << dev / rad_count << endl;
+	double result = dev / double(rad_count);
+	return result;
 }
 
 
