@@ -7195,6 +7195,8 @@ vector<int> CellularPotts::LinkPerimeter()
   vector<vector<int>> nbs = CellNeighbours(cell_list);
   // the iterator of nbs is equal to the key in cell_list. 
 
+  vector<vector<int>> vertices = SearchNforVertices();
+
   ordered_list.push_back(cell_list.front());
   // cell_list.erase(cell_list.begin());
 
@@ -7241,25 +7243,23 @@ vector<int> CellularPotts::LinkPerimeter()
           {
             auto newit = find(cell_list.begin(), cell_list.end(), i);
             int vlen = newit - cell_list.begin();
-            if (nbs.at(vlen).size() > 1)
+
+            double rand = RANDOM(s_val);
+            if (rand < 0.5)
             {
-              double rand = RANDOM(s_val);
-              if (rand < 0.5)
-              {
-                // minvec = vec;
-                next = i;
-                break;                
-              }
-              // int xdist = (*cell)[i].xcen - xcen;
-              // int ydist = (*cell)[i].ycen - ycen;
-              
-              // double vec = sqrt(pow(xdist, 2) + pow(ydist, 2));
-              // if (vec < minvec)
-              // {
-              //   minvec = vec;
-              //   next = i;
-              // }
+              // minvec = vec;
+              next = i;
+              break;                
             }
+            // int xdist = (*cell)[i].xcen - xcen;
+            // int ydist = (*cell)[i].ycen - ycen;
+            
+            // double vec = sqrt(pow(xdist, 2) + pow(ydist, 2));
+            // if (vec < minvec)
+            // {
+            //   minvec = vec;
+            //   next = i;
+            // }
           }
         }
       }
