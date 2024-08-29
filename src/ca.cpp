@@ -4802,7 +4802,7 @@ double CellularPotts::AVcomplexity()
     if (c->AliveP())
     {
       int j=0;
-      
+      while ()
       for (int n=0;n<neighbours[cell)
       {
 
