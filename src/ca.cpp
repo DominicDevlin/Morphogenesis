@@ -4794,14 +4794,15 @@ bool CellularPotts::SoloCheck()
 double CellularPotts::AVcomplexity()
 {
   SetCellCenters();
-  vector<vector<int> = CellNeighbours();
+  int** neighbours = SearchNeighbours();
   int cell_it=0;
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
   {
     if (c->AliveP())
     {
-      // check if med is a neighbour
+      int j=0;
+      
       for (int n=0;n<neighbours[cell)
       {
 
