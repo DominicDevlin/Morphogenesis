@@ -4796,17 +4796,27 @@ double CellularPotts::AVcomplexity()
   SetCellCenters();
   int** neighbours = SearchNeighbours();
   int cell_it=0;
+
+  // we need to make a ring
+
+
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
   {
     if (c->AliveP())
     {
-      int j=0;
-      while ()
-      for (int n=0;n<neighbours[cell)
+      int j = 0;
+      while (neighbours[cell_it][j] != EMPTY)
       {
+        if (neighbours[cell_it][j] == 0)
+        {
+          double xc = c->get_xcen();
+          double yc = c->get_ycen();
 
+        }
+        ++j;
       }
+
     }
     ++cell_it;
   }
