@@ -7148,6 +7148,8 @@ vector<int> CellularPotts::CellsFromCAC(vector<array<int,2>> cac)
 vector<vector<int>> CellularPotts::CellNeighbours(vector<int> cell_list) 
 {
   vector<vector<int>> nbh_vector{};
+  map<int,vector<int>> NBH{};
+
   nbh_vector.resize(cell_list.size());
 
   for (int x = 1; x<sizex - 1; ++x)
@@ -7170,128 +7172,215 @@ vector<vector<int>> CellularPotts::CellNeighbours(vector<int> cell_list)
             if (iter == nbh_vector.at(val).end())
             {
               nbh_vector.at(val).push_back(nb);
+              NBH[val].push_back(nb);
             }
           }
         }        
       }
     }
-
   return nbh_vector;
 
 }  
 
 
+
+void DFS(int node, const vector<vector<int>>& adj_matrix, vector<vector<bool>>& visited_edges, vector<int>& path) {
+    for (int i = 0; i < adj_matrix.size(); ++i) {
+        if (adj_matrix[node][i] == 1 && !visited_edges[node][i]) {
+            visited_edges[node][i] = true;
+            visited_edges[i][node] = true; // Since the graph is undirected
+
+            DFS(i, adj_matrix, visited_edges, path);
+        }
+    }
+    path.push_back(node); // Add the node to the path after visiting its neighbors
+}
+
 vector<int> CellularPotts::LinkPerimeter()
 {
+    // Ensure cells have correct mass centers.
+    SetCellCenters();
 
-  // ensure cells have correct mass centers. 
-  SetCellCenters();
+    // Generate the list of cells around the perimeter
+    vector<int> cell_list = CellsFromCAC(PerimeterCAC());
 
-  // How about this.. Iterate around the perimeter to link it, and then iterate around those cells.
-  vector<int> cell_list = CellsFromCAC(PerimeterCAC());  
-
-  vector<int> ordered_list{};
-
-  vector<vector<int>> nbs = CellNeighbours(cell_list);
-  // the iterator of nbs is equal to the key in cell_list. 
-
-  vector<vector<int>> vertices = SearchNforVertices();
-
-  ordered_list.push_back(cell_list.front());
-  // cell_list.erase(cell_list.begin());
+    // Get the adjacency matrix of neighboring cells
+    vector<vector<int>> nbs = CellNeighbours(cell_list);
 
 
-  auto it = cell_list.begin();
-  int veclen = it - cell_list.begin();
-  int cn = cell_list.front();
 
-  bool finished = false;
+    vector<vector<int>> vertices = SearchNforVertices();
 
-  vector<pair<int,int>> transitions{};
-
-  while (!finished)
-  {
-    int next{};
-    double minvec = sizex;
-
-
-    int xcen = (*cell)[cn].xcen;
-    int ycen = (*cell)[cn].ycen;
-
-    vector<int> &nbh = nbs.at(veclen); 
-    
-    pair<int,int> last_transition;
-    for (int &i : nbh)
+    for (auto vec : nbs)
     {
-
-      pair<int,int> forward_transition = {cn, i};
-      auto ifused = find(transitions.begin(), transitions.end(), forward_transition);
-      if (ifused == transitions.end())
+      // i want to iterate through every pair. 
+      for (size_t i = 0; i < vec.size(); ++i) 
       {
-        if (nbh.size() == 1)
+        for (size_t j = i + 1; j < vec.size(); ++j) 
         {
-          auto newit = find(cell_list.begin(), cell_list.end(), i);
-          int vlen = newit - cell_list.begin();
-          next = i;
-          break;
-        }        
-        else
-        {
-          pair<int,int> reverse_transition = {i, cn};
-          auto reverse_used = find(transitions.begin(), transitions.end(), reverse_transition);
-          if (reverse_used == transitions.end())
-          {
-            auto newit = find(cell_list.begin(), cell_list.end(), i);
-            int vlen = newit - cell_list.begin();
-
-            double rand = RANDOM(s_val);
-            if (rand < 0.5)
-            {
-              // minvec = vec;
-              next = i;
-              break;                
-            }
-            // int xdist = (*cell)[i].xcen - xcen;
-            // int ydist = (*cell)[i].ycen - ycen;
-            
-            // double vec = sqrt(pow(xdist, 2) + pow(ydist, 2));
-            // if (vec < minvec)
-            // {
-            //   minvec = vec;
-            //   next = i;
-            // }
-          }
+          std::cout << "Pair: (" << vec[i] << ", " << vec[j] << ")" << std::endl;
         }
       }
     }
-    if (next)
-    {
-      pair<int,int> transition = {cn, next};
-      transitions.push_back(transition);
-      it = find(cell_list.begin(), cell_list.end(), next);
-      veclen = it - cell_list.begin();
-      cn = next;
-      ordered_list.push_back(cn);
-    }
-    else if (ordered_list.size() != cell_list.size())
-    {
-      ordered_list.clear();
-      transitions.clear();
-      auto it = cell_list.begin();
-      int veclen = it - cell_list.begin();
-      int cn = cell_list.front();
-    }
-    else
-    {
-      break;
-    }
-  }
-  ordered_list.push_back(ordered_list.front());
 
-  return ordered_list;
+    // Step 1: Extract all unique nodes
+    set<int> unique_nodes;
+    for (const auto& vec : nbs) {
+        for (int num : vec) {
+            unique_nodes.insert(num);
+        }
+    }
 
+    // Step 2: Create a mapping from node to index
+    unordered_map<int, int> node_to_index;
+    unordered_map<int, int> index_to_node; // For reversing the mapping
+    int index = 0;
+    for (int node : unique_nodes) {
+        node_to_index[node] = index;
+        index_to_node[index] = node; // Reverse mapping
+        index++;
+    }
+
+    // Step 3: Initialize the adjacency matrix
+    int N = unique_nodes.size();
+    vector<vector<int>> adj_matrix(N, vector<int>(N, 0));
+
+    // Step 4: Fill the adjacency matrix
+    for (const auto& vec : nbs) {
+        for (size_t i = 0; i < vec.size(); ++i) {
+            for (size_t j = i + 1; j < vec.size(); ++j) {
+                int u = node_to_index[vec[i]];
+                int v = node_to_index[vec[j]];
+                adj_matrix[u][v] = 1;
+                adj_matrix[v][u] = 1; // Since the graph is undirected
+            }
+        }
+    }
+
+    // Step 5: Prepare for DFS with edge visitation tracking
+    vector<vector<bool>> visited_edges(N, vector<bool>(N, false));
+    vector<int> path{};
+
+    // Start DFS from node 0
+    DFS(0, adj_matrix, visited_edges, path);
+
+    // Step 6: Map back the node indices to original nodes
+    vector<int> original_order{};
+    for (int index : path) {
+        original_order.push_back(index_to_node[index]);
+    }
+
+    // Reverse the path to get the correct order (DFS finishes in reverse order)
+    std::reverse(original_order.begin(), original_order.end());
+
+    // Print the order of traversal
+    cout << "Order of traversal: ";
+    for (int node : original_order) {
+        cout << node << " ";
+    }
+    cout << endl;
+
+    return original_order;
 }
 
+
+
+
+
+  // ordered_list.push_back(cell_list.front());
+  // // cell_list.erase(cell_list.begin());
+
+
+  // auto it = cell_list.begin();
+  // int veclen = it - cell_list.begin();
+  // int cn = cell_list.front();
+
+  // bool finished = false;
+
+  // vector<pair<int,int>> transitions{};
+
+  // vector<vector<int>> segments;
+
+
+
+  // while (!finished)
+  // {
+  //   int next{};
+  //   double minvec = sizex;
+
+
+  //   int xcen = (*cell)[cn].xcen;
+  //   int ycen = (*cell)[cn].ycen;
+
+  //   vector<int> &nbh = nbs.at(veclen); 
+    
+  //   pair<int,int> last_transition;
+  //   for (int &i : nbh)
+  //   {
+
+  //     pair<int,int> forward_transition = {cn, i};
+  //     auto ifused = find(transitions.begin(), transitions.end(), forward_transition);
+  //     if (ifused == transitions.end())
+  //     {
+  //       if (nbh.size() == 1)
+  //       {
+  //         auto newit = find(cell_list.begin(), cell_list.end(), i);
+  //         int vlen = newit - cell_list.begin();
+  //         next = i;
+  //         break;
+  //       }        
+  //       else
+  //       {
+  //         pair<int,int> reverse_transition = {i, cn};
+  //         auto reverse_used = find(transitions.begin(), transitions.end(), reverse_transition);
+  //         if (reverse_used == transitions.end())
+  //         {
+  //           auto newit = find(cell_list.begin(), cell_list.end(), i);
+  //           int vlen = newit - cell_list.begin();
+
+  //           double rand = RANDOM(s_val);
+  //           if (rand < 0.5)
+  //           {
+  //             // minvec = vec;
+  //             next = i;
+  //             break;                
+  //           }
+  //           // int xdist = (*cell)[i].xcen - xcen;
+  //           // int ydist = (*cell)[i].ycen - ycen;
+            
+  //           // double vec = sqrt(pow(xdist, 2) + pow(ydist, 2));
+  //           // if (vec < minvec)
+  //           // {
+  //           //   minvec = vec;
+  //           //   next = i;
+  //           // }
+  //         }
+  //       }
+  //     }
+  //   }
+  //   if (next)
+  //   {
+  //     pair<int,int> transition = {cn, next};
+  //     transitions.push_back(transition);
+  //     it = find(cell_list.begin(), cell_list.end(), next);
+  //     veclen = it - cell_list.begin();
+  //     cn = next;
+  //     ordered_list.push_back(cn);
+  //   }
+  //   else if (ordered_list.size() != cell_list.size())
+  //   {
+  //     ordered_list.clear();
+  //     transitions.clear();
+  //     auto it = cell_list.begin();
+  //     int veclen = it - cell_list.begin();
+  //     int cn = cell_list.front();
+  //   }
+  //   else
+  //   {
+  //     break;
+  //   }
+  // }
+  // ordered_list.push_back(ordered_list.front());
 
 
 
