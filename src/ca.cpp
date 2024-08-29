@@ -784,6 +784,31 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
   }
 }
 
+
+bool containsTargetVector(const vector<int>& target, const vector<std::vector<int>>& vec) 
+{
+  int tcount = target.size();
+  for (const auto& subVec : vec) 
+  {
+    std::unordered_set<int> subVecSet(subVec.begin(), subVec.end());  // Convert subVec to a set for easy lookup
+    bool containsAll = true;
+    int counter=0;
+    // Check if all elements in the target are in the current sub-vector
+    for (int num : target) 
+    {
+      if (subVecSet.find(num) != subVecSet.end()) 
+      {
+        ++counter;
+      }
+    }
+    if (counter == tcount)
+    {
+      return true;
+    }
+  }
+  return false;  // No such vector found
+}
+
 vector<vector<int>> CellularPotts::SearchNforVertices()
 {
   int x, y,q;
@@ -4855,36 +4880,95 @@ bool CellularPotts::SoloCheck()
 double CellularPotts::AVcomplexity()
 {
   SetCellCenters();
-  int** neighbours = SearchNeighbours();
+  vector<vector<int>> vertices = SearchNforVertices();
   int cell_it=0;
 
-  // we need to make a ring
+  vector<vector<int>> cp_vertices = vertices;
 
-
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  // find a start point
+  int start{};
+  for (unsigned i = 0; i < vertices.size();++i)
   {
-    if (c->AliveP())
+    for (unsigned j=0; j < vertices[i].size(); ++j)
     {
-      int j = 0;
-      while (neighbours[cell_it][j] != EMPTY)
+      if (vertices[i][j]==0)
       {
-        if (neighbours[cell_it][j] == 0)
+        if (j > 0)
         {
-          double xc = c->get_xcen();
-          double yc = c->get_ycen();
-
+          start = vertices[i][0];
+          cp_vertices.erase(cp_vertices.begin()+i);
+          i=vertices.size();
+          break;
         }
-        ++j;
+        else
+        {
+          start = vertices[i][1];
+          cp_vertices.erase(cp_vertices.begin()+i);
+          i=vertices.size();
+          break;
+        }
       }
-
     }
-    ++cell_it;
   }
+  
+
+  // now we need to make a ring
+  vector<int> ring{};
+  ring.push_back(start);
+
+  int current = start;
+  bool found_start = false;
+  int counter=0;
+  while (!found_start)
+  {
+    int neighbour=0;
+    for (unsigned i = 0; i < cp_vertices.size();++i)
+    {
+      bool has_med=false;
+      bool has_neighbour=false;
+      int happy=0;
+      
+      for (unsigned j=0; j < cp_vertices[i].size(); ++j)
+      {    
+        if (cp_vertices[i][j] == 0)
+        {
+          has_med = true;
+        }
+        if (cp_vertices[i][j] == current)
+        {
+          has_neighbour = true;
+        }
+        if (cp_vertices[i][j] != current)
+        {
+          happy = vertices[i][j];
+        }
+      }
+      if (has_med==true && has_neighbour == true)
+      {
+        if (happy == start)
+        {
+          found_start = true;
+        }
+        else
+        {
+          cout << happy << endl;
+          ring.push_back(happy);
+          cp_vertices.erase(cp_vertices.begin() + i);
+          current = happy;         
+        }
 
 
-  free(neighbours[0]);
-  free(neighbours);
+        break;
+      }
+    }
+  }
+  for (int &i : ring)
+  {
+    cout << i << '\t';
+  }
+  cout << endl;
+
+  return 0;
 }
 
 
@@ -7121,6 +7205,8 @@ vector<int> CellularPotts::LinkPerimeter()
 
   bool finished = false;
 
+  vector<pair<int,int>> transitions{};
+
   while (!finished)
   {
     int next{};
@@ -7132,33 +7218,68 @@ vector<int> CellularPotts::LinkPerimeter()
 
     vector<int> &nbh = nbs.at(veclen); 
     
+    pair<int,int> last_transition;
     for (int &i : nbh)
     {
-      auto ifused = find(ordered_list.begin(), ordered_list.end(), i);
-      if (ifused == ordered_list.end())
+
+      pair<int,int> forward_transition = {cn, i};
+      auto ifused = find(transitions.begin(), transitions.end(), forward_transition);
+      if (ifused == transitions.end())
       {
-        auto newit = find(cell_list.begin(), cell_list.end(), i);
-        int vlen = newit - cell_list.begin();
-        if (nbs.at(vlen).size() > 1)
+        if (nbh.size() == 1)
         {
-          int xdist = (*cell)[i].xcen - xcen;
-          int ydist = (*cell)[i].ycen - ycen;
-          
-          double vec = sqrt(pow(xdist, 2) + pow(ydist, 2));
-          if (vec < minvec)
+          auto newit = find(cell_list.begin(), cell_list.end(), i);
+          int vlen = newit - cell_list.begin();
+          next = i;
+          break;
+        }        
+        else
+        {
+          pair<int,int> reverse_transition = {i, cn};
+          auto reverse_used = find(transitions.begin(), transitions.end(), reverse_transition);
+          if (reverse_used == transitions.end())
           {
-            minvec = vec;
-            next = i;
+            auto newit = find(cell_list.begin(), cell_list.end(), i);
+            int vlen = newit - cell_list.begin();
+            if (nbs.at(vlen).size() > 1)
+            {
+              double rand = RANDOM(s_val);
+              if (rand < 0.5)
+              {
+                // minvec = vec;
+                next = i;
+                break;                
+              }
+              // int xdist = (*cell)[i].xcen - xcen;
+              // int ydist = (*cell)[i].ycen - ycen;
+              
+              // double vec = sqrt(pow(xdist, 2) + pow(ydist, 2));
+              // if (vec < minvec)
+              // {
+              //   minvec = vec;
+              //   next = i;
+              // }
+            }
           }
         }
       }
     }
     if (next)
     {
+      pair<int,int> transition = {cn, next};
+      transitions.push_back(transition);
       it = find(cell_list.begin(), cell_list.end(), next);
       veclen = it - cell_list.begin();
       cn = next;
       ordered_list.push_back(cn);
+    }
+    else if (ordered_list.size() != cell_list.size())
+    {
+      ordered_list.clear();
+      transitions.clear();
+      auto it = cell_list.begin();
+      int veclen = it - cell_list.begin();
+      int cn = cell_list.front();
     }
     else
     {

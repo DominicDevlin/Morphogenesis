@@ -464,6 +464,8 @@ TIMESTEP {
     if (t % 1000 == 0)
     {
       dish->CPM->update_fitness();
+      // if (t>1)
+      //     dish->CPM->AVcomplexity();
 
       dish->CPM->print_random_cell();
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
@@ -544,21 +546,22 @@ TIMESTEP {
       // Plot the dish. 
       dish->Plot(this);
       
-      // static vector<array<int,2>> perim;
-      // static vector<int> pcells;
-      // if (t > 1000 && t % 500 == 0)
-      // {
-      //   // perim = dish->CPM->PerimeterCAC();
-      //   // pcells = dish->CPM->CellsFromCAC(perim);
-      //   // pcells = dish->CPM->LinkPerimeter();
-      //   // dish->CPM->AngleCurvature();
-      // }
+      static vector<array<int,2>> perim;
+      static vector<int> pcells;
+      if (t > 1000 && t % 500 == 0)
+      {
+        perim = dish->CPM->PerimeterCAC();
+        pcells = dish->CPM->CellsFromCAC(perim);
+        pcells = dish->CPM->LinkPerimeter();
+        //
+        // dish->CPM->AngleCurvature();
+      }
       
-      // if (t > 1500)
-      // {
-      //   // dish->CPM->DrawListofCAC(this, perim);
-      //   // dish->CPM->DrawPerimeter(this, pcells);
-      // }
+      if (t > 1500)
+      {
+        dish->CPM->DrawListofCAC(this, perim);
+        dish->CPM->DrawPerimeter(this, pcells);
+      }
 
 
       // static bool c4 = false;
