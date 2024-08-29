@@ -4791,6 +4791,27 @@ bool CellularPotts::SoloCheck()
 }
 
 
+double CellularPotts::AVcomplexity()
+{
+  SetCellCenters();
+  int** neighbours = SearchNeighbours();
+  int cell_it=0;
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      // check if med is a neighbour
+    }
+    ++cell_it;
+  }
+
+
+  free(neighbours[0]);
+  free(neighbours);
+}
+
+
 //IMPORTANT METHOD:  Function to ensure all cells are connected indirectly to all other cells on lattice.  
 bool CellularPotts::CheckAllConnected()
 {

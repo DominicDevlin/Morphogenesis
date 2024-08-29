@@ -346,6 +346,8 @@ public:
   // returns colour at this site
   int SiteColour(int x, int y);
 
+  double AVcomplexity();
+
   vector<vector<double>> OrganismGenes(int start);
 
   vector<int> OrganismTypes(int start);
