@@ -390,6 +390,9 @@ public:
     return SearchNandPlot(0, true);
   }
 
+  vector<vector<int>> SearchNforVertices();
+
+
   //! Return the total area occupied by the cells
   inline int Mass(void) {
     int mass=0;
