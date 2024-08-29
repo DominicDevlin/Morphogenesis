@@ -4794,7 +4794,7 @@ bool CellularPotts::SoloCheck()
 double CellularPotts::AVcomplexity()
 {
   SetCellCenters();
-  int** neighbours = SearchNeighbours();
+  vector<vector<int> = CellNeighbours();
   int cell_it=0;
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
