@@ -113,6 +113,54 @@ int WriteData(const map<int, vector<pair<int, double>>>& shapedata, const string
   return phase_counts; 
 }
 
+void OutputOrder(vector<vector<pair<double,double>>> &shape_alignments, string oname)
+{
+    // Find the maximum length of the inner vectors
+  int max_size = 0;
+  for (const auto& vec : shape_alignments) 
+  {
+    if (vec.size() > max_size) 
+    {
+        max_size = vec.size();
+    }
+  }
+  // Initialize vectors to store the sums and counts for each index
+  vector<double> sum_first(max_size, 0.0);
+  vector<double> sum_second(max_size, 0.0);
+  vector<int> count_first(max_size, 0);
+  vector<int> count_second(max_size, 0);
+  // Iterate through all shape_alignments and sum up the values at each index
+  for (const auto& vec : shape_alignments) 
+  {
+    for (int i = 0; i < vec.size(); ++i) {
+        sum_first[i] += vec[i].first;
+        sum_second[i] += vec[i].second;
+        count_first[i]++;
+        count_second[i]++;
+    }
+  }
+  // Calculate the averages
+  vector<pair<double, double>> averages(max_size);
+  for (int i = 0; i < max_size; ++i) {
+      if (count_first[i] > 0) {
+          averages[i].first = sum_first[i] / count_first[i];
+      }
+      if (count_second[i] > 0) {
+          averages[i].second = sum_second[i] / count_second[i];
+      }
+  }
+  ofstream outfile;
+  outfile.open(oname, ios::app);  // Append mode
+  
+  for (unsigned i = 0; i < averages.size(); ++i)
+  {
+    outfile << 300 + i * 100 << '\t' << averages[i].first << '\t' << averages[i].second << '\t' << endl;
+  }
+
+}
+
+
+
 int PDE::MapColour(double val)
 {
 
@@ -165,10 +213,15 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   int n_times_apart{};
   int total_steps{};
 
+  vector<vector<pair<double,double>>> shape_alignments{};
+  vector<vector<pair<double,double>>> Z_values{};
+
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
   for (int i = 0; i < par.n_orgs; ++i)
   {
+    vector<pair<double,double>> org_zvals{};
+    vector<pair<double,double>> org_alignments{};
 
     dishes[i].CPM->set_num(i + 1);
     // does init block above.
@@ -238,6 +291,14 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           dishes[i].CPM->PhaseShapeIndex(t);
           dishes[i].CPM->HexaticOrder(t);
         }
+        if (t > 200 && t % 100 == 0)
+        {
+          pair<double,double> zvals = dishes[i].CPM->PhaseZValues();
+          org_zvals.push_back(zvals);
+          pair<double,double> alignments = dishes[i].CPM->ShapeAlignmentByPhase();
+          org_alignments.push_back(alignments);
+
+        }
 
         if (par.velocities)
         {
@@ -279,6 +340,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       }
     }
     total_steps += t;
+    shape_alignments.push_back(org_alignments);
+    Z_values.push_back(org_zvals);
   }
 
   if (mkdir(par.data_file.c_str(), 0777) == -1)
@@ -334,6 +397,34 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     oname = par.data_file + "/shape_time.dat";
     t_shape_count = WriteData(shapedata, oname);    
   }
+
+  double avg_length = 0;
+  double avg_variance = 0;
+  double avg_phase_remained = 0;
+  double avg_fitness=0;
+
+  for (int i=0; i < par.n_orgs;++i)
+  {
+    pair<double,double> lw = dishes[i].CPM->LengthWidth();
+    avg_length += lw.first;
+    avg_variance += lw.second;
+    avg_fitness += pow(lw.first, 2) / lw.second;
+    
+    int n_phase = dishes[i].CPM->CountPhaseOnCells();
+    avg_phase_remained += n_phase;
+  }
+  avg_length = avg_length / par.n_orgs;
+  avg_variance = avg_variance / par.n_orgs;
+  avg_phase_remained = avg_phase_remained / par.n_orgs;
+  avg_fitness = avg_fitness / par.n_orgs;
+
+  ofstream outfile;
+  string fname = par.data_file + "/fitness.txt";
+  outfile.open(fname, ios::app);
+  outfile << avg_fitness << '\t' << avg_length << '\t' << avg_variance << '\t' << avg_phase_remained << endl;
+  outfile.close();
+
+  
   /*
     NOTES:
 
@@ -341,19 +432,22 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     NEED TO OUTPUT:
     Z-value (time based)
     shape alignment (time based)
-    average fitness (length2 / variance)
-    
-  
-  
-  
+    average fitness (length2 / variance) 
   */
+  string o_align = par.data_file + "/alignments.txt";
+  OutputOrder(shape_alignments, o_align);
 
-  ofstream outfile;
+  string o_Z = par.data_file + "/Z-order.txt";
+  OutputOrder(Z_values, o_Z);
+
+
+
+
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << total_steps << '\t' << double(total_steps) / 60 << '\t' << t_hex_count << '\t' << t_shape_count 
+  outfile << double(total_steps) / 60 << '\t' << t_hex_count << '\t' << t_shape_count 
   << '\t' << double(t_hex_count) / total_steps * par.measure_interval << '\t' << double(t_shape_count) / total_steps * par.measure_interval << '\t' << n_times_apart << endl;
-
+  outfile.close();
 
 
   if (par.pics_for_opt)
@@ -432,9 +526,12 @@ int main(int argc, char *argv[])
 
 #ifdef QTGRAPHICS
   {
-    QApplication* a = new QApplication(argc, argv);
-    // if (mkdir(par.pic_dir.c_str(), 0777) != -1)
-    //   cout << "Directory created." << endl;
+    if (par.pics_for_opt)
+    {
+      QApplication* a = new QApplication(argc, argv);
+      // if (mkdir(par.pic_dir.c_str(), 0777) != -1)
+      //   cout << "Directory created." << endl;
+    }
   }
 #endif
 

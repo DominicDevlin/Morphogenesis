@@ -406,7 +406,7 @@ public:
 
   void ComputeShapeAlignment();
 
-  void ShapeAlignmentByPhase();
+  pair<double,double> ShapeAlignmentByPhase();
 
   pair<double,double> PhaseZValues();
 

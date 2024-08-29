@@ -829,7 +829,7 @@ vector<vector<int>> CellularPotts::SearchNforVertices()
           else
             neighsite=sigma[xp2][yp2];
         }
-        if (curcell != neighsite && neighsite > 0)
+        if (curcell != neighsite)
         {
           if (find(tempn.begin(), tempn.end(), neighsite) == tempn.end())
           {
@@ -1104,7 +1104,7 @@ void CellularPotts::ComputeShapeAlignment()
   
 }
 
-void CellularPotts::ShapeAlignmentByPhase()
+pair<double,double> CellularPotts::ShapeAlignmentByPhase()
 {
 
   SetCellCenters();
@@ -1244,11 +1244,12 @@ void CellularPotts::ShapeAlignmentByPhase()
 
   double on_qmag = sqrt( pow(on_qxx, 2) + pow(on_qxy, 2));
   double off_qmag = sqrt( pow(off_qxx, 2) + pow(off_qxy, 2));
-
+  pair<double, double> to_return = {off_qmag, on_qmag};
+  return to_return;
 
   // cout << qxx << '\t' << qxy << '\n' << qyx << '\t' << qyy << endl;
-  cout << "phase on shape alignment: " << on_qmag << endl;
-  cout << "phase off shape alignment: " << off_qmag << endl;
+  // cout << "phase on shape alignment: " << on_qmag << endl;
+  // cout << "phase off shape alignment: " << off_qmag << endl;
   
 }
 
@@ -1308,7 +1309,8 @@ vector<pair<int,int>> CellularPotts::SearchNforEdges()
         if (tempn.size() == 2)
         {
           pair<int,int> edge = {tempn[0], tempn[1]};
-          if (find(neighbours.begin(), neighbours.end(), edge) == neighbours.end())
+          pair<int,int> edge2 = {tempn[1], tempn[0]};
+          if (find(neighbours.begin(), neighbours.end(), edge) == neighbours.end() && find(neighbours.begin(), neighbours.end(), edge2) == neighbours.end())
           {
             neighbours.push_back(edge);
           }
@@ -1332,14 +1334,38 @@ pair<double,double> CellularPotts::PhaseZValues()
     {
       bool phase1 = cell->at(i.first).GetPhase();
       bool phase2 = cell->at(i.second).GetPhase();
-      if (phase1==phase2==true)
+      if (phase1==true && phase2==true)
       {
-        ++phase_on_vertices;
+        ++phase_on_edges;
       }
-      else if (phase1==phase2==false)
+      else if (phase1==false && phase2 == false)
       {
-        ++phase_off_vertices;
+        ++phase_off_edges;
       }
+    }
+    else if (i.first == 0)
+    {
+      bool phase = cell->at(i.second).GetPhase();
+      if (phase==true)
+      {
+        ++phase_on_edges;
+      }
+      else
+      {
+        ++phase_off_edges;
+      }      
+    }
+    else if (i.second == 0)
+    {
+      bool phase = cell->at(i.first).GetPhase();
+      if (phase==true)
+      {
+        ++phase_on_edges;
+      }
+      else
+      {
+        ++phase_off_edges;
+      }      
     }
   }
   vector<vector<int>> vertices = SearchNforVertices();
@@ -1351,7 +1377,7 @@ pair<double,double> CellularPotts::PhaseZValues()
     {
       if (j == 0)
       {
-        break;
+        continue;
       }
       bool phase = cell->at(j).GetPhase();
       if (phase != phase_on)
@@ -1360,10 +1386,13 @@ pair<double,double> CellularPotts::PhaseZValues()
         phase_off = true;
     }
     if (phase_on)
+    {
       ++phase_on_vertices;
+    }
     if (!phase_off)
       ++phase_off_vertices;
   }
+  // cout << phase_on_edges << '\t' << phase_on_vertices << endl;
   double Z_on = 2 * double(phase_on_edges) / double(phase_on_vertices);
   double Z_off = 2 * double(phase_off_edges) / double(phase_off_vertices);
   pair<double,double> toreturn = {Z_off, Z_on};

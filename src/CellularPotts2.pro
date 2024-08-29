@@ -12,11 +12,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-<<<<<<< HEAD
-TARGET = sort-phase
-=======
 TARGET = phasemulti
->>>>>>> d7f46dbef7bb82d468ba67e52cbdc0e3cf194c4d
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 
 message( $$MAINFILE )
