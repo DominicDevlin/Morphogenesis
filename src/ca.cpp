@@ -4802,6 +4802,10 @@ double CellularPotts::AVcomplexity()
     if (c->AliveP())
     {
       // check if med is a neighbour
+      for (int n=0;n<neighbours[cell)
+      {
+
+      }
     }
     ++cell_it;
   }
