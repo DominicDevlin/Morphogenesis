@@ -793,10 +793,12 @@ vector<vector<int>> CellularPotts::SearchNforVertices()
   int x, y,q;
   int neighsite;
   vector<vector<int>> neighbours;
-  
+  int bound = 1;
+  if (!par.periodic_boundaries)
+    bound = 3;
 
-  for ( x = 1; x < sizex-1; x++ )
-    for ( y = 1; y < sizey-1; y++ ) 
+  for ( x = bound; x < sizex-bound; x++ )
+    for ( y = bound; y < sizey-bound; y++ ) 
     {
       int curcell=sigma[x][y];
       vector<int> tempn{};
@@ -1262,10 +1264,14 @@ vector<pair<int,int>> CellularPotts::SearchNforEdges()
   int x, y,q;
   int neighsite;
   vector<pair<int,int>> neighbours;
-  
+  int bound = 1;
+  if (!par.periodic_boundaries)
+  {
+    bound = 3;
+  }
 
-  for ( x = 1; x < sizex-1; x++ )
-    for ( y = 1; y < sizey-1; y++ ) 
+  for ( x = bound; x < sizex-bound; x++ )
+    for ( y = bound; y < sizey-bound; y++ ) 
     {
       int curcell=sigma[x][y];
       vector<int> tempn{};

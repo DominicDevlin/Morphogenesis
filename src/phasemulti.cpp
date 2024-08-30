@@ -211,10 +211,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   Dish *dishes = new Dish[par.n_orgs];
 
   int n_times_apart{};
-  int total_steps{};
 
-  vector<vector<pair<double,double>>> shape_alignments{};
-  vector<vector<pair<double,double>>> Z_values{};
+  vector<vector<pair<double,double>>> shape_alignments(par.n_orgs);
+  vector<vector<pair<double,double>>> Z_values(par.n_orgs);
+  vector<int> total_steps(par.n_orgs);
 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
@@ -336,12 +336,21 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       bool if_end = dishes[i].CPM->EndOptimizer(t);
       if (if_end == true)
       {
+        total_steps[i] = t;
         t = par.mcs;
       }
+      else if (t == par.mcs -1)
+      {
+        total_steps[i] = par.mcs;
+      }
+      if (t%1000==0)
+      {
+        cout << i <<" t is: " << t << endl;
+      }
     }
-    total_steps += t;
-    shape_alignments.push_back(org_alignments);
-    Z_values.push_back(org_zvals);
+    // this is not thread safe but changes of it happening at same time are very very rare.
+    shape_alignments[i] = org_alignments;
+    Z_values[i] = org_zvals;
   }
 
   if (mkdir(par.data_file.c_str(), 0777) == -1)
@@ -441,12 +450,12 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   OutputOrder(Z_values, o_Z);
 
 
-
+  int sum_steps = accumulate(total_steps.begin(), total_steps.end(), 0);
 
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << double(total_steps) / 60 << '\t' << t_hex_count << '\t' << t_shape_count 
-  << '\t' << double(t_hex_count) / total_steps * par.measure_interval << '\t' << double(t_shape_count) / total_steps * par.measure_interval << '\t' << n_times_apart << endl;
+  outfile << double(sum_steps) / double(par.n_orgs) << '\t' << t_hex_count << '\t' << t_shape_count 
+  << '\t' << double(t_hex_count) / sum_steps * par.measure_interval << '\t' << double(t_shape_count) / sum_steps * par.measure_interval << '\t' << n_times_apart << endl;
   outfile.close();
 
 
@@ -553,7 +562,7 @@ int main(int argc, char *argv[])
   par.min_phase_cells=10;
 
 
-  par.n_orgs = 60;
+  par.n_orgs = 2;
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
   {
