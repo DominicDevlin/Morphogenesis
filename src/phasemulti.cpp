@@ -214,6 +214,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   vector<vector<pair<double,double>>> shape_alignments(par.n_orgs);
   vector<vector<pair<double,double>>> Z_values(par.n_orgs);
+  vector<vector<pair<double,double>>> volumes(par.n_orgs);
   vector<int> total_steps(par.n_orgs);
 
   omp_set_num_threads(par.n_orgs);
@@ -222,6 +223,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   {
     vector<pair<double,double>> org_zvals{};
     vector<pair<double,double>> org_alignments{};
+    vector<pair<double,double>> org_volume{};
 
     dishes[i].CPM->set_num(i + 1);
     // does init block above.
@@ -297,6 +299,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           org_zvals.push_back(zvals);
           pair<double,double> alignments = dishes[i].CPM->ShapeAlignmentByPhase();
           org_alignments.push_back(alignments);
+          pair<double,double> vs = dishes[i].CPM->GetTargetandVolume();
+          org_volume.push_back(vs);
 
         }
 
@@ -351,6 +355,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     // this is not thread safe but changes of it happening at same time are very very rare.
     shape_alignments[i] = org_alignments;
     Z_values[i] = org_zvals;
+    volumes[i] = org_volume;
   }
 
   if (mkdir(par.data_file.c_str(), 0777) == -1)
@@ -449,6 +454,9 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   string o_Z = par.data_file + "/Z-order.txt";
   OutputOrder(Z_values, o_Z);
 
+  string o_volume = par.data_file + "/volume-data.txt";
+  OutputOrder(volumes, o_volume);
+
 
   int sum_steps = accumulate(total_steps.begin(), total_steps.end(), 0);
 
@@ -490,7 +498,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 int main(int argc, char *argv[]) 
 {
 
-  bool read_in = true;
+  bool read_in = false;
   vector<vector<double>> params_data;
   if (read_in)
   {
@@ -562,7 +570,7 @@ int main(int argc, char *argv[])
   par.min_phase_cells=10;
 
 
-  par.n_orgs = 2;
+  par.n_orgs = 60;
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
   {

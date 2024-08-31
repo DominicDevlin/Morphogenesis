@@ -88,7 +88,7 @@ public:
   vector<int> MiddleOfCell(int sig);
 
   // called by Programmed_Division() to set maternal factors
-  void set_MF(vector<vector<int>> middles, int gene, double conc=1., bool mod_second = false);
+  void set_MF(vector<vector<int>> middles, int gene, double conc=1., double conc2=0., bool mod_second = false);
 
   vector<bool> divide_vector(void);
 
@@ -111,6 +111,8 @@ public:
   void randomise_network(void);
 
   void print_random_cell(void);
+
+  pair<int,int> GetTargetandVolume();
 
   bool CycleCheck();
 

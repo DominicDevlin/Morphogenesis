@@ -281,6 +281,11 @@ class Parameter {
   int mfloc1;
   int mfloc2;
 
+  double mf1_conc_on;
+  double mf1_conc_off;
+  double mf2_conc_on;
+  double mf2_conc_off;
+
   int n_in;
   int n_gr;
 

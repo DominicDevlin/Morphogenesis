@@ -3213,7 +3213,7 @@ vector<int> CellularPotts::MiddleOfCell(int sig)
 
 
 
-void CellularPotts::set_MF(vector<vector<int>> middles, int gene, double conc, bool mod_second)
+void CellularPotts::set_MF(vector<vector<int>> middles, int gene, double conc, double conc2, bool mod_second)
 {
   int xdif = middles[0][1] - middles[1][1];
   int ydif = middles[0][2] - middles[1][2];
@@ -3234,7 +3234,7 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene, double conc, b
       if (mod_second)
       {
         vector<double>& nlist = cell->at(middles[1][0]).get_genes();
-        nlist.at(gene) = abs(1 - conc);
+        nlist.at(gene) = conc2;
         int val = nlist.at(par.mfloc1) * 4 + nlist.at(par.mfloc2)*3;
         cell->at(middles[1][0]).set_ctype(val);
       }
@@ -3249,7 +3249,7 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene, double conc, b
       if (mod_second)
       {
         vector<double>& nlist = cell->at(middles[0][0]).get_genes();
-        nlist.at(gene) = abs(1 - conc);
+        nlist.at(gene) = conc2;
         int val = nlist.at(par.mfloc1) * 4 + nlist.at(par.mfloc2)*3;
         cell->at(middles[0][0]).set_ctype(val);
       }
@@ -3271,7 +3271,7 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene, double conc, b
       if (mod_second)
       {
         vector<double>& nlist = cell->at(middles[1][0]).get_genes();
-        nlist.at(gene) = abs(1 - conc);
+        nlist.at(gene) = conc2;
         int val = nlist.at(par.mfloc1) * 4 + nlist.at(par.mfloc2)*3;
         cell->at(middles[1][0]).set_ctype(val);
       }
@@ -3288,7 +3288,7 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene, double conc, b
       if (mod_second)
       {
         vector<double>& nlist = cell->at(middles[0][0]).get_genes();
-        nlist.at(gene) = abs(1 - conc);
+        nlist.at(gene) = conc2;
         // cout << cell->at(middles[0][0]).Sigma() << '\t' << gene << '\t' << g_list[gene] << endl;
         int val = nlist.at(par.mfloc1) * 4 + nlist.at(par.mfloc2)*3;
         cell->at(middles[0][0]).set_ctype(val);
@@ -3420,8 +3420,8 @@ void CellularPotts::Programmed_Division(bool phase)
         middles.push_back(MiddleOfCell(i->Sigma()));
       }
     }
-    set_MF(middles, par.mfloc1, 1, true);
-    set_MF(middles, par.mfloc2, 0, true);  
+    set_MF(middles, par.mfloc1, par.mf1_conc_on, par.mf1_conc_off, true);
+    set_MF(middles, par.mfloc2, par.mf2_conc_on, par.mf2_conc_off, true);  
   }    
   else 
     DivideCells(to_divide);
@@ -6288,6 +6288,27 @@ void CellularPotts::DestroyCellsByRadius(double rad)
   cout << "Total cells killed: " << deadcells << endl;
 
 }
+
+
+pair<int,int> CellularPotts::GetTargetandVolume()
+{
+  int total_volume{};
+  int target_volume{};
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      total_volume += c->Area();
+      target_volume += c->TargetArea();
+    }
+  }  
+  pair<int,int> toreturn = {total_volume, target_volume};
+  return toreturn;
+}
+
+
+
 
 
 
