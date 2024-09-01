@@ -357,7 +357,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         int n_cells = dishes[i].CPM->CountCells();
         if (n_cells <= cell_counter[i])
         {
-          cout << "here!!" << endl;
           t = par.mcs;
         }
         else
@@ -489,7 +488,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 int main(int argc, char *argv[]) 
 {
   par.sizex = 200;
-  par.sizey = 250;
+  par.sizey = 300;
 
   vector<double> params;
   for (int i = 1; i < argc; ++i)

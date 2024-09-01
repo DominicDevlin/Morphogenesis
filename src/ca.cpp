@@ -2615,9 +2615,12 @@ void CellularPotts::CellGrowthAndDivision(int time)
 void CellularPotts::DiscreteGrowthAndDivision(int time)
 {
   double n_stem = double(CountPhaseOnCells());
-  double tally = 0.1*sqrt(n_stem);
-  leftover_mass_stem += par.Vs_max;
-  vector<bool> to_increase_stem(cell->size(), 0);
+  double ratio = 1  / (1+exp(-0.1*n_stem));
+  leftover_mass_stem += par.Vs_max * ratio;
+  vector<bool> to_increase_stem(cell->size(), false);
+  // we only want cells that border medium;
+  int **nbs = SearchNeighbours();
+  
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
   {
@@ -2626,10 +2629,21 @@ void CellularPotts::DiscreteGrowthAndDivision(int time)
       bool state = c->GetPhase();
       if (state)
       {
-        to_increase_stem[c->Sigma()] = true;
+        int sig = c->Sigma();
+        int j=0;
+        while(nbs[sig][j] != EMPTY)
+        {
+          if (nbs[sig][j] == 0)
+          {
+            to_increase_stem[c->Sigma()] = true;
+          }
+          ++j;
+        }         
       }
     }
   }
+  free(nbs[0]);
+  free(nbs);
 
   int sum_numbers = accumulate(to_increase_stem.begin(), to_increase_stem.end(), 0);
   if (sum_numbers > 0)

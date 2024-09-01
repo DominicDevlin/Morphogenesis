@@ -88,8 +88,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 250;
-    sizey = 250;
+    sizex = 200;
+    sizey = 300;
     mcs = 100000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -133,18 +133,18 @@
     // phase transition params;
     phase_evolution=true;
 
-    J_stem=4;
-    J_diff=10;
+    J_stem=1;
+    J_diff=11;
     J_med=J_diff/2 + 0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=10;
+    J_stem_diff=12.5286;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-    Vs_max = 0.2; // 1;
+    Vs_max = 0.398977; // 1;
     Vd_max = 0; // 1; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.001; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.0057705; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
 
@@ -162,7 +162,7 @@
     v_melt = -30;
     v_slope = -2;
 
-    offset = 0;//65 normally used
+    offset = 85;//65 normally used
     optimization_replicates = 6;
     pics_for_opt = false;
     pics_for_opt_interval = 100;
@@ -210,9 +210,10 @@
     mfloc1 = n_diffusers;
     mfloc2 = mfloc1 + 1;
     // default pattern is : 1,0 -- 0,1
-    mf1_conc_on=0;
+    // for stem only do 0,0 -- 1,1
+    mf1_conc_on=1;
     mf1_conc_off=0;
-    mf2_conc_on=1;
+    mf2_conc_on=0;
     mf2_conc_off=1;
 
     // location of target length genes in genome. 
