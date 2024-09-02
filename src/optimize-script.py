@@ -71,7 +71,7 @@ def f(x, time=0):
 ### specify ranges to optimize, each is a tuple with min and max
 
 # differentiation rate, will just be the secretion constant (2.4e-3 is default, 1.5 is about minimum before 0 becomes equilibrium)
-diffmax = 0.02 * np.exp(-J_stem) + 0.0023
+diffmax = 0.02 * np.exp(-J_stem) + 0.0025
 diff_rate = [1e-3,diffmax]
 # J of stem to diff
 Jsd = []
