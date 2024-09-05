@@ -154,11 +154,11 @@ void OutputResults(vector<double>& lengths, vector<double>& variances, vector<in
   avg_variance = avg_variance / lengths.size();
   avg_phase_remained = avg_phase_remained / lengths.size();
   
-  int start = 1;
+  int start = 0;
   int half = par.optimization_replicates / 2;
 
   std::sort(vec.begin(), vec.end(), std::greater<int>());
-  double avgfit = std::accumulate(vec.begin() + start, vec.begin() + start + half, 0.0) / half;
+  double avgfit = std::accumulate(vec.begin() + start, vec.begin() + half, 0.0) / half;
 
 
   std::string var_name = oname + "/results.txt";

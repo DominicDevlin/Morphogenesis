@@ -293,7 +293,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           dishes[i].CPM->PhaseShapeIndex(t);
           dishes[i].CPM->HexaticOrder(t);
         }
-        if (t > 200 && t % 100 == 0)
+        if (t > 200 && t % 500 == 0)
         {
           pair<double,double> zvals = dishes[i].CPM->PhaseZValues();
           org_zvals.push_back(zvals);
@@ -346,10 +346,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       else if (t == par.mcs -1)
       {
         total_steps[i] = par.mcs;
-      }
-      if (t%1000==0)
-      {
-        cout << i <<" t is: " << t << endl;
       }
     }
     // this is not thread safe but changes of it happening at same time are very very rare.
@@ -412,25 +408,52 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     t_shape_count = WriteData(shapedata, oname);    
   }
 
-  double avg_length = 0;
-  double avg_variance = 0;
+
   double avg_phase_remained = 0;
-  double avg_fitness=0;
+
+  vector<double> fitnesses(par.n_orgs);
+  vector<double> lengths(par.n_orgs);
+  vector<double> variances(par.n_orgs);
 
   for (int i=0; i < par.n_orgs;++i)
   {
     pair<double,double> lw = dishes[i].CPM->LengthWidth();
-    avg_length += lw.first;
-    avg_variance += lw.second;
-    avg_fitness += pow(lw.first, 2) / lw.second;
-    
+    lengths[i] = lw.first;
+    variances[i] = lw.second;
+    fitnesses[i] = pow(lw.first, 2) / lw.second;
+   
     int n_phase = dishes[i].CPM->CountPhaseOnCells();
     avg_phase_remained += n_phase;
   }
-  avg_length = avg_length / par.n_orgs;
-  avg_variance = avg_variance / par.n_orgs;
+
+  vector<int> indices(par.n_orgs);
+  std::iota(indices.begin(), indices.end(), 0); // Fill with 0, 1, 2, ..., n_orgs-1
+
+  // Step 2: Sort the indices based on the values in 'fitnesses'
+  std::sort(indices.begin(), indices.end(),
+            [&fitnesses](int i1, int i2) { return fitnesses[i1] > fitnesses[i2]; });
+
+  // Step 3: Reorder fitnesses, lengths, and variances based on the sorted indices
+  vector<double> sorted_fitnesses(par.n_orgs);
+  vector<double> sorted_lengths(par.n_orgs);
+  vector<double> sorted_variances(par.n_orgs);
+
+  for (int i = 0; i < par.n_orgs; ++i) {
+      sorted_fitnesses[i] = fitnesses[indices[i]];
+      sorted_lengths[i] = lengths[indices[i]];
+      sorted_variances[i] = variances[indices[i]];
+  }
+  fitnesses = sorted_fitnesses;
+  lengths = sorted_lengths;
+  variances = sorted_variances;
+
+  // lets output top half
+  int start = 0;
+  int half = par.n_orgs / 2;
+  double avg_fitness = std::accumulate(fitnesses.begin() + start, fitnesses.begin() + half, 0.0) / half;
+  double avg_length = std::accumulate(lengths.begin() + start, lengths.begin() + half, 0.0) / half;
+  double avg_variance = std::accumulate(variances.begin() + start, variances.begin() + half, 0.0) / half;
   avg_phase_remained = avg_phase_remained / par.n_orgs;
-  avg_fitness = avg_fitness / par.n_orgs;
 
   ofstream outfile;
   string fname = par.data_file + "/fitness.txt";
@@ -498,7 +521,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 int main(int argc, char *argv[]) 
 {
 
-  bool read_in = false;
+  bool read_in = true;
   vector<vector<double>> params_data;
   if (read_in)
   {
@@ -568,7 +591,7 @@ int main(int argc, char *argv[])
 
   par.phase_evolution = true;
   par.min_phase_cells=10;
-
+  par.mcs = 100000;
 
   par.n_orgs = 60;
   vector<vector<vector<int>>> networks{};
