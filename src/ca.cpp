@@ -2142,6 +2142,207 @@ void CellularPotts::FractureSheet()
   }
 }
 
+//split sheet into cells
+void CellularPotts::FractureSheet(int n_cells)
+{
+  int counter=0;
+  bool dividing = true;
+
+  while (dividing)
+  {
+    vector<bool> which_cells(cell->size());
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        if (counter<=n_cells)
+        {
+
+          which_cells[c->Sigma()]=true;
+          ++counter;
+        }
+      }
+    }
+    if (dividing)
+      DivideCells(which_cells);
+    if (counter >= n_cells)
+    {
+      dividing=false;
+    }
+  }
+}
+
+
+
+struct VPoint 
+{
+    double x, y;
+    int id;
+     // Corresponding Voronoi seed
+};
+
+vector<VPoint> HexaCenters(int m, int n, double r)
+{
+  vector<VPoint> centers;
+  int num_rows = static_cast<int>(std::floor(m / (sqrt(3) * r)));
+  int num_cols = static_cast<int>(std::floor(n / (2 * r)));  
+  int center_count = 1;
+
+    // Generate centers
+    for (int row = 0; row < num_rows; ++row) 
+    {
+      for (int col = 0; col < num_cols; ++col) 
+      {
+          double x = col * 2 * r;
+          double y = row * sqrt(3) * r;
+          
+          // Stagger odd rows
+          if (row % 2 == 1) {
+              x += r;  // Shift odd rows horizontally by r
+          }
+          
+          // Ensure the center is within the grid bounds
+          if (x < m && y < n) {
+              centers.push_back({x, y, center_count});
+              center_count++;
+          }
+        }
+    }
+    cout << "CENTRE COUNT IS: " << center_count << endl;
+    return centers;
+}
+
+int HexaCounter(int m, int n, double r)
+{
+  int num_rows = static_cast<int>(std::floor(m / (sqrt(3) * r)));
+  int num_cols = static_cast<int>(std::floor(n / (2 * r)));  
+  int center_count = 0;
+    // Generate centers
+    for (int row = 0; row < num_rows; ++row) 
+    {
+      for (int col = 0; col < num_cols; ++col) 
+      {
+          double x = col * 2 * r;
+          double y = row * sqrt(3) * r;
+          
+          // Stagger odd rows
+          if (row % 2 == 1) {
+              x += r;  // Shift odd rows horizontally by r
+          }
+          
+          // Ensure the center is within the grid bounds
+          if (x < m && y < n) {
+              center_count++;
+          }
+        }
+    }
+    return center_count;
+}
+
+
+
+
+double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey) 
+{
+  // Calculate direct distances
+  double dx = std::abs(x2 - x1);
+  double dy = std::abs(y2 - y1);
+  
+  // Apply periodic boundary conditions
+  if (dx > sizex / 2) {
+      dx = sizex - dx;  // Wrap around horizontally
+  }
+  if (dy > sizey / 2) {
+      dy = sizey - dy;  // Wrap around vertically
+  }
+  
+  // Return the Euclidean distance
+  return std::sqrt(dx * dx + dy * dy);
+}
+
+
+void CellularPotts::Voronoi()
+{
+  // double total = sizex*sizey;
+  // int ncells = round(total / 75.);
+  // cout << ncells << endl;
+
+  double distance = 5.;
+  int ncells = HexaCounter(sizex,sizey,distance);
+  FractureSheet(ncells);
+  cout << ncells << endl;
+
+  cout << CountCells() << endl;
+
+  vector<VPoint> centers = HexaCenters(sizex, sizey, distance);
+  // for (const auto& center : centers) 
+  // {
+  //     std::cout << "Center at (" << center.x << ", " << center.y << ")\n";
+  // }
+
+  for (int x = 1; x < sizex-1; ++x) {
+      for (int y = 1; y < sizey-1; ++y) 
+      {
+        double minDistance = std::numeric_limits<double>::max();
+        int closestCenter = -1;
+        
+        // Find the closest center to (i, j)
+        for (const auto& center : centers) 
+        {
+          double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
+          if (dist < minDistance) {
+              minDistance = dist;
+              closestCenter = center.id;
+          }
+        }
+          
+        // Assign the closest center id to the grid cell
+        sigma[x][y] = closestCenter;
+      }
+  }
+
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      c->area = 0;
+    }
+  }
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        (*cell)[sigma[x][y]].area +=1;
+      }
+    }   
+  
+  int deadcells{};
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
+      }
+      else
+      {
+        c->SetTargetArea(c->area);
+        cout << c->area << endl;
+      }
+    }
+  }
+  cout << "Total cells killed: " << deadcells << endl;
+}
+
+
+
+
 
 
 
@@ -7740,8 +7941,100 @@ vector<double> CellularPotts::GetHexes()
 
 
 
-
 void CellularPotts::HexaticOrder(int time)
+{
+  SetCellCenters();
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      double XCEN = cell->at(i).get_xcen();
+      double YCEN = cell->at(i).get_ycen();
+      if (XCEN < 30 || XCEN > double(sizex-30) || YCEN < 30 || YCEN > double(sizey-30))
+      {
+        continue;
+      }
+      vector<double> xcens{};
+      vector<double> ycens{};
+      int n_neighbours=0;
+      bool med_check=false;
+      int j = 0;
+      while (ns[i][j] >= 0)
+      {
+        med_check = false;
+        if (ns[i][j] == 0)
+        {
+          med_check=true;
+          break;
+        }
+        else
+        {
+
+          double xc = cell->at(ns[i][j]).get_xcen();
+          double yc = cell->at(ns[i][j]).get_ycen();
+          xcens.push_back(xc);
+          ycens.push_back(yc);
+          ++n_neighbours;
+        }
+        ++j;
+      }
+      // cout << i << '\t' << n_neighbours << endl;
+
+      if (med_check) 
+        continue;
+
+      vector<vec2d> com_vectors{};
+      vec2d reference_axis(1.0,0.0);
+
+      for (int n1 = 0; n1 < n_neighbours; ++n1)
+      {
+        double ABx = XCEN - xcens[n1];
+        double ABy = YCEN - ycens[n1];
+        vec2d newvec(ABx, ABy);
+        com_vectors.push_back(newvec);
+      }
+      sort(com_vectors.begin(), com_vectors.end(), compareVec);
+      // for (auto v : com_vectors)
+      //   cout << v.x << '\t' << v.y << '\t';
+
+      // cout << endl;
+      vector<double> angles{};
+      for (const auto& vec : com_vectors) 
+      {
+        double angle = atan2(vec.y, vec.x);
+        angles.push_back(angle);
+      }
+      // Now use angles to calculate psi_6 for each particle
+      complex<double> psi_sum(0,0);
+      for (const auto& angle : angles) {
+        psi_sum += std::exp(std::complex<double>(0, 6 * angle));
+      }
+      psi_sum /= static_cast<double>(angles.size());
+      double psi_mag = std::abs(psi_sum);
+
+
+      cell->at(i).AddHex(psi_mag, time);
+      if (time % par.measure_interval == 0)
+      {
+        double psi_avg = cell->at(i).GetTempHexes();
+        pair<int,double> toreturn = {time, psi_avg};
+        sheet_hexatic_order.push_back(toreturn);
+      }
+
+    }
+  }
+  free(ns[0]);
+  free(ns);
+}
+
+
+
+
+
+
+void CellularPotts::PhaseHexaticOrder(int time)
 {
   SetCellCenters();
   int **ns = SearchNeighbours();
@@ -7868,6 +8161,93 @@ map<int, vector<pair<int,double>>> CellularPotts::Get_time_hexatic_order()
 map<int, vector<pair<int,double>>> CellularPotts::Get_time_shape_index()
 {
   return time_shape_index;
+}
+
+vector<pair<int,double>> CellularPotts::Get_sheet_hexatic_order()
+{
+  return sheet_hexatic_order;
+}
+
+vector<pair<int,double>> CellularPotts::Get_sheet_shape_index()
+{
+  return sheet_shape_order;
+}
+
+void CellularPotts::ShapeOrder(int time)
+{
+  initVolume();
+  adjustPerimeters();
+
+  int neigh_level=2; // (using n_nb because 2)
+  double correction=3.;
+
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      int perim_length{};
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+              continue;
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          } 
+        }
+      }
+      // cout << corrected_perim << '\t' << vlist[p] << endl;
+      double corrected_perim = perim_length / correction; 
+      double sindex = corrected_perim / sqrt(double(vlist[celln]));
+      // cout << sindex << endl;
+      
+
+      c->AddShape(sindex, time);
+      if (time % par.measure_interval == 0)
+      {
+        double shape_avg = c->GetTempShape();
+        pair<int,double> toreturn = {time, shape_avg};
+        sheet_shape_order.push_back(toreturn);
+      }
+    }
+  }  
 }
 
 

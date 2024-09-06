@@ -219,6 +219,8 @@ class Parameter {
   int sheetcol2;
   double mix_swaprate;
 
+  bool do_voronoi;
+
   double J_stem;
   double J_diff;
   double J_stem_diff;

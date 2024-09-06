@@ -88,14 +88,17 @@ int WriteData(const map<int, vector<pair<int, double>>>& shapedata, const string
 
       if (!values.empty()) 
       {
-        sort(values.begin(), values.end());
-        double median;
-        int size = values.size();
-        if (size % 2 == 0)
-            median = (values[size / 2 - 1] + values[size / 2]) / 2.0;
-        else
-            median = values[size / 2];
-        outfile << "\t" << median;  // Output the average in the second column
+        // sort(values.begin(), values.end());
+        // double median;
+        // int size = values.size();
+        // if (size % 2 == 0)
+        //     median = (values[size / 2 - 1] + values[size / 2]) / 2.0;
+        // else
+        //     median = values[size / 2];
+        // outfile << "\t" << median;  // Output the average in the second column
+        double sum = accumulate(values.begin(), values.end(), 0.0);
+        double mean = sum / values.size();
+        outfile << "\t" << mean;  // Output the mean in the second column
       } 
       else 
       {
@@ -291,7 +294,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         if (t > 200 && par.measure_time_order_params && t % 1 == 0)
         {
           dishes[i].CPM->PhaseShapeIndex(t);
-          dishes[i].CPM->HexaticOrder(t);
+          dishes[i].CPM->PhaseHexaticOrder(t);
         }
         if (t > 200 && t % 500 == 0)
         {
@@ -623,79 +626,6 @@ int main(int argc, char *argv[])
     }
   }
 
-
-
-
-  // if (par.sheet_hex)
-  // {
-  //   // collapse into one vector
-  //   vector<vector<double>> shape_final(n_trials);
-  //   vector<vector<double>> hex_final(n_trials);
-
-  //   for (int i = 0; i < n_trials; ++i)
-  //   {
-  //     for (auto &j : shape_index[i])
-  //       for (double &k : j)
-  //       {
-  //         shape_final[i].push_back(k);
-  //       }
-  //     for (auto &j : hex_order[i])
-  //       for (double &k : j)
-  //       {
-  //         hex_final[i].push_back(k);
-  //       }
-  //   }
-  //   string var_name = par.data_file + "/shapes.dat";
-  //   ofstream outfile;
-  //   outfile.open(var_name, ios::app);  
-  //   int length=0;
-  //   for (const auto& inner_vec : shape_final) 
-  //   {
-  //       if (inner_vec.size() > length) 
-  //       {
-  //           length = inner_vec.size();
-  //       }
-  //   }
-  //   // Print the vector of vectors as columns
-  //   for (size_t i = 0; i < length; i++) 
-  //   {
-  //     for (size_t j = 0; j < shape_final.size(); j++) 
-  //     {
-  //       int k = 0;
-  //       if (i < shape_final[j].size()) 
-  //       {
-  //           outfile << shape_final[j][i] << "\t";
-  //       } 
-  //     }
-  //     outfile << std::endl; // Newline after each column is printed
-  //   }
-  //   outfile.close();  
-  //   // now do same for hexatic order
-  //   var_name = par.data_file + "/hex-order.dat";
-  //   outfile.open(var_name, ios::app);  
-  //   length=0;
-  //   for (const auto& inner_vec : hex_final) 
-  //   {
-  //       if (inner_vec.size() > length) 
-  //       {
-  //           length = inner_vec.size();
-  //       }
-  //   }
-  //   // Print the vector of vectors as columns
-  //   for (size_t i = 0; i < length; i++) 
-  //   {
-  //     for (size_t j = 0; j < hex_final.size(); j++) 
-  //     {
-  //       int k = 0;
-  //       if (i < hex_final[j].size()) 
-  //       {
-  //           outfile << hex_final[j][i] << "\t";
-  //       } 
-  //     }
-  //     outfile << std::endl; // Newline after each column is printed
-  //   }
-  //   outfile.close();  
-  // }
   
   // finished
   par.CleanUp();

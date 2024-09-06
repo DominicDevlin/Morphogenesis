@@ -32,6 +32,65 @@
 using namespace std;
 
 
+void WriteData(const vector<pair<int, double>>& shapedata, const string& oname)
+{
+  ofstream outfile;
+  outfile.open(oname, ios::app);  // Append mode
+
+  int phase_counts{};
+
+  // First, find the maximum number of rows required
+  int max_rows = 0;
+  vector<int> rows{};
+
+  for (const auto& [index, value] : shapedata) 
+  {
+    if (index + 1 > max_rows) 
+    {
+        max_rows = index + 1;
+        rows.push_back(index);
+    }     
+  }
+
+  // Write the header
+  outfile << fixed << setprecision(6);
+  
+  for (int &row : rows) 
+  {
+    
+    outfile << row;
+
+    // Calculate the average for this row if there are matching pairs
+    vector<double> values;
+    for (const auto& [index, value] : shapedata) 
+    {
+      if (index == row) 
+      {
+        values.push_back(value);
+      }
+    }
+
+    if (!values.empty()) 
+    {
+      double sum = accumulate(values.begin(), values.end(), 0.0);
+      double mean = sum / values.size();
+      outfile << "\t" << mean;  // Output the mean in the second column
+    } 
+    else 
+    {
+      cout << "Error in time output" << endl;
+      outfile << "\t";  // No data for this row, leave empty
+    }
+
+    outfile << endl;  // Newline after each row
+  }
+
+  outfile.close(); 
+}
+
+
+
+
 int PDE::MapColour(double val)
 {
 
@@ -54,7 +113,16 @@ INIT
     //   CPM->DivideCells();
     // }
 
-    CPM->FractureSheet();
+    if (par.do_voronoi)
+    {
+      par.highT=false;
+      CPM->Voronoi();
+      par.start_sheet_measure=0;
+    }
+    else
+    {
+      CPM->Voronoi();
+    }
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
@@ -145,40 +213,41 @@ void process_population()
         dishes[i].CPM->RandomSheetType();
       }
 
+      // if (t % 10 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
+      // {
+      //   dishes[i].CPM->initVolume();
+      //   dishes[i].CPM->adjustPerimeters();
+      //   // vector<double> tperims = dishes[i].CPM->PerimitersRadiusN(sqrt(13));
+      //   vector<double> tperims = dishes[i].CPM->TruePerimeters();
+      //   vector<double> volumes = dishes[i].CPM->GetVolumes();
+
+      //   vector<double> tadhesion = dishes[i].CPM->TrueAdhesion();
+
+      //   double avg{};
+      //   for (int j = 0; j < tperims.size(); ++j)
+      //   {
+      //     double sindex = tperims[j] / sqrt(volumes[j]);
+      //     // cout << i << '\t';
+      //     avg+=sindex;
+      //     shape_index[i].push_back(sindex);
+      //   }
+      //   avg/=tperims.size();
+
+      //   // now do hexatic order
+      //   vector<double> hexes = dishes[i].CPM->GetHexes();
+      //   for (auto &j : hexes)
+      //   {
+      //     hex_order[i].push_back(j);
+      //   }
+      // }
+
       if (t % 10 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
       {
-        dishes[i].CPM->initVolume();
-        dishes[i].CPM->adjustPerimeters();
-        // vector<double> tperims = dishes[i].CPM->PerimitersRadiusN(sqrt(13));
-        vector<double> tperims = dishes[i].CPM->TruePerimeters();
-        vector<double> volumes = dishes[i].CPM->GetVolumes();
-
-        vector<double> tadhesion = dishes[i].CPM->TrueAdhesion();
-
-        double avg{};
-        for (int j = 0; j < tperims.size(); ++j)
-        {
-          double sindex = tperims[j] / sqrt(volumes[j]);
-          // cout << i << '\t';
-          avg+=sindex;
-          shape_index[i].push_back(sindex);
-        }
-        avg/=tperims.size();
-
-        // now do hexatic order
-        vector<double> hexes = dishes[i].CPM->GetHexes();
-        for (auto &j : hexes)
-        {
-          hex_order[i].push_back(j);
-        }
+        dishes[i].CPM->ShapeOrder(t);
+        dishes[i].CPM->HexaticOrder(t);
       }
 
 
-
-      // if (par.output_sizes)
-      // {
-      //   dishes[i].CPM->RecordSizes();
-      // }
 
       dishes[i].CPM->AmoebaeMove(t);
     }
@@ -228,42 +297,68 @@ void process_population()
     outfile.close();
   }
 
+  // if (par.sheet_hex)
+  // {
+
+  //   std::stringstream stream;
+  //   stream << std::fixed << std::setprecision(1) << par.sheet_J;
+  //   string s = stream.str();
+  //   string var_name = par.data_file + "/shapes-" + s + ".dat"; 
+  //   ofstream outfile;
+  //   outfile.open(var_name, ios::app);  
+
+  //   // Print the vector of vectors as columns
+  //   for (size_t i = 0; i < shape_index.size(); i++) 
+  //   {
+  //     for (size_t j = 0; j < shape_index[i].size(); j++) 
+  //     {
+
+  //       outfile << shape_index[i][j] << endl;
+  //     }
+  //   }
+  //   outfile.close();  
+
+
+  //   // now do same for hexatic order
+  //   var_name = par.data_file + "/hex-order-" + s + ".dat";
+  //   outfile.open(var_name, ios::app);  
+  //   // Print the vector of vectors as columns
+  //   for (size_t i = 0; i < hex_order.size(); i++) 
+  //   {
+  //     for (size_t j = 0; j < hex_order[i].size(); j++) 
+  //     {
+
+  //       outfile << hex_order[i][j] << endl;
+  //     }
+  //   }
+  //   outfile.close();  
+  // }
+
   if (par.sheet_hex)
   {
+    vector<pair<int,double>> hexdata = dishes[0].CPM->Get_sheet_hexatic_order();
+    vector<pair<int,double>> shapedata = dishes[0].CPM->Get_sheet_shape_index();
 
-    std::stringstream stream;
-    stream << std::fixed << std::setprecision(1) << par.sheet_J;
-    string s = stream.str();
-    string var_name = par.data_file + "/shapes-" + s + ".dat"; 
-    ofstream outfile;
-    outfile.open(var_name, ios::app);  
-
-    // Print the vector of vectors as columns
-    for (size_t i = 0; i < shape_index.size(); i++) 
+    for (int i = 1; i < par.n_orgs;++i)
     {
-      for (size_t j = 0; j < shape_index[i].size(); j++) 
+      vector<pair<int,double>> next = dishes[i].CPM->Get_sheet_hexatic_order();
+      for (auto&kv : next)
       {
-
-        outfile << shape_index[i][j] << endl;
+        hexdata.push_back(kv);
+      }
+      vector<pair<int,double>> shape_next = dishes[i].CPM->Get_sheet_shape_index();
+      for (auto&kv : shape_next)
+      {
+        shapedata.push_back(kv);
       }
     }
-    outfile.close();  
+    string oname = par.data_file + "/hex_time.dat";
+    WriteData(hexdata, oname);
 
-
-    // now do same for hexatic order
-    var_name = par.data_file + "/hex-order-" + s + ".dat";
-    outfile.open(var_name, ios::app);  
-    // Print the vector of vectors as columns
-    for (size_t i = 0; i < hex_order.size(); i++) 
-    {
-      for (size_t j = 0; j < hex_order[i].size(); j++) 
-      {
-
-        outfile << hex_order[i][j] << endl;
-      }
-    }
-    outfile.close();  
+    oname = par.data_file + "/shape_time.dat";
+    WriteData(shapedata, oname);       
   }
+
 
 
 
@@ -284,12 +379,14 @@ int main(int argc, char *argv[]) {
   par.gene_output=false;
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
-  par.mcs=100000 + par.equilibriate;
+  par.mcs=2000 + par.equilibriate;
   par.sizex=200;
   par.sizey=200;
   par.end_program=0;
   par.sheet=true;
   par.periodic_boundaries=true;
+
+  par.n_orgs = 30;
 
   if (par.velocities)
     par.output_sizes = true;
@@ -307,43 +404,44 @@ int main(int argc, char *argv[]) {
   par.flush_cells = true;
 
 
-  par.n_orgs = 60;
-
-  vector<bool> start_p = {0, 0, 0, 0};
-
-  // make initial random networks.
-  vector<vector<vector<int>>> networks{};
-  vector<vector<bool>> polarities{};
-  for (int i = 0; i < par.n_orgs; ++i)
+  bool single=true;
+  if (single)
   {
-    networks.push_back(par.start_matrix);
-    polarities.push_back(start_p);
-  }
-  
-  vector<double> Jlist;
-  int n_trials = ceil((par.sheet_maxJ-par.sheet_minJ)/par.J_width)+1;
-  for (int i = 0; i < n_trials; ++i)
-  {
-    double J = par.sheet_minJ + par.J_width*i;
-    Jlist.push_back(J);
-  }
-
-  vector<vector<double>> hex(par.n_orgs);
-  vector<vector<double>> shape(par.n_orgs);
-
-  vector<vector<vector<double>>> hex_order{};
-  vector<vector<vector<double>>> shape_index{};
-
-  for (int i = 0; i < n_trials; ++i)
-  {
-    hex_order.push_back(hex);
-    shape_index.push_back(shape);
-    par.sheet_J = Jlist[i];
-    if (par.sheetmix)
-      par.sheetmixJ = 2*par.sheet_J;
-    cout << par.sheet_J << endl;
+    par.sheet_J = 4;
     process_population();
   }
+  else
+  {
+    vector<double> Jlist;
+    int n_trials = ceil((par.sheet_maxJ-par.sheet_minJ)/par.J_width)+1;
+    for (int i = 0; i < n_trials; ++i)
+    {
+      double J = par.sheet_minJ + par.J_width*i;
+      Jlist.push_back(J);
+    }
+
+    vector<vector<double>> hex(par.n_orgs);
+    vector<vector<double>> shape(par.n_orgs);
+
+    vector<vector<vector<double>>> hex_order{};
+    vector<vector<vector<double>>> shape_index{};
+
+    for (int i = 0; i < n_trials; ++i)
+    {
+      hex_order.push_back(hex);
+      shape_index.push_back(shape);
+      par.sheet_J = Jlist[i];
+      if (par.sheetmix)
+        par.sheetmixJ = 2*par.sheet_J;
+      cout << par.sheet_J << endl;
+      process_population();
+    }
+  }
+  
+
+
+
+
 
 
   // if (par.sheet_hex)

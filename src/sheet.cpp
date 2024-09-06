@@ -73,7 +73,16 @@ INIT
     //   CPM->DivideCells();
     // }
 
-    CPM->FractureSheet();
+    if (par.do_voronoi)
+    {
+      par.highT=false;
+      CPM->Voronoi();
+    }
+    else
+    {
+      CPM->FractureSheet();
+    }
+
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
@@ -184,13 +193,12 @@ TIMESTEP {
     if (t % 1000 == 0 && t > 0)
     {
 
-      dish->CPM->ComputeShapeAlignment();
+      // dish->CPM->ComputeShapeAlignment();
 
-      vector<vector<int>> vertices = dish->CPM->SearchNforVertices();
-      vector<pair<int,int>> edges = dish->CPM->SearchNforEdges();
-      double z_value = (2* double(edges.size())) / (double(vertices.size()));
-
-      cout << "Z VALUE IS: " << z_value << endl;
+      // vector<vector<int>> vertices = dish->CPM->SearchNforVertices();
+      // vector<pair<int,int>> edges = dish->CPM->SearchNforEdges();
+      // double z_value = (2* double(edges.size())) / (double(vertices.size()));
+      // cout << "Z VALUE IS: " << z_value << endl;
 
 
       // N_index.clear();
@@ -222,7 +230,15 @@ TIMESTEP {
       // n_avg/=tperims.size();
       cout << "Shape index: " << avg << endl;
 
-  
+      vector<double> hexes = dish->CPM->GetHexes();
+      double mean = 0;
+      for (auto &h : hexes)
+      {
+        // cout << h << '\t';
+        mean += h;
+      }
+      mean /= hexes.size();
+      cout << " Hexatic order: " << mean << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;
     }
       
@@ -238,18 +254,6 @@ TIMESTEP {
     }
     dish->CPM->AmoebaeMove(t);
 
-    // if (t % 200 == 0)
-    // {
-    //   vector<double> hexes = dish->CPM->GetHexes();
-    //   double mean = 0;
-    //   for (auto &h : hexes)
-    //   {
-    //     cout << h << '\t';
-    //     mean += h;
-    //   }
-    //   mean /= hexes.size();
-    //   cout << " MEAN IS: " << mean << endl;
-    // }
 
 
     if (t == par.mcs-1 && par.gene_output)

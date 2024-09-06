@@ -89,7 +89,7 @@
 
 /* Cellular Potts parameters */
     sizex = 200;
-    sizey = 300;
+    sizey = 200;
     mcs = 100000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -230,11 +230,13 @@
 
 /* sheet related parameters */
     sheet=false;
-    sheet_hex = false;
-    sheet_J = 3.5;
+    sheet_hex = true;
+    sheet_J = 12;
     sheet_minJ=0.5;
     sheet_maxJ=12.5;
     J_width=0.5;
+
+    do_voronoi=false;
 
     sheetmix=false;
     sheetmixJ=2*sheet_J;
@@ -253,7 +255,7 @@
     highT_temp = 5.;
 
     start_sheet_measure = highT_time + 100;
-    end_sheet_measure = start_sheet_measure + 100;
+    end_sheet_measure = start_sheet_measure + 100000;
 
     // diffusion parameters
     waiting_time = 2000;

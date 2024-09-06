@@ -1370,7 +1370,7 @@ protected:
   // gradient of a chemical (to be extended to the total number chemicals)
   double grad[2];
   
-  bool sheet_type;
+  bool sheet_type=false;
 
   double *diffs; // concentration of diffusers based on PDE field. 
 

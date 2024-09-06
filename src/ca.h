@@ -355,6 +355,10 @@ public:
 
   void FractureSheet();
 
+  void FractureSheet(int n_cells);
+
+  void Voronoi();
+
   void DrawDisplacement(Graphics *g);
 
   void MeanSquareDisplacement();
@@ -424,7 +428,11 @@ public:
 
   void ColourCellsByIndex();
 
+  void PhaseHexaticOrder(int time=0);
+
   void HexaticOrder(int time=0);
+
+  void ShapeOrder(int time=0);
 
   vector<double> GetHexes();
 
@@ -434,6 +442,9 @@ public:
 
   map<int, vector<pair<int,double>>> Get_time_shape_index();
 
+  vector<pair<int,double>> Get_sheet_hexatic_order();
+
+  vector<pair<int,double>> Get_sheet_shape_index();
 
 
   // inline double prop_success()
@@ -751,6 +762,9 @@ private:
 
   map<int, vector<pair<int,double>>> time_shape_index;
 
+  vector<pair<int,double>> sheet_hexatic_order;
+
+  vector<pair<int,double>> sheet_shape_order;
 
   map<int,vector<double>> state_adhesion;
 
