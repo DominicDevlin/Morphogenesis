@@ -1838,6 +1838,133 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 }   
 
 
+void CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
+{
+  if (sigma[x][y] != 0)
+  {
+    cerr << "Spawned cell in bad spot.\n"; 
+  }
+  else
+  {
+    Cell *new_cell;
+    Cell *cp=&((*cell)[cp_sigma]);
+    new_cell = new Cell(*cp->owner);
+    new_cell->CellBirth(*cp);
+    cell->push_back(*new_cell);
+    delete new_cell;
+    cp = &((*cell)[cp_sigma]);
+    new_cell=&(cell->back());
+    new_cell->SetTimeCreated(time);
+    if (par.gene_record)
+    {
+      new_cell->reset_recordings(); 
+    }
+    
+    // make cell
+    int dx[4] = {0, 1, 0, -1};
+    int dy[4] = {1, 0, -1, 0};
+
+    queue<pair<int, int>> q; // Queue for BFS
+    q.push({x, y});
+
+    int cell_size = 80;
+    int cell_sigma=new_cell->Sigma();
+    
+    int filledPixels = 0;
+    while (!q.empty() && filledPixels < cell_size) 
+    {
+        auto [x, y] = q.front();
+        q.pop();
+        // Skip if this cell is already filled or out of bounds
+        if (x < 1 || x >= sizex-1 || y < 1 || y >= sizex-1 || sigma[x][y]==cell_sigma) 
+        {
+            continue;
+        }
+        
+        // Fill the pixel
+        sigma[x][y] = cell_sigma;
+        new_cell->AddSiteToMoments(x,y);
+        new_cell->IncrementArea();
+        new_cell->IncrementTargetArea();
+        filledPixels++;
+        
+        // Add neighboring cells (up, down, left, right) to the queue
+        for (int i = 0; i < 4; i++) {
+            int newX = x + dx[i];
+            int newY = y + dy[i];
+            if (newX >= 0 && newX < sizex-1 && newY >= 1 && newY < sizey-1 && sigma[newX][newY]==0) 
+            {
+                q.push({newX, newY});
+            }
+        }
+    }
+  }
+}
+
+
+
+int CellularPotts::FindHighestCell()
+{
+  for (int y = 1; y < sizey-1; ++ y)
+  {
+    for (int x = 1; x < sizex-1; ++x)
+    {
+      if (sigma[x][y] > 0)
+      {
+        return sigma[x][y];
+      }
+    }
+  }
+  return 1;
+}
+
+pair<int,int> CellularPotts::MaxPoint()
+{
+  int minx{sizex};
+  int maxx{};
+  for (int x = 1; x < sizex-1; ++ x)
+  {
+    for (int y = 1; y < sizey-1; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        int sig = sigma[x][y];
+        if (cell->at(sig).GetPhase() == 1)
+        {
+          if (x < minx)
+            minx=x;
+          if (x > maxx)
+            maxx=x;
+        }
+      }
+    }
+
+  }
+
+  cout << minx << '\t' << maxx << endl;
+
+
+  // pick random number between...
+  int rx = minx + RandomNumber(maxx-minx, s_val);
+  cout << rx << endl;
+  int ry{};
+  for (int y = 1; y < sizey-1; ++y)
+  {
+      if (sigma[rx][y] > 0)
+      {
+        ry = y - 6;
+        break;
+      }
+  }
+  pair<int,int> toret = {rx, ry};
+  return toret;
+
+}
+
+
+
+
+
 int CellularPotts::VerticalLine(int id)
 {
   int llength{};

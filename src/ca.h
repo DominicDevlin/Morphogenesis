@@ -446,6 +446,14 @@ public:
 
   vector<pair<int,double>> Get_sheet_shape_index();
 
+  void SpawnCell(int x, int y, int cp_sigma, int time);
+
+  int FindHighestCell();
+
+  pair<int,int> MaxPoint();
+
+
+
 
   // inline double prop_success()
   // {

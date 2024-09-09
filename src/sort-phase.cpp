@@ -398,13 +398,19 @@ TIMESTEP {
       }
       else
       {
+        if (t < 400)
         dish->CPM->DiscreteGrowthAndDivision(t);
         // dish->CPM->ConstrainedGrowthAndDivision(t);        
       }
     }
     dish->CPM->AmoebaeMove(t);
 
-
+    if (t % 400 == 0)
+    {
+      int cnum = dish->CPM->FindHighestCell();
+      pair<int,int> val = dish->CPM->MaxPoint();
+      dish->CPM->SpawnCell(val.first, val.second, cnum, t);
+    }
 
 
     if (t == par.mcs - 1)
