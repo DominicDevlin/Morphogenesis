@@ -126,6 +126,10 @@ class Parameter {
   double eT;
   double lT;
 
+  bool eden_growth;
+  int cell_areas;
+  int cell_addition_rate;
+
   bool morphogen;
   double morphdecay;
 

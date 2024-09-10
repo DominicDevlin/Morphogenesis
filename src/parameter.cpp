@@ -141,12 +141,14 @@
     J_stem_diff=10;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-    Vs_max = 0.398977; // 1;
-    Vd_max = 0; // 1; 
+    cell_addition_rate=400; 
     secr_rate = new double[n_diffusers];
     secr_rate[0] = 0.003; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
+
+    Vs_max = 0.398977; // 1;
+    Vd_max = 0; // 1; 
 
     melting_adhesion = false;
     tip_max = 50;
@@ -163,6 +165,7 @@
     v_slope = -2;
 
     offset = 85;//65 normally used
+    cell_areas = 80;
     optimization_replicates = 6;
     pics_for_opt = false;
     pics_for_opt_interval = 100;
@@ -332,18 +335,19 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    target_area = 4900;
-    size_init_cells = 70; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
+    target_area = 5120;
+    size_init_cells = 80; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
+    eden_growth=false;
     n_init_cells = 1;
     divisions = 0;
 
     //programmed division parameters
-    end_program = 50;
-    begin_network = 50;
-    div_freq = 10;
+    end_program = 6;
+    begin_network = 40;
+    div_freq = 1;
     // begin_movement=1200;
     program_its = 1; // we are doing more PDE iterations during the program. 
-    div_end = 50;
+    div_end = 6;
 
     if (melting_adhesion)
     {

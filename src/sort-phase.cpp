@@ -298,6 +298,7 @@ TIMESTEP {
       if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
       {
         dish->CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
+        dish->CPM->SetAreas(par.cell_areas);
       }
      
       if (t >= par.begin_network && t % par.update_freq == 0)
@@ -398,8 +399,8 @@ TIMESTEP {
       }
       else
       {
-        if (t < 400)
-        dish->CPM->DiscreteGrowthAndDivision(t);
+        // if (t < 400)
+        // dish->CPM->DiscreteGrowthAndDivision(t);
         // dish->CPM->ConstrainedGrowthAndDivision(t);        
       }
     }
@@ -410,6 +411,7 @@ TIMESTEP {
       int cnum = dish->CPM->FindHighestCell();
       pair<int,int> val = dish->CPM->MaxPoint();
       dish->CPM->SpawnCell(val.first, val.second, cnum, t);
+      //dish->CPM->SpawnCell(val.first-20, val.second-20, cnum, t);
     }
 
 

@@ -76,13 +76,16 @@ diff_rate = [1e-3,diffmax]
 # J of stem to diff
 Jsd = []
 if J_stem < J_diff:
-    Jsd = [J_diff, 2*J_diff]
+    Jsd = [J_stem, 2*J_diff]
 else:
-    Jsd = [J_stem, 2*J_stem]
+    Jsd = [J_diff, 2*J_stem]
 # max growth rate per DTS OF stem cells. Taking this out for now.
 # growth rate should depnd on J_stem
-Vmax = 1 / (1 + J_stem)
-V_smax = [0.,Vmax]
+# Vmax = 1 / (1 + J_stem)
+# V_smax = [0.,Vmax]
+# doing addtition rate now
+max_rate = (13 - J_stem)*100
+V_smax = [max_rate, 1600]
 
 
 # n dimensional param space
@@ -106,41 +109,9 @@ if punt_J_sd < Jsd[0]:
     punt_J_sd = Jsd[0]
 elif punt_J_sd > Jsd[1]:
     punt_J_sd = Jsd[1]
-punt_vsmax = Vmax - 0.0002
+punt_vsmax = (16 - J_stem)*100
 # punt_vdmax = 1
 # punt_gthresh = 2
-inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])
-
-### second punt
-punt_sec_rate = 128.123*pow((J_stem+3.66212),-5.64574)+0.00194831
-if punt_sec_rate < diff_rate[0]:
-    punt_sec_rate = diff_rate[0]
-elif punt_sec_rate > diff_rate[1]:
-    punt_sec_rate = diff_rate[1]
-
-punt_J_sd = J_diff + (J_diff*0.2)
-punt_vsmax = Vmax-0.01
-if punt_J_sd < Jsd[0]:
-    punt_J_sd = Jsd[0]
-elif punt_J_sd > Jsd[1]:
-    punt_J_sd = Jsd[1]
-# punt_gthresh = 1
-inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])
-
-### second punt
-punt_sec_rate = 0.00242
-if punt_sec_rate < diff_rate[0]:
-    punt_sec_rate = diff_rate[0]
-elif punt_sec_rate > diff_rate[1]:
-    punt_sec_rate = diff_rate[1]
-
-punt_J_sd = J_diff + (J_diff*0.15)
-punt_vsmax = Vmax-0.01
-if punt_J_sd < Jsd[0]:
-    punt_J_sd = Jsd[0]
-elif punt_J_sd > Jsd[1]:
-    punt_J_sd = Jsd[1]
-# punt_gthresh = 1
 inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])
 
 # acq_func_kwargs = {"xi: ": 10}
@@ -180,3 +151,53 @@ for i in range(iterations):
 
 # for i in range(len(x_samples)):
 #     opt.tell(x_samples[i], hammer_results[i])
+
+
+# ## first punt
+# punt_sec_rate = 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588
+# if punt_sec_rate < diff_rate[0]:
+#     punt_sec_rate = diff_rate[0]
+# elif punt_sec_rate > diff_rate[1]:
+#     punt_sec_rate = diff_rate[1]
+
+# punt_J_sd = J_diff
+# if punt_J_sd < Jsd[0]:
+#     punt_J_sd = Jsd[0]
+# elif punt_J_sd > Jsd[1]:
+#     punt_J_sd = Jsd[1]
+# punt_vsmax = Vmax - 0.0002
+# # punt_vdmax = 1
+# # punt_gthresh = 2
+# inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])
+
+# ### second punt
+# punt_sec_rate = 128.123*pow((J_stem+3.66212),-5.64574)+0.00194831
+# if punt_sec_rate < diff_rate[0]:
+#     punt_sec_rate = diff_rate[0]
+# elif punt_sec_rate > diff_rate[1]:
+#     punt_sec_rate = diff_rate[1]
+
+# punt_J_sd = J_diff + (J_diff*0.2)
+# punt_vsmax = Vmax-0.01
+# if punt_J_sd < Jsd[0]:
+#     punt_J_sd = Jsd[0]
+# elif punt_J_sd > Jsd[1]:
+#     punt_J_sd = Jsd[1]
+# # punt_gthresh = 1
+# inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])
+
+# ### third punt
+# punt_sec_rate = 0.00242
+# if punt_sec_rate < diff_rate[0]:
+#     punt_sec_rate = diff_rate[0]
+# elif punt_sec_rate > diff_rate[1]:
+#     punt_sec_rate = diff_rate[1]
+
+# punt_J_sd = J_diff + (J_diff*0.15)
+# punt_vsmax = Vmax-0.01
+# if punt_J_sd < Jsd[0]:
+#     punt_J_sd = Jsd[0]
+# elif punt_J_sd > Jsd[1]:
+#     punt_J_sd = Jsd[1]
+# # punt_gthresh = 1
+# inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])

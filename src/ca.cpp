@@ -1918,10 +1918,39 @@ int CellularPotts::FindHighestCell()
   return 1;
 }
 
+
+cellPoint findPoint(cellPoint p1, cellPoint p2, double distance) {
+    // Calculate the direction vector (dx, dy)
+    double dx = p1.x - p2.x;
+    double dy = p1.y - p2.y;
+    
+    // Calculate the magnitude of the direction vector
+    double mag = sqrt(dx * dx + dy * dy);
+    
+    // Normalize the direction vector
+    double unitDx = dx / mag;
+    double unitDy = dy / mag;
+    
+    // Scale the unit vector by the desired distance (in this case 5 units)
+    double scaledDx = unitDx * distance;
+    double scaledDy = unitDy * distance;
+    
+    // Add the scaled vector to the initial point to get the new point
+    cellPoint newPoint;
+    newPoint.x = p1.x + scaledDx;
+    newPoint.y = p1.y + scaledDy;
+    
+    return newPoint;
+}
+
+
 pair<int,int> CellularPotts::MaxPoint()
 {
-  int minx{sizex};
-  int maxx{};
+  int massx{};
+  int massy{};
+  int count{};
+
+  vector<pair<int,int>> surface_points{};
   for (int x = 1; x < sizex-1; ++ x)
   {
     for (int y = 1; y < sizey-1; ++y)
@@ -1931,32 +1960,34 @@ pair<int,int> CellularPotts::MaxPoint()
         int sig = sigma[x][y];
         if (cell->at(sig).GetPhase() == 1)
         {
-          if (x < minx)
-            minx=x;
-          if (x > maxx)
-            maxx=x;
+          massx+=x;
+          massy+=y;
+          ++count;
+          for (int i = 1;i<=nbh_level[1];++i)
+          {
+            int xp = x + nx[i];
+            int yp = y + ny[i];
+            if (sigma[xp][yp] == 0)
+            {
+              surface_points.push_back({x,y});
+              break;
+            }
+          }
         }
       }
     }
-
   }
+  int Npoints = surface_points.size();
 
-  cout << minx << '\t' << maxx << endl;
+  double xcen = double(massx)/double(count);
+  double ycen = double(massy)/double(count);
+  // cout << xcen << '\t' << ycen << endl;
+  int index = RandomNumber(Npoints-1, s_val);
+  cellPoint centerp = {xcen, ycen};
+  cellPoint surfacep = {surface_points[index].first, surface_points[index].second};
 
-
-  // pick random number between...
-  int rx = minx + RandomNumber(maxx-minx, s_val);
-  cout << rx << endl;
-  int ry{};
-  for (int y = 1; y < sizey-1; ++y)
-  {
-      if (sigma[rx][y] > 0)
-      {
-        ry = y - 6;
-        break;
-      }
-  }
-  pair<int,int> toret = {rx, ry};
+  cellPoint newp = findPoint(surfacep, centerp, 6);
+  pair<int,int> toret = {int(round(newp.x)), int(round(newp.y))};
   return toret;
 
 }
@@ -2529,6 +2560,8 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int o
 
   }
 
+
+  if (par.eden_growth)
   // Do Eden growth for a number of time steps
   {for (int i=0;i<cell_size;i++) 
   {
@@ -2566,6 +2599,30 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int o
     }
   }
   }}}
+  else
+  {
+    double radius = sqrt(par.target_area / M_PI);
+
+    // Iterate over the grid and fill the points within the circle
+    for (int i = 0; i < sizex; ++i) {
+        for (int j = 0; j < sizey; ++j) {
+            // Calculate the distance from the center (x, y)
+            double distance = sqrt(pow(i - sx-offset_x, 2) + pow(j - sy-offset_y, 2));
+
+            // If the distance is less than or equal to the radius, mark the cell as part of the circle
+            if (distance <= radius) {
+                sigma[i][j] = 1;  // Mark cell inside the circle
+            } else {
+                sigma[i][j] = 0;  // Mark cell outside the circle
+            }
+        }
+    }
+
+
+  }
+
+
+
   free(new_sigma[0]);
   free(new_sigma);
   
@@ -4678,6 +4735,15 @@ void CellularPotts::swap_cells(void)
 
 }
 
+
+void CellularPotts::SetAreas(int tarea)
+{
+  vector<Cell>::iterator i;
+  for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
+  {
+    i->SetTargetArea(tarea);
+  }
+}
 
 
 

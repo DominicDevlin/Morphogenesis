@@ -452,6 +452,8 @@ public:
 
   pair<int,int> MaxPoint();
 
+  void SetAreas(int area);
+
 
 
 

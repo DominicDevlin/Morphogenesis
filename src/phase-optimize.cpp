@@ -232,7 +232,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   time = int(params[5]);
 
   par.secr_rate[0] = params[0];
-  par.Vs_max = params[1];
+  // par.Vs_max = params[1];
+  par.cell_addition_rate = int(round(params[1]));
   par.J_stem_diff = params[2];
   // constant params
   par.J_stem = params[3];
@@ -298,6 +299,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         if (t % par.div_freq == 0 && t <= par.div_end)
         {
           dishes[i].CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
+          dishes[i].CPM->SetAreas(par.cell_areas);
         }
 
         
@@ -329,8 +331,14 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           dishes[i].PDEfield->Diffuse(1); 
         }  
         // WE ARE GOING TO CHANGE THIS SO THAT IT JUST RANDOMLY ADDS MASS TO ONE OF THE STEM CELLS!! (can also do sigmoidal function?)
-        dishes[i].CPM->DiscreteGrowthAndDivision(t);
+        // dishes[i].CPM->DiscreteGrowthAndDivision(t);
         // dishes[i].CPM->CellGrowthAndDivision(t);
+        if (t % par.cell_addition_rate == 0)
+        {
+          int cnum = dishes[i].CPM->FindHighestCell();
+          pair<int,int> val = dishes[i].CPM->MaxPoint();
+          dishes[i].CPM->SpawnCell(val.first, val.second, cnum, t);
+        }
       }
       dishes[i].CPM->AmoebaeMove(t);
     
