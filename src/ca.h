@@ -450,6 +450,8 @@ public:
 
   int FindHighestCell();
 
+  double von_mises_random(double mean, double kappa); 
+
   pair<int,int> MaxPoint();
 
   void SetAreas(int area);

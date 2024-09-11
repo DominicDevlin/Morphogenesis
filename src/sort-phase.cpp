@@ -405,7 +405,7 @@ TIMESTEP {
     }
     dish->CPM->AmoebaeMove(t);
 
-    if (t % 400 == 0 && t > 0)
+    if (t % par.cell_addition_rate == 0 && t > 0)
     {
       int cnum = dish->CPM->FindHighestCell();
       pair<int,int> val = dish->CPM->MaxPoint();

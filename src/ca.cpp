@@ -1948,13 +1948,48 @@ cellPoint findPoint(cellPoint p1, cellPoint p2, double distance) {
 }
 
 
+double CellularPotts::von_mises_random(double mean, double kappa) 
+{
+  if (kappa == 0) {
+    // If kappa is 0, return a uniform distribution on the circle
+    return 2 * M_PI * RANDOM(s_val);
+  }
+
+  // Rejection sampling method to generate a von Mises random angle
+  double r = 1 + sqrt(1 + 4 * kappa * kappa);
+  double rho = (r - sqrt(2 * r)) / (2 * kappa);
+  double s = (1 + rho * rho) / (2 * rho);
+
+  while (true) 
+  {
+    double u1 = RANDOM(s_val);
+    double z = cos(M_PI * u1);
+    double f = (1 + s * z) / (s + z);
+    double c = kappa * (s - f);
+
+    double u2 = RANDOM(s_val);
+    if (u2 < c * (2 - c) || u2 <= c * exp(1 - c)) 
+    {
+      double u3 = RANDOM(s_val);
+      double theta = mean + (u3 < 0.5 ? 1 : -1) * acos(f);
+      // Modify the angle based on sin(theta - PI/2) instead of cos(theta)
+      theta = theta + M_PI;  // This effectively rotates the distribution by 90 degrees
+      return fmod(theta, 2 * M_PI);  // Ensure the result is in [0, 2π]
+    }
+  }
+}
+
+
 pair<int,int> CellularPotts::MaxPoint()
 {
   int massx{};
   int massy{};
   int count{};
 
+
   vector<pair<int,int>> surface_points{};
+  vector<pair<int,int>> contact_points{};
+
   for (int x = 1; x < sizex-1; ++ x)
   {
     for (int y = 1; y < sizey-1; ++y)
@@ -1966,14 +2001,29 @@ pair<int,int> CellularPotts::MaxPoint()
         {
           massx+=x;
           massy+=y;
+
           ++count;
-          for (int i = 1;i<=nbh_level[1];++i)
+          bool encountered_med=false;
+          bool encountered_diff=false;
+          for (int i = 1;i<=nbh_level[2];++i)
           {
             int xp = x + nx[i];
             int yp = y + ny[i];
-            if (sigma[xp][yp] == 0)
+            if (sigma[xp][yp] == 0 && encountered_med == false)
             {
               surface_points.push_back({x,y});
+              encountered_med = true;
+            }
+            if (sigma[xp][yp] != sig && sigma[xp][yp] > 0 && encountered_diff == false)
+            {
+              if ((*cell)[sigma[xp][yp]].GetPhase() == 0)
+              {
+                encountered_diff = true;
+              }
+            }
+            if (encountered_med == true && encountered_diff == true)
+            {
+              contact_points.push_back({x,y});
               break;
             }
           }
@@ -1985,6 +2035,66 @@ pair<int,int> CellularPotts::MaxPoint()
 
   double xcen = double(massx)/double(count);
   double ycen = double(massy)/double(count);
+
+  // Variables to store min and max angles
+  double min_angle = M_PI*2;
+  double max_angle = 0.;
+
+
+  double max_distance = -1;
+  pair<int,int> point1, point2;
+  // Iterate over all pairs of points
+  for (size_t i = 0; i < contact_points.size(); ++i) 
+  {
+    for (size_t j = i + 1; j < contact_points.size(); ++j) 
+    {
+      // Get the coordinates of the two points
+      auto [x1, y1] = contact_points[i];
+      auto [x2, y2] = contact_points[j];
+
+      // Calculate the Euclidean distance between the points
+      double distance = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+
+      // Check if this distance is the largest found so far
+      if (distance > max_distance) 
+      {
+          max_distance = distance;
+          point1 = {x1, y1};
+          point2 = {x2, y2};
+      }
+    }
+  }
+  // Now calculate the angle ABC
+  auto [Ax, Ay] = point1;  // A is point1
+  auto [Cx, Cy] = point2;  // C is point2
+  double Bx = xcen, By = ycen;  // B is the center point
+
+  // Vector AB and BC
+  double ABx = Ax - Bx;
+  double ABy = Ay - By;
+  double BCx = Cx - Bx;
+  double BCy = Cy - By;
+
+  // Dot product of AB and BC
+  double dot_product = ABx * BCx + ABy * BCy;
+
+  // Magnitudes of AB and BC
+  double mag_AB = sqrt(ABx * ABx + ABy * ABy);
+  double mag_BC = sqrt(BCx * BCx + BCy * BCy);
+
+  // Calculate the angle in radians using the dot product formula
+  double cos_theta = dot_product / (mag_AB * mag_BC);
+  double angle_ABC = acos(cos_theta);  // Angle in radians
+  cout << xcen << '\t' << ycen << '\t' << point1.first << '\t' << point1.second << '\t' << point2.first << '\t' << point2.second << '\t' << angle_ABC << endl;
+
+
+  // now 
+  double get_check = von_mises_random(0.0, 1);
+  cout << "CHECK IS: " << get_check << endl;
+
+  /// UP TO HERE
+
+
   // cout << xcen << '\t' << ycen << endl;
   int index = RandomNumber(Npoints-1, s_val);
   cellPoint centerp = {xcen, ycen};
