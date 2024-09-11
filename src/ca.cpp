@@ -1980,6 +1980,39 @@ double CellularPotts::von_mises_random(double mean, double kappa)
 }
 
 
+double angle_caclulator(pair<int,int> point1, pair<int,int> point2, pair<int,int> center)
+{
+  auto [Ax, Ay] = point1;  // A is point1
+  auto [Cx, Cy] = point2;  // C is point2
+  double Bx = center.first, By = center.second;  // B is the center point
+
+  // Vector AB and BC
+  double ABx = Ax - Bx;
+  double ABy = Ay - By;
+  double BCx = Cx - Bx;
+  double BCy = Cy - By;
+
+  // Dot product of AB and BC
+  double dot_product = ABx * BCx + ABy * BCy;
+
+  // Magnitudes of AB and BC
+  double mag_AB = sqrt(ABx * ABx + ABy * ABy);
+  double mag_BC = sqrt(BCx * BCx + BCy * BCy);
+
+  // Calculate the angle in radians using the dot product formula
+  double cos_theta = dot_product / (mag_AB * mag_BC);
+  double angle_ABC = acos(cos_theta);  // Angle in radians  
+  // Cross product of AB and BC (only the z-component)
+  double cross_product = ABx * BCy - ABy * BCx;
+
+  // Use the sign of the cross product to determine the direction
+  if (cross_product < 0) {
+    // Clockwise (right turn)
+    angle_ABC = -angle_ABC;
+  }
+  return angle_ABC;
+}
+
 pair<int,int> CellularPotts::MaxPoint()
 {
   int massx{};
@@ -2064,35 +2097,30 @@ pair<int,int> CellularPotts::MaxPoint()
       }
     }
   }
-  // Now calculate the angle ABC
-  auto [Ax, Ay] = point1;  // A is point1
-  auto [Cx, Cy] = point2;  // C is point2
-  double Bx = xcen, By = ycen;  // B is the center point
+  pair<int, int> mcenter = {xcen, ycen};
+  pair<int,int> axis = {0,1};
+  double angle_ABC = angle_caclulator(point1, point2, mcenter);
+  double angle_oBC = angle_caclulator(axis, point1, mcenter);
+  double angle_oBA = angle_caclulator(axis, point2, mcenter);
+  // THERE IS BUG
 
-  // Vector AB and BC
-  double ABx = Ax - Bx;
-  double ABy = Ay - By;
-  double BCx = Cx - Bx;
-  double BCy = Cy - By;
+  cout << angle_ABC << '\t' << angle_oBA << '\t' << angle_oBC << endl;
 
-  // Dot product of AB and BC
-  double dot_product = ABx * BCx + ABy * BCy;
+  double largest_angle = max(angle_oBC, angle_oBA);
 
-  // Magnitudes of AB and BC
-  double mag_AB = sqrt(ABx * ABx + ABy * ABy);
-  double mag_BC = sqrt(BCx * BCx + BCy * BCy);
+  // cout << xcen << '\t' << ycen << '\t' << point1.first << '\t' << point1.second << '\t' << point2.first << '\t' << point2.second << '\t' << angle_ABC << endl;
 
-  // Calculate the angle in radians using the dot product formula
-  double cos_theta = dot_product / (mag_AB * mag_BC);
-  double angle_ABC = acos(cos_theta);  // Angle in radians
-  cout << xcen << '\t' << ycen << '\t' << point1.first << '\t' << point1.second << '\t' << point2.first << '\t' << point2.second << '\t' << angle_ABC << endl;
+  double previous_angle={};
+
+  // we will use kappa of 1. 
+  double rand_angle = von_mises_random(previous_angle, 1);
+  cout << "CHECK IS: " << rand_angle << endl;
+
+  double fractional = angle_ABC / (2*M_PI);
+  double squished_angle = rand_angle * fractional;
 
 
-  // now 
-  double get_check = von_mises_random(0.0, 1);
-  cout << "CHECK IS: " << get_check << endl;
 
-  /// UP TO HERE
 
 
   // cout << xcen << '\t' << ycen << endl;
