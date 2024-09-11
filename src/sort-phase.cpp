@@ -380,7 +380,6 @@ TIMESTEP {
         }
 
       }
-
       // print individual chemical concentrations. 
       // if (t % 100 == 0 && t > par.end_program)
       // {
@@ -406,12 +405,16 @@ TIMESTEP {
     }
     dish->CPM->AmoebaeMove(t);
 
-    if (t % 400 == 0)
+    if (t % 400 == 0 && t > 0)
     {
       int cnum = dish->CPM->FindHighestCell();
       pair<int,int> val = dish->CPM->MaxPoint();
       dish->CPM->SpawnCell(val.first, val.second, cnum, t);
       //dish->CPM->SpawnCell(val.first-20, val.second-20, cnum, t);
+    }
+    if (t % 4000 == 0)
+    {
+      bool check_shape = dish->CPM->CheckAllConnected(0.9);
     }
 
 

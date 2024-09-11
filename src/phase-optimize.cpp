@@ -344,7 +344,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     
       if (t % 250 == 0 && par.insitu_shapes)
       {
-        // cout << 'here' << endl;
         dishes[i].CPM->PhaseShapeIndex();
         // dish->CPM->AdhesionByState();
         dishes[i].CPM->HexaticOrder();
@@ -376,7 +375,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       // ensure all cells are connected for shape calculations. 
       if (t > 0 && t % 5000 == 0)
       {
-        bool check_shape = dishes[i].CPM->CheckShape();
+        bool check_shape = dishes[i].CPM->CheckAllConnected(0.9);
+        //bool check_shape = dishes[i].CPM->CheckShape();
         if (check_shape == false)
         {
           opt_out[i] = par.sizey;

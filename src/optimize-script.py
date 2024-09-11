@@ -84,7 +84,7 @@ else:
 # Vmax = 1 / (1 + J_stem)
 # V_smax = [0.,Vmax]
 # doing addtition rate now
-max_rate = (13 - J_stem)*100
+max_rate = (J_stem)*100
 V_smax = [max_rate, 1600]
 
 
@@ -109,7 +109,7 @@ if punt_J_sd < Jsd[0]:
     punt_J_sd = Jsd[0]
 elif punt_J_sd > Jsd[1]:
     punt_J_sd = Jsd[1]
-punt_vsmax = (16 - J_stem)*100
+punt_vsmax = (J_stem)*100 + 200
 # punt_vdmax = 1
 # punt_gthresh = 2
 inits.append([punt_sec_rate, punt_vsmax, punt_J_sd])

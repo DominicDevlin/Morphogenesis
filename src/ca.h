@@ -213,7 +213,7 @@ public:
 
   double get_enzyme_conc(int n, int x, int y);
 
-  bool CheckAllConnected();
+  bool CheckAllConnected(double threshold=1.);
 
   double VecDoubleDeriv(vector<double>& vex);
 

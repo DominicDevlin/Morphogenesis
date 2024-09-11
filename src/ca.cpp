@@ -1840,7 +1840,7 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 
 void CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
 {
-  if (sigma[x][y] != 0)
+  if (sigma[x][y] > 0)
   {
     cerr << "Spawned cell in bad spot.\n"; 
   }
@@ -1848,16 +1848,16 @@ void CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
   {
     Cell *new_cell;
     Cell *cp=&((*cell)[cp_sigma]);
-    new_cell = new Cell(*cp->owner);
+    new_cell = new Cell(*(cp->owner));
     new_cell->CellBirth(*cp);
     cell->push_back(*new_cell);
     delete new_cell;
-    cp = &((*cell)[cp_sigma]);
-    new_cell=&(cell->back());
-    new_cell->SetTimeCreated(time);
+    // cp = &((*cell)[cp_sigma]);
+    // new_cell=&(cell->back());
+    cell->back().SetTimeCreated(time);
     if (par.gene_record)
     {
-      new_cell->reset_recordings(); 
+      cell->back().reset_recordings(); 
     }
     
     // make cell
@@ -1867,8 +1867,11 @@ void CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
     queue<pair<int, int>> q; // Queue for BFS
     q.push({x, y});
 
-    int cell_size = 80;
-    int cell_sigma=new_cell->Sigma();
+    int cell_size = par.cell_areas;
+    int cell_sigma=cell->back().Sigma();
+    // cout << "cp sigma is: " << cp_sigma << endl;
+    // cout << "sigma is: " << cell_sigma << endl;
+    // cout << x << '\t' << y << endl;
     
     int filledPixels = 0;
     while (!q.empty() && filledPixels < cell_size) 
@@ -1876,16 +1879,17 @@ void CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
         auto [x, y] = q.front();
         q.pop();
         // Skip if this cell is already filled or out of bounds
-        if (x < 1 || x >= sizex-1 || y < 1 || y >= sizex-1 || sigma[x][y]==cell_sigma) 
+        if (x < 1 || x >= sizex-1 || y < 1 || y >= sizey-1 || sigma[x][y]>0 ) 
         {
-            continue;
+          // cout << "FAILED TO ADD TO: " << x << '\t' << y << endl;
+          continue;
         }
-        
+        // cout << "added site: " << x << '\t' << y << endl;
         // Fill the pixel
         sigma[x][y] = cell_sigma;
-        new_cell->AddSiteToMoments(x,y);
-        new_cell->IncrementArea();
-        new_cell->IncrementTargetArea();
+        cell->back().AddSiteToMoments(x,y);
+        cell->back().IncrementArea();
+        cell->back().IncrementTargetArea();
         filledPixels++;
         
         // Add neighboring cells (up, down, left, right) to the queue
@@ -4407,6 +4411,7 @@ bool CellularPotts::EndOptimizer(int time)
   int count = CountPhaseOnCells();
   if (count < par.min_phase_cells && time > 200)
   {
+    cout << "ENDID WITH N CELLS: " << count << endl;
     return true;
 
   }
@@ -6906,12 +6911,14 @@ bool CellularPotts::SoloCheck()
 
 
 //IMPORTANT METHOD:  Function to ensure all cells are connected indirectly to all other cells on lattice.  
-bool CellularPotts::CheckAllConnected()
+bool CellularPotts::CheckAllConnected(double threshold)
 {
+
+
   vector<unordered_set<int>> all_connections{};
 
   vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  for ( (c = cell->begin(), c++); c != cell->end(); c++) 
   {
     if (c->AliveP())
     {
@@ -6919,12 +6926,13 @@ bool CellularPotts::CheckAllConnected()
       int id = c->Sigma();
       tempcon.emplace(id);
       int xp, yp;
-      for (int x=1;x<sizex-2;++x)
-        for (int y=1;y<sizey-2;++y)
+      for (int x = 2; x < sizex - 2; ++x)
+      {
+        for (int y = 2; y < sizey - 2; ++y)
         {
           if (sigma[x][y] == id)
           {
-            for (int i = 1;i<=nbh_level[1];++i)
+            for (int i = 1; i <= nbh_level[1]; ++i)
             {
               xp = x + nx[i];
               yp = y + ny[i];
@@ -6932,7 +6940,9 @@ bool CellularPotts::CheckAllConnected()
                 tempcon.emplace(sigma[xp][yp]);
             }
           }
+
         }
+      }
       all_connections.push_back(tempcon);
     }
   }
@@ -6940,57 +6950,150 @@ bool CellularPotts::CheckAllConnected()
   if (all_connections.size() < 2)
     return false;
 
-
   unordered_set<int> MaxConnections{};
-  for (int n : all_connections[0])
-  {
-    MaxConnections.emplace(n);
-  }
+  size_t max_connection_size = 0;  // Track the largest connected component size
 
-  all_connections.erase(all_connections.begin());
-  // auto it = all_connections.begin();
-  // *it = move(all_connections.back());
-  // all_connections.pop_back();
-
-  unsigned int x = all_connections.size();
-  for (unsigned int i=0; i<x;++i)
+  // Iterate over all connection sets to find the largest
+  while (!all_connections.empty()) 
   {
-    bool fbreak = false;
-    unordered_set<int> nbrs = all_connections[i];
-    for (int connection : nbrs)
-    {
-      unordered_set<int>::iterator f = MaxConnections.find(connection);
-      if (f == MaxConnections.end())
-        continue;
-      else
+    unordered_set<int> current_set = all_connections.back();
+    all_connections.pop_back();
+
+    unordered_set<int> combined_set = current_set; // Start with the current set
+    bool merged = true;
+
+    // Try merging with any other sets that share a connection
+    while (merged) {
+      merged = false;
+      for (auto it = all_connections.begin(); it != all_connections.end();)
       {
+        unordered_set<int> nbrs = *it;
+        bool has_common = false;
         for (int connection : nbrs)
         {
-          MaxConnections.emplace(connection);
+          if (combined_set.find(connection) != combined_set.end()) 
+          {
+            has_common = true;
+            break;
+          }
         }
-        all_connections.erase(all_connections.begin() + i);
-        
-        // auto it = all_connections.begin() + i;
-        // *it = move(all_connections.back());
-        // all_connections.pop_back();
-        fbreak = true;
-        break;   
+
+        if (has_common) 
+        {
+          // Merge the neighbor set into the current set
+          combined_set.insert(nbrs.begin(), nbrs.end());
+          it = all_connections.erase(it);  // Remove the merged set
+          merged = true;  // Continue merging with other sets
+        }
+        else
+        {
+          ++it;  // Move to the next set
+        }
       }
     }
-    if (fbreak == true)
+    // Check if this connected component is the largest so far
+    if (combined_set.size() > max_connection_size) 
     {
-      x = all_connections.size();
-      if (x > 0)
-        i = 0;
-      else
-        break;
+      MaxConnections = combined_set;  // Update the largest component
+      max_connection_size = combined_set.size();
     }
   }
 
-  if ((int)MaxConnections.size() == CountCells())
-    return true;
+  if (threshold>0.99)
+  {
+    if ((int)MaxConnections.size() == CountCells())
+      return true;
+    else
+      return false;
+  }
   else
-    return false;
+  {
+    double mc = double(MaxConnections.size()) / double(CountCells());
+    if (mc > threshold)
+      return true;
+    else
+      return false;
+  }
+  // vector<unordered_set<int>> all_connections{};
+
+  // vector<Cell>::iterator c;
+  // for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  // {
+  //   if (c->AliveP())
+  //   {
+  //     unordered_set<int> tempcon{};
+  //     int id = c->Sigma();
+  //     tempcon.emplace(id);
+  //     int xp, yp;
+  //     for (int x=2;x<sizex-2;++x)
+  //       for (int y=2;y<sizey-2;++y)
+  //       {
+  //         if (sigma[x][y] == id)
+  //         {
+  //           for (int i = 1;i<=nbh_level[1];++i)
+  //           {
+  //             xp = x + nx[i];
+  //             yp = y + ny[i];
+  //             if (sigma[xp][yp] > 0 && sigma[xp][yp] != id)
+  //               tempcon.emplace(sigma[xp][yp]);
+  //           }
+  //         }
+  //       }
+  //     all_connections.push_back(tempcon);
+  //   }
+  // }
+
+  // if (all_connections.size() < 2)
+  //   return false;
+
+
+  // unordered_set<int> MaxConnections{};
+  // for (int n : all_connections[0])
+  // {
+  //   MaxConnections.emplace(n);
+  // }
+
+  // all_connections.erase(all_connections.begin());
+  // // auto it = all_connections.begin();
+  // // *it = move(all_connections.back());
+  // // all_connections.pop_back();
+
+  // unsigned int x = all_connections.size();
+  // for (unsigned int i=0; i<x;++i)
+  // {
+  //   bool fbreak = false;
+  //   unordered_set<int> nbrs = all_connections[i];
+  //   for (int connection : nbrs)
+  //   {
+  //     unordered_set<int>::iterator f = MaxConnections.find(connection);
+  //     if (f == MaxConnections.end())
+  //       continue;
+  //     else
+  //     {
+  //       for (int connection : nbrs)
+  //       {
+  //         MaxConnections.emplace(connection);
+  //       }
+  //       all_connections.erase(all_connections.begin() + i);
+        
+  //       // auto it = all_connections.begin() + i;
+  //       // *it = move(all_connections.back());
+  //       // all_connections.pop_back();
+  //       fbreak = true;
+  //       break;   
+  //     }
+  //   }
+  //   if (fbreak == true)
+  //   {
+  //     x = all_connections.size();
+  //     if (x > 0)
+  //       i = 0;
+  //     else
+  //       break;
+  //   }
+  // }
+  // cout << "Max connection size is: " << (int)MaxConnections.size() << endl;
+
 }
 
 
