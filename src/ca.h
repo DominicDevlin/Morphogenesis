@@ -829,6 +829,10 @@ private:
 
   bool early_contig;
 
+  double previous_angle=0;
+  double oldx=0;
+  double oldy=0;
+
   string data_file;
 
 

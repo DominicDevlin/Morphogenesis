@@ -2014,6 +2014,38 @@ double angle_caclulator(pair<int,int> point1, pair<int,int> point2, pair<int,int
   return angle_ABC;
 }
 
+double angle2_calculator(pair<int,int> point1, pair<int,int> point2, pair<int,int> center, bool cross=false)
+{
+  auto [Ax, Ay] = point1;  // A is point1
+  auto [Cx, Cy] = point2;  // C is point2
+  double Bx = center.first, By = center.second;  // B is the center point
+
+  // Vector AB and BC
+  double BAx = Ax - Bx;
+  double BAy = Ay - By;
+  double BCx = Cx - Bx;
+  double BCy = Cy - By;
+
+  // Dot product and cross product
+  double dotProduct = BAx * BCx + BAy * BCy;
+  double crossProduct = BAx * BCy - BAy * BCx;
+  
+  // Magnitudes of vectors BA and BC
+  double magnitudeBA = sqrt(BAx * BAx + BAy * BAy);
+  double magnitudeBC = sqrt(BCx * BCx + BCy * BCy);
+  
+  // Angle in radians
+  double angle = atan2(crossProduct, dotProduct);
+  
+  // Adjusting angle to the range [0, 2pi] for clockwise direction
+  if (angle < 0) {
+      angle += 2 * M_PI;
+  }
+  
+  return angle; // Angle in radians
+}
+
+
 pair<int,int> CellularPotts::MaxPoint()
 {
   int massx{};
@@ -2103,40 +2135,137 @@ pair<int,int> CellularPotts::MaxPoint()
   double angle_ABC = angle_caclulator(point1, point2, mcenter);
 
   double cross_ABC = angle_caclulator(point1, point2, mcenter, true);
-  // 
+
+  if (cross_ABC < 0)
+  {
+    swap(point1, point2);
+  }
+  double angle_ABC = angle2_calculator(point1, point2, mcenter);
+
+  vector<double> angles{};
+  pair<int,int> old_point = {oldx,oldy};
+
+  for (auto p : surface_points)
+  {
+    double angle = angle_caclulator(old_point, p, mcenter);
+    if (angle < min_angle)
+    {
+      min_angle = angle;
+      final.first = p.first;
+      final.second = p.second;
+    }
+  }
+
+
+  // double cross_ABC = angle_caclulator(point1, point2, mcenter, true);
+  
+  // if (cross_ABC < 0)
+  // {
+  //   swap(point1, point2);
+  // }
+  // cout << "starting points: " << xcen << '\t' << ycen << '\t' << point1.first << '\t' << point1.second << '\t' << point2.first << '\t' << point2.second << endl;
+
+
+  // // we will use kappa of 1, get random point based on last (anticorrelated).
+  // double rand_angle = von_mises_random(0.0, 1);
+  
+
+  // double fractional = (2*M_PI-angle_ABC) / (2*M_PI);
+  // double squished_angle = rand_angle * fractional;
+  // cout << "ANGLE IS: " << squished_angle << endl;
+  
+  
+  // if (oldx < 0.001)
+  // {
+  //   oldx = xcen;
+  //   oldy = ycen - 1;
+  // }
+  // cout << "OLD values: " << oldx << '\t' << oldy << endl;
+    
+
+  // // Translate point A relative to the center
+  // double translated_Ax = double(oldx) - double(xcen);
+  // double translated_Ay = double(oldy) - double(ycen);
+
+  // // Apply rotation matrix for squished_angle in a clockwise direction
+  // double rotated_x = translated_Ax * cos(-squished_angle) - translated_Ay * sin(-squished_angle);
+  // double rotated_y = translated_Ax * sin(-squished_angle) + translated_Ay * cos(-squished_angle);
+
+  // // Translate back to original coordinates relative to B
+  // double newx = rotated_x + xcen; 
+  // double newy = rotated_y + ycen;
+
+  // cout << "INTERMEDIATE: " << newx << '\t' << newy << endl;
+
+  // // Check if adding the angle crosses the line
+  // pair<int,int> oldone = {oldx,oldy};
+  // double angle1 = angle2_calculator(oldone, point1, mcenter);
+  // cout << "ANGLE AND SQUISHED: " << angle1 << '\t' << squished_angle << endl;
+  // if (squished_angle > angle1 || (squished_angle - angle1 < 0.2))
+  // {
+  //   // If crossed, apply angle_ABC in a clockwise direction
+  //   translated_Ax = double(newx) - double(xcen);
+  //   translated_Ay = double(newy) - double(ycen);
+
+  //   // Apply rotation matrix for angle_ABC in a clockwise direction
+  //   rotated_x = translated_Ax * cos(-angle_ABC) - translated_Ay * sin(-angle_ABC);
+  //   rotated_y = translated_Ax * sin(-angle_ABC) + translated_Ay * cos(-angle_ABC);
+
+  //   // Translate back to original coordinates relative to B
+  //   newx = rotated_x + xcen; 
+  //   newy = rotated_y + ycen;
+  //   cout << "CROSSED" << endl;
+  // }
+  // else
+  // {
+  //   cout << "NOT CROSSED" << endl;
+  // }
+  // cout  << "NEW values: " << newx << '\t' << newy << endl;
+
+  // // now we need to find the surface point with the smallest angle with xcen,ycen
+  // pair<int,int> p_point = {int(round(newx)),int(round(newy))};
+  // oldx = newx;
+  // oldy = newy;
+
+  // pair<int,int> final{0,0};
+  // min_angle=M_PI*2;
+
+  // for (auto p : surface_points)
+  // {
+  //   double angle = angle_caclulator(p_point, p, mcenter);
+  //   if (angle < min_angle)
+  //   {
+  //     min_angle = angle;
+  //     final.first = p.first;
+  //     final.second = p.second;
+  //   }
+  // }
+  // cellPoint centerp = {xcen, ycen};
+  // cellPoint surfacep = {final.first, final.second};  
+  // cellPoint newp = findPoint(surfacep, centerp, 6);
+  // pair<int,int> toret = {int(round(newp.x)), int(round(newp.y))};
+  // return toret;
+
+
+  // if we go round the circle and hit point1, we need to skip to point2.
+
 
   // double angle_oBC = angle_caclulator(axis, point1, mcenter, true);
   // double angle_oBA = angle_caclulator(axis, point2, mcenter, true);
   // NEED TO WORK OUT LOGIC SO THAT WE KNOW WHICH ONE IS ON THE LEFT AND WHICH IS ON THE RIGHT.
   // cout << angle_ABC << '\t' << angle_oBA << '\t' << angle_oBC << endl;
-
-
-
-  double largest_angle = max(angle_oBC, angle_oBA);
+  // double largest_angle = max(angle_oBC, angle_oBA);
 
   // cout << xcen << '\t' << ycen << '\t' << point1.first << '\t' << point1.second << '\t' << point2.first << '\t' << point2.second << '\t' << angle_ABC << endl;
 
-  double previous_angle={};
-
-  // we will use kappa of 1. 
-  double rand_angle = von_mises_random(previous_angle, 1);
-  cout << "CHECK IS: " << rand_angle << endl;
-
-  double fractional = angle_ABC / (2*M_PI);
-  double squished_angle = rand_angle * fractional;
-
-
-
-
-
   // cout << xcen << '\t' << ycen << endl;
-  int index = RandomNumber(Npoints-1, s_val);
-  cellPoint centerp = {xcen, ycen};
-  cellPoint surfacep = {surface_points[index].first, surface_points[index].second};
+  // int index = RandomNumber(Npoints-1, s_val);
+  // cellPoint centerp = {xcen, ycen};
+  // cellPoint surfacep = {surface_points[index].first, surface_points[index].second};
 
-  cellPoint newp = findPoint(surfacep, centerp, 6);
-  pair<int,int> toret = {int(round(newp.x)), int(round(newp.y))};
-  return toret;
+  // cellPoint newp = findPoint(surfacep, centerp, 6);
+  // pair<int,int> toret = {int(round(newp.x)), int(round(newp.y))};
+  // return toret;
 
 }
 
