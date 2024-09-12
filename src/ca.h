@@ -832,6 +832,8 @@ private:
   double previous_angle=0;
   double oldx=0;
   double oldy=0;
+  double oldxcen=0;
+  double oldycen=0;
 
   string data_file;
 
