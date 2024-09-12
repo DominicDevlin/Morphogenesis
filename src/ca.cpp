@@ -1980,7 +1980,7 @@ double CellularPotts::von_mises_random(double mean, double kappa)
 }
 
 
-double angle_caclulator(pair<int,int> point1, pair<int,int> point2, pair<int,int> center)
+double angle_caclulator(pair<int,int> point1, pair<int,int> point2, pair<int,int> center, bool cross=false)
 {
   auto [Ax, Ay] = point1;  // A is point1
   auto [Cx, Cy] = point2;  // C is point2
@@ -2006,7 +2006,8 @@ double angle_caclulator(pair<int,int> point1, pair<int,int> point2, pair<int,int
   double cross_product = ABx * BCy - ABy * BCx;
 
   // Use the sign of the cross product to determine the direction
-  if (cross_product < 0) {
+  if (cross_product < 0 && cross) 
+  {
     // Clockwise (right turn)
     angle_ABC = -angle_ABC;
   }
@@ -2098,13 +2099,18 @@ pair<int,int> CellularPotts::MaxPoint()
     }
   }
   pair<int, int> mcenter = {xcen, ycen};
-  pair<int,int> axis = {0,1};
+  pair<int,int> axis = {xcen,ycen+1};
   double angle_ABC = angle_caclulator(point1, point2, mcenter);
-  double angle_oBC = angle_caclulator(axis, point1, mcenter);
-  double angle_oBA = angle_caclulator(axis, point2, mcenter);
-  // THERE IS BUG
 
-  cout << angle_ABC << '\t' << angle_oBA << '\t' << angle_oBC << endl;
+  double cross_ABC = angle_caclulator(point1, point2, mcenter, true);
+  // 
+
+  // double angle_oBC = angle_caclulator(axis, point1, mcenter, true);
+  // double angle_oBA = angle_caclulator(axis, point2, mcenter, true);
+  // NEED TO WORK OUT LOGIC SO THAT WE KNOW WHICH ONE IS ON THE LEFT AND WHICH IS ON THE RIGHT.
+  // cout << angle_ABC << '\t' << angle_oBA << '\t' << angle_oBC << endl;
+
+
 
   double largest_angle = max(angle_oBC, angle_oBA);
 
