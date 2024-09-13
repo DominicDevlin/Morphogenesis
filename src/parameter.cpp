@@ -88,8 +88,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 200;
-    sizey = 300;
+    sizex = 250;
+    sizey = 250;
     mcs = 100000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -257,8 +257,8 @@
     highT_time = 100;
     highT_temp = 5.;
 
-    start_sheet_measure = highT_time + 100;
-    end_sheet_measure = start_sheet_measure + 100000;
+    start_sheet_measure = highT_time + 500;
+    end_sheet_measure = start_sheet_measure + 100;
 
     // diffusion parameters
     waiting_time = 2000;

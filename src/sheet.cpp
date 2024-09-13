@@ -333,7 +333,6 @@ TIMESTEP {
       snprintf(title,399,"CellularPotts: %.2f hr",dish->PDEfield->TheTime()/3600);      
 
 
-
       //char title[400];
       //snprintf(title,399,"CellularPotts: %d MCS",i);
       //ChangeTitle(title);

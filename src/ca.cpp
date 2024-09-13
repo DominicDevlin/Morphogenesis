@@ -2523,8 +2523,8 @@ struct VPoint
 vector<VPoint> HexaCenters(int m, int n, double r)
 {
   vector<VPoint> centers;
-  int num_rows = static_cast<int>(std::floor(m / (sqrt(3) * r)));
-  int num_cols = static_cast<int>(std::floor(n / (2 * r)));  
+  int num_cols = static_cast<int>(std::floor(m / (2 * r)));  
+  int num_rows = static_cast<int>(std::floor(n / (sqrt(3) * r)));
   int center_count = 1;
 
     // Generate centers
@@ -2541,8 +2541,8 @@ vector<VPoint> HexaCenters(int m, int n, double r)
           }
           
           // Ensure the center is within the grid bounds
-          if (x < m && y < n) {
-              centers.push_back({x, y, center_count});
+          if (x < m+2 && y < n+2) {
+              centers.push_back({x+2+(r/2), y+2+(r/2), center_count});
               center_count++;
           }
         }
@@ -2553,8 +2553,13 @@ vector<VPoint> HexaCenters(int m, int n, double r)
 
 int HexaCounter(int m, int n, double r)
 {
-  int num_rows = static_cast<int>(std::floor(m / (sqrt(3) * r)));
-  int num_cols = static_cast<int>(std::floor(n / (2 * r)));  
+  // int num_rows = static_cast<int>(std::floor(m / (sqrt(3) * r)));
+  // int num_cols = static_cast<int>(std::floor(n / (2 * r)));  
+
+  int num_cols = static_cast<int>(std::floor(m / (2 * r)));  
+  int num_rows = static_cast<int>(std::floor(n / (sqrt(3) * r)));
+
+
   int center_count = 0;
     // Generate centers
     for (int row = 0; row < num_rows; ++row) 
@@ -2589,10 +2594,10 @@ double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey)
   
   // Apply periodic boundary conditions
   if (dx > sizex / 2) {
-      dx = sizex - dx;  // Wrap around horizontally
+      dx = sizex - dx - 2;  // Wrap around horizontally
   }
   if (dy > sizey / 2) {
-      dy = sizey - dy;  // Wrap around vertically
+      dy = sizey - dy - 2;  // Wrap around vertically
   }
   
   // Return the Euclidean distance
@@ -2605,19 +2610,28 @@ void CellularPotts::Voronoi()
   // double total = sizex*sizey;
   // int ncells = round(total / 75.);
   // cout << ncells << endl;
+  double A = double(par.cell_areas);
+  double distance = sqrt((A)/(2*sqrt(3)));
+  double leftover = fmod(sizex-2, distance);
+  int dividor = int(floor(double(sizex-2)/distance));
+  // cout << "LEFTOVERS: " << leftover << '\t' << dividor << endl;
+  distance += leftover/dividor;
 
-  double distance = 5.;
-  int ncells = HexaCounter(sizex,sizey,distance);
+
+  int ncells = HexaCounter(sizex-2,sizey-2,distance);
   FractureSheet(ncells);
   cout << ncells << endl;
 
   cout << CountCells() << endl;
+  int periodic_length_x = sizex - 2;
+  int periodic_length_y = sizey - 2;
 
-  vector<VPoint> centers = HexaCenters(sizex, sizey, distance);
+  vector<VPoint> centers = HexaCenters(periodic_length_x, periodic_length_y, distance);
   // for (const auto& center : centers) 
   // {
   //     std::cout << "Center at (" << center.x << ", " << center.y << ")\n";
   // }
+
 
   for (int x = 1; x < sizex-1; ++x) {
       for (int y = 1; y < sizey-1; ++y) 
@@ -2671,7 +2685,7 @@ void CellularPotts::Voronoi()
       else
       {
         c->SetTargetArea(c->area);
-        cout << c->area << endl;
+        // cout << c->area << endl;
       }
     }
   }

@@ -241,7 +241,7 @@ void process_population()
       //   }
       // }
 
-      if (t % 10 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
+      if (t % 1 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
       {
         dishes[i].CPM->ShapeOrder(t);
         dishes[i].CPM->HexaticOrder(t);
@@ -336,6 +336,9 @@ void process_population()
 
   if (par.sheet_hex)
   {
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(1) << par.sheet_J;
+    string s = stream.str();
     vector<pair<int,double>> hexdata = dishes[0].CPM->Get_sheet_hexatic_order();
     vector<pair<int,double>> shapedata = dishes[0].CPM->Get_sheet_shape_index();
 
@@ -352,10 +355,10 @@ void process_population()
         shapedata.push_back(kv);
       }
     }
-    string oname = par.data_file + "/hex_time.dat";
+    string oname = par.data_file + "/hex_time-" + s + ".dat";
     WriteData(hexdata, oname);
 
-    oname = par.data_file + "/shape_time.dat";
+    oname = par.data_file + "/shape_time-" + s + ".dat";
     WriteData(shapedata, oname);       
   }
 
@@ -379,15 +382,18 @@ int main(int argc, char *argv[]) {
   par.gene_output=false;
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
-  par.mcs=2000 + par.equilibriate;
+  par.mcs=100000 + par.equilibriate;
   par.sizex=200;
   par.sizey=200;
   par.end_program=0;
   par.sheet=true;
   par.periodic_boundaries=true;
 
-  par.n_orgs = 30;
+  par.n_orgs = 120;
 
+  par.velocities=false;
+  par.sheet_hex=true;
+  par.measure_interval=10;
   if (par.velocities)
     par.output_sizes = true;
   else
@@ -404,7 +410,7 @@ int main(int argc, char *argv[]) {
   par.flush_cells = true;
 
 
-  bool single=true;
+  bool single=false;
   if (single)
   {
     par.sheet_J = 4;
