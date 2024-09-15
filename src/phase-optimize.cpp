@@ -336,8 +336,13 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         if (t % par.cell_addition_rate == 0 && t > 200)
         {
           int cnum = dishes[i].CPM->FindHighestCell();
-          pair<int,int> val = dishes[i].CPM->MaxPoint();
-          dishes[i].CPM->SpawnCell(val.first, val.second, cnum, t);
+          int mnum = dishes[i].CPM->TopStalk();
+          bool set=false;
+          while (!set)
+          {
+            pair<int,int> val = dishes[i].CPM->ChooseAddPoint(mnum);
+            set = dishes[i].CPM->SpawnCell(val.first, val.second, cnum, t);
+          }
         }
       }
       dishes[i].CPM->AmoebaeMove(t);

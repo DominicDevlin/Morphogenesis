@@ -409,7 +409,6 @@ TIMESTEP {
     {
       int cnum = dish->CPM->FindHighestCell();
       int mnum = dish->CPM->TopStalk();
-      cout << "GOT HERE"  << endl;
       
       bool set=false;
       while (!set)
