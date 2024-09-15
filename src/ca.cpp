@@ -1838,11 +1838,12 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 }   
 
 
-void CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
+bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
 {
   if (sigma[x][y] > 0)
   {
     cerr << "Spawned cell in bad spot.\n"; 
+    return false;
   }
   else
   {
@@ -1903,6 +1904,7 @@ void CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
         }
     }
   }
+  return true;
 }
 
 
@@ -1916,6 +1918,23 @@ int CellularPotts::FindHighestCell()
       if (sigma[x][y] > 0)
       {
         return sigma[x][y];
+      }
+    }
+  }
+  return 1;
+}
+
+int CellularPotts::TopStalk()
+{
+  for (int y = 1; y < sizey-1; ++ y)
+  {
+    for (int x = 1; x < sizex-1; ++x)
+    {
+      if (sigma[x][y] > 0)
+      {
+        bool cphase = (*cell)[sigma[x][y]].GetPhase();
+        if (cphase == 0)
+          return y;
       }
     }
   }
@@ -2046,7 +2065,7 @@ double angle2_calculator(pair<int,int> point1, pair<int,int> point2, pair<int,in
 }
 
 
-pair<int,int> CellularPotts::MaxPoint()
+pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
 {
   int massx{};
   int massy{};
@@ -2058,7 +2077,7 @@ pair<int,int> CellularPotts::MaxPoint()
 
   for (int x = 1; x < sizex-1; ++ x)
   {
-    for (int y = 1; y < sizey-1; ++y)
+    for (int y = 1; y < max_point; ++y)
     {
       if (sigma[x][y] > 0)
       {

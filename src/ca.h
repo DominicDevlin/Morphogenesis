@@ -446,13 +446,15 @@ public:
 
   vector<pair<int,double>> Get_sheet_shape_index();
 
-  void SpawnCell(int x, int y, int cp_sigma, int time);
+  bool SpawnCell(int x, int y, int cp_sigma, int time);
 
   int FindHighestCell();
 
   double von_mises_random(double mean, double kappa); 
 
-  pair<int,int> MaxPoint();
+  pair<int,int> ChooseAddPoint(int max_point=par.sizey);
+
+  int TopStalk();
 
   void SetAreas(int area);
 

@@ -333,7 +333,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         // WE ARE GOING TO CHANGE THIS SO THAT IT JUST RANDOMLY ADDS MASS TO ONE OF THE STEM CELLS!! (can also do sigmoidal function?)
         // dishes[i].CPM->DiscreteGrowthAndDivision(t);
         // dishes[i].CPM->CellGrowthAndDivision(t);
-        if (t % par.cell_addition_rate == 0)
+        if (t % par.cell_addition_rate == 0 && t > 200)
         {
           int cnum = dishes[i].CPM->FindHighestCell();
           pair<int,int> val = dishes[i].CPM->MaxPoint();

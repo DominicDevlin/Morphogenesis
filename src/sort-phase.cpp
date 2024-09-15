@@ -405,11 +405,19 @@ TIMESTEP {
     }
     dish->CPM->AmoebaeMove(t);
 
-    if (t % par.cell_addition_rate == 0 && t > 0)
+    if (t % par.cell_addition_rate == 0 && t > 200)
     {
       int cnum = dish->CPM->FindHighestCell();
-      pair<int,int> val = dish->CPM->MaxPoint();
-      dish->CPM->SpawnCell(val.first, val.second, cnum, t);
+      int mnum = dish->CPM->TopStalk();
+      cout << "GOT HERE"  << endl;
+      
+      bool set=false;
+      while (!set)
+      {
+        pair<int,int> val = dish->CPM->ChooseAddPoint(mnum);
+        set = dish->CPM->SpawnCell(val.first, val.second, cnum, t);
+      }
+        
       //dish->CPM->SpawnCell(val.first-20, val.second-20, cnum, t);
     }
     if (t % 4000 == 0)
