@@ -133,15 +133,15 @@
     // phase transition params;
     phase_evolution=true;
 
-    J_stem=2;
+    J_stem=7;
     J_diff=12;
     J_med=J_diff/2 + 0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=12.838;
+    J_stem_diff=12;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-    cell_addition_rate=100; 
+    cell_addition_rate=250; 
     secr_rate = new double[n_diffusers];
     secr_rate[0] = 0.001; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well

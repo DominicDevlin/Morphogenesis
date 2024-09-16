@@ -84,9 +84,9 @@ else:
 # Vmax = 1 / (1 + J_stem)
 # V_smax = [0.,Vmax]
 # doing addtition rate now
-max_rate = 100 + 10*J_stem*J_stem
-min_rate = max_rate + 2000
-V_smax = [max_rate, 1600]
+min_rate = 100 + 4*J_stem*J_stem
+max_rate = min_rate + 2000
+V_smax = [min_rate, max_rate]
 
 
 # n dimensional param space

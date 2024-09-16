@@ -1934,7 +1934,17 @@ int CellularPotts::TopStalk()
       {
         bool cphase = (*cell)[sigma[x][y]].GetPhase();
         if (cphase == 0)
-          return y;
+        {
+          for (int i = 1;i<=nbh_level[2];++i)
+          {
+            int xp = x + nx[i];
+            int yp = y + ny[i];
+            if (sigma[xp][yp] == 0)
+            {
+              return y;
+            }  
+          }        
+        }
       }
     }
   }
