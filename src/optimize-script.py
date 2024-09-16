@@ -30,8 +30,8 @@ J_stem = 1.
 J_diff = 1.
 
 # Define the possible values for J_stem and J_diff
-J_stem_values = [1, 2, 3, 4, 5]
-J_diff_values = [8, 9, 10, 11, 12]
+J_stem_values = [1., 2., 3., 4., 5.]
+J_diff_values = [8., 9., 10., 11., 12.]
 
 # Total number of combinations (5x5 = 25)
 num_combinations = 25

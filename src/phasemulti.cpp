@@ -322,8 +322,21 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           dishes[i].PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
         }
 
-        dishes[i].CPM->DiscreteGrowthAndDivision(t);
+        // dishes[i].CPM->DiscreteGrowthAndDivision(t);
+        if (t % par.cell_addition_rate == 0 && t > 200)
+        {
+          int cnum = dishes[i].CPM->FindHighestCell();
+          int mnum = dishes[i].CPM->TopStalk();
+          bool set=false;
+          while (!set)
+          {
+            pair<int,int> val = dishes[i].CPM->ChooseAddPoint(mnum);
+            set = dishes[i].CPM->SpawnCell(val.first, val.second, cnum, t);
+          }
+        }        
       }
+      dishes[i].CPM->AmoebaeMove(t);
+
       // ensure all cells are connected for shape calculations. 
       if (t > 0 && t % 5000 == 0 && stayed_together==true)
       {
@@ -334,12 +347,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           stayed_together=false;
         }
       }
-      // if (par.output_sizes)
-      // {
-      //   dishes[i].CPM->RecordSizes();
-      // }
-
-      dishes[i].CPM->AmoebaeMove(t);
+      
       bool if_end = dishes[i].CPM->EndOptimizer(t);
       if (if_end == true)
       {
@@ -467,8 +475,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   
   /*
     NOTES:
-
-
     NEED TO OUTPUT:
     Z-value (time based)
     shape alignment (time based)
@@ -593,10 +599,10 @@ int main(int argc, char *argv[])
   Parameter();
 
   par.phase_evolution = true;
-  par.min_phase_cells=10;
+  par.min_phase_cells=4;
   par.mcs = 100000;
 
-  par.n_orgs = 60;
+  par.n_orgs = 20;
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
   {
@@ -611,8 +617,10 @@ int main(int argc, char *argv[])
     int argnumber=1;
     for (vector<double> &params: params_data)
     {
+      // we are going to do three iterations, one with data, one control with no differentiation, one control with no differentiation and addtion
       par.secr_rate[0] = params[0];
-      par.Vs_max = params[1];
+      // par.Vs_max = params[1];
+      par.cell_addition_rate = params[1];
       par.J_stem_diff = params[2];
       par.J_stem = params[3];
       par.J_diff = params[4];
@@ -621,6 +629,14 @@ int main(int argc, char *argv[])
         par.J_med = par.J_stem;
       par.J_med2 = par.J_med;
       cout << par.J_stem << '\t' << par.J_diff << '\t' << par.J_med << endl;
+      process_population(networks, argnumber);
+      ++argnumber;
+      // control1 - no differentiation:
+      par.secr_rate[0] = 0.0001;
+      process_population(networks, argnumber);
+      ++argnumber;
+      //control 2 - no cell addition:
+      par.cell_addition_rate = 100000;
       process_population(networks, argnumber);
       ++argnumber;
     }
