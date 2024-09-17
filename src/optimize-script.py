@@ -29,13 +29,33 @@ if (len(sys.argv) > 1):
 J_stem = 1.
 J_diff = 1.
 
-rounder = int(np.floor(index/12.))
-leftover = index % 12
-print("NUMBERS:", leftover, " ", rounder)
-J_stem += leftover
-J_diff += rounder
-print("NUMBERS:", leftover, " ", rounder, J_stem, " ", J_diff)
+# Define the possible values for J_stem and J_diff
+J_stem_values = [1., 2., 3., 4., 5.]
+J_diff_values = [8., 9., 10., 11., 12.]
 
+# Total number of combinations (5x5 = 25)
+num_combinations = 25
+# Ensure the index is within the valid range
+if index >= num_combinations:
+    print("Index out of range, should be between 0 and 24.")
+else:
+    # Determine J_stem and J_diff based on the index
+    rounder = index // 5  # Integer division to determine the row (J_diff)
+    leftover = index % 5  # Modulo to determine the column (J_stem)
+
+    # Assign the values from the sets
+    J_stem = J_stem_values[leftover]
+    J_diff = J_diff_values[rounder]
+
+    print(f"Index: {index} => J_stem: {J_stem}, J_diff: {J_diff}")
+
+
+# rounder = int(np.floor(index/12.))
+# leftover = index % 12
+# print("NUMBERS:", leftover, " ", rounder)
+# J_stem += leftover
+# J_diff += rounder
+# print("NUMBERS:", leftover, " ", rounder, J_stem, " ", J_diff)
 # J_stem += index
 
 if J_stem > 12:
@@ -76,7 +96,7 @@ diff_rate = [1e-3,diffmax]
 # J of stem to diff
 Jsd = []
 if J_stem < J_diff:
-    Jsd = [J_stem, 2*J_diff]
+    Jsd = [J_stem+2, J_diff+2]
 else:
     Jsd = [J_diff, 2*J_stem]
 # max growth rate per DTS OF stem cells. Taking this out for now.
