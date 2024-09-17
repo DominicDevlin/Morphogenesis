@@ -590,6 +590,7 @@ int main(int argc, char *argv[])
     par.output_sizes = true;
   else
     par.output_sizes = false;
+  par.measure_time_order_params=true;
   Parameter();
 
   par.phase_evolution = true;

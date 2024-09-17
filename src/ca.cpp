@@ -8786,6 +8786,7 @@ void CellularPotts::PhaseShapeIndex(int time)
       int perim_length{};
       c->set_phase_state(time);
       bool p = c->GetPhase();
+      bool touching_med=false;
 
       for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
       {
@@ -8827,6 +8828,12 @@ void CellularPotts::PhaseShapeIndex(int time)
             {
               ++perim_length;
             }
+
+            if (!par.sheet_hex && sigma[xp2][yp2] == 0)
+            {
+              touching_med=true;
+            }
+
           } 
         }
       }
@@ -8836,7 +8843,7 @@ void CellularPotts::PhaseShapeIndex(int time)
       // cout << sindex << endl;
       
       // toreturn.push_back(correted_perim);
-      if (par.measure_time_order_params)
+      if (par.measure_time_order_params && !touching_med)
       {
         c->AddShape(sindex, time);
         if (p && time % par.measure_interval == 0)
