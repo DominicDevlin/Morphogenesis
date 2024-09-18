@@ -30,18 +30,19 @@ J_stem = 1.
 J_diff = 1.
 
 # Define the possible values for J_stem and J_diff
-J_stem_values = [1., 2., 3., 4., 5.]
+# J_stem_values = [1., 2., 3., 4., 5.]
 J_diff_values = [8., 9., 10., 11., 12.]
 
 J_stem_values = [1.25, 1.5, 1.75, 2.25, 2.5, 2.75, 3.25, 3.5, 3.75, 4.25, 4.5, 4.75]
 
 # Total number of combinations (5x5 = 25)
 n_rows = len(J_diff_values)
-n_cols = len(J_diff_values)
+n_cols = len(J_stem_values)
 num_combinations = len(J_stem_values) * len(J_diff_values)
 # Ensure the index is within the valid range
 if index >= num_combinations:
     print("Index out of range, should be between 0 and 24.")
+    exit()
 else:
     # Determine J_stem and J_diff based on the index
     rounder = index // n_rows  # Integer division to determine the row (J_diff)

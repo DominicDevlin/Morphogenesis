@@ -494,8 +494,17 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << double(sum_steps) / double(par.n_orgs) << '\t' << t_hex_count << '\t' << t_shape_count 
-  << '\t' << double(t_hex_count) / sum_steps * par.measure_interval << '\t' << double(t_shape_count) / sum_steps * par.measure_interval << '\t' << n_times_apart << endl;
+  outfile << "average steps:\t" << double(sum_steps) / double(par.n_orgs) << '\n' 
+  << "hex counts:\t" << t_hex_count << '\n' 
+  << "shape counts:\t" << t_shape_count << '\n'
+  << "hex per step:\t" << double(t_hex_count) / sum_steps * par.measure_interval << '\n' 
+  << "shape per step:\t" << double(t_shape_count) / sum_steps * par.measure_interval << '\n'
+  << "average breaks:\t" << double(n_times_apart) / double(par.n_orgs) << '\n'
+  << "Jstem:\t" << par.J_stem << '\n'
+  << "Jdiff:\t" << par.J_diff << '\n'
+  << "differentiation rate:\t" << par.secr_rate[0] << '\n'
+  << "addition rate:\t" << par.cell_addition_rate << '\n'
+  << "Jsd:\t" << par.J_stem_diff << endl;
   outfile.close();
 
 
@@ -601,9 +610,10 @@ int main(int argc, char *argv[])
 
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 100000;
+  par.mcs = 5000;
+  par.sheet_hex=false;
 
-  par.n_orgs = 20;
+  par.n_orgs = 2;
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
   {
