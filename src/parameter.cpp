@@ -234,12 +234,12 @@
 /* sheet related parameters */
     sheet=false;
     sheet_hex = true;
-    sheet_J = 12;
+    sheet_J = 2;
     sheet_minJ=0.5;
     sheet_maxJ=12.5;
     J_width=0.5;
 
-    do_voronoi=false;
+    do_voronoi=true;
 
     sheetmix=false;
     sheetmixJ=2*sheet_J;

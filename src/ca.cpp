@@ -8635,8 +8635,11 @@ void CellularPotts::PhaseHexaticOrder(int time)
         cell->at(i).AddHex(psi_mag, time);
         if (phaser && time % par.measure_interval == 0)
         {
+          int time_created = cell->at(i).get_time_created();
+          int delta_time = time - time_created;
+
           double psi_avg = cell->at(i).GetTempHexes();
-          pair<int,double> toreturn = {time, psi_avg};
+          pair<int,double> toreturn = {delta_time, psi_avg};
           time_hexatic_order[phaser].push_back(toreturn);
         }
         else
@@ -8848,8 +8851,10 @@ void CellularPotts::PhaseShapeIndex(int time)
         c->AddShape(sindex, time);
         if (p && time % par.measure_interval == 0)
         {
+          int time_created = c->get_time_created();
+          int delta_time = time - time_created;
           double shape_avg = c->GetTempShape();
-          pair<int,double> toreturn = {time, shape_avg};
+          pair<int,double> toreturn = {delta_time, shape_avg};
           time_shape_index[p].push_back(toreturn);
         }
         else

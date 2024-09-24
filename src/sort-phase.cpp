@@ -405,6 +405,13 @@ TIMESTEP {
     }
     dish->CPM->AmoebaeMove(t);
 
+
+    if (t > 200 && par.measure_time_order_params && t % 1 == 0)
+    {
+      dish->CPM->PhaseShapeIndex(t);
+      dish->CPM->PhaseHexaticOrder(t);
+    }  
+
     if (t % par.cell_addition_rate == 0 && t > 200)
     {
       int cnum = dish->CPM->FindHighestCell();

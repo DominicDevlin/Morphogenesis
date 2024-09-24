@@ -4,7 +4,7 @@
 #SBATCH --mem=2GB
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=6
-#SBATCH --array=73-108
+#SBATCH --array=0-19
 #SBATCH --account=uoa02799
 #SBATCH --output=ev_sim_out-%j.out
 #SBATCH --error=ev_sim_err-%j.out

@@ -33,7 +33,7 @@ J_diff = 1.
 # J_stem_values = [1., 2., 3., 4., 5.]
 J_diff_values = [8., 9., 10., 11., 12.]
 
-J_stem_values = [1.25, 1.5, 1.75, 2.25, 2.5, 2.75, 3.25, 3.5, 3.75, 4.25, 4.5, 4.75]
+J_stem_values = [5.25, 5.5, 5.75, 6]
 
 # Total number of combinations (5x5 = 25)
 n_rows = len(J_diff_values)
