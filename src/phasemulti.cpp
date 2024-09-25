@@ -102,7 +102,7 @@ int WriteData(const map<int, vector<pair<int, double>>>& shapedata, const string
       } 
       else 
       {
-        cout << "Error in time output" << endl;
+        // cout << "Error in time output" << endl;
         outfile << "\t";  // No data for this row, leave empty
       }
 
@@ -327,12 +327,22 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         {
           int cnum = dishes[i].CPM->FindHighestCell();
           int mnum = dishes[i].CPM->TopStalk();
-          bool set=false;
-          while (!set)
+          int check_n_points = dishes[i].CPM->CheckAddPoints();
+          if (check_n_points < 60)
           {
-            pair<int,int> val = dishes[i].CPM->ChooseAddPoint(mnum);
-            set = dishes[i].CPM->SpawnCell(val.first, val.second, cnum, t);
+            total_steps[i] = t;
+            t = par.mcs;            
           }
+          else
+          {
+            bool set=false;
+            while (!set)
+            {
+              pair<int,int> val = dishes[i].CPM->ChooseAddPoint(mnum);
+              set = dishes[i].CPM->SpawnCell(val.first, val.second, cnum, t);
+            }
+          }
+
         }        
       }
       dishes[i].CPM->AmoebaeMove(t);

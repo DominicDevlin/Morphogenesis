@@ -1840,9 +1840,15 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 
 bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
 {
-  if (sigma[x][y] > 0)
+  if (x < 5 || x > sizex-5 || y < 5 || y > sizey-5)
+  {
+    cerr << "Spawned cell outside of grid. Simulation should now end.\n";
+    return true;
+  }
+  else if (sigma[x][y] > 0)
   {
     cerr << "Spawned cell in bad spot.\n"; 
+    cerr << "xy is: " << x << '\t' << y << '\n' << endl;
     return false;
   }
   else
@@ -1861,9 +1867,6 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
       cell->back().reset_recordings(); 
     }
     
-    // make cell
-    int dx[4] = {0, 1, 0, -1};
-    int dy[4] = {1, 0, -1, 0};
 
     queue<pair<int, int>> q; // Queue for BFS
     q.push({x, y});
@@ -1877,31 +1880,36 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
     int filledPixels = 0;
     while (!q.empty() && filledPixels < cell_size) 
     {
-        auto [x, y] = q.front();
-        q.pop();
-        // Skip if this cell is already filled or out of bounds
-        if (x < 1 || x >= sizex-1 || y < 1 || y >= sizey-1 || sigma[x][y]>0 ) 
+      auto [x, y] = q.front();
+      q.pop();
+      // Skip if this cell is already filled or out of bounds
+      if (x < 1 || x >= sizex-1 || y < 1 || y >= sizey-1)
+      {
+        return true;
+      }
+      else if (sigma[x][y]>0 ) 
+      {
+        // cout << "FAILED TO ADD TO: " << x << '\t' << y << endl;
+        continue;
+      }
+      // cout << "added site: " << x << '\t' << y << endl;
+      // Fill the pixel
+      sigma[x][y] = cell_sigma;
+      cell->back().AddSiteToMoments(x,y);
+      cell->back().IncrementArea();
+      cell->back().IncrementTargetArea();
+      filledPixels++;
+      
+      // Add neighboring cells (up, down, left, right) to the queue
+      for (int i = 0; i < nbh_level[2]; i++) 
+      {
+        int newX = x + nx[i];
+        int newY = y + ny[i];
+        if (newX > 1 && newX < sizex-1 && newY >= 1 && newY < sizey-1 && sigma[newX][newY]==0) 
         {
-          // cout << "FAILED TO ADD TO: " << x << '\t' << y << endl;
-          continue;
+          q.push({newX, newY});
         }
-        // cout << "added site: " << x << '\t' << y << endl;
-        // Fill the pixel
-        sigma[x][y] = cell_sigma;
-        cell->back().AddSiteToMoments(x,y);
-        cell->back().IncrementArea();
-        cell->back().IncrementTargetArea();
-        filledPixels++;
-        
-        // Add neighboring cells (up, down, left, right) to the queue
-        for (int i = 0; i < 4; i++) {
-            int newX = x + dx[i];
-            int newY = y + dy[i];
-            if (newX >= 0 && newX < sizex-1 && newY >= 1 && newY < sizey-1 && sigma[newX][newY]==0) 
-            {
-                q.push({newX, newY});
-            }
-        }
+      }
     }
   }
   return true;
@@ -2075,6 +2083,60 @@ double angle2_calculator(pair<int,int> point1, pair<int,int> point2, pair<int,in
 }
 
 
+int CellularPotts::CheckAddPoints()
+{
+  int massx{};
+  int massy{};
+  int count{};
+
+
+  vector<pair<int,int>> surface_points{};
+
+  for (int x = 1; x < sizex-1; ++ x)
+  {
+    for (int y = 1; y < sizey-1; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        int sig = sigma[x][y];
+        if (cell->at(sig).GetPhase() == 1)
+        {
+          massx+=x;
+          massy+=y;
+
+          ++count;
+          bool encountered_med=false;
+          bool encountered_diff=false;
+          for (int i = 1;i<=nbh_level[2];++i)
+          {
+            int xp = x + nx[i];
+            int yp = y + ny[i];
+            if (sigma[xp][yp] == 0 && encountered_med == false)
+            {
+              surface_points.push_back({x,y});
+              encountered_med = true;
+            }
+            if (sigma[xp][yp] != sig && sigma[xp][yp] > 0 && encountered_diff == false)
+            {
+              if ((*cell)[sigma[xp][yp]].GetPhase() == 0)
+              {
+                encountered_diff = true;
+              }
+            }
+            if (encountered_med == true && encountered_diff == true)
+            {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  int Npoints = surface_points.size();
+  return Npoints;
+}
+
+
 pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
 {
   int massx{};
@@ -2087,7 +2149,7 @@ pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
 
   for (int x = 1; x < sizex-1; ++ x)
   {
-    for (int y = 1; y < max_point; ++y)
+    for (int y = 1; y < sizey-1; ++y)
     {
       if (sigma[x][y] > 0)
       {
@@ -2127,6 +2189,7 @@ pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
     }
   }
   int Npoints = surface_points.size();
+  
 
   double xcen = double(massx)/double(count);
   double ycen = double(massy)/double(count);
@@ -8836,7 +8899,11 @@ void CellularPotts::PhaseShapeIndex(int time)
             {
               touching_med=true;
             }
-
+            bool neigh_phase = cell->at(sigma[xp2][yp2]).GetPhase();
+            if (!par.sheet_hex && neigh_phase != p)
+            {
+              touching_med = true;
+            }
           } 
         }
       }

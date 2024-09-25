@@ -454,6 +454,8 @@ public:
 
   pair<int,int> ChooseAddPoint(int max_point=par.sizey);
 
+  int CheckAddPoints();
+
   int TopStalk();
 
   void SetAreas(int area);

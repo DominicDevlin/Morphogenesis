@@ -36,8 +36,8 @@ J_diff_values = [8., 9., 10., 11., 12.]
 J_stem_values = [5.25, 5.5, 5.75, 6]
 
 # Total number of combinations (5x5 = 25)
-n_rows = len(J_diff_values)
 n_cols = len(J_stem_values)
+n_rows = len(J_diff_values)
 num_combinations = len(J_stem_values) * len(J_diff_values)
 # Ensure the index is within the valid range
 if index >= num_combinations:
@@ -45,7 +45,7 @@ if index >= num_combinations:
     exit()
 else:
     # Determine J_stem and J_diff based on the index
-    rounder = index // n_rows  # Integer division to determine the row (J_diff)
+    rounder = index // n_cols  # Integer division to determine the row (J_diff)
     leftover = index % n_cols  # Modulo to determine the column (J_stem)
 
     # Assign the values from the sets
