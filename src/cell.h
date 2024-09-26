@@ -942,6 +942,28 @@ private:
     adulttime.clear();
   }
 
+  inline void ClearStacks()
+  {
+    mass_list.clear();
+    gamma_list.clear();
+    xcens.clear();
+    ycens.clear();
+    vel_phens.clear();
+    mass_list.clear();
+    div_x_cen.clear();
+    div_y_cen.clear();
+    mass_div_time.clear();
+    switches.clear();
+    long_switches.clear();
+    div_time.clear();
+    div_phen.clear();
+    phenotype_history.clear();
+    temp_hexes.clear();
+    temp_shapes.clear();
+
+
+  }
+
   inline void AddType()
   {
     adulttime[phenotype] += 1;

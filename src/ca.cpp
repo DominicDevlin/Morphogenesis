@@ -1866,6 +1866,8 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
     {
       cell->back().reset_recordings(); 
     }
+
+    cell->back().ClearStacks();
     
 
     queue<pair<int, int>> q; // Queue for BFS
@@ -4657,6 +4659,144 @@ void CellularPotts::update_phase_network(int tsteps)
       }
     }
   }
+}
+
+
+
+
+
+// Function to calculate dot product of two vectors
+double GetdotProduct(const cellPoint& v1, const cellPoint& v2) {
+    return v1.x * v2.x + v1.y * v2.y;
+}
+
+// Function to calculate magnitude of a vector
+double magnitude(const cellPoint& vec) {
+    return sqrt(vec.x * vec.x + vec.y * vec.y);
+}
+
+// Function to calculate cosine similarity
+double cosineSimilarity(const cellPoint& v1, const cellPoint& v2) {
+    double dotProd = GetdotProduct(v1, v2);
+    double mag1 = magnitude(v1);
+    double mag2 = magnitude(v2);
+    return dotProd / (mag1 * mag2);
+}
+
+double CellularPotts::Cooperativity()
+{
+  // first get average magnitude:
+  double avg_speed{};
+  int p_counter{};
+
+  int wtime=3000;
+  int stime=500;
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      bool phaser = c->GetPhase();
+      if (phaser)
+      {
+        vector<double>& xcens = c->get_xcens();
+        vector<double>& ycens = c->get_ycens();
+        int veclen = xcens.size()-1;
+         if (xcens.size() < wtime+stime)
+            continue;
+        // turn to param later
+        cellPoint v1 = {xcens[veclen-wtime]-xcens[veclen], ycens[veclen-wtime]-ycens[veclen]};
+        double mag = magnitude(v1);
+        avg_speed += mag;
+        ++p_counter;
+      }
+    }
+  }
+  avg_speed = avg_speed / double(p_counter);
+  cout << "AVERAGE SPEED IS: " << avg_speed << endl;
+
+
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  double coop{};
+  int c_count{};
+
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      // we are just going to program this for moving cells for now:
+      bool phaser = cell->at(i).GetPhase();
+      if (phaser)
+      {
+        vector<double>& xcens = cell->at(i).get_xcens();
+        vector<double>& ycens = cell->at(i).get_ycens();
+        int veclen = xcens.size()-1;
+         if (xcens.size() < wtime+stime)
+            continue;
+        // turn to param later
+        cellPoint v1 = {xcens[veclen-wtime]-xcens[veclen], ycens[veclen-wtime]-ycens[veclen]};
+
+        double cosineSum = 0.0; // Sum of cosine similarities for neighbors
+        int neighborCount = 0;
+        int j = 0;
+        while (ns[i][j] >= 0)
+        {
+          if (ns[i][j] == 0 || cell->at(ns[i][j]).GetPhase() == 0)
+          {
+            ++j;
+            continue;
+          }
+          vector<double>& nbh_xcens = cell->at(ns[i][j]).get_xcens();
+          vector<double>& nbh_ycens = cell->at(ns[i][j]).get_ycens();
+          if (nbh_xcens.size() < wtime+stime)
+          {
+            ++j;
+            continue;
+          }
+            
+          int veclen2 = nbh_xcens.size()-1;
+          // turn to param later
+          cellPoint v2 = {nbh_xcens[veclen2-wtime]-nbh_xcens[veclen2], nbh_ycens[veclen2-wtime]-nbh_ycens[veclen2]};
+
+
+          double cosineSim = cosineSimilarity(v1, v2);
+
+          // cout << "cossim: " << cosineSim << endl;
+
+          // Add to cosine similarity sum
+
+
+          double mv1 = magnitude(v1);
+          double mv2 = magnitude(v2);
+          double r1 = mv1/mv2;
+          double r2 = 1./r1;
+          double min_r = min(r1, r2);
+          
+          double pair_speed = (mv1+mv2)/2.;
+          double normalised = pair_speed / avg_speed;
+          //  cout << normalised << endl;
+
+          // cout << "minr: " << min_r << endl;
+
+          cosineSum += (cosineSim*normalised*min_r*pair_speed);
+          ++neighborCount;
+
+          ++j;
+        }
+        if (neighborCount > 0)
+        {
+          ++c_count;
+          coop += (cosineSum / neighborCount);
+
+        }
+
+      }
+    }
+  }
+  return (coop / c_count);
+
 }
 
 
@@ -9028,9 +9168,9 @@ map<int,vector<double>> CellularPotts::Get_state_shape_index()
 pair<double,double> CellularPotts::LengthWidth()
 {
   int miny = sizey;
-  int maxy = 0;
+  // we start this from the top of the organism.
+  int maxy = sizey / 2 + par.offset - par.size_init_cells / 2;  
   vector<int> widths{};
-
   for (int y=1; y<sizey; ++y)
   {
     int minx=sizex;
@@ -9041,8 +9181,6 @@ pair<double,double> CellularPotts::LengthWidth()
       {
         if (y < miny)
           miny = y;
-        if (y > maxy)
-          maxy=y;
         if (x > maxx)
           maxx=x;
         if (x < minx)
@@ -9053,6 +9191,12 @@ pair<double,double> CellularPotts::LengthWidth()
     {
       widths.push_back(maxx-minx);
     }
+  }
+
+  // Check if widths is empty
+  if (widths.empty()) 
+  {
+    return {1, 1};
   }
 
   double mean = std::accumulate(widths.begin(), widths.end(), 0.0) / widths.size();
@@ -9066,6 +9210,45 @@ pair<double,double> CellularPotts::LengthWidth()
   pair<double,double> toreturn = {length, variance};
   
   return toreturn;
+}
+
+int CellularPotts::EmptySpace()
+{
+  int max_y = sizey / 2 + par.offset - par.size_init_cells / 2;
+  // first we find min y point:
+  int empty_count=0;
+  int y_encntr{};
+  for (int y = 1; y < max_y; ++y)
+  {
+    for (int x = 0; x < sizex; ++x)
+    {
+      if (sigma[x][y] > 0)
+      {
+        y_encntr = y;
+        y=sizey;
+        break;
+      }
+    }
+  }
+  cout << "y encounter: " << y_encntr << endl;
+  for (int y = y_encntr; y < max_y;++y)
+  {
+    bool cellhere = false;
+    for (int x = 0; x < sizex; ++x)
+    {
+      if (sigma[x][y] == 0)
+      {
+        ++empty_count;
+      }
+      if (sigma[x][y] > 0)
+        cellhere=true;
+    }
+    if (!cellhere)
+      break;
+  }
+  return empty_count;
+
+
 }
 
 

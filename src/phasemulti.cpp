@@ -435,6 +435,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   vector<double> fitnesses(par.n_orgs);
   vector<double> lengths(par.n_orgs);
   vector<double> variances(par.n_orgs);
+  // vector<double> empty_spaces(par.n_orgs);
 
   for (int i=0; i < par.n_orgs;++i)
   {
@@ -445,6 +446,9 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
    
     int n_phase = dishes[i].CPM->CountPhaseOnCells();
     avg_phase_remained += n_phase;
+
+    // int empty_amount = dishes[i].CPM->EmptySpace();
+    // empty_spaces[i] = empty_amount;
   }
 
   vector<int> indices(par.n_orgs);
@@ -454,19 +458,29 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   std::sort(indices.begin(), indices.end(),
             [&fitnesses](int i1, int i2) { return fitnesses[i1] > fitnesses[i2]; });
 
+  // std::sort(indices.begin(), indices.end(),
+  //           [&empty_spaces](int i1, int i2) { return empty_spaces[i1] > empty_spaces[i2]; });       
+
   // Step 3: Reorder fitnesses, lengths, and variances based on the sorted indices
   vector<double> sorted_fitnesses(par.n_orgs);
   vector<double> sorted_lengths(par.n_orgs);
   vector<double> sorted_variances(par.n_orgs);
+  // vector<double> sorted_empty_spaces(par.n_orgs);
 
   for (int i = 0; i < par.n_orgs; ++i) {
       sorted_fitnesses[i] = fitnesses[indices[i]];
       sorted_lengths[i] = lengths[indices[i]];
       sorted_variances[i] = variances[indices[i]];
+      // sorted_empty_spaces[i] = empty_spaces[indices[i]];
   }
   fitnesses = sorted_fitnesses;
   lengths = sorted_lengths;
   variances = sorted_variances;
+  // empty_spaces = sorted_empty_spaces;
+
+  // for (auto i : fitnesses)
+  //   cout << i << '\t';
+  // cout << endl;
 
   // lets output top half
   int start = 0;
@@ -474,6 +488,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   double avg_fitness = std::accumulate(fitnesses.begin() + start, fitnesses.begin() + half, 0.0) / half;
   double avg_length = std::accumulate(lengths.begin() + start, lengths.begin() + half, 0.0) / half;
   double avg_variance = std::accumulate(variances.begin() + start, variances.begin() + half, 0.0) / half;
+  // double avg_empty_space = std::accumulate(empty_spaces.begin() + start, empty_spaces.begin() + half, 0.0) / half;
   avg_phase_remained = avg_phase_remained / par.n_orgs;
 
   ofstream outfile;
@@ -647,6 +662,7 @@ int main(int argc, char *argv[])
       par.J_stem = params[3];
       par.J_diff = params[4];
       par.J_med=par.J_diff/2 + 0.25;
+      par.mcs= 40000 + int(par.J_stem)*15000;
       if (par.J_stem > par.J_med)
         par.J_med = par.J_stem;
       par.J_med2 = par.J_med;

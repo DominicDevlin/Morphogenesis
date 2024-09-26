@@ -87,6 +87,11 @@
     "typeinfo": "cpp",
     "variant": "cpp",
     "filesystem": "cpp",
-    "ios": "cpp"
+    "ios": "cpp",
+    "expected": "cpp",
+    "format": "cpp",
+    "spanstream": "cpp",
+    "stacktrace": "cpp",
+    "stdfloat": "cpp"
   }
 }

@@ -460,6 +460,11 @@ public:
 
   void SetAreas(int area);
 
+  int EmptySpace();
+
+  double Cooperativity();
+
+
 
 
 

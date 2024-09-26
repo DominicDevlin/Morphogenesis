@@ -642,11 +642,14 @@ TIMESTEP {
    
     }
 
-     
+    if (t % 200 == 0)
+    {
+      cout << "Cooperativity: " << dish->CPM->Cooperativity() << endl;
+    }
+
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
-
 
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;
