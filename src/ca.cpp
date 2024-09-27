@@ -4689,32 +4689,31 @@ double CellularPotts::Cooperativity()
   double avg_speed{};
   int p_counter{};
 
-  int wtime=3000;
-  int stime=500;
 
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      bool phaser = c->GetPhase();
-      if (phaser)
-      {
-        vector<double>& xcens = c->get_xcens();
-        vector<double>& ycens = c->get_ycens();
-        int veclen = xcens.size()-1;
-         if (xcens.size() < wtime+stime)
-            continue;
-        // turn to param later
-        cellPoint v1 = {xcens[veclen-wtime]-xcens[veclen], ycens[veclen-wtime]-ycens[veclen]};
-        double mag = magnitude(v1);
-        avg_speed += mag;
-        ++p_counter;
-      }
-    }
-  }
-  avg_speed = avg_speed / double(p_counter);
-  cout << "AVERAGE SPEED IS: " << avg_speed << endl;
+
+  // vector<Cell>::iterator c;
+  // for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  // {
+  //   if (c->AliveP())
+  //   {
+  //     bool phaser = c->GetPhase();
+  //     if (phaser)
+  //     {
+  //       vector<double>& xcens = c->get_xcens();
+  //       vector<double>& ycens = c->get_ycens();
+  //       int veclen = xcens.size()-1;
+  //        if (xcens.size() < par.coop_wtime+par.coop_stime)
+  //           continue;
+  //       // turn to param later
+  //       cellPoint v1 = {xcens[veclen-par.coop_wtime]-xcens[veclen], ycens[veclen-par.coop_wtime]-ycens[veclen]};
+  //       double mag = magnitude(v1);
+  //       avg_speed += mag;
+  //       ++p_counter;
+  //     }
+  //   }
+  // }
+  // avg_speed = avg_speed / double(p_counter);
+  // cout << "AVERAGE SPEED IS: " << avg_speed << endl;
 
 
   int **ns = SearchNeighbours();
@@ -4733,10 +4732,10 @@ double CellularPotts::Cooperativity()
         vector<double>& xcens = cell->at(i).get_xcens();
         vector<double>& ycens = cell->at(i).get_ycens();
         int veclen = xcens.size()-1;
-         if (xcens.size() < wtime+stime)
+         if (xcens.size() < par.coop_wtime+par.coop_stime)
             continue;
         // turn to param later
-        cellPoint v1 = {xcens[veclen-wtime]-xcens[veclen], ycens[veclen-wtime]-ycens[veclen]};
+        cellPoint v1 = {xcens[veclen-par.coop_wtime]-xcens[veclen], ycens[veclen-par.coop_wtime]-ycens[veclen]};
 
         double cosineSum = 0.0; // Sum of cosine similarities for neighbors
         int neighborCount = 0;
@@ -4750,7 +4749,7 @@ double CellularPotts::Cooperativity()
           }
           vector<double>& nbh_xcens = cell->at(ns[i][j]).get_xcens();
           vector<double>& nbh_ycens = cell->at(ns[i][j]).get_ycens();
-          if (nbh_xcens.size() < wtime+stime)
+          if (nbh_xcens.size() < par.coop_wtime+par.coop_stime)
           {
             ++j;
             continue;
@@ -4758,7 +4757,7 @@ double CellularPotts::Cooperativity()
             
           int veclen2 = nbh_xcens.size()-1;
           // turn to param later
-          cellPoint v2 = {nbh_xcens[veclen2-wtime]-nbh_xcens[veclen2], nbh_ycens[veclen2-wtime]-nbh_ycens[veclen2]};
+          cellPoint v2 = {nbh_xcens[veclen2-par.coop_wtime]-nbh_xcens[veclen2], nbh_ycens[veclen2-par.coop_wtime]-nbh_ycens[veclen2]};
 
 
           double cosineSim = cosineSimilarity(v1, v2);
@@ -4775,12 +4774,12 @@ double CellularPotts::Cooperativity()
           double min_r = min(r1, r2);
           
           double pair_speed = (mv1+mv2)/2.;
-          double normalised = pair_speed / avg_speed;
+          // double normalised = pair_speed / avg_speed;
           //  cout << normalised << endl;
 
           // cout << "minr: " << min_r << endl;
 
-          cosineSum += (cosineSim*normalised*min_r*pair_speed);
+          cosineSum += (cosineSim);//*min_r);//normalised
           ++neighborCount;
 
           ++j;
@@ -5172,6 +5171,23 @@ void CellularPotts::SetAreas(int tarea)
   }
 }
 
+void CellularPotts::SetLengths(int tlength)
+{
+  vector<Cell>::iterator i;
+  for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
+  {
+    i->SetTargetLength(tlength);
+  }
+}
+
+void CellularPotts::PrintLengths()
+{
+  vector<Cell>::iterator i;
+  for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
+  {
+    cout << i->TargetLength() << endl;
+  }
+}
 
 
 double CellularPotts::diffuser_check(int n, int x, int y)

@@ -327,8 +327,14 @@ public:
     
   Length constraint is documented in Merks et al. 2006, Dev. Biol. 
   */
-  inline double TargetLength() const {
-    return sqrt(area)*par.target_length;
+  inline double TargetLength() const 
+  {
+    if (phase_state)
+    {
+      return length;
+    }
+    else
+      return target_length;// sqrt(area)*par.target_length;
     // return target_length;
   }
 

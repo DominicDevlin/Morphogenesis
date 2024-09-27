@@ -460,6 +460,10 @@ public:
 
   void SetAreas(int area);
 
+  void SetLengths(int tlength);
+
+  void PrintLengths();
+
   int EmptySpace();
 
   double Cooperativity();

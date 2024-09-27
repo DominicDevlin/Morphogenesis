@@ -131,6 +131,11 @@ class Parameter {
   bool eden_growth;
   int cell_areas;
   int cell_addition_rate;
+  int cell_lengths;
+
+  int coop_wtime;
+  int coop_stime;
+  int coop_start;
 
   bool morphogen;
   double morphdecay;

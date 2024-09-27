@@ -290,7 +290,11 @@ TIMESTEP {
       if (par.output_init_concs)
         dish->CPM->OutputInitConcs();
     }
-      
+    
+    if (t == 2000)
+    {
+      dish->CPM->PrintLengths();
+    }
     
     // programmed cell division section
     if (t < par.end_program)
@@ -299,6 +303,10 @@ TIMESTEP {
       {
         dish->CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
         dish->CPM->SetAreas(par.cell_areas);
+        if (par.lambda2 > 0)
+        {
+          dish->CPM->SetLengths(par.cell_lengths);
+        }
       }
      
       if (t >= par.begin_network && t % par.update_freq == 0)

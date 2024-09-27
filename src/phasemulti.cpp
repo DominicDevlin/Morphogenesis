@@ -218,6 +218,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   vector<vector<pair<double,double>>> shape_alignments(par.n_orgs);
   vector<vector<pair<double,double>>> Z_values(par.n_orgs);
   vector<vector<pair<double,double>>> volumes(par.n_orgs);
+  vector<vector<double>> cooperativities(par.n_orgs);
   vector<int> total_steps(par.n_orgs);
 
   omp_set_num_threads(par.n_orgs);
@@ -305,6 +306,12 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           pair<double,double> vs = dishes[i].CPM->GetTargetandVolume();
           org_volume.push_back(vs);
 
+        }
+
+        if (t > par.coop_start && t % 200 == 0)
+        {
+          double coop = dishes[i].CPM->Cooperativity();
+          cooperativities[i].push_back(coop);
         }
 
         if (par.velocities)
@@ -429,6 +436,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     t_shape_count = WriteData(shapedata, oname);    
   }
 
+  vector<double> coop_averages(par.n_orgs);
+
 
   double avg_phase_remained = 0;
 
@@ -449,6 +458,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
     // int empty_amount = dishes[i].CPM->EmptySpace();
     // empty_spaces[i] = empty_amount;
+
+    double cop = std::accumulate(cooperativities[i].begin(), cooperativities[i].end(), 0.0);
+    cop /= double(cooperativities[i].size());
+    coop_averages[i] = cop;
   }
 
   vector<int> indices(par.n_orgs);
@@ -465,17 +478,20 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   vector<double> sorted_fitnesses(par.n_orgs);
   vector<double> sorted_lengths(par.n_orgs);
   vector<double> sorted_variances(par.n_orgs);
+  vector<double> sorted_coops(par.n_orgs);
   // vector<double> sorted_empty_spaces(par.n_orgs);
 
   for (int i = 0; i < par.n_orgs; ++i) {
       sorted_fitnesses[i] = fitnesses[indices[i]];
       sorted_lengths[i] = lengths[indices[i]];
       sorted_variances[i] = variances[indices[i]];
+      sorted_coops[i] = sorted_coops[indices[i]];
       // sorted_empty_spaces[i] = empty_spaces[indices[i]];
   }
   fitnesses = sorted_fitnesses;
   lengths = sorted_lengths;
   variances = sorted_variances;
+  coop_averages = sorted_coops;
   // empty_spaces = sorted_empty_spaces;
 
   // for (auto i : fitnesses)
@@ -488,13 +504,14 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   double avg_fitness = std::accumulate(fitnesses.begin() + start, fitnesses.begin() + half, 0.0) / half;
   double avg_length = std::accumulate(lengths.begin() + start, lengths.begin() + half, 0.0) / half;
   double avg_variance = std::accumulate(variances.begin() + start, variances.begin() + half, 0.0) / half;
+  double avg_coop = std::accumulate(coop_averages.begin() + start, coop_averages.begin() + half, 0.0) / half;
   // double avg_empty_space = std::accumulate(empty_spaces.begin() + start, empty_spaces.begin() + half, 0.0) / half;
   avg_phase_remained = avg_phase_remained / par.n_orgs;
 
   ofstream outfile;
   string fname = par.data_file + "/fitness.txt";
   outfile.open(fname, ios::app);
-  outfile << avg_fitness << '\t' << avg_length << '\t' << avg_variance << '\t' << avg_phase_remained << endl;
+  outfile << avg_fitness << '\t' << avg_length << '\t' << avg_variance << '\t' << avg_coop << '\t' <<  avg_phase_remained << endl;
   outfile.close();
 
   
@@ -635,11 +652,11 @@ int main(int argc, char *argv[])
 
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 100000;
+  par.mcs = 7000;
   par.sheet_hex=false;
 
 
-  par.n_orgs = 60;
+  par.n_orgs = 4;
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
   {
