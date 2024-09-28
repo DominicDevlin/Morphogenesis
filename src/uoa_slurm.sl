@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #SBATCH --job-name=CPM_evolution  
-#SBATCH --time=10:00:00      # Walltime (HH:MM:SS)
+#SBATCH --time=16:00:00      # Walltime (HH:MM:SS)
 #SBATCH --mem=10GB 
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=60  

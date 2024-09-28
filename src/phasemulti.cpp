@@ -308,15 +308,21 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
         }
 
-        if (t > par.coop_start && t % 200 == 0)
-        {
-          double coop = dishes[i].CPM->Cooperativity();
-          cooperativities[i].push_back(coop);
-        }
+        // if (t > par.coop_start && t % 200 == 0)
+        // {
+        //   double coop = dishes[i].CPM->Cooperativity();
+        //   cout << coop << endl;
+        //   cooperativities[i].push_back(coop);
+        // }
 
-        if (par.velocities)
+        if (par.velocities && t % 200 == 0)
         {
           dishes[i].CPM->RecordMasses();
+          if (t > par.coop_start)
+          {
+            double coop = dishes[i].CPM->Cooperativity(200);
+            cooperativities[i].push_back(coop);
+          }
         }
         if (par.output_sizes)
         {
@@ -353,6 +359,11 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }        
       }
       dishes[i].CPM->AmoebaeMove(t);
+
+      if (t % 1000 == 0 && t > 0)
+      {
+        dishes[i].CPM->RemoveUnconnectedCells();
+      }
 
       // ensure all cells are connected for shape calculations. 
       if (t > 0 && t % 5000 == 0 && stayed_together==true)
@@ -462,6 +473,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     double cop = std::accumulate(cooperativities[i].begin(), cooperativities[i].end(), 0.0);
     cop /= double(cooperativities[i].size());
     coop_averages[i] = cop;
+    cout << cooperativities[i][0] << '\t' << coop_averages[i] << endl; 
   }
 
   vector<int> indices(par.n_orgs);
@@ -485,7 +497,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       sorted_fitnesses[i] = fitnesses[indices[i]];
       sorted_lengths[i] = lengths[indices[i]];
       sorted_variances[i] = variances[indices[i]];
-      sorted_coops[i] = sorted_coops[indices[i]];
+      sorted_coops[i] = coop_averages[indices[i]];
       // sorted_empty_spaces[i] = empty_spaces[indices[i]];
   }
   fitnesses = sorted_fitnesses;
@@ -581,7 +593,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 int main(int argc, char *argv[])  
 {
 
-  bool read_in = true;
+  bool read_in = false;
   vector<vector<double>> params_data;
   if (read_in)
   {
@@ -642,21 +654,18 @@ int main(int argc, char *argv[])
   par.gene_output=false;
   par.gene_record=true;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
-  par.velocities=false;
-  if (par.velocities)
-    par.output_sizes = true;
-  else
-    par.output_sizes = false;
+  par.velocities=true;
+  par.output_sizes = false;
   par.measure_time_order_params=true;
   Parameter();
 
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 7000;
+  par.mcs = 6000;
   par.sheet_hex=false;
 
 
-  par.n_orgs = 4;
+  par.n_orgs = 2;
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
   {

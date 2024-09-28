@@ -98,6 +98,7 @@
     lambda = 0.5;
     lambda2 = 0; 
     div_threshold = 100;
+    cell_areas = 80;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
   
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
@@ -135,11 +136,11 @@
     phase_evolution=true;
 
     J_stem=2;
-    J_diff=2;
+    J_diff=10;
     J_med=J_diff/2 + 0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=3;
+    J_stem_diff=10;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
     cell_addition_rate=180; 
@@ -149,6 +150,7 @@
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
     Vd_max = 0; // 1; 
+    addition_distance = sqrt(cell_areas / M_PI);
 
 
     melting_adhesion = false;
@@ -166,7 +168,7 @@
     v_slope = -2;
 
     offset = 85;//65 normally used
-    cell_areas = 80;
+    
     cell_lengths = 2 * sqrt(cell_lengths / M_PI);
     optimization_replicates = 6;
     pics_for_opt = false;
@@ -233,9 +235,9 @@
     e2_loc=e1_loc+1;
 
     // cooperativity params:
-    coop_wtime=3000;
+    coop_wtime=1000;//3000
     coop_stime=500;
-    coop_start=5000;    
+    coop_start=2000;//5000
 
 /* sheet related parameters */
     sheet=false;

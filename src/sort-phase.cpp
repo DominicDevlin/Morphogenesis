@@ -291,9 +291,9 @@ TIMESTEP {
         dish->CPM->OutputInitConcs();
     }
     
-    if (t == 2000)
+    if (t % 1000 == 0 && t > 0)
     {
-      dish->CPM->PrintLengths();
+      dish->CPM->RemoveUnconnectedCells();
     }
     
     // programmed cell division section

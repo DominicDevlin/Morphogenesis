@@ -33,7 +33,7 @@ J_diff = 1.
 # J_stem_values = [1., 2., 3., 4., 5.]
 J_diff_values = [8., 9., 10., 11., 12.]
 
-J_stem_values = [5.25, 5.5, 5.75, 6]
+J_stem_values = [3.5, 3.75, 4, 4.25, 4.5]
 
 # Total number of combinations (5x5 = 25)
 n_cols = len(J_stem_values)
@@ -101,7 +101,7 @@ diff_rate = [1e-3,diffmax]
 # J of stem to diff
 Jsd = []
 if J_stem < J_diff:
-    Jsd = [J_stem+2, J_diff+2]
+    Jsd = [J_diff*0.8, J_diff*1.25]
 else:
     Jsd = [J_diff, 2*J_stem]
 # max growth rate per DTS OF stem cells. Taking this out for now.

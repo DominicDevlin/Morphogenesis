@@ -132,6 +132,7 @@ class Parameter {
   int cell_areas;
   int cell_addition_rate;
   int cell_lengths;
+  int addition_distance;
 
   int coop_wtime;
   int coop_stime;

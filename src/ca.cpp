@@ -2203,7 +2203,7 @@ pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
     cellPoint centerp = {xcen, ycen};
     cellPoint surfacep = {surface_points[index].first, surface_points[index].second};
 
-    cellPoint newp = findPoint(surfacep, centerp, 6);
+    cellPoint newp = findPoint(surfacep, centerp, par.addition_distance);
     pair<int,int> toret = {int(round(newp.x)), int(round(newp.y))};
     oldxcen = xcen;
     oldycen = ycen;
@@ -2259,7 +2259,7 @@ pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
   oldxcen = xcen;
   oldycen = ycen;
 
-  cellPoint newp = findPoint(surfacep, centerp, 6);
+  cellPoint newp = findPoint(surfacep, centerp, par.addition_distance);
   pair<int,int> toret = {int(round(newp.x)), int(round(newp.y))};
   return toret;
 
@@ -4683,13 +4683,11 @@ double cosineSimilarity(const cellPoint& v1, const cellPoint& v2) {
     return dotProd / (mag1 * mag2);
 }
 
-double CellularPotts::Cooperativity()
+double CellularPotts::Cooperativity(int time_skip)
 {
   // first get average magnitude:
   double avg_speed{};
   int p_counter{};
-
-
 
   // vector<Cell>::iterator c;
   // for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
@@ -4714,7 +4712,8 @@ double CellularPotts::Cooperativity()
   // }
   // avg_speed = avg_speed / double(p_counter);
   // cout << "AVERAGE SPEED IS: " << avg_speed << endl;
-
+  int wait_time = round(double(par.coop_wtime) / double(time_skip));
+  int coop_sttime = round(double(par.coop_stime) / double(time_skip));
 
   int **ns = SearchNeighbours();
   int n_size = CountCells();
@@ -4732,10 +4731,10 @@ double CellularPotts::Cooperativity()
         vector<double>& xcens = cell->at(i).get_xcens();
         vector<double>& ycens = cell->at(i).get_ycens();
         int veclen = xcens.size()-1;
-         if (xcens.size() < par.coop_wtime+par.coop_stime)
+         if (xcens.size() < wait_time+coop_sttime)
             continue;
         // turn to param later
-        cellPoint v1 = {xcens[veclen-par.coop_wtime]-xcens[veclen], ycens[veclen-par.coop_wtime]-ycens[veclen]};
+        cellPoint v1 = {xcens[veclen-wait_time]-xcens[veclen], ycens[veclen-wait_time]-ycens[veclen]};
 
         double cosineSum = 0.0; // Sum of cosine similarities for neighbors
         int neighborCount = 0;
@@ -4749,7 +4748,7 @@ double CellularPotts::Cooperativity()
           }
           vector<double>& nbh_xcens = cell->at(ns[i][j]).get_xcens();
           vector<double>& nbh_ycens = cell->at(ns[i][j]).get_ycens();
-          if (nbh_xcens.size() < par.coop_wtime+par.coop_stime)
+          if (nbh_xcens.size() < wait_time+coop_sttime)
           {
             ++j;
             continue;
@@ -4757,7 +4756,7 @@ double CellularPotts::Cooperativity()
             
           int veclen2 = nbh_xcens.size()-1;
           // turn to param later
-          cellPoint v2 = {nbh_xcens[veclen2-par.coop_wtime]-nbh_xcens[veclen2], nbh_ycens[veclen2-par.coop_wtime]-nbh_ycens[veclen2]};
+          cellPoint v2 = {nbh_xcens[veclen2-wait_time]-nbh_xcens[veclen2], nbh_ycens[veclen2-wait_time]-nbh_ycens[veclen2]};
 
 
           double cosineSim = cosineSimilarity(v1, v2);
@@ -7348,6 +7347,153 @@ bool CellularPotts::SoloCheck()
 }
 
 
+// warning - dangerous function. 
+bool CellularPotts::RemoveUnconnectedCells(int max_cells)
+{
+  vector<unordered_set<int>> all_connections{};
+
+  vector<Cell>::iterator c;
+  for ( (c = cell->begin(), c++); c != cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->set_death_tag(false);
+      unordered_set<int> tempcon{};
+      int id = c->Sigma();
+      tempcon.emplace(id);
+      int xp, yp;
+      for (int x = 2; x < sizex - 2; ++x)
+      {
+        for (int y = 2; y < sizey - 2; ++y)
+        {
+          if (sigma[x][y] == id)
+          {
+            for (int i = 1; i <= nbh_level[1]; ++i)
+            {
+              xp = x + nx[i];
+              yp = y + ny[i];
+              if (sigma[xp][yp] > 0 && sigma[xp][yp] != id)
+                tempcon.emplace(sigma[xp][yp]);
+            }
+          }
+
+        }
+      }
+      all_connections.push_back(tempcon);
+    }
+  }
+  if (all_connections.size() < 2)
+    return false;
+  
+  vector<unordered_set<int>> full_sets;
+
+  // Iterate over all connection sets to find the largest
+  while (!all_connections.empty()) 
+  {
+    unordered_set<int> current_set = all_connections.back();
+    all_connections.pop_back();
+
+    unordered_set<int> combined_set = current_set; // Start with the current set
+    bool merged = true;
+
+    // Try merging with any other sets that share a connection
+    while (merged) {
+      merged = false;
+      for (auto it = all_connections.begin(); it != all_connections.end();)
+      {
+        unordered_set<int> nbrs = *it;
+        bool has_common = false;
+        for (int connection : nbrs)
+        {
+          if (combined_set.find(connection) != combined_set.end()) 
+          {
+            has_common = true;
+            break;
+          }
+        }
+
+        if (has_common) 
+        {
+          // Merge the neighbor set into the current set
+          combined_set.insert(nbrs.begin(), nbrs.end());
+          it = all_connections.erase(it);  // Remove the merged set
+          merged = true;  // Continue merging with other sets
+        }
+        else
+        {
+          ++it;  // Move to the next set
+        }
+      }
+    }
+    full_sets.push_back(combined_set);
+  }
+
+  if (full_sets.size() < 2)
+    return false;
+
+
+  for (auto &con_set : full_sets)
+  {
+    if (con_set.size() < max_cells)
+    {
+      for (int cn : con_set)
+      {
+        cout << cn << endl;
+        cell->at(cn).set_death_tag(true);
+      }
+        
+    }
+  }
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+
+        if ((*cell)[sigma[x][y]].get_death_tag())
+          sigma[x][y] = 0;
+      }
+    }
+
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      c->area = 0;
+    }
+  }
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        (*cell)[sigma[x][y]].area +=1;
+      }
+    }   
+  
+  int deadcells{};
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
+      }
+    }
+  }
+  cout << "Total cells killed: " << deadcells << endl;
+
+  return true;
+
+  
+
+}
+
+
 //IMPORTANT METHOD:  Function to ensure all cells are connected indirectly to all other cells on lattice.  
 bool CellularPotts::CheckAllConnected(double threshold)
 {
@@ -7387,6 +7533,8 @@ bool CellularPotts::CheckAllConnected(double threshold)
 
   if (all_connections.size() < 2)
     return false;
+
+  // we need to put the cells not in the main connector in a vector and remove them...
 
   unordered_set<int> MaxConnections{};
   size_t max_connection_size = 0;  // Track the largest connected component size

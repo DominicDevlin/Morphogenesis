@@ -215,6 +215,8 @@ public:
 
   bool CheckAllConnected(double threshold=1.);
 
+  bool RemoveUnconnectedCells(int max_cells = 10);
+
   double VecDoubleDeriv(vector<double>& vex);
 
   void ShapeFitness();
@@ -466,7 +468,7 @@ public:
 
   int EmptySpace();
 
-  double Cooperativity();
+  double Cooperativity(int time_skip=1);
 
 
 
