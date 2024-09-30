@@ -296,6 +296,13 @@ TIMESTEP {
       dish->CPM->RemoveUnconnectedCells();
     }
     
+    if (t == par.end_program && par.lambda_perimeter > 0)
+    {
+      par.H_perim = true; 
+      dish->CPM->SetPerims(par.ptarget_perimeter);
+      dish->CPM->MeasureCellPerimeters();
+    }
+
     // programmed cell division section
     if (t < par.end_program)
     {
@@ -307,6 +314,7 @@ TIMESTEP {
         {
           dish->CPM->SetLengths(par.cell_lengths);
         }
+
       }
      
       if (t >= par.begin_network && t % par.update_freq == 0)
@@ -428,8 +436,11 @@ TIMESTEP {
       bool set=false;
       while (!set)
       {
-        pair<int,int> val = dish->CPM->ChooseAddPoint(mnum);
+        cout << "here" << endl;
+        // pair<int,int> val = dish->CPM->ChooseAddPoint(mnum);
+        pair<int,int> val = dish->CPM->ChooseAddPoint();
         set = dish->CPM->SpawnCell(val.first, val.second, cnum, t);
+        dish->CPM->MeasureCellPerimeters();
       }
         
       //dish->CPM->SpawnCell(val.first-20, val.second-20, cnum, t);

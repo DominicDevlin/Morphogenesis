@@ -126,6 +126,9 @@ public:
     time_created = src.time_created;
 
 
+    perimeter = src.perimeter;
+    target_perimeter = src.target_perimeter;
+
     gamma_list = src.gamma_list;
     mass_list = src.mass_list;
 
@@ -236,6 +239,9 @@ public:
 
     temp_hexes = src.temp_hexes;
     temp_shapes = src.temp_shapes;
+
+    perimeter = src.perimeter;
+    target_perimeter = src.target_perimeter;
 
     diffs = new double[par.n_diffusers];
 
@@ -641,6 +647,38 @@ private:
     cout << "Target length is: " << target_length << endl;
 
   }
+
+  // ! Return Cell's perimeter
+  inline int Perimeter() 
+  { 
+    if (phase_state)
+    {
+      return target_perimeter;
+    }
+    else
+      return perimeter; 
+  }
+
+  // ! Return Cell's target perimeter
+  inline int TargetPerimeter() { return target_perimeter; }
+  // ! Set Cell's target perimeter
+  inline int SetTargetPerimeter(const int new_perimeter) {
+    return target_perimeter = new_perimeter;
+  }
+  // ! Set Cell's perimeter
+  inline int SetPerimeter(const int new_perimeter) {
+    return perimeter = new_perimeter;
+  }
+
+  //! Increments the cell's actual perimeter by 1 unit.
+  inline int IncrementPerimeter() { return ++perimeter; }
+
+  //! Decrements the cell's actual perimeter by 1 unit.
+  inline int DecrementPerimeter() { return ++perimeter; }
+
+  inline int IncrementTargetPerimeter() { return ++target_perimeter; }
+
+  inline int DecrementTargetPerimeter() { return --target_perimeter; }
 
 
   inline vector<double>& get_diffusers(void)
@@ -1307,7 +1345,8 @@ protected:
   bool medium_state;
 
 
-
+  int perimeter;        // amount of cell's membrane
+  int target_perimeter; // cell's target membrane length  
 
   bool exposed{true};
 

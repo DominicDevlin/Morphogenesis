@@ -84,6 +84,9 @@ class Parameter {
   char * datadir;
   double tlength1;
   double tlength2;
+  double lambda_perimeter;
+  int ptarget_perimeter;
+  bool H_perim;
 
   bool convert_cells;
   bool choose_alive_cell;

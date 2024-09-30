@@ -418,6 +418,48 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
   }
   }
 
+  double DH_perimeter = 0;
+  if (par.H_perim) 
+  {
+    if (sxyp == MEDIUM) {
+      // cout << (*cell)[sxy].Perimeter() << '\t' << (*cell)[sxy].TargetPerimeter() << endl;
+
+      DH_perimeter -=
+          par.lambda_perimeter *
+          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+           DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                (*cell)[sxy].TargetPerimeter()));
+
+    } else if (sxy == MEDIUM) {
+
+      DH_perimeter -=
+          par.lambda_perimeter *
+          (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+           DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                (*cell)[sxyp].TargetPerimeter()));
+
+    }
+    // they're both cells
+    else {
+
+      DH_perimeter -=
+          par.lambda_perimeter *
+          ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                 (*cell)[sxyp].TargetPerimeter())));
+
+      DH_perimeter -=
+          par.lambda_perimeter *
+          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+           DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                (*cell)[sxy].TargetPerimeter()));
+    }
+  }
+  DH += DH_perimeter;
+
+
+
+
   return DH;
 }
 
@@ -459,6 +501,79 @@ void CellularPotts::ConvertSpin(int x,int y,int xp,int yp)
   sigma[x][y] = sigma[xp][yp];
 
 
+}
+
+void CellularPotts::MeasureCellPerimeters() 
+{
+
+
+  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      c->SetPerimeter(0);
+    }
+  }
+
+  for (int x = 1; x < sizex - 1; x++) 
+  {
+    for (int y = 1; y < sizey - 1; y++) {
+      if (sigma[x][y] > 0) {
+        for (int i = 1; i <= n_nb; i++) {
+          int xp2, yp2;
+          xp2 = x + nx[i];
+          yp2 = y + ny[i];
+          if (par.periodic_boundaries) {
+            if (xp2 <= 0)
+              xp2 = sizex - 2 + xp2;
+            if (yp2 <= 0)
+              yp2 = sizey - 2 + yp2;
+            if (xp2 >= sizex - 1)
+              xp2 = xp2 - sizex + 2;
+            if (yp2 >= sizey - 1)
+              yp2 = yp2 - sizey + 2;
+          }
+          // did we find a border?
+          if (sigma[xp2][yp2] != sigma[x][y]) {
+            // add to the perimeter of the cell
+            // (*cell)[sigma[x][y]].IncrementTargetPerimeter();
+            (*cell)[sigma[x][y]].IncrementPerimeter();
+          }
+        }
+      }
+    }
+  }
+
+  // for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
+  // {
+  //   if (c->AliveP())
+  //   {
+  //     cout << c->Perimeter() << endl;
+  //   }
+  // }
+
+
+}
+
+
+void CellularPotts::ConvertSpinPerim(int x, int y, int xp, int yp) {
+  int tmpcell;
+  if ((tmpcell = sigma[x][y])) { // if tmpcell is not MEDIUM
+    (*cell)[tmpcell].DecrementArea();
+    (*cell)[tmpcell].RemoveSiteFromMoments(x, y);
+    (*cell)[tmpcell].SetPerimeter(
+        GetNewPerimeterIfXYWereRemoved(tmpcell, x, y));
+    if (!(*cell)[tmpcell].Area()) {
+      (*cell)[tmpcell].Apoptose();
+    }
+  }
+
+  if ((tmpcell = sigma[xp][yp])) { // if tmpcell is not MEDIUM
+    (*cell)[tmpcell].IncrementArea();
+    (*cell)[tmpcell].AddSiteToMoments(x, y);
+    (*cell)[tmpcell].SetPerimeter(GetNewPerimeterIfXYWereAdded(tmpcell, x, y));
+  }
+  sigma[x][y] = sigma[xp][yp];
 }
 
 
@@ -509,6 +624,100 @@ void CellularPotts::FreezeAmoebae(void)
   else
     frozen=TRUE;
 }
+
+// testing perimeter constraint here.
+
+
+
+int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
+
+  /*int n_nb;
+
+   if (par.neighbours>=1 && par.neighbours<=4)
+     n_nb=nbh_level[par.neighbours];
+  */
+  int perim = (*cell)[sxyp].Perimeter();
+
+  /* the cell with sigma sxyp wants to extend by adding lattice site (x, y).
+ This means that the sxyp neighbours of (x,y) will not be borders anymore,so
+ they can be subtracted from the perimeter of sxyp.
+*/
+  for (int i = 1; i <= n_nb; i++) {
+
+    int xp2, yp2;
+
+    xp2 = x + nx[i];
+    yp2 = y + ny[i];
+
+    if (par.periodic_boundaries) {
+
+      if (xp2 <= 0)
+        xp2 = sizex - 2 + xp2;
+      if (yp2 <= 0)
+        yp2 = sizey - 2 + yp2;
+      if (xp2 >= sizex - 1)
+        xp2 = xp2 - sizex + 2;
+      if (yp2 >= sizey - 1)
+        yp2 = yp2 - sizey + 2;
+    }
+    if (sigma[xp2][yp2] == sxyp) {
+      perim--;
+    } else {
+      perim++;
+    }
+  }
+  return perim;
+}
+
+int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y) {
+  /*int n_nb;
+   if (par.neighbours>=1 && par.neighbours<=4)
+    int n_nb=nbh_level[par.neighbours];
+  */
+  int perim = (*cell)[sxy].Perimeter();
+  /* the cell with sigma sxy loses xy
+   */
+  for (int i = 1; i <= n_nb; i++) {
+
+    int xp2, yp2;
+    xp2 = x + nx[i];
+    yp2 = y + ny[i];
+    if (par.periodic_boundaries) {
+
+      if (xp2 <= 0)
+        xp2 = sizex - 2 + xp2;
+      if (yp2 <= 0)
+        yp2 = sizey - 2 + yp2;
+      if (xp2 >= sizex - 1)
+        xp2 = xp2 - sizex + 2;
+      if (yp2 >= sizey - 1)
+        yp2 = yp2 - sizey + 2;
+    }
+    if (sigma[xp2][yp2] == sxy) {
+      perim++;
+    } else {
+      perim--;
+    }
+  }
+  return perim;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //! Monte Carlo Step. Returns summed energy change
 int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
@@ -592,7 +801,10 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
 
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
-          ConvertSpin( x,y,xp,yp );
+          if (par.H_perim)
+            ConvertSpinPerim( x,y,xp,yp );
+          else
+            ConvertSpin( x,y,xp,yp );
         }
         //   if (par.recordcopies)
         //   {
@@ -2138,6 +2350,38 @@ int CellularPotts::CheckAddPoints()
   return Npoints;
 }
 
+pair<int,int> CellularPotts::ChooseAddPointtoTop(int max_point)
+{
+  int massx{};
+  int massy{};
+  int count{};
+
+
+
+  pair<int,int> toreturn;
+
+  for (int y = 1; y < sizey-1; ++y)
+  {
+    for (int x = 1; x < sizex-1; ++x)
+    {
+      if (sigma[x][y] > 0)
+      {
+        int sig = sigma[x][y];
+        if (cell->at(sig).GetPhase() == 1)
+        {
+          cout << x << '\t' << y << endl;
+          toreturn={x,y-6};
+          x=sizex;
+          y=sizey;
+        }
+      }
+    }
+  }
+
+  return toreturn;
+}
+
+
 
 pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
 {
@@ -2262,8 +2506,6 @@ pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
   cellPoint newp = findPoint(surfacep, centerp, par.addition_distance);
   pair<int,int> toret = {int(round(newp.x)), int(round(newp.y))};
   return toret;
-
-
 }
 
 
@@ -5176,6 +5418,15 @@ void CellularPotts::SetLengths(int tlength)
   for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
   {
     i->SetTargetLength(tlength);
+  }
+}
+
+void CellularPotts::SetPerims(int tperim)
+{
+  vector<Cell>::iterator i;
+  for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
+  {
+    i->SetTargetPerimeter(tperim);
   }
 }
 

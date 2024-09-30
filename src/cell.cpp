@@ -138,7 +138,9 @@ void Cell::CellBirth(Cell &mother_cell) {
 
 
   c_type=mother_cell.c_type;
-
+  
+  perimeter = mother_cell.perimeter;
+  target_perimeter = mother_cell.target_perimeter;
   
   for (int ch=0;ch<par.n_chem;ch++)
     chem[ch]=mother_cell.chem[ch];
@@ -185,6 +187,9 @@ void Cell::ConstructorBody(int settau) {
   sum_xx=0;
   sum_yy=0;
   sum_xy=0;
+
+  perimeter = 0;
+  target_perimeter = 0;
 
   lambda = par.lambda;
 

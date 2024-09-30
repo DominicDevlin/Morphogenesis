@@ -456,6 +456,8 @@ public:
 
   pair<int,int> ChooseAddPoint(int max_point=par.sizey);
 
+  pair<int,int> ChooseAddPointtoTop(int max_point=par.sizey);
+
   int CheckAddPoints();
 
   int TopStalk();
@@ -470,6 +472,13 @@ public:
 
   double Cooperativity(int time_skip=1);
 
+  int GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y);
+
+  int GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y);
+
+  void MeasureCellPerimeters();
+
+  void SetPerims(int tpeirm);
 
 
 
@@ -720,6 +729,7 @@ private:
   double DeltaH(int x,int y, int xp, int yp, int tsteps, PDE *PDEfield=0);
   bool Probability(int DH);
   void ConvertSpin(int x,int y,int xp,int yp);
+  void ConvertSpinPerim(int x, int y, int xp, int yp);
   void SprayMedium(void);
   int CopyvProb(double DH,  double stiff);
   void FreezeAmoebae(void);
@@ -728,8 +738,7 @@ private:
   
   bool ConnectivityPreservedP(int x, int y);
 
-
-
+  
 
 
 

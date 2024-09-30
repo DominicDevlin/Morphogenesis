@@ -593,7 +593,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 int main(int argc, char *argv[])  
 {
 
-  bool read_in = false;
+  bool read_in = true;
   vector<vector<double>> params_data;
   if (read_in)
   {
@@ -665,7 +665,7 @@ int main(int argc, char *argv[])
   par.sheet_hex=false;
 
 
-  par.n_orgs = 2;
+  par.n_orgs = 60;
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
   {
