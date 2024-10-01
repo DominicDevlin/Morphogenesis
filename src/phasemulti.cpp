@@ -688,7 +688,7 @@ int main(int argc, char *argv[])
       par.J_stem = params[3];
       par.J_diff = params[4];
       par.J_med=par.J_diff/2 + 0.25;
-      par.mcs= 40000 + int(par.J_stem)*15000;
+      par.mcs=40000 + int(par.J_stem)*15000;
       if (par.J_stem > par.J_med)
         par.J_med = par.J_stem;
       par.J_med2 = par.J_med;

@@ -83,6 +83,7 @@ INIT
       CPM->FractureSheet();
     }
 
+
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
@@ -150,8 +151,12 @@ TIMESTEP {
         dish->CPM->CopyProb(par.T);
         dish->CPM->Set_J(par.sheet_J);
         dish->CPM->set_mixJ(par.sheetmixJ);
+        if (par.lambda_perimeter > 0)
+        {
+          par.H_perim = true; 
+          dish->CPM->MeasureCellPerimeters();
+        }
       }
-
 
       if (par.sheetmix)
       {
@@ -183,6 +188,11 @@ TIMESTEP {
       dish->CPM->CopyProb(par.T);
       dish->CPM->Set_J(par.sheet_J);
       dish->CPM->set_mixJ(par.sheetmixJ);
+      if (par.lambda_perimeter > 0)
+      {
+        par.H_perim = true; 
+        dish->CPM->MeasureCellPerimeters();
+      }
     }
 
 

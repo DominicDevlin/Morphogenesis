@@ -421,38 +421,67 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
   double DH_perimeter = 0;
   if (par.H_perim) 
   {
-    if (sxyp == MEDIUM) {
-      // cout << (*cell)[sxy].Perimeter() << '\t' << (*cell)[sxy].TargetPerimeter() << endl;
-
-      DH_perimeter -=
-          par.lambda_perimeter *
-          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-           DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                (*cell)[sxy].TargetPerimeter()));
-
-    } else if (sxy == MEDIUM) {
-
-      DH_perimeter -=
-          par.lambda_perimeter *
-          (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-           DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                (*cell)[sxyp].TargetPerimeter()));
-
+    if (sxyp == MEDIUM) 
+    {
+      bool cphase = (*cell)[sxy].GetPhase();
+      if (cphase)
+        DH_perimeter -=
+            par.lambda_perimeter_phase *
+            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                  (*cell)[sxy].TargetPerimeter()));
+      else
+        DH_perimeter -=
+            par.lambda_perimeter *
+            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                  (*cell)[sxy].TargetPerimeter()));      
+    } 
+    else if (sxy == MEDIUM) 
+    {
+      bool cphase = (*cell)[sxyp].GetPhase();
+      if (cphase)
+        DH_perimeter -=
+            par.lambda_perimeter_phase *
+            (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                  (*cell)[sxyp].TargetPerimeter()));
+      else
+        DH_perimeter -=
+            par.lambda_perimeter *
+            (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                  (*cell)[sxyp].TargetPerimeter()));      
     }
     // they're both cells
-    else {
-
-      DH_perimeter -=
-          par.lambda_perimeter *
-          ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                 (*cell)[sxyp].TargetPerimeter())));
-
-      DH_perimeter -=
-          par.lambda_perimeter *
-          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-           DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                (*cell)[sxy].TargetPerimeter()));
+    else 
+    {
+      bool cphase = (*cell)[sxy].GetPhase();
+      bool cphasep = (*cell)[sxyp].GetPhase();
+      if (cphasep)
+        DH_perimeter -=
+            par.lambda_perimeter_phase *
+            ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+              DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                  (*cell)[sxyp].TargetPerimeter())));
+      else
+        DH_perimeter -=
+            par.lambda_perimeter *
+            ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+              DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                  (*cell)[sxyp].TargetPerimeter())));
+      if (cphase)
+        DH_perimeter -=
+            par.lambda_perimeter_phase *
+            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+              DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                  (*cell)[sxy].TargetPerimeter()));
+      else
+        DH_perimeter -=
+            par.lambda_perimeter *
+            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+              DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                  (*cell)[sxy].TargetPerimeter()));      
     }
   }
   DH += DH_perimeter;
@@ -501,6 +530,41 @@ void CellularPotts::ConvertSpin(int x,int y,int xp,int yp)
   sigma[x][y] = sigma[xp][yp];
 
 
+}
+
+void CellularPotts::MeasureSinglePerimeter(int targetsigma)
+{
+  cell->at(targetsigma).SetPerimeter(0);
+  
+  for (int x = 1; x < sizex - 1; x++) 
+  {
+    for (int y = 1; y < sizey - 1; y++) 
+    {
+      if (sigma[x][y] == targetsigma) {
+        for (int i = 1; i <= n_nb; i++) {
+          int xp2, yp2;
+          xp2 = x + nx[i];
+          yp2 = y + ny[i];
+          if (par.periodic_boundaries) {
+            if (xp2 <= 0)
+              xp2 = sizex - 2 + xp2;
+            if (yp2 <= 0)
+              yp2 = sizey - 2 + yp2;
+            if (xp2 >= sizex - 1)
+              xp2 = xp2 - sizex + 2;
+            if (yp2 >= sizey - 1)
+              yp2 = yp2 - sizey + 2;
+          }
+          // did we find a border?
+          if (sigma[xp2][yp2] != sigma[x][y]) {
+            // add to the perimeter of the cell
+            // (*cell)[sigma[x][y]].IncrementTargetPerimeter();
+            (*cell)[sigma[x][y]].IncrementPerimeter();
+          }
+        }
+      }
+    }
+  }  
 }
 
 void CellularPotts::MeasureCellPerimeters() 
@@ -2040,6 +2104,8 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
         }
       }
   }  
+  if (par.H_perim)
+    MeasureCellPerimeters();
 
  
   if (celldir) 
@@ -2125,6 +2191,8 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
         }
       }
     }
+    if (par.H_perim)
+      MeasureSinglePerimeter(cell->back().Sigma());
   }
   return true;
 }
@@ -2383,6 +2451,28 @@ pair<int,int> CellularPotts::ChooseAddPointtoTop(int max_point)
 
 
 
+// Function to calculate the Euclidean distance between two points
+double calculate_distance(const pair<int, int>& p1, const pair<int, int>& p2) {
+    return sqrt(pow(p1.first - p2.first, 2) + pow(p1.second - p2.second, 2));
+}
+
+// Remove points from sorted_surface_points that are within min_distance of any contact point
+void remove_close_points(vector<pair<int, int>>& sorted_surface_points, const vector<pair<int, int>>& contact_points, double min_distance) {
+    sorted_surface_points.erase(
+        remove_if(sorted_surface_points.begin(), sorted_surface_points.end(),
+            [&](const pair<int, int>& surface_point) {
+                // Check if the surface_point is close to any contact point
+                for (const auto& contact_point : contact_points) {
+                    if (calculate_distance(surface_point, contact_point) <= min_distance) {
+                        return true;  // Mark for removal
+                    }
+                }
+                return false;  // Keep this point
+            }),
+        sorted_surface_points.end());
+}
+
+
 pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
 {
   int massx{};
@@ -2489,6 +2579,8 @@ pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
   {
     sorted_surface_points.push_back(point_with_angle.first);
   }
+
+  remove_close_points(sorted_surface_points, contact_points, 20);
 
   double rand_angle = von_mises_random(0.0, 1);
 
@@ -3025,6 +3117,27 @@ void CellularPotts::Voronoi()
       }
     }
   }
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
+      }
+      else
+      {
+        c->SetTargetArea(c->area);
+        double guess_perim = 2*M_PI * sqrt(c->area/M_PI)*par.neighbour_multiplier;
+        c->SetTargetPerimeter(guess_perim);
+        // cout << c->area << endl;
+      }
+    }
+  }
+
+
+
   cout << "Total cells killed: " << deadcells << endl;
 }
 
@@ -5035,6 +5148,8 @@ double CellularPotts::Cooperativity(int time_skip)
       }
     }
   }
+  free(ns[0]);
+  free(ns);
   return (coop / c_count);
 
 }

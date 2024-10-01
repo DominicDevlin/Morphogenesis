@@ -182,6 +182,11 @@ void process_population()
       dishes[i].CPM->CopyProb(par.T);
       dishes[i].CPM->Set_J(par.sheet_J);
       dishes[i].CPM->set_mixJ(par.sheetmixJ);
+      if (par.lambda_perimeter > 0)
+      {
+        par.H_perim = true; 
+        dishes[i].CPM->MeasureCellPerimeters();
+      }
     }
 
 
@@ -201,6 +206,11 @@ void process_population()
         dishes[i].CPM->CopyProb(par.T);
         dishes[i].CPM->Set_J(par.sheet_J);
         dishes[i].CPM->set_mixJ(par.sheetmixJ);
+        if (par.lambda_perimeter > 0)
+        {
+          par.H_perim = true; 
+          dishes[i].CPM->MeasureCellPerimeters();
+        }
       }
 
       if (par.velocities)
@@ -261,7 +271,7 @@ void process_population()
 
 
 
-  if (par.output_sizes)
+  if (par.velocities)
   {
     for (int i = 0; i < par.n_orgs; ++i)
     {
@@ -270,7 +280,7 @@ void process_population()
         cell_displacements.push_back(i);
     }
     std::stringstream stream;
-    stream << std::fixed << std::setprecision(1) << par.T << "-" << par.sheet_J;
+    stream << std::fixed << std::setprecision(2) << par.lambda_perimeter << "-" << par.sheet_J;
     string s = stream.str();
 
     string var_name = par.data_file + "/msd" + s + ".dat"; 
@@ -382,22 +392,22 @@ int main(int argc, char *argv[]) {
   par.gene_output=false;
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
-  par.mcs=100000 + par.equilibriate;
+  
   par.sizex=200;
   par.sizey=200;
   par.end_program=0;
   par.sheet=true;
   par.periodic_boundaries=true;
+  par.mcs=4000 + par.equilibriate;
+  par.n_orgs = 4;
 
-  par.n_orgs = 120;
-
-  par.velocities=false;
-  par.sheet_hex=true;
+  par.velocities=true;
+  par.sheet_hex=false;
   par.measure_interval=10;
-  if (par.velocities)
-    par.output_sizes = true;
-  else
-    par.output_sizes = false;
+  // par.velocities = true;
+  //   par.output_sizes = true;
+  // else
+  //   par.output_sizes = false;
   Parameter();
 
 

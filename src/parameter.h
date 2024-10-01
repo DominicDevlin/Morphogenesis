@@ -85,6 +85,8 @@ class Parameter {
   double tlength1;
   double tlength2;
   double lambda_perimeter;
+  double lambda_perimeter_phase;
+  double neighbour_multiplier;
   int ptarget_perimeter;
   bool H_perim;
 

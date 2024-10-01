@@ -478,6 +478,9 @@ public:
 
   void MeasureCellPerimeters();
 
+  void MeasureSinglePerimeter(int targetsigma);
+
+
   void SetPerims(int tpeirm);
 
 

@@ -296,7 +296,7 @@ TIMESTEP {
       dish->CPM->RemoveUnconnectedCells();
     }
     
-    if (t == par.end_program && par.lambda_perimeter > 0)
+    if (t == 0 && par.lambda_perimeter > 0)
     {
       par.H_perim = true; 
       dish->CPM->SetPerims(par.ptarget_perimeter);
@@ -436,11 +436,9 @@ TIMESTEP {
       bool set=false;
       while (!set)
       {
-        cout << "here" << endl;
         // pair<int,int> val = dish->CPM->ChooseAddPoint(mnum);
         pair<int,int> val = dish->CPM->ChooseAddPoint();
         set = dish->CPM->SpawnCell(val.first, val.second, cnum, t);
-        dish->CPM->MeasureCellPerimeters();
       }
         
       //dish->CPM->SpawnCell(val.first-20, val.second-20, cnum, t);

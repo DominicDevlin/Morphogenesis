@@ -1340,7 +1340,7 @@ protected:
   vector<double> mass_list;
 
   double phase_protein_conc;
-  bool phase_state;
+  bool phase_state=false;
   double medium_protein_conc;
   bool medium_state;
 
