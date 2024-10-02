@@ -296,7 +296,7 @@ TIMESTEP {
       dish->CPM->RemoveUnconnectedCells();
     }
     
-    if (t == 0 && par.lambda_perimeter > 0)
+    if ((t == 0 || t==par.end_program+1) && par.lambda_perimeter > 0)
     {
       par.H_perim = true; 
       dish->CPM->SetPerims(par.ptarget_perimeter);

@@ -101,7 +101,7 @@
     cell_areas = 80;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
     lambda_perimeter=0.4;
-    lambda_perimeter_phase=0.02;
+    lambda_perimeter_phase=0.4;
     neighbour_multiplier=3;
     ptarget_perimeter=3.7*neighbour_multiplier;//*M_PI * sqrt(cell_areas/M_PI)*neighbour_multiplier;
     H_perim=false;
