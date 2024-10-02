@@ -564,7 +564,7 @@ void CellularPotts::MeasureSinglePerimeter(int targetsigma)
         }
       }
     }
-  }  
+  }
 }
 
 void CellularPotts::MeasureCellPerimeters() 
@@ -3113,7 +3113,7 @@ void CellularPotts::Voronoi()
       else
       {
         c->SetTargetArea(c->area);
-        // cout << c->area << endl;
+        cout << c->area << endl;
       }
     }
   }
@@ -3129,7 +3129,7 @@ void CellularPotts::Voronoi()
       else
       {
         c->SetTargetArea(c->area);
-        double guess_perim = 2*M_PI * sqrt(c->area/M_PI)*par.neighbour_multiplier;
+        double guess_perim = par.ptarget_perimeter * sqrt(c->area);// 2*M_PI * sqrt(c->area/M_PI)*par.neighbour_multiplier;
         c->SetTargetPerimeter(guess_perim);
         // cout << c->area << endl;
       }
@@ -5541,7 +5541,8 @@ void CellularPotts::SetPerims(int tperim)
   vector<Cell>::iterator i;
   for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
   {
-    i->SetTargetPerimeter(tperim);
+    i->SetTargetPerimeter(round(double(tperim)*sqrt(double(par.cell_areas))));
+    cout << round(double(tperim)*sqrt(double(par.cell_areas))) << endl;
   }
 }
 

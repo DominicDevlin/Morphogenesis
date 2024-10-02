@@ -100,10 +100,10 @@
     div_threshold = 100;
     cell_areas = 80;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
-    lambda_perimeter=0.24;
-    lambda_perimeter_phase=0;
+    lambda_perimeter=0.4;
+    lambda_perimeter_phase=0.02;
     neighbour_multiplier=3;
-    ptarget_perimeter=2*M_PI * sqrt(cell_areas/M_PI)*neighbour_multiplier;
+    ptarget_perimeter=3.7*neighbour_multiplier;//*M_PI * sqrt(cell_areas/M_PI)*neighbour_multiplier;
     H_perim=false;
 
   
@@ -248,10 +248,10 @@
 /* sheet related parameters */
     sheet=false;
     sheet_hex = true;
-    sheet_J = 1;
-    sheet_minJ=1;
-    sheet_maxJ=12;
-    J_width=1;
+    sheet_J = 3;
+    sheet_minJ=0.5;
+    sheet_maxJ=12.5;
+    J_width=0.5;
 
     do_voronoi=true;
 

@@ -398,8 +398,8 @@ int main(int argc, char *argv[]) {
   par.end_program=0;
   par.sheet=true;
   par.periodic_boundaries=true;
-  par.mcs=4000 + par.equilibriate;
-  par.n_orgs = 4;
+  par.mcs=100000 + par.equilibriate;
+  par.n_orgs = 60;
 
   par.velocities=true;
   par.sheet_hex=false;
