@@ -2579,8 +2579,7 @@ pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
   {
     sorted_surface_points.push_back(point_with_angle.first);
   }
-
-  remove_close_points(sorted_surface_points, contact_points, 20);
+  remove_close_points(sorted_surface_points, contact_points, 10);
 
   double rand_angle = von_mises_random(0.0, 1);
 
@@ -9700,7 +9699,7 @@ pair<double,double> CellularPotts::LengthWidth()
 {
   int miny = sizey;
   // we start this from the top of the organism.
-  int maxy = sizey / 2 + par.offset - par.size_init_cells / 2;  
+  int maxy = 0;  
   vector<int> widths{};
   for (int y=1; y<sizey; ++y)
   {
@@ -9712,6 +9711,8 @@ pair<double,double> CellularPotts::LengthWidth()
       {
         if (y < miny)
           miny = y;
+        if (y > maxy)
+          maxy=y;
         if (x > maxx)
           maxx=x;
         if (x < minx)
@@ -9737,7 +9738,11 @@ pair<double,double> CellularPotts::LengthWidth()
   }
   double variance = sumOfSquaredDifferences / widths.size();
 
-  int length = maxy - miny;
+  double coeff = variance / (mean + 30);
+
+  double length = double(maxy - miny);
+  if (length < 0)
+    length = 1;
   pair<double,double> toreturn = {length, variance};
   
   return toreturn;

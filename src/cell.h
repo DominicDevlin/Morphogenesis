@@ -651,12 +651,7 @@ private:
   // ! Return Cell's perimeter
   inline int Perimeter() 
   { 
-    if (phase_state)
-    {
-      return target_perimeter;
-    }
-    else
-      return perimeter; 
+    return perimeter; 
   }
 
   // ! Return Cell's target perimeter

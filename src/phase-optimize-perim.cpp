@@ -157,7 +157,7 @@ void OutputResults(vector<double>& lengths, vector<double>& variances, vector<in
   int start = 0;
   int half = par.optimization_replicates / 2;
 
-  std::sort(vec.begin(), vec.end(), std::greater<int>());
+  std::sort(vec.begin(), vec.end(), std::greater<double>());
   double avgfit = std::accumulate(vec.begin() + start, vec.begin() + half, 0.0) / half;
 
 
@@ -331,10 +331,18 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           int cnum = dishes[i].CPM->FindHighestCell();
           int mnum = dishes[i].CPM->TopStalk();
           bool set=false;
+          int counter=0;
           while (!set)
           {
             pair<int,int> val = dishes[i].CPM->ChooseAddPoint(mnum);
             set = dishes[i].CPM->SpawnCell(val.first, val.second, cnum, t);
+            ++counter;
+            if (counter > 4)
+            {
+              set = true;
+              cerr << "Error in spawn cell with phase count " << dishes[i].CPM->CountPhaseOnCells() << endl;
+              t=par.mcs;
+            }
           }
         }
       }
@@ -441,9 +449,9 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   OutputShapes(hexdata, hname, time);
 
 
-  vector<double> lengths;
-  vector<double> variances;
-  vector<int> phase_cells;
+  vector<double> lengths{};
+  vector<double> variances{};
+  vector<int> phase_cells{};
 
   for (int i = 0; i < par.optimization_replicates;++i)
   {

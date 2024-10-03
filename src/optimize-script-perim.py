@@ -31,9 +31,14 @@ p_diff = 1.
 
 # Define the possible values for J_stem and J_diff
 # J_stem_values = [1., 2., 3., 4., 5.]
-J_diff_values = [0.4]
+J_diff_values = [0.4,0.5]
 
-J_stem_values = [0,0.02,0.08,0.16]
+J_stem_values = []
+
+val = 0.0
+for i in range(12):
+    J_stem_values.append(val)
+    val += 0.02
 
 # Total number of combinations (5x5 = 25)
 n_cols = len(J_stem_values)
@@ -86,7 +91,7 @@ def f(x, time=0):
 # differentiation rate, will just be the secretion constant (2.4e-3 is default, 1.5 is about minimum before 0 becomes equilibrium)
 diff_rate = [1e-3,5e-3]
 # J of stem to diff
-J_med = [2,8]
+J_med = [2.,8.]
 # max growth rate per DTS OF stem cells. Taking this out for now.
 # growth rate should depnd on J_stem
 # Vmax = 1 / (1 + J_stem)
