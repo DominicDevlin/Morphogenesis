@@ -101,7 +101,7 @@
     cell_areas = 80;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
     lambda_perimeter=0.4;
-    lambda_perimeter_phase=0.16;
+    lambda_perimeter_phase=0.0;
     neighbour_multiplier=3;
     ptarget_perimeter=3.7*neighbour_multiplier;//*M_PI * sqrt(cell_areas/M_PI)*neighbour_multiplier;
     H_perim=false;
@@ -143,15 +143,15 @@
 
     J_stem=1;
     J_diff=1;
-    J_med=6;//J_diff/2 + 0.25;
+    J_med=8;//J_diff/2 + 0.25;
     if (J_stem > J_med)
       J_med = J_stem;
     J_stem_diff=1;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-    cell_addition_rate=100; 
+    cell_addition_rate=210; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.00388737; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.0025; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
@@ -178,7 +178,7 @@
     cell_lengths = 2 * sqrt(cell_lengths / M_PI);
     optimization_replicates = 6;
     pics_for_opt = false;
-    pics_for_opt_interval = 100;
+    pics_for_opt_interval = 1;
     max_div_time = 20000;
     min_phase_cells = 20;
     penalty=250;

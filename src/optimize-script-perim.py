@@ -37,7 +37,7 @@ J_stem_values = []
 
 val = 0.0
 for i in range(12):
-    J_stem_values.append(val)
+    J_stem_values.append(round(val, 2))
     val += 0.02
 
 # Total number of combinations (5x5 = 25)

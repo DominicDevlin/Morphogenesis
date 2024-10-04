@@ -2579,7 +2579,7 @@ pair<int,int> CellularPotts::ChooseAddPoint(int max_point)
   {
     sorted_surface_points.push_back(point_with_angle.first);
   }
-  remove_close_points(sorted_surface_points, contact_points, 10);
+  remove_close_points(sorted_surface_points, contact_points, 15);
 
   double rand_angle = von_mises_random(0.0, 1);
 

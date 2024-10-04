@@ -235,13 +235,14 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   // par.Vs_max = params[1];
   par.cell_addition_rate = int(round(params[1]));
   par.J_med = params[2];
+  par.J_med2 = par.J_med;
   // constant params
   par.lambda_perimeter_phase = params[3];
-  par.mcs= 40000 + int(par.J_stem)*15000;
+  par.mcs= 100000;
   par.lambda_perimeter = params[4];
   par.J_stem=1;
   par.J_diff=1;
-
+  par.J_stem_diff=1;
 
 
   // run organisms in parallel. 
