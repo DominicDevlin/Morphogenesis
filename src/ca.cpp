@@ -5119,12 +5119,16 @@ double CellularPotts::Cooperativity(int time_skip)
 
           // Add to cosine similarity sum
 
-
           double mv1 = magnitude(v1);
           double mv2 = magnitude(v2);
-          double r1 = mv1/mv2;
-          double r2 = 1./r1;
-          double min_r = min(r1, r2);
+          double min_r;
+
+          if (mv1 > 0.0 && mv2 > 0.0) {
+              double r1 = mv1 / mv2;
+              double r2 = 1.0 / r1;
+              min_r = std::min(r1, r2);
+          }
+
           
           double pair_speed = (mv1+mv2)/2.;
           // double normalised = pair_speed / avg_speed;
@@ -5149,7 +5153,7 @@ double CellularPotts::Cooperativity(int time_skip)
   }
   free(ns[0]);
   free(ns);
-  return (coop / c_count);
+  return (c_count > 0) ? (coop / c_count) : 0.0;
 
 }
 

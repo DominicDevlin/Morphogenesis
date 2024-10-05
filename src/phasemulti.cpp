@@ -470,9 +470,17 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     // int empty_amount = dishes[i].CPM->EmptySpace();
     // empty_spaces[i] = empty_amount;
 
-    double cop = std::accumulate(cooperativities[i].begin(), cooperativities[i].end(), 0.0);
-    cop /= double(cooperativities[i].size());
-    coop_averages[i] = cop;
+    double coop = std::accumulate(cooperativities[i].begin(), cooperativities[i].end(), 0.0);
+    if (cooperativities[i].size() > 0) 
+    {
+      coop = std::accumulate(cooperativities[i].begin(), cooperativities[i].end(), 0.0);
+      coop /= double(cooperativities[i].size());
+    } 
+    else {
+      coop = 0.0;
+}
+
+    coop_averages[i] = coop;
     cout << cooperativities[i][0] << '\t' << coop_averages[i] << endl; 
   }
 
