@@ -456,7 +456,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   for (int i = 0; i < par.optimization_replicates;++i)
   {
-    pair<double,double> lw = dishes[i].CPM->LengthWidth();
+    pair<double,double> lw = dishes[i].CPM->LengthWidth(false);
     lengths.push_back(lw.first);
     variances.push_back(lw.second);
     

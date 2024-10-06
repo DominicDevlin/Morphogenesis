@@ -100,12 +100,12 @@
     div_threshold = 100;
     cell_areas = 80;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
-    lambda_perimeter=0.4;
-    lambda_perimeter_phase=0.0;
+    lambda_perimeter=0.6;
+    lambda_perimeter_phase=0.220;
     neighbour_multiplier=3;
     ptarget_perimeter=3.7*neighbour_multiplier;//*M_PI * sqrt(cell_areas/M_PI)*neighbour_multiplier;
+    // must be false. turned true automatically.
     H_perim=false;
-
   
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
     
@@ -116,27 +116,6 @@
     conn_diss = 2000;
 
 /* adhesion params */
-
-/*stem-cell system project params*/
-    // n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
-    // n_locks = n_lockandkey / 2;
-    // n_TF = 4; 
-    // n_length_genes = 2;
-    // minJ=4;
-    // maxJ=24;
-    // n_mediums=5;
-    // med_table = new int[n_mediums];
-    // med_table[0] = 5;
-    // med_table[1] = 4;
-    // med_table[2] = 3;
-    // med_table[3] = 2;
-    // med_table[4] = 1;
-    // n_diffusers=3;
-    // n_MF=2;
-    // minM=6;
-    // tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
-    // tlength2 = 2;
-
 
     // phase transition params;
     phase_evolution=true;
@@ -149,9 +128,9 @@
     J_stem_diff=1;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-    cell_addition_rate=210; 
+    cell_addition_rate=100; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.0025; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.0043169; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
@@ -192,6 +171,27 @@
     n_diffusers = 1; // morphogens
     n_length_genes = 0;
     n_MF = 2;
+
+/*stem-cell system project params*/
+    // n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
+    // n_locks = n_lockandkey / 2;
+    // n_TF = 4; 
+    // n_length_genes = 2;
+    // minJ=4;
+    // maxJ=24;
+    // n_mediums=5;
+    // med_table = new int[n_mediums];
+    // med_table[0] = 5;
+    // med_table[1] = 4;
+    // med_table[2] = 3;
+    // med_table[3] = 2;
+    // med_table[4] = 1;
+    // n_diffusers=3;
+    // n_MF=2;
+    // minM=6;
+    // tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
+    // tlength2 = 2;
+
 
 /*small genome params*/
     n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 

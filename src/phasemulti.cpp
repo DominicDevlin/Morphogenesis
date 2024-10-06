@@ -244,6 +244,13 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
     for (; t < par.mcs; t++)
     {  
+      if (t==0 && (par.lambda_perimeter > 0 || par.lambda_perimeter_phase>0))
+      {
+        cout << par.cell_addition_rate << '\t' << par.J_med << '\t' << par.lambda_perimeter << endl;
+        par.H_perim = true;
+        dishes[i].CPM->SetPerims(par.ptarget_perimeter);
+        dishes[i].CPM->MeasureCellPerimeters();
+      }
       // if (t % 1000 == 0)
       //   cout << t << endl;        
       if (par.gene_record && t == 100)
@@ -254,6 +261,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         {
           
           dishes[i].CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
+          dishes[i].CPM->SetAreas(par.cell_areas);
         }
        
       
@@ -341,6 +349,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           int cnum = dishes[i].CPM->FindHighestCell();
           int mnum = dishes[i].CPM->TopStalk();
           int check_n_points = dishes[i].CPM->CheckAddPoints();
+          int counter = 0;
+          bool set=false;
           if (check_n_points < 60)
           {
             total_steps[i] = t;
@@ -348,11 +358,17 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           }
           else
           {
-            bool set=false;
             while (!set)
             {
               pair<int,int> val = dishes[i].CPM->ChooseAddPoint(mnum);
               set = dishes[i].CPM->SpawnCell(val.first, val.second, cnum, t);
+              ++counter;
+              if (counter > 4)
+              {
+                set = true;
+                cerr << "Error in spawn cell with phase count " << dishes[i].CPM->CountPhaseOnCells() << endl;
+                t=par.mcs;
+              }
             }
           }
 
@@ -386,6 +402,9 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       {
         total_steps[i] = par.mcs;
       }
+
+
+
     }
     // this is not thread safe but changes of it happening at same time are very very rare.
     shape_alignments[i] = org_alignments;
@@ -444,8 +463,11 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     t_hex_count = WriteData(hexdata, oname);
 
     oname = par.data_file + "/shape_time.dat";
-    t_shape_count = WriteData(shapedata, oname);    
+    t_shape_count = WriteData(shapedata, oname);
   }
+
+
+
 
   vector<double> coop_averages(par.n_orgs);
 
@@ -456,12 +478,15 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   vector<double> lengths(par.n_orgs);
   vector<double> variances(par.n_orgs);
   // vector<double> empty_spaces(par.n_orgs);
+  vector<double> coeffs(par.n_orgs);
 
   for (int i=0; i < par.n_orgs;++i)
   {
-    pair<double,double> lw = dishes[i].CPM->LengthWidth();
+    pair<double,double> lw = dishes[i].CPM->LengthWidth(false);
+    pair<double,double> lcoeff = dishes[i].CPM->LengthWidth(true);
     lengths[i] = lw.first;
     variances[i] = lw.second;
+    coeffs[i] = pow(lw.first, 2) / lcoeff.second;
     fitnesses[i] = pow(lw.first, 2) / lw.second;
    
     int n_phase = dishes[i].CPM->CountPhaseOnCells();
@@ -476,9 +501,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       coop = std::accumulate(cooperativities[i].begin(), cooperativities[i].end(), 0.0);
       coop /= double(cooperativities[i].size());
     } 
-    else {
+    else 
+    {
       coop = 0.0;
-}
+    }
 
     coop_averages[i] = coop;
     cout << cooperativities[i][0] << '\t' << coop_averages[i] << endl; 
@@ -499,6 +525,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   vector<double> sorted_lengths(par.n_orgs);
   vector<double> sorted_variances(par.n_orgs);
   vector<double> sorted_coops(par.n_orgs);
+  vector<double> sorted_coeffs(par.n_orgs);
   // vector<double> sorted_empty_spaces(par.n_orgs);
 
   for (int i = 0; i < par.n_orgs; ++i) {
@@ -506,12 +533,14 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       sorted_lengths[i] = lengths[indices[i]];
       sorted_variances[i] = variances[indices[i]];
       sorted_coops[i] = coop_averages[indices[i]];
+      sorted_coeffs[i] = coeffs[indices[i]];
       // sorted_empty_spaces[i] = empty_spaces[indices[i]];
   }
   fitnesses = sorted_fitnesses;
   lengths = sorted_lengths;
   variances = sorted_variances;
   coop_averages = sorted_coops;
+  coeffs = sorted_coeffs;
   // empty_spaces = sorted_empty_spaces;
 
   // for (auto i : fitnesses)
@@ -525,13 +554,15 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   double avg_length = std::accumulate(lengths.begin() + start, lengths.begin() + half, 0.0) / half;
   double avg_variance = std::accumulate(variances.begin() + start, variances.begin() + half, 0.0) / half;
   double avg_coop = std::accumulate(coop_averages.begin() + start, coop_averages.begin() + half, 0.0) / half;
+  double avg_coeff = std::accumulate(coeffs.begin() + start, coeffs.begin() + half, 0.0) / half;
+  
   // double avg_empty_space = std::accumulate(empty_spaces.begin() + start, empty_spaces.begin() + half, 0.0) / half;
   avg_phase_remained = avg_phase_remained / par.n_orgs;
 
   ofstream outfile;
   string fname = par.data_file + "/fitness.txt";
   outfile.open(fname, ios::app);
-  outfile << avg_fitness << '\t' << avg_length << '\t' << avg_variance << '\t' << avg_coop << '\t' <<  avg_phase_remained << endl;
+  outfile << avg_fitness << '\t' << avg_length << '\t' << avg_variance << '\t' << avg_coop << '\t' << avg_coeff << '\t' <<  avg_phase_remained << endl;
   outfile.close();
 
   
@@ -568,7 +599,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   << "addition rate:\t" << par.cell_addition_rate << '\n'
   << "Jsd:\t" << par.J_stem_diff << endl;
   outfile.close();
-
 
   if (par.pics_for_opt)
   {
@@ -671,9 +701,10 @@ int main(int argc, char *argv[])
   par.min_phase_cells=4;
   par.mcs = 6000;
   par.sheet_hex=false;
-
-
   par.n_orgs = 60;
+
+  bool perimeter_model = false;
+
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
   {
@@ -688,29 +719,58 @@ int main(int argc, char *argv[])
     int argnumber=1;
     for (vector<double> &params: params_data)
     {
-      // we are going to do three iterations, one with data, one control with no differentiation, one control with no differentiation and addtion
-      par.secr_rate[0] = params[0];
-      // par.Vs_max = params[1];
-      par.cell_addition_rate = params[1];
-      par.J_stem_diff = params[2];
-      par.J_stem = params[3];
-      par.J_diff = params[4];
-      par.J_med=par.J_diff/2 + 0.25;
-      par.mcs=40000 + int(par.J_stem)*15000;
-      if (par.J_stem > par.J_med)
-        par.J_med = par.J_stem;
-      par.J_med2 = par.J_med;
-      cout << par.J_stem << '\t' << par.J_diff << '\t' << par.J_med << endl;
-      process_population(networks, argnumber);
-      ++argnumber;
-      // control1 - no differentiation:
-      par.secr_rate[0] = 0.0001;
-      process_population(networks, argnumber);
-      ++argnumber;
-      //control 2 - no cell addition:
-      par.cell_addition_rate = 100000;
-      process_population(networks, argnumber);
-      ++argnumber;
+      if (!perimeter_model)
+      {
+        // we are going to do three iterations, one with data, one control with no differentiation, one control with no differentiation and addtion
+        par.secr_rate[0] = params[0];
+        // par.Vs_max = params[1];
+        par.cell_addition_rate = params[1];
+        par.J_stem_diff = params[2];
+        par.J_stem = params[3];
+        par.J_diff = params[4];
+        par.J_med=par.J_diff/2 + 0.25;
+        par.mcs=40000 + int(par.J_stem)*15000;
+        if (par.J_stem > par.J_med)
+          par.J_med = par.J_stem;
+        par.J_med2 = par.J_med;
+        par.lambda_perimeter = 0.0;
+        par.lambda_perimeter_phase = 0.0;
+        cout << par.J_stem << '\t' << par.J_diff << '\t' << par.J_med << endl;
+        process_population(networks, argnumber);
+        ++argnumber;
+        // control1 - no differentiation:
+        par.secr_rate[0] = 0.0001;
+        process_population(networks, argnumber);
+        ++argnumber;
+        //control 2 - no cell addition:
+        par.cell_addition_rate = 100000;
+        process_population(networks, argnumber);
+        ++argnumber;
+      }
+      else
+      {
+        par.secr_rate[0] = params[0];
+        // par.Vs_max = params[1];
+        par.cell_addition_rate = params[1];
+        par.J_med = params[2];
+        par.J_med2 = par.J_med;
+        par.lambda_perimeter_phase = params[3];
+        par.lambda_perimeter = params[4];
+        par.J_stem = 1;
+        par.J_diff = 1;
+        par.J_stem_diff = 1;
+        par.mcs=100000;
+        process_population(networks, argnumber);
+        ++argnumber;
+        // control1 - no differentiation:
+        par.secr_rate[0] = 0.0001;
+        process_population(networks, argnumber);
+        ++argnumber;
+        //control 2 - no cell addition:
+        par.cell_addition_rate = 100000;
+        process_population(networks, argnumber);
+        ++argnumber;
+      }
     }
   }
 

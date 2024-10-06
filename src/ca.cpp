@@ -9699,11 +9699,11 @@ map<int,vector<double>> CellularPotts::Get_state_shape_index()
 }
 
 
-pair<double,double> CellularPotts::LengthWidth()
+pair<double,double> CellularPotts::LengthWidth(bool do_coeff)
 {
   int miny = sizey;
   // we start this from the top of the organism.
-  int maxy = 0;  
+  int maxy = par.sizey / 2 + par.offset - par.size_init_cells / 2;  
   vector<int> widths{};
   for (int y=1; y<sizey; ++y)
   {
@@ -9715,8 +9715,6 @@ pair<double,double> CellularPotts::LengthWidth()
       {
         if (y < miny)
           miny = y;
-        if (y > maxy)
-          maxy=y;
         if (x > maxx)
           maxx=x;
         if (x < minx)
@@ -9730,7 +9728,7 @@ pair<double,double> CellularPotts::LengthWidth()
   }
 
   // Check if widths is empty
-  if (widths.empty()) 
+  if (widths.size() < 2) 
   {
     return {1, 1};
   }
@@ -9747,10 +9745,20 @@ pair<double,double> CellularPotts::LengthWidth()
   double length = double(maxy - miny);
   if (length < 0)
     length = 1;
-  pair<double,double> toreturn = {length, variance};
+  pair<double,double> toreturn;
   
+  if (do_coeff)
+    toreturn = {length, coeff};
+  else
+    toreturn = {length, variance};  
   return toreturn;
 }
+
+
+
+
+
+
 
 int CellularPotts::EmptySpace()
 {

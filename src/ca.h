@@ -406,7 +406,7 @@ public:
 
   int CountPhaseOnCells();
 
-  pair<double,double> LengthWidth();
+  pair<double,double> LengthWidth(bool do_coeff);
 
   void ConstrainedGrowthAndDivision(int time);
 
