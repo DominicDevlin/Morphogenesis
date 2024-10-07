@@ -97,8 +97,8 @@ J_med = [2.,8.]
 # Vmax = 1 / (1 + J_stem)
 # V_smax = [0.,Vmax]
 # doing addtition rate now
-min_rate = 100
-max_rate = 1200
+min_rate = 100 + 2000*p_stem
+max_rate = min_rate + 600
 V_smax = [min_rate, max_rate]
 
 

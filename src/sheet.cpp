@@ -75,7 +75,7 @@ INIT
 
     if (par.do_voronoi)
     {
-      // par.highT=false;
+      par.highT=false;
       CPM->Voronoi();
     }
     else

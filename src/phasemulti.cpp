@@ -507,7 +507,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     }
 
     coop_averages[i] = coop;
-    cout << cooperativities[i][0] << '\t' << coop_averages[i] << endl; 
+    // cout << cooperativities[i][0] << '\t' << coop_averages[i] << endl; 
   }
 
   vector<int> indices(par.n_orgs);

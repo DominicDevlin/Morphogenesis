@@ -363,11 +363,11 @@ TIMESTEP {
 
       }
 
-      if (t % 10 == 0 && t > 200 && par.measure_time_order_params)
-      {
-        dish->CPM->PhaseShapeIndex(t);
-        dish->CPM->HexaticOrder(t);
-      }
+      // if (t % 10 == 0 && t > 200 && par.measure_time_order_params)
+      // {
+      //   dish->CPM->PhaseShapeIndex(t);
+      //   dish->CPM->HexaticOrder(t);
+      // }
       
       if (par.velocities)
       {
@@ -423,11 +423,11 @@ TIMESTEP {
     dish->CPM->AmoebaeMove(t);
 
 
-    if (t > 200 && par.measure_time_order_params && t % 1 == 0)
-    {
-      dish->CPM->PhaseShapeIndex(t);
-      dish->CPM->PhaseHexaticOrder(t);
-    }  
+    // if (t > 200 && par.measure_time_order_params && t % 1 == 0)
+    // {
+    //   dish->CPM->PhaseShapeIndex(t);
+    //   dish->CPM->PhaseHexaticOrder(t);
+    // }  
 
     if (t % par.cell_addition_rate == 0 && t > 200)
     {
