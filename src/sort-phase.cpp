@@ -643,7 +643,7 @@ TIMESTEP {
 
       if (par.velocities)
       {
-        // dish->CPM->CellVelocities();
+        dish->CPM->CellVelocities();
         // dish->CPM->scc_momenta(scc);
         // dish->CPM->momenta();
         // dish->CPM->diff_anisotropy(scc);

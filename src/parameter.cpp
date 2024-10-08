@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -91,7 +91,7 @@
 /* Cellular Potts parameters */
     sizex = 200;
     sizey = 300;
-    mcs = 100000;
+    mcs = 50000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -100,8 +100,8 @@
     div_threshold = 100;
     cell_areas = 80;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
-    lambda_perimeter=0.4;
-    lambda_perimeter_phase=0.06;
+    lambda_perimeter=0.0;
+    lambda_perimeter_phase=0.0;
     neighbour_multiplier=3;
     ptarget_perimeter=3.7*neighbour_multiplier;//*M_PI * sqrt(cell_areas/M_PI)*neighbour_multiplier;
     // must be false. turned true automatically.
@@ -119,18 +119,17 @@
 
     // phase transition params;
     phase_evolution=true;
-
-    J_stem=1;
-    J_diff=1;
-    J_med=8;//J_diff/2 + 0.25;
+    J_stem=3.5;
+    J_diff=12;
+    J_med=J_diff/2 + 0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=1;
+    J_stem_diff=12;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
-    cell_addition_rate=100; 
+    cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.00399721; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.001; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
@@ -156,7 +155,7 @@
     
     cell_lengths = 2 * sqrt(cell_lengths / M_PI);
     optimization_replicates = 6;
-    pics_for_opt = false;
+    pics_for_opt = true;
     pics_for_opt_interval = 1;
     max_div_time = 20000;
     min_phase_cells = 20;

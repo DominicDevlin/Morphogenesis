@@ -410,6 +410,29 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     shape_alignments[i] = org_alignments;
     Z_values[i] = org_zvals;
     volumes[i] = org_volume;
+
+    if (par.pics_for_opt)
+    {
+      string dirn = par.pic_dir;
+      if (mkdir(dirn.c_str(), 0777) != -1)
+      {
+        cout << "Directory created." << endl;
+      }
+
+      for (int i=0; i < par.n_orgs; ++i)
+      {
+        dishes[i].CPM->ColourCells(par.phase_evolution);
+        fft new_org(par.sizex,par.sizey);
+        new_org.ImportCPM(dishes[i].get_cpm());
+        string f2 = "org-";
+        string n2 = to_string(i);
+        string ftype = ".png";
+        string foutput = dirn + "/" + f2 + n2 + to_string(t) + ftype;
+        new_org.cpmOutput(foutput);
+      }
+    }
+
+
   }
 
   if (mkdir(par.data_file.c_str(), 0777) == -1)
@@ -759,7 +782,8 @@ int main(int argc, char *argv[])
         par.J_stem = 1;
         par.J_diff = 1;
         par.J_stem_diff = 1;
-        par.mcs=100000;
+        par.mcs=5000;
+        par.n_orgs = 1;
         process_population(networks, argnumber);
         ++argnumber;
         // control1 - no differentiation:
