@@ -359,7 +359,7 @@ public:
 
   void FractureSheet(int n_cells);
 
-  void Voronoi();
+  void Voronoi(int xlen, int ylen, int shift=0);
 
   void DrawDisplacement(Graphics *g);
 
@@ -482,6 +482,11 @@ public:
 
 
   void SetPerims(int tpeirm);
+
+  void ConvertTopCells(int width, int depth);
+
+  void StartWettingNetwork();
+
 
 
 

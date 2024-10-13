@@ -2238,7 +2238,7 @@ int CellularPotts::TopStalk()
       }
     }
   }
-  return 1;
+  return 0;
 }
 
 
@@ -2974,7 +2974,7 @@ vector<VPoint> HexaCenters(int m, int n, double r)
           }
         }
     }
-    cout << "CENTRE COUNT IS: " << center_count << endl;
+    // cout << "CENTRE COUNT IS: " << center_count << endl;
     return centers;
 }
 
@@ -3018,50 +3018,54 @@ double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey)
   // Calculate direct distances
   double dx = std::abs(x2 - x1);
   double dy = std::abs(y2 - y1);
-  
-  // Apply periodic boundary conditions
-  if (dx > sizex / 2) {
-      dx = sizex - dx - 2;  // Wrap around horizontally
+  if (par.periodic_boundaries)
+  {
+    // Apply periodic boundary conditions
+    if (dx > sizex / 2) {
+        dx = sizex - dx - 2;  // Wrap around horizontally
+    }
+    if (dy > sizey / 2) {
+        dy = sizey - dy - 2;  // Wrap around vertically
+    }
   }
-  if (dy > sizey / 2) {
-      dy = sizey - dy - 2;  // Wrap around vertically
-  }
+
   
   // Return the Euclidean distance
   return std::sqrt(dx * dx + dy * dy);
 }
 
 
-void CellularPotts::Voronoi()
+void CellularPotts::Voronoi(int xlen, int ylen, int shift)
 {
   // double total = sizex*sizey;
   // int ncells = round(total / 75.);
   // cout << ncells << endl;
   double A = double(par.cell_areas);
   double distance = sqrt((A)/(2*sqrt(3)));
-  double leftover = fmod(sizex-2, distance);
-  int dividor = int(floor(double(sizex-2)/distance));
+  double leftover = fmod(xlen-2, distance);
+  int dividor = int(floor(double(xlen-2)/distance));
   // cout << "LEFTOVERS: " << leftover << '\t' << dividor << endl;
   distance += leftover/dividor;
 
 
-  int ncells = HexaCounter(sizex-2,sizey-2,distance);
+  int ncells = HexaCounter(xlen-2,ylen-2,distance);
   FractureSheet(ncells);
   cout << ncells << endl;
 
-  cout << CountCells() << endl;
-  int periodic_length_x = sizex - 2;
-  int periodic_length_y = sizey - 2;
+  int periodic_length_x = xlen - 2;
+  int periodic_length_y = ylen - 2;
 
   vector<VPoint> centers = HexaCenters(periodic_length_x, periodic_length_y, distance);
-  // for (const auto& center : centers) 
-  // {
-  //     std::cout << "Center at (" << center.x << ", " << center.y << ")\n";
-  // }
+  for (auto& center : centers) 
+  {
+    center.x += sizex - xlen;
+    center.y += sizey - ylen - shift;
+    std::cout << "Center at (" << center.x << ", " << center.y << ")\n";
+  }
 
 
-  for (int x = 1; x < sizex-1; ++x) {
-      for (int y = 1; y < sizey-1; ++y) 
+  for (int x = 1 + sizex - xlen; x < sizex-1; ++x) {
+      for (int y = 1 + sizey - ylen - shift; y < sizey - shift - 1; ++y) 
       {
         double minDistance = std::numeric_limits<double>::max();
         int closestCenter = -1;
@@ -3112,7 +3116,7 @@ void CellularPotts::Voronoi()
       else
       {
         c->SetTargetArea(c->area);
-        cout << c->area << endl;
+        // cout << c->area << endl;
       }
     }
   }
@@ -3138,6 +3142,24 @@ void CellularPotts::Voronoi()
 
 
   cout << "Total cells killed: " << deadcells << endl;
+}
+
+void CellularPotts::ConvertTopCells(int width, int depth)
+{
+  for (int x = width; x < sizex-width; ++x) 
+  {
+    int counter = 0;
+    for (int y = 1 ; y < sizey; ++y) 
+    {
+      if (sigma[x][y] > 0)
+      {
+        cell->at(sigma[x][y]).TransformPhase(true);
+        ++counter;
+        if (counter > depth)
+          break;
+      }
+    }  
+  }
 }
 
 
@@ -4469,6 +4491,32 @@ void CellularPotts::Programmed_Division(bool phase)
 
 
 } 
+
+
+void CellularPotts::StartWettingNetwork()
+{
+  // bottom gets MF --> conc  
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      if (c->GetPhase())
+      {
+        vector<double>& nlist = c->get_genes();
+        nlist.at(1) = 0.;
+        nlist.at(2) = 1.;
+
+      }
+      else
+      {
+        vector<double>& nlist = c->get_genes();
+        nlist.at(1) = 1.;
+        nlist.at(2) = 0.;
+      }        
+    }
+  }
+}
 
 
 

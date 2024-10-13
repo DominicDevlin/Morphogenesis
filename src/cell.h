@@ -698,6 +698,20 @@ private:
 
   }
 
+  inline void TransformPhase(bool ptype)
+  {
+    if (ptype)
+    {
+      phase_protein_conc=1.;
+      phase_state = true;
+    }
+    else
+    {
+      phase_protein_conc=0.;
+      phase_state = false;
+    }
+  }
+
   inline double& get_phase_J(void)
   {
     return phase_protein_conc;

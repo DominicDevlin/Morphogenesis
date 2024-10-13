@@ -62,7 +62,7 @@ INIT
     // Define initial distribution of cells
     // CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
 
-    CPM->FillGrid();
+    CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
     CPM->ConstructInitCells(*this);
 
 
@@ -76,7 +76,7 @@ INIT
     if (par.do_voronoi)
     {
       par.highT=false;
-      CPM->Voronoi();
+      CPM->Voronoi(par.sizex, par.sizey);
     }
     else
     {

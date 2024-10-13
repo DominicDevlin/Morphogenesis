@@ -136,6 +136,7 @@ class Parameter {
   bool eden_growth;
   int cell_areas;
   int cell_addition_rate;
+  bool add_cells;
   int cell_lengths;
   int addition_distance;
 
