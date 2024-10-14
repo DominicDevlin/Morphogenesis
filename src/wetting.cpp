@@ -293,7 +293,7 @@ TIMESTEP {
 
     if (t == 1000)
     {
-      dish->CPM->ConvertTopCells(100, 10);
+      dish->CPM->ConvertTopCells(80, 10);
     }
 
     

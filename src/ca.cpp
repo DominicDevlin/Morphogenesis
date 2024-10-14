@@ -8890,7 +8890,7 @@ vector<double> CellularPotts::TruePerimeters()
 {
   //  See Magno et al (2015) BMC biophysics for correction factor.
   int neigh_level=2; // (using n_nb because 2)
-  double correction=3.;
+  double correction=par.neighbour_multiplier;
 
   vector<double> toreturn;
 
@@ -9065,8 +9065,8 @@ void CellularPotts::ShapeIndex()
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=2; // (using n_nb because 2)
-  double correction=3.;
+  int neigh_level=par.neighbours; // (using n_nb because 2)
+  double correction=par.neighbour_multiplier;
 
 
   vector<Cell>::iterator c;
@@ -9561,8 +9561,8 @@ void CellularPotts::PhaseShapeIndex(int time)
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=2; // (using n_nb because 2)
-  double correction=3.;
+  int neigh_level=par.neighbours; // (using n_nb because 2)
+  double correction=par.neighbour_multiplier;
 
 
   vector<Cell>::iterator c;
@@ -9616,16 +9616,16 @@ void CellularPotts::PhaseShapeIndex(int time)
             {
               ++perim_length;
             }
-
-            if (!par.sheet_hex && sigma[xp2][yp2] == 0)
-            {
-              touching_med=true;
-            }
-            bool neigh_phase = cell->at(sigma[xp2][yp2]).GetPhase();
-            if (!par.sheet_hex && neigh_phase != p)
-            {
-              touching_med = true;
-            }
+            // we should be calculating shape index regardless of these.
+            // if (!par.sheet_hex && sigma[xp2][yp2] == 0)
+            // {
+            //   touching_med=true;
+            // }
+            // bool neigh_phase = cell->at(sigma[xp2][yp2]).GetPhase();
+            // if (!par.sheet_hex && neigh_phase != p)
+            // {
+            //   touching_med = true;
+            // }
           } 
         }
       }
@@ -9672,7 +9672,7 @@ void CellularPotts::ShapeIndexByState()
   adjustPerimeters();
 
   int neigh_level=2; // (using n_nb because 2)
-  double correction=3.;
+  double correction=par.neighbour_multiplier;
 
 
   vector<Cell>::iterator c;
@@ -9854,7 +9854,7 @@ vector<double> CellularPotts::TrueAdhesion()
 {
   //  See Magno et al (2015) BMC biophysics for correction factor.
   int neigh_level=2; // (using n_nb because 2)
-  double correction=3.;
+  double correction=par.neighbour_multiplier;
 
   vector<double> toreturn;
 
@@ -9935,7 +9935,7 @@ void CellularPotts::AdhesionByState()
 {
 
   int neigh_level=2; // (using n_nb because 2)
-  double correction=3.;
+  double correction=par.neighbour_multiplier;
 
 
   vector<Cell>::iterator c;

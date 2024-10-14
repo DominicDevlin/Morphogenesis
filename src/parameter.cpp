@@ -119,9 +119,9 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=2;
+    J_stem=4;
     J_diff=12;
-    J_med=J_diff/2 + 0.25;
+    J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
     J_stem_diff=12;
@@ -130,7 +130,7 @@
     add_cells = false;
     cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.003; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.001; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
