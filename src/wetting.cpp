@@ -103,12 +103,12 @@ void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const strin
       if (count > 0) 
       {
         double average = sum / count;
-        outfile << "\t" << average;  // Output the average in the second column
+        outfile << "\t" << average << '\t' << count;  // Output the average in the second column
       } 
       else 
       {
-        cout << "Error in time output" << endl;
-        outfile << "\t";  // No data for this row, leave empty
+        // cout << "Error in time output" << endl;
+        outfile << "\t" << 0.0 << '\t' << count;  // No data for this row, leave empty
       }
 
       first_col = false;  // Set this to false after the first column
@@ -187,6 +187,8 @@ INIT
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
+
+    par.offset=0;
     if (par.make_sheet)
     {
       CPM->ConstructSheet(par.sheetx,par.sheety);
@@ -195,14 +197,17 @@ INIT
     else
       CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
 
+    
+
     CPM->ConstructInitCells(*this);
     if (par.velocities)
       par.output_sizes = true;
 
+    par.divisions = 6;
     if (par.do_voronoi)
     {
       par.highT=false;
-      CPM->Voronoi(par.sizex, 95, 10);
+      CPM->Voronoi(par.sizex,par.sheet_depth, par.sheet_shift);
     }
     else
     {
@@ -267,6 +272,7 @@ TIMESTEP {
       cout << "calling init" << endl;
       dish->Init();
       dish->CPM->CopyProb(par.T);
+
       dish->CPM->SetAreas(par.cell_areas);
       
     }
@@ -288,12 +294,37 @@ TIMESTEP {
       if (par.output_init_concs)
         dish->CPM->OutputInitConcs();
 
-      
     }
+
+    par.measure_time_order_params=true;
+    // static vector<double> cooperativities;
 
     if (t == 1000)
     {
-      dish->CPM->ConvertTopCells(80, 10);
+      dish->CPM->WetTopCells(80, 10);
+      // dish->CPM->WetRandomCells();
+    } 
+    if (par.measure_time_order_params && t > 1000)
+    {
+      dish->CPM->RecordMasses();
+      dish->CPM->PhaseHexaticOrder(t);
+      dish->CPM->PhaseShapeIndex(t);
+    
+      // if (t > par.coop_start)
+      // {
+      //   double coop = dish->CPM->Cooperativity(200);
+      //   cooperativities.push_back(coop);
+      // }
+      if (t % 1000 == 0)
+      {
+        cout << "Wetting length is... " << dish->CPM->WettingLength() << endl;
+      }
+      
+      // if (!depinned && dish->CPM->WettingDepinned())
+      // {
+      //   cout << "DEPINNED AT TIME: " << t << endl;
+      // }
+
     }
 
     
@@ -315,15 +346,32 @@ TIMESTEP {
       dish->CPM->RecordMasses();
     }
 
-    if (par.output_sizes)
-    {
-      dish->CPM->RecordSizes();
-    }  
 
-    if (GRN && t >= 4000)
+
+    // if (t == 22000)
+    // {
+    //   par.J_stem=1.5; 
+    //   par.J_diff = 6;
+    //   par.J_med = 4.25;
+    //   par.J_med2 = 4.25;
+    //   par.J_stem_diff=5.6;
+    //   par.gthresh=3;
+    //   par.secr_rate[0]=0.00274;
+    //   dish->CPM->Set_evoJ(par.J_stem_diff);
+    // }
+    // if (t>22000)
+    // {
+    //   dish->CPM->CellGrowthAndDivision(t);
+    // }
+
+    if (GRN && t >= 20000)
     {
-      if (t==4000)
+      if (t==20000)
+      {
+        par.secr_rate[0]=0.0023;
         dish->CPM->StartWettingNetwork();
+      }
+        
       if (t % par.update_freq == 0)
       {
         dish->CPM->update_phase_network(t);

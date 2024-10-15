@@ -140,6 +140,10 @@ class Parameter {
   int cell_lengths;
   int addition_distance;
 
+  int init_wetting;
+  int sheet_depth;
+  int sheet_shift;
+
   int coop_wtime;
   int coop_stime;
   int coop_start;

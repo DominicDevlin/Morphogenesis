@@ -483,9 +483,19 @@ public:
 
   void SetPerims(int tpeirm);
 
-  void ConvertTopCells(int width, int depth);
+  void WetTopCells(int width, int depth);
 
   void StartWettingNetwork();
+
+  int WettingLength();
+
+  bool WettingDepinned();
+
+  void WetRandomCells();
+
+  int init_wet_length;
+  double WettingRatio();
+
 
 
 

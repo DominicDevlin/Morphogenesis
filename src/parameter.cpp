@@ -57,7 +57,7 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = true;
+    velocities = false;
     record_directions = false;
 
     // record cell sizes
@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;//4626157915171642161;
+    pickseed=4766666018663198866;//4626157915171642161;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -89,9 +89,9 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 300;
-    sizey = 200;
-    mcs = 50000;
+    sizex = 250;// was using 300 x 200 for wetting
+    sizey = 250;
+    mcs = 40000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -119,23 +119,31 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=4;
-    J_diff=12;
-    J_med=J_diff/2+0.25;
+    J_stem=0.4;
+    J_diff=0.4;
+    J_med=2;//J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=12;
+    J_stem_diff=0.8;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
     add_cells = false;
     cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.001; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.0025; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
+
+    /*
+    wetting params:
+    */
+    init_wetting=1000;
+    sheet_depth=95;
+    sheet_shift=10;
+
 
 
     melting_adhesion = false;
@@ -253,7 +261,7 @@
     sheet_maxJ=12.5;
     J_width=0.5;
 
-    do_voronoi=true;
+    do_voronoi=false;
 
     sheetmix=false;
     sheetmixJ=2*sheet_J;
