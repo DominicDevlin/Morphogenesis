@@ -4532,11 +4532,6 @@ void CellularPotts::StartWettingNetwork()
 
 int CellularPotts::WettingLength()
 {
-  if (!init_wet_length)
-  {
-    cerr << "ERRor in Wetting Length\n";
-    return 1;
-  }
   int length = 0;
   int minx = sizex;
   int maxx = 0;
@@ -4558,6 +4553,10 @@ int CellularPotts::WettingLength()
     }
   }
   length = maxx - minx;
+  if (!init_wet_length)
+  {
+    init_wet_length = length;
+  }
   return length;
 }
 
@@ -4565,6 +4564,7 @@ double CellularPotts::WettingRatio()
 {
   double dlen = double(WettingLength());
   double ratio = dlen / double(init_wet_length);
+  return ratio;
 }
 
 bool CellularPotts::WettingDepinned()

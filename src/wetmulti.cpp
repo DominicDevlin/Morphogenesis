@@ -155,6 +155,47 @@ void OutputOrder(vector<vector<pair<double,double>>> &shape_alignments, string o
 }
 
 
+void OutputColumnData(vector<vector<double>> &odata, string fname)
+{
+    // Open file for writing
+    ofstream outputFile;
+    outputFile.open(fname, ios::app);
+
+    size_t max_inner_size = 0;
+    for (const auto& vec : odata) {
+        if (vec.size() > max_inner_size) 
+        {
+            max_inner_size = vec.size();
+            cout << "m_inner size: " << max_inner_size << endl;
+        }
+    }
+
+    cout << "GOT HERE" << endl;
+
+    // Output data as columns where each inner vector corresponds to a column
+    for (size_t i = 0; i < max_inner_size; ++i) 
+    {
+        // Write the row index as the first column
+        outputFile << i;
+        cout << "i is:" << i << endl;
+
+        // Write the corresponding element from each inner vector
+        for (size_t j = 0; j < odata.size(); ++j) {
+            if (i < odata[j].size()) {
+                outputFile << "\t" << odata[j][i];
+            } else {
+                outputFile << "\t" << 0;  // If the inner vector is shorter, leave an empty space
+            }
+        }
+
+        // Newline at the end of the row
+        outputFile << "\n";
+    }
+
+    outputFile.close();      
+}
+
+
 
 int PDE::MapColour(double val)
 {
@@ -238,7 +279,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     {  
       if (t==0 && (par.lambda_perimeter > 0 || par.lambda_perimeter_phase>0))
       {
-        cout << par.cell_addition_rate << '\t' << par.J_med << '\t' << par.lambda_perimeter << endl;
+        // cout << par.cell_addition_rate << '\t' << par.J_med << '\t' << par.lambda_perimeter << endl;
         par.H_perim = true;
         dishes[i].CPM->SetPerims(par.ptarget_perimeter);
         dishes[i].CPM->MeasureCellPerimeters();
@@ -249,9 +290,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         dishes[i].CPM->WetTopCells(80, 10);
       }
 
-      if (t > par.init_wetting && t % 10 == 0)
+      if (t > par.init_wetting && t % 100 == 0)
       {
-        cout << t << endl;
         if (!depin)
         {
           bool check = dishes[i].CPM->WettingDepinned();
@@ -263,7 +303,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
         double dl = dishes[i].CPM->WettingRatio();
         dewetting_length[i].push_back(dl);
-        cout << t << endl;
       }
 
 
@@ -355,28 +394,32 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           stayed_together=false;
         }
       }
-    }
 
-    if (par.pics_for_opt)
-    {
-      string dirn = par.pic_dir;
-      if (mkdir(dirn.c_str(), 0777) != -1)
+      if (par.pics_for_opt && t % 500 == 0)
       {
-        cout << "Directory created." << endl;
+        string dirn = par.pic_dir;
+        if (mkdir(dirn.c_str(), 0777) != -1)
+        {
+          cout << "Directory created." << endl;
+        }
+
+        for (int org=0; org < par.n_orgs; ++org)
+        {
+          dishes[i].CPM->ColourCells(par.phase_evolution);
+          fft new_org(par.sizex,par.sizey);
+          new_org.ImportCPM(dishes[org].get_cpm());
+          string f2 = "org-";
+          string n2 = to_string(org);
+          string ftype = ".png";
+          string foutput = dirn + "/" + f2 + n2 + "-" + to_string(t) + ftype;
+          new_org.cpmOutput(foutput);
+        }
       }
 
-      for (int i=0; i < par.n_orgs; ++i)
-      {
-        dishes[i].CPM->ColourCells(par.phase_evolution);
-        fft new_org(par.sizex,par.sizey);
-        new_org.ImportCPM(dishes[i].get_cpm());
-        string f2 = "org-";
-        string n2 = to_string(i);
-        string ftype = ".png";
-        string foutput = dirn + "/" + f2 + n2 + to_string(t) + ftype;
-        new_org.cpmOutput(foutput);
-      }
+
     }
+
+
   }
 
   if (mkdir(par.data_file.c_str(), 0777) == -1)
@@ -384,6 +427,9 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   else
     cout << "Directory created." << endl;
 
+  ostringstream stream;
+  stream << fixed << setprecision(2) << par.J_stem; // Setting precision to 2 decimal points
+  string formatted_value = stream.str();
 
   int t_shape_count{};
   int t_hex_count{};
@@ -426,9 +472,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
       }
     }
-    ostringstream stream;
-    stream << fixed << setprecision(2) << par.J_stem; // Setting precision to 2 decimal points
-    string formatted_value = stream.str();
+
 
     string oname = par.data_file + "/hex_time-" + formatted_value + ".dat";
     t_hex_count = WriteData(hexdata, oname);
@@ -439,13 +483,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 
 
-
-  vector<double> coop_averages(par.n_orgs);
-
-
   double avg_phase_remained = 0;
-
-
+  vector<double> coop_averages(par.n_orgs);
   for (int i=0; i < par.n_orgs;++i)
   {
 
@@ -470,21 +509,20 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     // cout << cooperativities[i][0] << '\t' << coop_averages[i] << endl; 
   }
 
+  
   // double avg_empty_space = std::accumulate(empty_spaces.begin() + start, empty_spaces.begin() + half, 0.0) / half;
   avg_phase_remained = avg_phase_remained / par.n_orgs;
 
+  double avg_depin = std::accumulate(depin_time.begin(), depin_time.end(), 0.0);
+  avg_depin /= double(par.n_orgs);
+
+  string fname = par.data_file + "/dewetting-" + formatted_value + ".dat";
+  OutputColumnData(dewetting_length, fname);
 
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile
-  << "hex counts:\t" << t_hex_count << '\n' 
-  << "shape counts:\t" << t_shape_count << '\n'
-  << "average breaks:\t" << double(n_times_apart) / double(par.n_orgs) << '\n'
-  << "average wet remained:\t" << avg_phase_remained << '\n'
-  << "Jstem:\t" << par.J_stem << '\n'
-  << "Jdiff:\t" << par.J_diff << '\n'
-  << "Jsd:\t" << par.J_stem_diff << endl;
+  outfile << par.J_stem << '\t' << avg_depin << '\t' << t_hex_count << '\t' << t_shape_count << '\t' << double(n_times_apart) / double(par.n_orgs) << endl;
   outfile.close();
 
   delete[] dishes;
@@ -496,6 +534,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
+  par.pics_for_opt = false;
 
 #ifdef QTGRAPHICS
   {
@@ -519,13 +558,14 @@ int main(int argc, char *argv[])
   par.output_sizes = false;
   par.measure_time_order_params=true;
   Parameter();
-  par.pics_for_opt = true;
+  
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 4000;
+  par.mcs = 100000;
   par.sheet_hex=false;
-  par.n_orgs = 2;
+  par.n_orgs = 60;
   par.do_voronoi = true;
+  par.add_cells = false;
 
   par.sizex=300;
   par.sizey=200;
@@ -539,7 +579,7 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
   par.J_stem = 1;
-  while (par.J_stem < 8)
+  while (par.J_stem < 10)
   {
     
     par.J_diff = par.J_stem + 8.;
@@ -547,7 +587,7 @@ int main(int argc, char *argv[])
     par.J_med2 = par.J_med;
     par.J_stem_diff = par.J_diff;
     process_population(networks);
-    par.J_stem+=0.5;
+    par.J_stem+=0.25;
   }
 
   
