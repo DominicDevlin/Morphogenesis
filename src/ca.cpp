@@ -4485,16 +4485,23 @@ void CellularPotts::WetRandomCells()
 
 void CellularPotts::WetTopCells(int width, int depth)
 {
+  // we use 2.5 * circle as max depth.
+  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
   for (int x = width; x < sizex-width; ++x) 
   {
+    int cells_encountered;
     int counter = 0;
+    set<int> c_list{};
     for (int y = 1 ; y < sizey; ++y) 
     {
       if (sigma[x][y] > 0)
       {
         cell->at(sigma[x][y]).TransformPhase(true);
         ++counter;
-        if (counter > depth)
+        c_list.insert(sigma[x][y]);
+        if (c_list.size() >= depth)
+          break;
+        if (counter > max_depth)
           break;
       }
     }  
@@ -8661,7 +8668,7 @@ void CellularPotts::SetCellCenters()
 
 }
 
-void CellularPotts::RecordMasses()
+void CellularPotts::RecordMasses(bool phase_only)
 {
   SetCellCenters();
 
@@ -8670,7 +8677,16 @@ void CellularPotts::RecordMasses()
   {
     if (c->AliveP())
     {
-      c->RecordMass();
+      if (phase_only)
+      {
+        if (c->GetPhase())
+          c->RecordMass();
+      }
+      else
+      {
+        c->RecordMass();
+      }
+      
     }
   }
 }

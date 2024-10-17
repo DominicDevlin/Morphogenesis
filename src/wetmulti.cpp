@@ -33,80 +33,155 @@
 using namespace std;
 
 
-int WriteData(const map<int, vector<pair<int, double>>>& shapedata, const string& oname)
+int WriteData(const vector<map<int, vector<pair<int, double>>>>& shapedata, const string& oname)
 {
-  ofstream outfile;
-  outfile.open(oname, ios::app);  // Append mode
+    ofstream outfile;
+    outfile.open(oname, ios::app);  // Append mode
 
-  int phase_counts{};
+    int phase_counts{};
 
-  // First, find the maximum number of rows required
-  int max_rows = 0;
-  vector<int> rows{};
-  for (const auto& [key, vec] : shapedata) {
-    for (const auto& [index, value] : vec) 
-    {
-      if (index + 1 > max_rows) 
-      {
-          max_rows = index + 1;
-          rows.push_back(index);
-      }
-      if (key==1) // phase on
-      {
-        ++phase_counts;
-      }      
-    }
-  }
-
-  // Write the header
-  outfile << fixed << setprecision(6);
-  
-  for (int &row : rows) 
-  {
-    bool first_col = true;
+    // First, find the maximum number of rows required across all maps
+    int max_rows = 0;
+    vector<int>rows{};
     
-    // Iterate over the map entries
-    for (const auto& [key, vec] : shapedata) 
-    {
-      // Output the first column (the integer index)
-      if (!first_col) 
-      {
-        outfile << "\t";  // Separate columns with a tab
-      }
-
-      outfile << row;
-      // Calculate the average for this row if there are matching pairs
-      double sum = 0.0;
-      int count = 0;
-      for (const auto& [index, value] : vec) 
-      {
-        if (index == row) 
-        {
-          sum += value;
-          ++count;
+    for (const auto& column : shapedata) {
+        for (const auto& [key, vec] : column) {
+            for (const auto& [index, value] : vec) {
+                if (index + 1 > max_rows) {
+                    max_rows = index + 1;
+                    rows.push_back(index);
+                }
+                if (key == 1) {  // phase on
+                    ++phase_counts;
+                }
+            }
         }
-      }
-
-      if (count > 0) 
-      {
-        double average = sum / count;
-        outfile << "\t" << average << '\t' << count;  // Output the average in the second column
-      } 
-      else 
-      {
-        // cout << "Error in time output" << endl;
-        outfile << "\t" << 0.0 << '\t' << count;  // No data for this row, leave empty
-      }
-
-      first_col = false;  // Set this to false after the first column
     }
 
-    outfile << endl;  // Newline after each row
-  }
+    // Write the header
+    outfile << fixed << setprecision(6);
 
-  outfile.close(); 
-  return phase_counts; 
+    // Iterate over each row (index from 0 to max_rows - 1)
+    for (int &row : rows) 
+    {
+        outfile << row;
+
+
+        // Iterate over the vector of maps (each map represents a column)
+        for (const auto& column : shapedata) 
+        {
+
+
+            // For each map in the vector, find the corresponding row's value (if it exists)
+            for (const auto& [key, vec] : column) 
+            {
+              // only doing phase on for now
+              if (key==1)
+              {
+                double sum = 0.0;
+                int count = 0;
+
+                for (const auto& [index, value] : vec) 
+                {
+                  if (index == row) {
+                    sum += value;
+                    ++count;
+                  }
+                }
+
+                // Output the average for this row in the current column
+                if (count > 0) 
+                {
+                  double average = sum / count;
+                  outfile << '\t' << average;  // Output the average
+                } 
+                else 
+                {
+                  outfile << '\t' << 0.0;  // No data for this row, leave as 0.0
+                }
+              }
+
+            }
+
+        }
+
+        outfile << endl;  // Newline after each row
+    }
+
+    outfile.close();
+    return phase_counts;
 }
+
+void OutputCooperativities(vector<vector<double>> &cooperativities, string oname)
+{
+    std::vector<std::vector<double>> result;
+    int intervalSize = par.measure_interval;
+  
+    for (const auto& vec : cooperativities) 
+    {
+        std::vector<double> averagedVec;
+
+        // Ensure that the vector size is divisible by intervalSize
+        int numIntervals = ceil(double(vec.size()) / double(intervalSize));
+
+
+        // Loop over the intervals
+        for (int i = 0; i < numIntervals; ++i) {
+            // Compute the start and end of the current interval
+            int start = i * intervalSize;
+            int end = start + intervalSize;
+            if (end > vec.size())
+              end = vec.size();
+
+            // Calculate the average over the interval
+            double sum = std::accumulate(vec.begin() + start, vec.begin() + end, 0.0);
+            double average = sum / intervalSize;
+
+            // Add the average to the result vector
+            averagedVec.push_back(average);
+        }
+
+        // Add the averaged vector to the result
+        result.push_back(averagedVec);
+    }
+
+    // Open file for writing
+    ofstream outputFile;
+    outputFile.open(oname, ios::app);
+
+    size_t max_inner_size = 0;
+    for (const auto& vec : result) 
+    {
+        if (vec.size() > max_inner_size) 
+        {
+            max_inner_size = vec.size();
+            // cout << "m_inner size: " << max_inner_size << endl;
+        }
+    }
+
+
+    // Output data as columns where each inner vector corresponds to a column
+    for (size_t i = 0; i < max_inner_size; ++i) 
+    {
+        // Write the row index as the first column
+        outputFile << intervalSize*i;
+
+        // Write the corresponding element from each inner vector
+        for (size_t j = 0; j < result.size(); ++j) {
+            if (i < result[j].size()) {
+                outputFile << "\t" << result[j][i];
+            } else {
+                outputFile << "\t" << 0;  // If the inner vector is shorter, leave an empty space
+            }
+        }
+
+        // Newline at the end of the row
+        outputFile << "\n";
+    }
+
+    outputFile.close();  
+}
+
 
 void OutputOrder(vector<vector<pair<double,double>>> &shape_alignments, string oname)
 {
@@ -166,18 +241,16 @@ void OutputColumnData(vector<vector<double>> &odata, string fname)
         if (vec.size() > max_inner_size) 
         {
             max_inner_size = vec.size();
-            cout << "m_inner size: " << max_inner_size << endl;
+            // cout << "m_inner size: " << max_inner_size << endl;
         }
     }
 
-    cout << "GOT HERE" << endl;
 
     // Output data as columns where each inner vector corresponds to a column
     for (size_t i = 0; i < max_inner_size; ++i) 
     {
         // Write the row index as the first column
         outputFile << i;
-        cout << "i is:" << i << endl;
 
         // Write the corresponding element from each inner vector
         for (size_t j = 0; j < odata.size(); ++j) {
@@ -221,7 +294,7 @@ INIT
     if (par.do_voronoi)
     {
       par.highT=false;
-      CPM->Voronoi(par.sizex, 95, 10);
+      CPM->Voronoi(par.sizex, par.sheet_depth, par.sheet_shift);
     }
     
   } 
@@ -287,7 +360,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
       if (t == par.init_wetting)
       {
-        dishes[i].CPM->WetTopCells(80, 10);
+        dishes[i].CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
       }
 
       if (t > par.init_wetting && t % 100 == 0)
@@ -338,12 +411,12 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         dishes[i].CPM->PhaseHexaticOrder(t);
       }
 
-      if (par.velocities && t % 200 == 0)
+      if (par.velocities && t % 1 == 0)
       {
-        dishes[i].CPM->RecordMasses();
+        dishes[i].CPM->RecordMasses(true);
         if (t > par.coop_start)
         {
-          double coop = dishes[i].CPM->Cooperativity(200);
+          double coop = dishes[i].CPM->Cooperativity(1);
           cooperativities[i].push_back(coop);
         }
       }
@@ -436,41 +509,16 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   if (par.measure_time_order_params)
   {
-    map<int, vector<pair<int,double>>> hexdata = dishes[0].CPM->Get_time_hexatic_order();
-    map<int, vector<pair<int,double>>> shapedata = dishes[0].CPM->Get_time_shape_index();
+    vector<map<int, vector<pair<int,double>>>> hexdata;
+    vector<map<int, vector<pair<int,double>>>> shapedata;
 
-    for (int i = 1; i < par.n_orgs;++i)
+
+
+    for (int i = 0; i < par.n_orgs;++i)
     {
-      map<int, vector<pair<int,double>>> next = dishes[i].CPM->Get_time_hexatic_order();
-      for (auto&kv : next)
-      {
-        int key = kv.first;
-        vector<pair<int,double>>& vec = kv.second;
-        if (hexdata.find(key) != hexdata.end()) 
-        {
-            hexdata[key].insert(hexdata[key].end(), vec.begin(), vec.end());
-        } 
-        else 
-        {
-          // If key does not exist, insert the new key-value pair
-          hexdata[key] = vec;
-        }
-      }
-      map<int, vector<pair<int,double>>> shape_next = dishes[i].CPM->Get_time_shape_index();
-      for (auto&kv : shape_next)
-      {
-        int key = kv.first;
-        vector<pair<int,double>>& vec = kv.second;
-        if (shapedata.find(key) != shapedata.end()) 
-        {
-            shapedata[key].insert(shapedata[key].end(), vec.begin(), vec.end());
-        } 
-        else 
-        {
-          // If key does not exist, insert the new key-value pair
-          shapedata[key] = vec;
-        }
-      }
+      hexdata.push_back(dishes[i].CPM->Get_time_hexatic_order());
+      shapedata.push_back(dishes[i].CPM->Get_time_shape_index());
+
     }
 
 
@@ -481,10 +529,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     t_shape_count = WriteData(shapedata, oname);
   }
 
-
+  string coopname = par.data_file + "/coop-" + formatted_value + ".dat";
+  OutputCooperativities(cooperativities, coopname);
 
   double avg_phase_remained = 0;
-  vector<double> coop_averages(par.n_orgs);
   for (int i=0; i < par.n_orgs;++i)
   {
 
@@ -493,20 +541,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
     // int empty_amount = dishes[i].CPM->EmptySpace();
     // empty_spaces[i] = empty_amount;
-
-    double coop = std::accumulate(cooperativities[i].begin(), cooperativities[i].end(), 0.0);
-    if (cooperativities[i].size() > 0) 
-    {
-      coop = std::accumulate(cooperativities[i].begin(), cooperativities[i].end(), 0.0);
-      coop /= double(cooperativities[i].size());
-    } 
-    else 
-    {
-      coop = 0.0;
-    }
-
-    coop_averages[i] = coop;
-    // cout << cooperativities[i][0] << '\t' << coop_averages[i] << endl; 
   }
 
   
@@ -563,9 +597,14 @@ int main(int argc, char *argv[])
   par.min_phase_cells=4;
   par.mcs = 100000;
   par.sheet_hex=false;
-  par.n_orgs = 60;
+  par.n_orgs = 120;
   par.do_voronoi = true;
   par.add_cells = false;
+
+  par.coop_wtime=3000;
+  par.coop_stime=0;
+  par.coop_start=1000;
+
 
   par.sizex=300;
   par.sizey=200;

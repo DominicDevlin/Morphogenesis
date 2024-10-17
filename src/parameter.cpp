@@ -89,8 +89,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 250;// was using 300 x 200 for wetting
-    sizey = 250;
+    sizex = 300;// was using 300 x 200 for wetting
+    sizey = 200;
     mcs = 40000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -119,12 +119,12 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=0.4;
-    J_diff=0.4;
-    J_med=2;//J_diff/2+0.25;
+    J_stem=3;
+    J_diff=12;
+    J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=0.8;
+    J_stem_diff=J_diff;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
     add_cells = false;
@@ -143,7 +143,8 @@
     init_wetting=1000;
     sheet_depth=95;
     sheet_shift=10;
-
+    dewet_length=60;
+    dewet_cell_depth=1;
 
 
     melting_adhesion = false;
@@ -170,7 +171,7 @@
     min_phase_cells = 20;
     penalty=250;
 
-    measure_time_order_params = true;
+    measure_time_order_params = false;
     measure_interval = 50;
 
   
@@ -251,7 +252,7 @@
     // cooperativity params:
     coop_wtime=3000;//3000
     coop_stime=500;
-    coop_start=5000;//5000
+    coop_start=1000;//5000
 
 /* sheet related parameters */
     sheet=false;
@@ -261,7 +262,7 @@
     sheet_maxJ=12.5;
     J_width=0.5;
 
-    do_voronoi=false;
+    do_voronoi=true;
 
     sheetmix=false;
     sheetmixJ=2*sheet_J;

@@ -188,7 +188,6 @@ INIT
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
 
-    par.offset=0;
     if (par.make_sheet)
     {
       CPM->ConstructSheet(par.sheetx,par.sheety);
@@ -203,7 +202,7 @@ INIT
     if (par.velocities)
       par.output_sizes = true;
 
-    par.divisions = 6;
+    // par.divisions = 6;
     if (par.do_voronoi)
     {
       par.highT=false;
@@ -296,12 +295,11 @@ TIMESTEP {
 
     }
 
-    par.measure_time_order_params=true;
     // static vector<double> cooperativities;
 
     if (t == 1000)
     {
-      dish->CPM->WetTopCells(80, 10);
+      dish->CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
       // dish->CPM->WetRandomCells();
     } 
     if (par.measure_time_order_params && t > 1000)
@@ -320,10 +318,6 @@ TIMESTEP {
         cout << "Wetting length is... " << dish->CPM->WettingLength() << endl;
       }
       
-      // if (!depinned && dish->CPM->WettingDepinned())
-      // {
-      //   cout << "DEPINNED AT TIME: " << t << endl;
-      // }
 
     }
 

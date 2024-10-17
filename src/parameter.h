@@ -143,6 +143,8 @@ class Parameter {
   int init_wetting;
   int sheet_depth;
   int sheet_shift;
+  int dewet_length;
+  int dewet_cell_depth;
 
   int coop_wtime;
   int coop_stime;

@@ -316,7 +316,7 @@ public:
 
   void PrintTypesTime(bool prune=false);
 
-  void RecordMasses();
+  void RecordMasses(bool phase_only=false);
 
   void CellVelocities();
 

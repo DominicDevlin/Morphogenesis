@@ -103,7 +103,7 @@ int WriteData(const map<int, vector<pair<int, double>>>& shapedata, const string
       else 
       {
         // cout << "Error in time output" << endl;
-        outfile << "\t";  // No data for this row, leave empty
+        outfile << "\t" << 0.0;  // No data for this row, leave empty
       }
 
       first_col = false;  // Set this to false after the first column
