@@ -358,9 +358,9 @@ TIMESTEP {
     //   dish->CPM->CellGrowthAndDivision(t);
     // }
 
-    if (GRN && t >= 20000)
+    if (GRN && t >= 100000)
     {
-      if (t==20000)
+      if (t==3000)
       {
         par.secr_rate[0]=0.0023;
         dish->CPM->StartWettingNetwork();

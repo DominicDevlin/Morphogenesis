@@ -119,8 +119,8 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=3;
-    J_diff=12;
+    J_stem=4;
+    J_diff=J_diff + 8;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
@@ -143,7 +143,7 @@
     init_wetting=1000;
     sheet_depth=95;
     sheet_shift=10;
-    dewet_length=60;
+    dewet_length=80;
     dewet_cell_depth=1;
 
 

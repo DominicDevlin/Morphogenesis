@@ -568,7 +568,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = false;
+  par.pics_for_opt = true;
 
 #ifdef QTGRAPHICS
   {
@@ -595,9 +595,9 @@ int main(int argc, char *argv[])
   
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 100000;
+  par.mcs = 4000;
   par.sheet_hex=false;
-  par.n_orgs = 120;
+  par.n_orgs = 1;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -617,7 +617,7 @@ int main(int argc, char *argv[])
   {
     networks.push_back(par.start_matrix);
   }
-  par.J_stem = 1;
+  par.J_stem = 7;
   while (par.J_stem < 10)
   {
     
