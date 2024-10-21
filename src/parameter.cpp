@@ -119,7 +119,7 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=4;
+    J_stem=1;
     J_diff=J_diff + 8;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
@@ -145,6 +145,8 @@
     sheet_shift=10;
     dewet_length=80;
     dewet_cell_depth=1;
+    double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
+    dewet_length=floor(tmp_length);
 
 
     melting_adhesion = false;

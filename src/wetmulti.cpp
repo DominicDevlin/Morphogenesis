@@ -269,6 +269,47 @@ void OutputColumnData(vector<vector<double>> &odata, string fname)
 }
 
 
+void OutputIntColumnData(vector<vector<int>> &odata, string fname)
+{
+    // Open file for writing
+    ofstream outputFile;
+    outputFile.open(fname, ios::app);
+
+    size_t max_inner_size = 0;
+    for (const auto& vec : odata) {
+        if (vec.size() > max_inner_size) 
+        {
+            max_inner_size = vec.size();
+            // cout << "m_inner size: " << max_inner_size << endl;
+        }
+    }
+
+
+    // Output data as columns where each inner vector corresponds to a column
+    for (size_t i = 0; i < max_inner_size; ++i) 
+    {
+        // Write the row index as the first column
+        outputFile << i;
+
+        // Write the corresponding element from each inner vector
+        for (size_t j = 0; j < odata.size(); ++j) {
+            if (i < odata[j].size()) {
+                outputFile << "\t" << odata[j][i];
+            } else {
+                outputFile << "\t" << 0;  // If the inner vector is shorter, leave an empty space
+            }
+        }
+
+        // Newline at the end of the row
+        outputFile << "\n";
+    }
+
+    outputFile.close();      
+}
+
+
+
+
 
 int PDE::MapColour(double val)
 {
@@ -325,7 +366,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   int n_times_apart{};
 
   vector<vector<double>> cooperativities(par.n_orgs);
-  vector<vector<double>> dewetting_length(par.n_orgs);
+  vector<vector<double>> dewetting_ratio(par.n_orgs);
+  vector<vector<int>> dewetting_length(par.n_orgs);
   vector<int> depin_time(par.n_orgs);
 
   omp_set_num_threads(par.n_orgs);
@@ -375,7 +417,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           }
         }
         double dl = dishes[i].CPM->WettingRatio();
-        dewetting_length[i].push_back(dl);
+        dewetting_ratio[i].push_back(dl);
+        dewetting_length[i].push_back(dishes[i].CPM->WettingLength());
       }
 
 
@@ -550,8 +593,12 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   double avg_depin = std::accumulate(depin_time.begin(), depin_time.end(), 0.0);
   avg_depin /= double(par.n_orgs);
 
-  string fname = par.data_file + "/dewetting-" + formatted_value + ".dat";
-  OutputColumnData(dewetting_length, fname);
+  string fname = par.data_file + "/dewetting.ratio-" + formatted_value + ".dat";
+  OutputColumnData(dewetting_ratio, fname);
+
+  fname = par.data_file + "/dewetting.length-" + formatted_value + ".dat";
+  OutputIntColumnData(dewetting_length, fname);
+
 
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
@@ -595,9 +642,9 @@ int main(int argc, char *argv[])
   
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 4000;
+  par.mcs = 100000;
   par.sheet_hex=false;
-  par.n_orgs = 1;
+  par.n_orgs = 60;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -605,11 +652,19 @@ int main(int argc, char *argv[])
   par.coop_stime=0;
   par.coop_start=1000;
 
-
   par.sizex=300;
   par.sizey=200;
   par.begin_network = par.mcs;
 
+  // typical wetting parameters used:
+  par.init_wetting=1000;
+  par.sheet_depth=95;
+  par.sheet_shift=10;
+  par.dewet_cell_depth=3;
+  // 1240 is mass * 15.5 cells, 100 is the baseline length
+  double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
+  par.dewet_length=floor(tmp_length);
+  
   bool perimeter_model = false;
 
   vector<vector<vector<int>>> networks{};

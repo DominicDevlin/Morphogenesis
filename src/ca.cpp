@@ -3037,6 +3037,8 @@ double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey)
 
 void CellularPotts::Voronoi(int xlen, int ylen, int shift)
 {
+
+
   // double total = sizex*sizey;
   // int ncells = round(total / 75.);
   // cout << ncells << endl;
@@ -3049,8 +3051,18 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift)
 
 
   int ncells = HexaCounter(xlen-2,ylen-2,distance);
+  // make lots of cells
   FractureSheet(ncells);
-  cout << ncells << endl;
+  // cout << ncells << endl;
+  // first need to clear the grid:
+  for (int x = 1; x < sizex-1; ++x) 
+  {
+    for (int y = 1; y < sizey-1; ++y) 
+    {
+      sigma[x][y]=0;
+    }
+  }
+
 
   int periodic_length_x = xlen - 2;
   int periodic_length_y = ylen - 2;
