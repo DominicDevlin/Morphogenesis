@@ -7053,6 +7053,97 @@ map<int, int> CellularPotts::get_AdultTypes()
 
 
 
+int CellularPotts::ContactAngle()
+{
+  set<int> PhaseContactCells{};
+  // used to define left and right contact angle;
+  set<int> ContactPoints{};
+
+  for (int x = 1; x < sizex-1; ++ x)
+  {
+    for (int y = 1; y < sizey-1; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        int sig = sigma[x][y];
+        if (cell->at(sig).GetPhase() == 1)
+        {
+          bool encountered_med=false;
+          bool encountered_diff=false;
+          for (int i = 1;i<=nbh_level[2];++i)
+          {
+            int xp = x + nx[i];
+            int yp = y + ny[i];
+            if (sigma[xp][yp] == 0 && encountered_med == false)
+            {
+              encountered_med = true;
+            }
+            if (sigma[xp][yp] != sig && sigma[xp][yp] > 0 && encountered_diff == false)
+            {
+              if ((*cell)[sigma[xp][yp]].GetPhase() == 0)
+              {
+                encountered_diff = true;
+              }
+            }
+            if (encountered_med == true && encountered_diff == true)
+            {
+              PhaseContactCells.insert(sig);
+              ContactPoints.insert(x);
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (ContactPoints.size() > 2 || ContactPoints.size() == 0)
+  {
+    cerr << "Wrong number of contact points.\n";
+    return 0;
+  }
+  int sig1 = *PhaseContactCells.begin();
+  int sig2 = *std::prev(PhaseContactCells.end());
+
+  int pos1 = *ContactPoints.begin();
+  int pos2 = *std::prev(ContactPoints.end());
+
+  if (sig1 > sig2)
+  {
+    swap(sig1, sig2);
+    swap(pos1, pos2);
+  }
+
+  // find nearest neighbour that is in contact with the medium.
+
+
+  int **ns = SearchNeighbours();
+
+
+  int j = 0;
+  while (ns[sig1][j] >= 0)
+  {
+    int sig_check = ns[sig1][j];
+    int k = 0;
+    cout << "cell: " << sig_check << " has neighbours: ";
+    while (ns[sig_check][k] >= 0)
+    {
+      cout << ns[sig_check][k] << '\t';
+      ++k;
+    }
+    cout << endl;
+    ++j;
+  }
+  cout << endl;
+
+
+
+  free(ns[0]);
+  free(ns);
+
+
+
+}
+
 
 
 

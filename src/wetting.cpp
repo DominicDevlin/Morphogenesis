@@ -295,6 +295,9 @@ TIMESTEP {
 
     }
 
+    if (t > 1100)
+      dish->CPM->ContactAngle();
+
     // static vector<double> cooperativities;
 
     if (t == 1000)

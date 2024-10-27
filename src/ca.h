@@ -496,6 +496,10 @@ public:
   int init_wet_length;
   double WettingRatio();
 
+  int ContactAngle();
+
+  vector<double> angles;
+
 
 
 
