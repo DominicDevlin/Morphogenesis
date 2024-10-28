@@ -119,8 +119,8 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=3.5;
-    J_diff=J_diff + 8;
+    J_stem=4;
+    J_diff=J_stem + 8;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
@@ -173,7 +173,7 @@
     min_phase_cells = 20;
     penalty=250;
 
-    measure_time_order_params = false;
+    measure_time_order_params = true;
     measure_interval = 50;
 
   

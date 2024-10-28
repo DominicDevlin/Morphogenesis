@@ -380,7 +380,7 @@ public:
 
   void ShapeIndexByState();
 
-  void PhaseShapeIndex(int time=0);
+  void PhaseShapeIndex(int time=0, bool measure_proportion=false);
 
   vector<double> GetVolumes();
 
@@ -498,7 +498,12 @@ public:
 
   int ContactAngle();
 
-  vector<double> angles;
+  double GetContactAngles();
+  vector<double> tmp_angles;
+
+  double NeighbourExchangeRate();
+
+  double ReturnShapeProportion();
 
 
 
@@ -783,6 +788,10 @@ protected:
 
   int **outside;
 
+  int **old_nbhs;
+  int old_cell_count=0;
+
+
   std::map<int, std::set< std::pair<int, int>>> cellVolumeList;
   map<int, int> vlist;
   std::map<int, std::set< std::pair<int, int>>> cellPerimeterList;
@@ -825,6 +834,13 @@ private:
   vector<pair<int,double>> sheet_shape_order;
 
   map<int,vector<double>> state_adhesion;
+
+  double tmp_hex_order;
+  double transition_point;
+  double tmp_avg_shape=0;
+
+  double proportion_over_transition;
+  int proportion_counter;
 
   int start_width;
   int opt_starty;

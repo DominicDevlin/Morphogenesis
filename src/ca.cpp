@@ -175,6 +175,14 @@ CellularPotts::~CellularPotts(void) {
     free(outside);
     outside=0;
   }
+
+  if (old_nbhs)
+  {
+    free(old_nbhs[0]);
+    free(old_nbhs);
+    old_nbhs=0;
+  }
+
 }
 
 void CellularPotts::AllocateSigma(int sx, int sy) {
@@ -4626,7 +4634,7 @@ bool compareVec(const vec2d& v1, const vec2d& v2) {
 }
 
 
-void CellularPotts::PhaseShapeIndex(int time)
+void CellularPotts::PhaseShapeIndex(int time, bool measure_proportion)
 {
   initVolume();
   adjustPerimeters();
@@ -4705,9 +4713,20 @@ void CellularPotts::PhaseShapeIndex(int time)
       // cout << sindex << endl;
       
       // toreturn.push_back(correted_perim);
-      if (par.measure_time_order_params && !touching_med)
+      if (par.measure_time_order_params)
       {
         c->AddShape(sindex, time);
+        if (measure_proportion && p)
+        {
+          // cout << sindex << endl;
+          tmp_avg_shape += sindex;
+          if (sindex > transition_point)
+          {
+            proportion_over_transition+=1;
+            
+          }
+          proportion_counter+=1;
+        }
         if (p && time % par.measure_interval == 0)
         {
           int time_created = c->get_time_created();
@@ -4715,6 +4734,7 @@ void CellularPotts::PhaseShapeIndex(int time)
           double shape_avg = c->GetTempShape();
           pair<int,double> toreturn = {delta_time, shape_avg};
           time_shape_index[p].push_back(toreturn);
+
         }
         else
         {
@@ -4735,10 +4755,27 @@ void CellularPotts::PhaseShapeIndex(int time)
   }  
 }
 
+double CellularPotts::ReturnShapeProportion()
+{
+  // cout << "prp counter: " << proportion_counter << endl;
+  // cout << "transition point: " << transition_point << endl;
+  // cout << "average shape: " << tmp_avg_shape/proportion_counter << endl;
+  // cout << tmp_hex_order << endl;  
+  double toret = proportion_over_transition / double(proportion_counter);
+  proportion_counter=0;
+  proportion_over_transition=0;
+  tmp_avg_shape=0;
+  return toret;
+}
+
 
 void CellularPotts::PhaseHexaticOrder(int time)
 {
-  SetCellCenters();
+  if (!par.velocities)
+    SetCellCenters();
+
+  tmp_hex_order=0;
+  int tmp_counter=0;
   int **ns = SearchNeighbours();
   int n_size = CountCells();
   for (int i = 1; i < n_size; ++i)
@@ -4820,6 +4857,12 @@ void CellularPotts::PhaseHexaticOrder(int time)
       if (par.measure_time_order_params)
       {
         cell->at(i).AddHex(psi_mag, time);
+        if (phaser)
+        {
+          tmp_hex_order+= psi_mag;
+          ++tmp_counter;
+        }
+
         if (phaser && time % par.measure_interval == 0)
         {
           int time_created = cell->at(i).get_time_created();
@@ -4847,6 +4890,13 @@ void CellularPotts::PhaseHexaticOrder(int time)
       // cout << psi_mag << '\t' << cell->at(i).GetPhase() << endl;
 
     }
+  }
+  if (tmp_counter < 5)
+    transition_point=3.95;
+  else
+  {
+    tmp_hex_order /= double(tmp_counter);
+    transition_point = (tmp_hex_order - 18.38 )/ (-4.47);
   }
   free(ns[0]);
   free(ns);
@@ -7055,9 +7105,9 @@ map<int, int> CellularPotts::get_AdultTypes()
 
 int CellularPotts::ContactAngle()
 {
-  set<int> PhaseContactCells{};
+  vector<int> PhaseContactCells{};
   // used to define left and right contact angle;
-  set<int> ContactPoints{};
+  vector<int> ContactPoints{};
 
   for (int x = 1; x < sizex-1; ++ x)
   {
@@ -7087,8 +7137,13 @@ int CellularPotts::ContactAngle()
             }
             if (encountered_med == true && encountered_diff == true)
             {
-              PhaseContactCells.insert(sig);
-              ContactPoints.insert(x);
+              if (find(PhaseContactCells.begin(), PhaseContactCells.end(), sig) == PhaseContactCells.end())
+              {
+                // cout << sig << '\t' << x << endl;
+                PhaseContactCells.push_back(sig);
+                ContactPoints.push_back(x);
+              }
+
               break;
             }
           }
@@ -7096,9 +7151,9 @@ int CellularPotts::ContactAngle()
       }
     }
   }
-  if (ContactPoints.size() > 2 || ContactPoints.size() == 0)
+  if (PhaseContactCells.size() > 2 || PhaseContactCells.size() == 0)
   {
-    cerr << "Wrong number of contact points.\n";
+    // cerr << "Wrong number of contact points.\n";  
     return 0;
   }
   int sig1 = *PhaseContactCells.begin();
@@ -7107,40 +7162,241 @@ int CellularPotts::ContactAngle()
   int pos1 = *ContactPoints.begin();
   int pos2 = *std::prev(ContactPoints.end());
 
-  if (sig1 > sig2)
+
+
+  if (pos1 > pos2)
   {
     swap(sig1, sig2);
     swap(pos1, pos2);
+    
   }
 
-  // find nearest neighbour that is in contact with the medium.
+  cellPoint cell1 = {(*cell)[sig1].get_xcen(), (*cell)[sig1].get_ycen()};
+  cellPoint cell2 = {(*cell)[sig2].get_xcen(), (*cell)[sig2].get_ycen()};
 
+
+  // find nearest neighbour that is in contact with the medium.
+  cellPoint nbh1;
+  cellPoint nbh2;
 
   int **ns = SearchNeighbours();
-
 
   int j = 0;
   while (ns[sig1][j] >= 0)
   {
     int sig_check = ns[sig1][j];
     int k = 0;
-    cout << "cell: " << sig_check << " has neighbours: ";
     while (ns[sig_check][k] >= 0)
     {
-      cout << ns[sig_check][k] << '\t';
+      if ((*cell)[sig_check].GetPhase() == true)
+      {
+        // if we find medium
+        if (ns[sig_check][k] == 0)
+        {
+          nbh1.x = (*cell)[sig_check].get_xcen();
+          nbh1.y = (*cell)[sig_check].get_ycen();
+          j=100;
+          break;
+        }
+      }
       ++k;
     }
-    cout << endl;
+    if (j > 20)
+      break;
     ++j;
   }
-  cout << endl;
+
+  j = 0;
+  while (ns[sig2][j] >= 0)
+  {
+    int sig_check = ns[sig2][j];
+    int k = 0;
+    // cout << "cell: " << sig_check << " has neighbours: ";
+    while (ns[sig_check][k] >= 0)
+    {
+      if ((*cell)[sig_check].GetPhase() == true)
+      {
+        // if we find medium
+        if (ns[sig_check][k] == 0)
+        {
+          
+          nbh2.x = (*cell)[sig_check].get_xcen();
+          nbh2.y = (*cell)[sig_check].get_ycen();
+          j=100;
+          break;
+        }
+      }
+      ++k;
+    }
+    if (j > 20)
+      break;
+    ++j;
+  }
 
 
+  cellPoint leftref = {1.,0.};
+  cellPoint rightref = {-1.,0.};
 
+  cellPoint leftvec = {nbh1.x - cell1.x, nbh1.y - cell1.y};
+  cellPoint rightvec = {nbh2.x - cell2.x, nbh2.y - cell2.y};
+
+  double dp1 = GetdotProduct(leftref, leftvec);
+  double cross1 = leftref.x * leftvec.y - leftref.y * leftvec.x ;
+  double dp2 = GetdotProduct(rightref, rightvec);
+  double cross2 = rightref.x * rightvec.y - rightref.y * rightvec.x ;
+
+  double angle1 = atan2(cross1, dp1);
+  double angle2 = atan2(cross2, dp2);
+
+  if (angle1 < 0) angle1 += 2*M_PI;
+  if (angle1 > M_PI) angle1 = 2*M_PI - angle1;
+
+  if (angle2 < 0) angle2 += 2*M_PI;
+  if (angle2 > M_PI) angle2 = 2*M_PI - angle2;
+  // cout << "left side x: " << cell1.x << '\t' << nbh1.x << endl;
+  // cout << "left side y: " << cell1.y << '\t' << nbh1.y << endl;
+  // cout << "right side x: " << cell2.x << '\t' << nbh2.x << endl;
+  // cout << "right side y: " << cell2.y << '\t' << nbh2.y << endl;
+
+  tmp_angles.push_back(angle1);
+  tmp_angles.push_back(angle2);
+
+  if (tmp_angles.size() > 10000)
+  {
+    tmp_angles.clear();
+  }
   free(ns[0]);
   free(ns);
 
+  return 0;
 
+}
+
+ double CellularPotts::GetContactAngles()
+{
+  // average over angles
+  double avg = std::accumulate(tmp_angles.begin(), tmp_angles.end(), 0.0);
+  avg /= tmp_angles.size();
+  tmp_angles.clear();
+  return avg;
+}
+
+bool areVectorsEqual(std::vector<int> vec1, std::vector<int> vec2) 
+{
+  // Step 1: Check if they are the same size
+  if (vec1.size() != vec2.size()) return false;
+  
+  // Step 2: Sort both vectors
+  std::sort(vec1.begin(), vec1.end());
+  std::sort(vec2.begin(), vec2.end());
+  
+  // Step 3: Compare sorted vectors
+  return vec1 == vec2;
+}
+
+
+double CellularPotts::NeighbourExchangeRate()
+{
+
+  if (!old_cell_count)
+  {
+    old_nbhs = SearchNeighbours();
+    old_cell_count = cell->size();
+    return -1;
+  }
+
+  int** new_nbhs = SearchNeighbours();
+
+  int i = 1;
+  int n_cells = cell->size();
+
+  int counter=0;
+
+  int n_swapped_neighbours=0;
+
+  while (i < n_cells)
+  {
+    if (i >= old_cell_count)
+      break;
+    vector<int> curr_nbhs;
+    int j = 0;
+    if (!(*cell)[i].GetPhase())
+    {
+      ++i;
+      continue;
+    }
+      
+
+    while (new_nbhs[i][j] >= 0)
+    {
+      if (new_nbhs[i][j] == 0)
+      {
+        j = 100;
+        break;
+      }
+      else
+      {
+        if ((*cell)[new_nbhs[i][j]].GetPhase())
+          curr_nbhs.push_back(new_nbhs[i][j]);
+      }
+      ++j;
+    }
+    if (j > 50)
+    {
+      ++i;
+      continue;
+    }
+
+    // now need to check old nbhs
+    j = 0;
+    vector<int> prev_nbhs;
+    while (old_nbhs[i][j] >= 0)
+    {
+      if (old_nbhs[i][j] == 0)
+      {
+        j = 100;
+        break;
+      }
+      else
+      {
+        if ((*cell)[old_nbhs[i][j]].GetPhase())
+          prev_nbhs.push_back(old_nbhs[i][j]);
+      }  
+      ++j;    
+    }
+
+    if (j > 50)
+    {
+      ++i;
+      continue;
+    }
+    
+    ++counter;
+    bool checkequal = areVectorsEqual(curr_nbhs, prev_nbhs);
+    if (!checkequal)
+      ++n_swapped_neighbours;  
+
+    ++i;
+  }
+
+  // cout << "neighbours swapped and total: " << n_swapped_neighbours << '\t' << counter << endl;
+
+
+  old_nbhs = (int**)malloc(n_cells * sizeof(int*));
+  for (int i = 0; i < n_cells; ++i) {
+      int row_size = n_cells;
+      old_nbhs[i] = (int*)malloc(row_size * sizeof(int));
+      memcpy(old_nbhs[i], new_nbhs[i], row_size * sizeof(int));
+  }
+
+  free(new_nbhs[0]);
+  free(new_nbhs);
+
+  if (counter == 0)
+    return 0;
+  
+  double percent_swapped = double(n_swapped_neighbours) / double(counter);
+  return percent_swapped;
 
 }
 

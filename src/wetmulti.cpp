@@ -370,6 +370,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   vector<vector<int>> dewetting_length(par.n_orgs);
   vector<int> depin_time(par.n_orgs);
 
+  vector<vector<double>> shape_proportions(par.n_orgs);
+  vector<vector<double>> contact_angles(par.n_orgs);
+  vector<vector<double>> nbh_exchange_rates(par.n_orgs);
+
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
   for (int i = 0; i < par.n_orgs; ++i)
@@ -445,15 +449,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
       }
 
-
-
-
-      if (t > 200 && par.measure_time_order_params && t % 1 == 0)
-      {
-        dishes[i].CPM->PhaseShapeIndex(t);
-        dishes[i].CPM->PhaseHexaticOrder(t);
-      }
-
       if (par.velocities && t % 1 == 0)
       {
         dishes[i].CPM->RecordMasses(true);
@@ -463,6 +458,31 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           cooperativities[i].push_back(coop);
         }
       }
+
+      if (t > 200 && par.measure_time_order_params && t % 1 == 0)
+      {
+        dishes[i].CPM->PhaseHexaticOrder(t);
+        dishes[i].CPM->PhaseShapeIndex(t, true);
+        if (t > 1000)
+          dishes[i].CPM->ContactAngle();
+        
+      }
+      if (t >= par.init_wetting && t % 1000 == 0)
+      {
+        double nbh_exchange = dishes[i].CPM->NeighbourExchangeRate();
+        if (nbh_exchange >= 0)
+          nbh_exchange_rates[i].push_back(nbh_exchange);
+      }
+      if (t > 1000 + par.measure_interval && par.measure_time_order_params && t % par.measure_interval == 0)
+      {
+        double shape_pr = dishes[i].CPM->ReturnShapeProportion();
+        double contacta = dishes[i].CPM->GetContactAngles();
+
+        shape_proportions[i].push_back(shape_pr);
+        contact_angles[i].push_back(contacta);
+      }
+
+
 
       // dishes[i].CPM->DiscreteGrowthAndDivision(t);
       if (t % par.cell_addition_rate == 0 && t > 200 && par.add_cells)
@@ -575,6 +595,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   string coopname = par.data_file + "/coop-" + formatted_value + ".dat";
   OutputCooperativities(cooperativities, coopname);
 
+  coopname = par.data_file + "/coop-" + formatted_value + ".dat";
+
   double avg_phase_remained = 0;
   for (int i=0; i < par.n_orgs;++i)
   {
@@ -596,6 +618,16 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   string fname = par.data_file + "/dewetting.ratio-" + formatted_value + ".dat";
   OutputColumnData(dewetting_ratio, fname);
 
+  fname = par.data_file + "/neighbour.exchange-" + formatted_value + ".dat";
+  OutputColumnData(nbh_exchange_rates, fname);
+
+  fname = par.data_file + "/contact.angle-" + formatted_value + ".dat";
+  OutputColumnData(contact_angles, fname);
+
+  fname = par.data_file + "/transition.proportion-" + formatted_value + ".dat";
+  OutputColumnData(shape_proportions, fname);
+
+
   fname = par.data_file + "/dewetting.length-" + formatted_value + ".dat";
   OutputIntColumnData(dewetting_length, fname);
 
@@ -615,7 +647,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = true;
+  par.pics_for_opt = false;
 
 #ifdef QTGRAPHICS
   {
@@ -644,7 +676,7 @@ int main(int argc, char *argv[])
   par.min_phase_cells=4;
   par.mcs = 100000;
   par.sheet_hex=false;
-  par.n_orgs = 60;
+  par.n_orgs = 120;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -672,7 +704,7 @@ int main(int argc, char *argv[])
   {
     networks.push_back(par.start_matrix);
   }
-  par.J_stem = 7;
+  par.J_stem = 1;
   while (par.J_stem < 10)
   {
     

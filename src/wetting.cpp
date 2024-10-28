@@ -295,8 +295,13 @@ TIMESTEP {
 
     }
 
-    if (t > 1100)
+    if (t > 1100 && t%1000==0)
+    {
+      dish->CPM->RecordMasses();
       dish->CPM->ContactAngle();
+      dish->CPM->NeighbourExchangeRate();
+    }
+      
 
     // static vector<double> cooperativities;
 
@@ -309,7 +314,7 @@ TIMESTEP {
     {
       dish->CPM->RecordMasses();
       dish->CPM->PhaseHexaticOrder(t);
-      dish->CPM->PhaseShapeIndex(t);
+      dish->CPM->PhaseShapeIndex(t, true);
     
       // if (t > par.coop_start)
       // {
@@ -320,8 +325,13 @@ TIMESTEP {
       {
         cout << "Wetting length is... " << dish->CPM->WettingLength() << endl;
       }
-      
 
+      if (t % 50 == 0)
+      {
+        double prp = dish->CPM->ReturnShapeProportion();
+        cout << "proportion is: " << prp << endl;
+      }
+      
     }
 
     
