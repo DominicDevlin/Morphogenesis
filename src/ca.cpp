@@ -7379,15 +7379,25 @@ double CellularPotts::NeighbourExchangeRate()
     ++i;
   }
 
+
+  free(old_nbhs[0]);
+  free(old_nbhs);
+  old_nbhs=0;
+
   // cout << "neighbours swapped and total: " << n_swapped_neighbours << '\t' << counter << endl;
-
-
-  old_nbhs = (int**)malloc(n_cells * sizeof(int*));
-  for (int i = 0; i < n_cells; ++i) {
-      int row_size = n_cells;
-      old_nbhs[i] = (int*)malloc(row_size * sizeof(int));
-      memcpy(old_nbhs[i], new_nbhs[i], row_size * sizeof(int));
-  }
+  old_nbhs=(int **)malloc((cell->size()+1)*sizeof(int *));
+  if (old_nbhs==NULL) 
+    MemoryWarning();
+  
+  old_nbhs[0]=(int *)malloc((cell->size()+1)*(cell->size()+1)*sizeof(int));
+  if (old_nbhs[0]==NULL)
+    MemoryWarning();
+  
+  for (i=1;i<(int)cell->size()+1;i++)
+    old_nbhs[i]=old_nbhs[i-1]+(cell->size()+1);
+  
+  for (i=0;i<((int)cell->size()+1)*((int)cell->size()+1);i++)
+    old_nbhs[0][i]=new_nbhs[0][i];  
 
   free(new_nbhs[0]);
   free(new_nbhs);
