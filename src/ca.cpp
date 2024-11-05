@@ -4505,7 +4505,7 @@ void CellularPotts::WetRandomCells()
 
 void CellularPotts::WetTopCells(int width, int depth)
 {
-  // we use 2.5 * circle as max depth.
+  // we use 2.5 * circle (circle being a cell) as max depth.
   double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
   for (int x = width; x < sizex-width; ++x) 
   {
