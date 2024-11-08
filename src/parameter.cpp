@@ -36,7 +36,7 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -119,7 +119,7 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=4;
+    J_stem=1.5;
     J_diff=J_stem + 8;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
@@ -144,7 +144,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=80;
-    dewet_cell_depth=5;
+    dewet_cell_depth=3;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
 
