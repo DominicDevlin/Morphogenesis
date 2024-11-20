@@ -3159,10 +3159,46 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift)
     }
   }
 
-
-
   cout << "Total cells killed: " << deadcells << endl;
 }
+
+
+
+void CellularPotts::ToppingVoronoi()
+{
+
+  // find the top
+  // make a semi circle
+  // divide the cells normally. 
+  // equilibriate so that the cells reach the appropriate value. 
+  int xval = floor(double(sizex)/2.);
+  int hit=0;
+  for (int y = 1; y < sizey-1; ++y)
+  {
+    if (sigma[xval][y] > 0)
+    {
+      hit = y;
+      break;
+    }
+  }
+  if (hit==0)
+  {
+    cerr << "error in topping voronoi. No cells made previously\n";
+  }
+
+
+
+  for (int x=1;x<sizex-1;x++)
+    for (int y=1;y<sizey-1;y++)
+    {
+      if (x < par.triangle_x && y > par.triangle_y + x)
+      {
+        sigma[x][y] = 1;
+      }     
+    }
+}
+
+
 
 
 

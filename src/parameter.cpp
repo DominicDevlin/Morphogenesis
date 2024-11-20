@@ -36,7 +36,7 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=8153794351239920731;//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -89,9 +89,9 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 300;// was using 300 x 200 for wetting
-    sizey = 200;
-    mcs = 40000;
+    sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation
+    sizey = 300;
+    mcs = 80000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -119,8 +119,8 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=1.5;
-    J_diff=J_stem + 8;
+    J_stem=4.25;
+    J_diff=12.25;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
@@ -130,7 +130,7 @@
     add_cells = false;
     cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.0025; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.00; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
@@ -264,7 +264,7 @@
     sheet_maxJ=12.5;
     J_width=0.5;
 
-    do_voronoi=true;
+    do_voronoi=false;
 
     sheetmix=false;
     sheetmixJ=2*sheet_J;
@@ -360,14 +360,14 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    target_area = 5120;
+    target_area = 10240;
     size_init_cells = 80; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     eden_growth=false;
     n_init_cells = 1;
     divisions = 0;
 
     //programmed division parameters
-    end_program = 6;
+    end_program = 7;
     begin_network = 40;
     div_freq = 1;
     // begin_movement=1200;

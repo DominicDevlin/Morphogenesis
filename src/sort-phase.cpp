@@ -199,15 +199,20 @@ INIT
     if (par.velocities)
       par.output_sizes = true;
     
-    // If we have only one big cell and divide it a few times
-    // we start with a nice initial clump of cells. 
-    // 
-    // The behavior can be changed in the parameter file using 
-    // parameters n_init_cells, size_init_cells and divisions
-    for (int i=0;i<par.divisions;i++) 
+
+    if (par.do_voronoi)
     {
-      CPM->DivideCells();
+      par.highT=false;
+      CPM->Voronoi(par.sizex,par.sheet_depth, par.sheet_shift);
     }
+    else
+    {
+      for (int i=0;i<par.divisions;i++) 
+      {
+        CPM->DivideCells();
+      }
+    }
+
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
@@ -307,16 +312,19 @@ TIMESTEP {
     // programmed cell division section
     if (t < par.end_program)
     {
-      if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
+      if (!par.do_voronoi)
       {
-        dish->CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
-        dish->CPM->SetAreas(par.cell_areas);
-        if (par.lambda2 > 0)
+        if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
         {
-          dish->CPM->SetLengths(par.cell_lengths);
+          dish->CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
+          dish->CPM->SetAreas(par.cell_areas);
+          if (par.lambda2 > 0)
+          {
+            dish->CPM->SetLengths(par.cell_lengths);
+          }
         }
-
       }
+
      
       if (t >= par.begin_network && t % par.update_freq == 0)
       {
