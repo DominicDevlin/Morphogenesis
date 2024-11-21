@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=8153794351239920731;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=0;//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -119,18 +119,18 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=4.25;
-    J_diff=12.25;
+    J_stem=2;
+    J_diff=16;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=J_diff;
+    J_stem_diff=15;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
     add_cells = false;
     cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.00; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.00274; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
@@ -147,6 +147,8 @@
     dewet_cell_depth=3;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
+    ball_radius=54;
+
 
 
     melting_adhesion = false;
@@ -264,7 +266,7 @@
     sheet_maxJ=12.5;
     J_width=0.5;
 
-    do_voronoi=false;
+    do_voronoi=true;
 
     sheetmix=false;
     sheetmixJ=2*sheet_J;

@@ -146,6 +146,8 @@ class Parameter {
   int dewet_length;
   int dewet_cell_depth;
 
+  int ball_radius;
+
   int coop_wtime;
   int coop_stime;
   int coop_start;

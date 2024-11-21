@@ -3186,16 +3186,73 @@ void CellularPotts::ToppingVoronoi()
     cerr << "error in topping voronoi. No cells made previously\n";
   }
 
+  // make a new cell.
 
+  Cell *motherp=&((*cell)[1]);
+  Cell *daughterp = new Cell(*(motherp->owner));
+  daughterp->CellBirth(*motherp);
+  cell->push_back(*daughterp);
+  int newsigma = daughterp->Sigma();
+
+  int radius = par.ball_radius;
 
   for (int x=1;x<sizex-1;x++)
     for (int y=1;y<sizey-1;y++)
     {
-      if (x < par.triangle_x && y > par.triangle_y + x)
+      // calculate distance.
+      double dist = sqrt(pow(x-xval,2) + pow(y-hit,2));
+      if (dist < radius && sigma[x][y]==0)
       {
-        sigma[x][y] = 1;
-      }     
+        sigma[x][y] = daughterp->Sigma();
+        daughterp->AddSiteToMoments(x,y);
+        daughterp->IncrementArea();
+        daughterp->IncrementTargetArea();
+      }    
     }
+  if (par.H_perim)
+    MeasureCellPerimeters();
+
+  
+  bool reached_min = false;
+  while (!reached_min)
+  {
+    vector<bool> to_divide = divide_vector();
+    for (int i = 0; i < to_divide.size(); ++i)
+    {
+      if (i < newsigma)
+      {
+        to_divide[i] = false;
+      }
+    }
+    DivideCells(to_divide);
+    MeasureCellSizes();
+    vector<Cell>::iterator c;
+    for ((c=cell->begin(), c++); c!=cell->end(); c++)
+    {
+      if (c->AliveP() && c->Sigma() >= newsigma)
+      {
+        c->TransformPhase(true);
+        c->SetTargetArea(par.cell_areas);
+        if (c->Area() < par.cell_areas)
+        {
+          reached_min = true;
+          break;
+        }
+      }
+    }  
+    for ((c=cell->begin(), c++); c!=cell->end(); c++)
+    {
+      if (c->AliveP() && c->Sigma() >= newsigma)
+      {
+        c->SetTargetArea(par.cell_areas);
+      }
+    } 
+
+
+
+  }
+  
+
 }
 
 
