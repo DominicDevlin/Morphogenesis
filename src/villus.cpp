@@ -299,6 +299,12 @@ TIMESTEP {
     {
       dish->CPM->ToppingVoronoi(); 
     }
+    if (par.linear_increase && t > 3000)
+    {
+      par.secr_rate[0] = 0.00275 + (t-3000) * 0.00000004;
+      cout << par.secr_rate[0] << endl;
+    }
+
 
     
     if ((t == 0) && par.lambda_perimeter > 0)

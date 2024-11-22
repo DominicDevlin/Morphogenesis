@@ -148,6 +148,10 @@ class Parameter {
 
   int ball_radius;
 
+  double gamma_lm;
+  double gamma_sl;
+  int linear_increase; 
+
   int coop_wtime;
   int coop_stime;
   int coop_start;

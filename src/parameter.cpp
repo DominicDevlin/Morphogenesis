@@ -130,12 +130,22 @@
     add_cells = false;
     cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.00274; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    secr_rate[0] = 0.00255; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    linear_increase=true;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
+
+    gamma_lm = 15;
+    gamma_sl = 9;
+    J_stem = 2;
+    J_med = gamma_lm + 1;
+    J_med2 = J_med;
+    J_stem_diff = 1.75 + gamma_lm + gamma_sl;
+    J_diff = 2 * gamma_lm + 1.5;
+
 
     /*
     wetting params:
