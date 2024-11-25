@@ -647,7 +647,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = false;
+  par.pics_for_opt = true;
 
 #ifdef QTGRAPHICS
   {
@@ -676,7 +676,7 @@ int main(int argc, char *argv[])
   par.min_phase_cells=4;
   par.mcs = 4000;
   par.sheet_hex=false;
-  par.n_orgs = 2;
+  par.n_orgs = 1;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -696,6 +696,10 @@ int main(int argc, char *argv[])
   // 1240 is mass * 15.5 cells, 100 is the baseline length
   double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
   par.dewet_length=floor(tmp_length);
+
+  // testing
+  par.sizex = 512;
+  par.dewet_length = 36;
   
   bool perimeter_model = false;
 

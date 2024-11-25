@@ -150,7 +150,8 @@ class Parameter {
 
   double gamma_lm;
   double gamma_sl;
-  int linear_increase; 
+  int linear_increase;
+  bool tension_params; 
 
   int coop_wtime;
   int coop_stime;
