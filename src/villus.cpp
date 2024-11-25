@@ -277,6 +277,7 @@ TIMESTEP {
     }
 
     bool GRN = true;
+    par.begin_network = 2000;
 
     static Info *info=new Info(*dish, *this);
     // record initial expression state. This occurs before any time step updates. 
@@ -299,13 +300,13 @@ TIMESTEP {
     {
       dish->CPM->ToppingVoronoi(); 
     }
-    if (par.linear_increase && t > 3000)
+
+
+    if (par.linear_increase)
     {
-      par.secr_rate[0] = 0.00275 + (t-3000) * 0.00000004;
-      cout << par.secr_rate[0] << endl;
+      dish->PDEfield->increase_secretion(t);
+
     }
-
-
     
     if ((t == 0) && par.lambda_perimeter > 0)
     {
@@ -320,9 +321,9 @@ TIMESTEP {
     }
 
 
-    if (GRN && t >= 2000)
+    if (GRN && t >= par.begin_network)
     {
-      if (t==2000)
+      if (t==par.begin_network)
       {
         dish->CPM->StartWettingNetwork();
       }

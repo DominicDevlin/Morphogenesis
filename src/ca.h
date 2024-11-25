@@ -363,6 +363,8 @@ public:
 
   void ToppingVoronoi();
 
+  int ReturnHeight();
+
   void DrawDisplacement(Graphics *g);
 
   void MeanSquareDisplacement();

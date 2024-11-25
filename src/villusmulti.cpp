@@ -32,6 +32,43 @@
 
 using namespace std;
 
+void OutputColumnData(vector<vector<double>> &odata, string fname)
+{
+    // Open file for writing
+    ofstream outputFile;
+    outputFile.open(fname, ios::app);
+
+    size_t max_inner_size = 0;
+    for (const auto& vec : odata) {
+        if (vec.size() > max_inner_size) 
+        {
+            max_inner_size = vec.size();
+            // cout << "m_inner size: " << max_inner_size << endl;
+        }
+    }
+
+
+    // Output data as columns where each inner vector corresponds to a column
+    for (size_t i = 0; i < max_inner_size; ++i) 
+    {
+        // Write the row index as the first column
+        outputFile << i;
+
+        // Write the corresponding element from each inner vector
+        for (size_t j = 0; j < odata.size(); ++j) {
+            if (i < odata[j].size()) {
+                outputFile << "\t" << odata[j][i];
+            } else {
+                outputFile << "\t" << 0;  // If the inner vector is shorter, leave an empty space
+            }
+        }
+
+        // Newline at the end of the row
+        outputFile << "\n";
+    }
+
+    outputFile.close();      
+}
 
 int PDE::MapColour(double val)
 {
@@ -87,6 +124,9 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   int n_times_apart{};
 
+  vector<vector<double>> contact_angles(par.n_orgs);
+
+  vector<int> starting_heights(par.n_orgs);
 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
@@ -94,6 +134,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   {
     dishes[i].CPM->set_num(i + 1);
     // does init block above.
+    dishes[i].PDEfield->SetSecretion(par.secr_rate);
     dishes[i].Init();
     dishes[i].CPM->start_network(network_list.at(i));
     dishes[i].CPM->Set_evoJ(par.J_stem_diff);
@@ -103,7 +144,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
     // equilibriate cells with high T
     dishes[i].CPM->CopyProb(par.T);
-
     int t=0;
 
     for (; t < par.mcs; t++)
@@ -120,15 +160,17 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       {
         dishes[i].CPM->ToppingVoronoi(); 
       }      
-
-      if (par.linear_increase && t >= 3000)
+      if (t == 110)
       {
-        // fix this shit!!! needs to be thread safe.
-        !!!!par.secr_rate[0] = 0.00275 + (t-3000) * 0.00000004;
-        cout << par.secr_rate[0] << endl;
+        starting_heights[i] = dishes[i].CPM->ReturnHeight(); 
       }
 
-      if (true && t>= par.begin_network)
+      if (par.linear_increase)
+      {
+        dishes[i].PDEfield->increase_secretion(t);
+      }
+
+      if (t>= par.begin_network)
       {
         if (t == par.begin_network)
         {
@@ -149,38 +191,19 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
       }
 
+      if (t > 100)
+        dishes[i].CPM->ContactAngle();
+
+      if (t > 100 && t % par.measure_interval == 0)
+      {
+        double contacta = dishes[i].CPM->GetContactAngles();
+        contact_angles[i].push_back(contacta);
+      }
+
       if (par.velocities && t % 1 == 0)
       {
         dishes[i].CPM->RecordMasses(true);
-        if (t > par.coop_start)
-        {
-          double coop = dishes[i].CPM->Cooperativity(1);
-          cooperativities[i].push_back(coop);
-        }
-      }
-
-      if (t > 200 && par.measure_time_order_params && t % 1 == 0)
-      {
-        dishes[i].CPM->PhaseHexaticOrder(t);
-        dishes[i].CPM->PhaseShapeIndex(t, true);
-        if (t > 1000)
-          dishes[i].CPM->ContactAngle();
-        
-      }
-      if (t >= par.init_wetting && t % 1000 == 0)
-      {
-        double nbh_exchange = dishes[i].CPM->NeighbourExchangeRate();
-        if (nbh_exchange >= 0)
-          nbh_exchange_rates[i].push_back(nbh_exchange);
-      }
-      if (t > 1000 + par.measure_interval && par.measure_time_order_params && t % par.measure_interval == 0)
-      {
-        double shape_pr = dishes[i].CPM->ReturnShapeProportion();
-        double contacta = dishes[i].CPM->GetContactAngles();
-
-        shape_proportions[i].push_back(shape_pr);
-        contact_angles[i].push_back(contacta);
-      }
+      }      
 
 
 
@@ -215,10 +238,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
       dishes[i].CPM->AmoebaeMove(t);
 
-      if (t % 1000 == 0 && t > 0)
-      {
-        dishes[i].CPM->RemoveUnconnectedCells();
-      }
 
       // ensure all cells are connected for shape calculations. 
       if (t > 0 && t % 5000 == 0 && stayed_together==true)
@@ -230,6 +249,15 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           stayed_together=false;
         }
       }
+
+      if (t % 10 && t > 1000)
+      {
+        int n_phase = dishes[i].CPM->CountPhaseOnCells();
+        if (n_phase < 5)
+          t = par.mcs;
+      }
+      
+
 
       if (par.pics_for_opt && t % 500 == 0)
       {
@@ -253,6 +281,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       }
 
 
+
     }
 
 
@@ -264,79 +293,45 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     cout << "Directory created." << endl;
 
   ostringstream stream;
-  stream << fixed << setprecision(2) << par.J_stem; // Setting precision to 2 decimal points
+  stream << fixed << setprecision(2) << par.gamma_lm << '-' << par.gamma_sl; // Setting precision to 2 decimal points
   string formatted_value = stream.str();
 
-  int t_shape_count{};
-  int t_hex_count{};
-
-  if (par.measure_time_order_params)
-  {
-    vector<map<int, vector<pair<int,double>>>> hexdata;
-    vector<map<int, vector<pair<int,double>>>> shapedata;
-
-
-
-    for (int i = 0; i < par.n_orgs;++i)
-    {
-      hexdata.push_back(dishes[i].CPM->Get_time_hexatic_order());
-      shapedata.push_back(dishes[i].CPM->Get_time_shape_index());
-
-    }
-
-
-    string oname = par.data_file + "/hex_time-" + formatted_value + ".dat";
-    t_hex_count = WriteData(hexdata, oname);
-
-    oname = par.data_file + "/shape_time-" + formatted_value + ".dat";
-    t_shape_count = WriteData(shapedata, oname);
-  }
-
-  string coopname = par.data_file + "/coop-" + formatted_value + ".dat";
-  OutputCooperativities(cooperativities, coopname);
-
-  coopname = par.data_file + "/coop-" + formatted_value + ".dat";
-
+  double sum_heights;
+  double square_heights;
+  vector<double> heights(par.n_orgs);
   double avg_phase_remained = 0;
   for (int i=0; i < par.n_orgs;++i)
   {
-
     int n_phase = dishes[i].CPM->CountPhaseOnCells();
     avg_phase_remained += n_phase;
-
-    // int empty_amount = dishes[i].CPM->EmptySpace();
-    // empty_spaces[i] = empty_amount;
+    heights[i] = double(starting_heights[i] - dishes[i].CPM->ReturnHeight());
   }
-
   
-  // double avg_empty_space = std::accumulate(empty_spaces.begin() + start, empty_spaces.begin() + half, 0.0) / half;
+  sort(heights.begin(), heights.end(), std::greater<double>());
+  vector<double> largest_heights(heights.begin(), heights.begin() + heights.size() / 2);
+  int lsize = par.n_orgs / 2;
+  for (unsigned i=0; i < lsize;++i)
+  {
+    sum_heights += largest_heights[i];
+    square_heights += largest_heights[i] * largest_heights[i];
+
+  }
+  double mean_height = sum_heights / par.n_orgs;
+  double variance = (square_heights / lsize ) - (mean_height * mean_height);
   avg_phase_remained = avg_phase_remained / par.n_orgs;
-
-  double avg_depin = std::accumulate(depin_time.begin(), depin_time.end(), 0.0);
-  avg_depin /= double(par.n_orgs);
-
-  string fname = par.data_file + "/dewetting.ratio-" + formatted_value + ".dat";
-  OutputColumnData(dewetting_ratio, fname);
-
-  fname = par.data_file + "/neighbour.exchange-" + formatted_value + ".dat";
-  OutputColumnData(nbh_exchange_rates, fname);
-
-  fname = par.data_file + "/contact.angle-" + formatted_value + ".dat";
-  OutputColumnData(contact_angles, fname);
-
-  fname = par.data_file + "/transition.proportion-" + formatted_value + ".dat";
-  OutputColumnData(shape_proportions, fname);
-
-
-  fname = par.data_file + "/dewetting.length-" + formatted_value + ".dat";
-  OutputIntColumnData(dewetting_length, fname);
-
-
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << par.J_stem << '\t' << avg_depin << '\t' << t_hex_count << '\t' << t_shape_count << '\t' << double(n_times_apart) / double(par.n_orgs) << endl;
+  outfile << par.gamma_lm << '\t' << par.gamma_sl << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
   outfile.close();
+
+
+  
+  // double avg_empty_space = std::accumulate(empty_spaces.begin() + start, empty_spaces.begin() + half, 0.0) / half;
+
+
+  string fname = par.data_file + "/contact.angle-" + formatted_value + ".dat";
+  OutputColumnData(contact_angles, fname);
 
   delete[] dishes;
 
@@ -347,7 +342,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = false;
+  par.pics_for_opt = true;
 
 #ifdef QTGRAPHICS
   {
@@ -365,37 +360,28 @@ int main(int argc, char *argv[])
   par.print_fitness=true;
   par.randomise=false;
   par.gene_output=false;
-  par.gene_record=false;
+  par.gene_record=true;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.velocities=true;
   par.output_sizes = false;
-  par.measure_time_order_params=true;
   Parameter();
   
+  par.begin_network=2000;
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 4000;
+  par.mcs = 8000;
   par.sheet_hex=false;
   par.n_orgs = 2;
   par.do_voronoi = true;
   par.add_cells = false;
 
-  par.coop_wtime=3000;
-  par.coop_stime=0;
-  par.coop_start=1000;
 
-  par.sizex=300;
-  par.sizey=200;
-  par.begin_network = par.mcs;
+  par.sizex=200;
+  par.sizey=300;
 
   // typical wetting parameters used:
-  par.init_wetting=1000;
   par.sheet_depth=95;
   par.sheet_shift=10;
-  par.dewet_cell_depth=3;
-  // 1240 is mass * 15.5 cells, 100 is the baseline length
-  double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
-  par.dewet_length=floor(tmp_length);
   
   bool perimeter_model = false;
 
@@ -404,16 +390,21 @@ int main(int argc, char *argv[])
   {
     networks.push_back(par.start_matrix);
   }
-  par.J_stem = 1;
-  while (par.J_stem < 10)
+
+  par.gamma_lm = 5;
+  par.gamma_sl = 5;
+
+  while (par.gamma_lm < 15.1)
   {
-    
-    par.J_diff = par.J_stem + 8.;
-    par.J_med = par.J_diff / 2 + 0.25;
+    par.J_stem = 2;
+    par.J_med = par.gamma_lm + 1;
     par.J_med2 = par.J_med;
-    par.J_stem_diff = par.J_diff;
+    par.J_stem_diff = 1.75 + par.gamma_lm + par.gamma_sl;
+    par.J_diff = 2 * par.gamma_lm + 1.5;
+
     process_population(networks);
-    par.J_stem+=0.25;
+    par.gamma_lm += 0.5;
+
   }
 
   

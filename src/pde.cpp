@@ -48,7 +48,22 @@ PDE::PDE(const int l, const int sx, const int sy) {
   
   sigma=AllocateSigma(l,sx,sy);
   alt_sigma=AllocateSigma(l,sx,sy);
+
+  isecr_rate = new double[par.n_diffusers];
+
+  for (int i = 0; i < par.n_diffusers; ++i)
+  {
+    isecr_rate[i] = par.secr_rate[i];
+  }    
   
+}
+
+void PDE::SetSecretion(double *pass_secr_rates)
+{
+  for (int i = 0; i < par.n_diffusers; ++i)
+  {
+    isecr_rate[i] = pass_secr_rates[i];
+  }
 }
 
 
@@ -75,6 +90,7 @@ PDE::~PDE(void) {
     free(alt_sigma);
     alt_sigma=0;
   }
+  if (isecr_rate) delete[] isecr_rate;
 }
 
 double ***PDE::AllocateSigma(const int layers, const int sx, const int sy) {
@@ -216,7 +232,7 @@ void PDE::Secrete(CellularPotts *cpm)
           {
             
             double conc = cpm->diffuser_check(n,x,y);
-            sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
+            sigma[n][x][y]+= ( isecr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
           } 
           else 
           {
@@ -239,8 +255,8 @@ void PDE::Secrete(CellularPotts *cpm)
             
             double conc = cpm->diffuser_check(n,x,y);
             double enzyme = cpm->get_enzyme_conc(n,x,y);
-            sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]) - par.reaction_rate*dt*sigma[n][x][y]*enzyme;
-            // cout << (par.reaction_rate*dt*conc*enzyme) << "   secretion: " << (par.secr_rate[n]*dt*conc) <<  endl;
+            sigma[n][x][y]+= (isecr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]) - par.reaction_rate*dt*sigma[n][x][y]*enzyme;
+            // cout << (par.reaction_rate*dt*conc*enzyme) << "   secretion: " << ( isecr_rate[n]*dt*conc) <<  endl;
           } 
           else 
           {
@@ -252,6 +268,15 @@ void PDE::Secrete(CellularPotts *cpm)
   }
 
 }
+
+void PDE::increase_secretion(int t)
+{
+  if (t > par.begin_network)
+  {
+    isecr_rate[0] = 0.00275 + (t-3000) * 0.00000006;
+  }
+}
+
 
 
 void PDE::PrintAxisConcentrations(bool dim, int point)

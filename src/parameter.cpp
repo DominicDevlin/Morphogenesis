@@ -89,8 +89,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 512;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 200;
+    sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 300;
     mcs = 80000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -138,7 +138,7 @@
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
     
-    tension_params = false;
+    tension_params = true;
     if (tension_params)
     {
       gamma_lm = 15;

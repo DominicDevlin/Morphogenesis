@@ -3162,6 +3162,19 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift)
   cout << "Total cells killed: " << deadcells << endl;
 }
 
+int CellularPotts::ReturnHeight()
+{
+  int max_height=0;
+  for (int x=1;x<sizex-1;x++)
+    for (int y=1;y<sizey-1;y++)
+    {
+      if (sigma[x][y])
+      {
+        max_height = y;
+      }
+    }
+  return max_height;
+}
 
 
 void CellularPotts::ToppingVoronoi()

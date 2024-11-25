@@ -43,6 +43,8 @@ class PDE {
   */
   PDE(const int layers, const int sizex, 
       const int sizey);
+
+  void SetSecretion(double *pass_secr_rates);
       
     
   // destructor must also be virtual
@@ -148,6 +150,9 @@ class PDE {
       }
     return min;
   }
+
+  void increase_secretion(int t);
+
   
   /*! \brief Carry out $n$ diffusion steps for all PDE planes.
     
@@ -250,6 +255,8 @@ class PDE {
   int sizex;
   int sizey;
   int layers;
+
+  double * isecr_rate;
  
  
   // Protected member functions
