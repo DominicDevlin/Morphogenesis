@@ -3165,12 +3165,14 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift)
 int CellularPotts::ReturnHeight()
 {
   int max_height=0;
-  for (int x=1;x<sizex-1;x++)
-    for (int y=1;y<sizey-1;y++)
+  for (int y=1;y<sizey-1;y++)
+    for (int x=1;x<sizex-1;x++)
     {
-      if (sigma[x][y])
+      if (sigma[x][y] > 0)
       {
         max_height = y;
+        y = sizey;
+        break;
       }
     }
   return max_height;
@@ -4646,6 +4648,7 @@ void CellularPotts::StartWettingNetwork()
   {
     if (c->AliveP())
     {
+      
       if (c->GetPhase())
       {
         vector<double>& nlist = c->get_genes();

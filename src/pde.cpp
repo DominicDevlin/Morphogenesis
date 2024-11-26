@@ -90,7 +90,8 @@ PDE::~PDE(void) {
     free(alt_sigma);
     alt_sigma=0;
   }
-  if (isecr_rate) delete[] isecr_rate;
+  if (isecr_rate) 
+    delete[] isecr_rate;
 }
 
 double ***PDE::AllocateSigma(const int layers, const int sx, const int sy) {
@@ -271,9 +272,9 @@ void PDE::Secrete(CellularPotts *cpm)
 
 void PDE::increase_secretion(int t)
 {
-  if (t > par.begin_network)
+  if (t > par.begin_network-500)
   {
-    isecr_rate[0] = 0.00275 + (t-3000) * 0.00000006;
+    isecr_rate[0] = 0.00275 + (t-par.begin_network+500) * 0.00000006;
   }
 }
 

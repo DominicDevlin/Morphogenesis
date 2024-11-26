@@ -125,7 +125,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   int n_times_apart{};
 
   vector<vector<double>> contact_angles(par.n_orgs);
-
   vector<int> starting_heights(par.n_orgs);
 
   omp_set_num_threads(par.n_orgs);
@@ -134,11 +133,11 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   {
     dishes[i].CPM->set_num(i + 1);
     // does init block above.
-    dishes[i].PDEfield->SetSecretion(par.secr_rate);
     dishes[i].Init();
-    dishes[i].CPM->start_network(network_list.at(i));
+    dishes[i].PDEfield->SetSecretion(par.secr_rate);
     dishes[i].CPM->Set_evoJ(par.J_stem_diff);
     dishes[i].CPM->SetAreas(par.cell_areas);
+    dishes[i].CPM->start_network(network_list[i]);
 
     bool stayed_together=true;
 
@@ -160,7 +159,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       {
         dishes[i].CPM->ToppingVoronoi(); 
       }      
-      if (t == 110)
+      if (t == 1000)
       {
         starting_heights[i] = dishes[i].CPM->ReturnHeight(); 
       }
@@ -181,14 +180,13 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         {
           dishes[i].CPM->update_phase_network(t);
           dishes[i].AverageChemCell();  
-
-          // speed up initial PDE diffusion
-          for (int r=0;r<par.program_its;r++) 
-          {
-            dishes[i].PDEfield->Secrete(dishes[i].CPM);
-            dishes[i].PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
-          } 
         }
+        // speed up initial PDE diffusion
+        for (int r=0;r<par.pde_its;r++) 
+        {
+          dishes[i].PDEfield->Secrete(dishes[i].CPM);
+          dishes[i].PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+        } 
       }
 
       if (t > 100)
@@ -295,7 +293,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   ostringstream stream;
   stream << fixed << setprecision(2) << par.gamma_lm << '-' << par.gamma_sl; // Setting precision to 2 decimal points
   string formatted_value = stream.str();
-
   double sum_heights;
   double square_heights;
   vector<double> heights(par.n_orgs);
@@ -305,26 +302,25 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     int n_phase = dishes[i].CPM->CountPhaseOnCells();
     avg_phase_remained += n_phase;
     heights[i] = double(starting_heights[i] - dishes[i].CPM->ReturnHeight());
+    // cout << "start: " << starting_heights[i] << "\tend: " << dishes[i].CPM->ReturnHeight() <<endl;
   }
-  
   sort(heights.begin(), heights.end(), std::greater<double>());
   vector<double> largest_heights(heights.begin(), heights.begin() + heights.size() / 2);
-  int lsize = par.n_orgs / 2;
-  for (unsigned i=0; i < lsize;++i)
+  int lsize = largest_heights.size();
+  for (int i=0; i < lsize;++i)
   {
     sum_heights += largest_heights[i];
     square_heights += largest_heights[i] * largest_heights[i];
 
   }
-  double mean_height = sum_heights / par.n_orgs;
+  double mean_height = sum_heights / lsize;
   double variance = (square_heights / lsize ) - (mean_height * mean_height);
-  avg_phase_remained = avg_phase_remained / par.n_orgs;
+  avg_phase_remained = avg_phase_remained / lsize;
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
   outfile << par.gamma_lm << '\t' << par.gamma_sl << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
   outfile.close();
-
 
   
   // double avg_empty_space = std::accumulate(empty_spaces.begin() + start, empty_spaces.begin() + half, 0.0) / half;
@@ -332,6 +328,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   string fname = par.data_file + "/contact.angle-" + formatted_value + ".dat";
   OutputColumnData(contact_angles, fname);
+
 
   delete[] dishes;
 
@@ -342,7 +339,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = true;
+  par.pics_for_opt = false;
 
 #ifdef QTGRAPHICS
   {
@@ -369,9 +366,9 @@ int main(int argc, char *argv[])
   par.begin_network=2000;
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 8000;
+  par.mcs = 1200;
   par.sheet_hex=false;
-  par.n_orgs = 2;
+  par.n_orgs = 4;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -401,8 +398,9 @@ int main(int argc, char *argv[])
     par.J_med2 = par.J_med;
     par.J_stem_diff = 1.75 + par.gamma_lm + par.gamma_sl;
     par.J_diff = 2 * par.gamma_lm + 1.5;
-
+    cout << "HERE" << endl;
     process_population(networks);
+    cout << "HERE??" << endl;
     par.gamma_lm += 0.5;
 
   }
