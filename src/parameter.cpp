@@ -138,11 +138,11 @@
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
     
-    tension_params = false;
+    tension_params = true;
     if (tension_params)
     {
-      gamma_lm = 15;
-      gamma_sl = 9;
+      gamma_lm = 12;
+      gamma_sl = 6;
       J_stem = 2;
       J_med = gamma_lm + 1;
       J_med2 = J_med;

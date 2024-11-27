@@ -244,6 +244,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           ++n_times_apart;
           stayed_together=false;
         }
+        t = par.mcs;
       }
 
       if (t % 10 && t > 1000)
@@ -384,19 +385,23 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
 
-  par.gamma_lm = 5;
-  par.gamma_sl = 5;
+  par.gamma_lm = 0;
+  par.gamma_sl = 0;
 
-  while (par.gamma_lm < 15.1)
+  while (par.gamma_lm < 12.1)
   {
-    par.J_stem = 2;
-    par.J_med = par.gamma_lm + 1;
-    par.J_med2 = par.J_med;
-    par.J_stem_diff = 1.75 + par.gamma_lm + par.gamma_sl;
-    par.J_diff = 2 * par.gamma_lm + 1.5;
-    process_population(networks);
+    while (par.gamma_sl < 12.1)
+    {
+      par.J_stem = 2;
+      par.J_med = par.gamma_lm + 1;
+      par.J_med2 = par.J_med;
+      par.J_stem_diff = 1.75 + par.gamma_lm + par.gamma_sl;
+      par.J_diff = 2 * par.gamma_lm + 1.5;
+      process_population(networks);
+      par.gamma_sl += 0.5;
+    }
+    par.gamma_sl = 0.;
     par.gamma_lm += 0.5;
-
   }
 
   
