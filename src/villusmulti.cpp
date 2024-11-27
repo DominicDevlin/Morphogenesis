@@ -243,8 +243,9 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         {
           ++n_times_apart;
           stayed_together=false;
+          t = par.mcs;
         }
-        t = par.mcs;
+        
       }
 
       if (t % 10 && t > 1000)
