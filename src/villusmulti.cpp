@@ -203,8 +203,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         dishes[i].CPM->RecordMasses(true);
       }      
 
-
-
       // dishes[i].CPM->DiscreteGrowthAndDivision(t);
       if (t % par.cell_addition_rate == 0 && t > 200 && par.add_cells)
       {
@@ -278,10 +276,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
       }
 
-
-
     }
-
 
   }
 
@@ -357,18 +352,19 @@ int main(int argc, char *argv[])
   par.print_fitness=true;
   par.randomise=false;
   par.gene_output=false;
-  par.gene_record=true;
+  par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.velocities=true;
   par.output_sizes = false;
   Parameter();
+  par.measure_time_order_params=false;
   
   par.begin_network=2000;
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 1200;
+  par.mcs = 40000;
   par.sheet_hex=false;
-  par.n_orgs = 4;
+  par.n_orgs = 120;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -398,9 +394,7 @@ int main(int argc, char *argv[])
     par.J_med2 = par.J_med;
     par.J_stem_diff = 1.75 + par.gamma_lm + par.gamma_sl;
     par.J_diff = 2 * par.gamma_lm + 1.5;
-    cout << "HERE" << endl;
     process_population(networks);
-    cout << "HERE??" << endl;
     par.gamma_lm += 0.5;
 
   }

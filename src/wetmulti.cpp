@@ -674,7 +674,7 @@ int main(int argc, char *argv[])
   
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 4000;
+  par.mcs = 2000;
   par.sheet_hex=false;
   par.n_orgs = 1;
   par.do_voronoi = true;
@@ -697,9 +697,6 @@ int main(int argc, char *argv[])
   double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
   par.dewet_length=floor(tmp_length);
 
-  // testing
-  par.sizex = 512;
-  par.dewet_length = 36;
   
   bool perimeter_model = false;
 

@@ -114,6 +114,8 @@ CellularPotts::CellularPotts(vector<Cell> *cells,
   rows = sizex-1;
   cols = sizey-1;
 
+  old_nbhs = nullptr;
+
   AllocateSigma(sx,sy);
   
   
@@ -222,6 +224,11 @@ void CellularPotts::AllocateSigma(int sx, int sy) {
   /* Clear CA plane */
    {for (int i=0;i<sizex*sizey;i++) 
      outside[0][i]=0; }
+
+  {for (int i=1;i<sizex;i++) 
+    outside[i]=outside[i-1]+sizey;}
+
+  
 }
 
 void CellularPotts::IndexShuffle() {

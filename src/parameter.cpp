@@ -138,7 +138,7 @@
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
     
-    tension_params = true;
+    tension_params = false;
     if (tension_params)
     {
       gamma_lm = 15;
@@ -190,7 +190,7 @@
     min_phase_cells = 20;
     penalty=250;
 
-    measure_time_order_params = true;
+    measure_time_order_params = false;
     measure_interval = 50;
 
   
