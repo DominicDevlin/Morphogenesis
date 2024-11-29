@@ -141,8 +141,8 @@
     tension_params = true;
     if (tension_params)
     {
-      gamma_lm = 2.5;
-      gamma_sl = 5;
+      gamma_lm = 5.5;
+      gamma_sl = 6.5;
       J_stem = 2;
       J_med = gamma_lm + 1;
       J_med2 = J_med;
