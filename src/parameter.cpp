@@ -89,8 +89,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 300;
+    sizex = 350;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 240;
     mcs = 80000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -119,7 +119,7 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=2;
+    J_stem=1;
     J_diff=12;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
@@ -138,7 +138,7 @@
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
     
-    tension_params = true;
+    tension_params = false;
     if (tension_params)
     {
       gamma_lm = 5.5;
@@ -156,10 +156,10 @@
     wetting params:
     */
     init_wetting=1000;
-    sheet_depth=95;
+    sheet_depth=140;
     sheet_shift=10;
     dewet_length=80;
-    dewet_cell_depth=3;
+    dewet_cell_depth=11;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
     ball_radius=54;
