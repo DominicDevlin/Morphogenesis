@@ -320,6 +320,8 @@ TIMESTEP {
       dish->CPM->RecordMasses();
     }
 
+    dish->CPM->ContactAngle();
+
 
     if (GRN && t >= par.begin_network)
     {

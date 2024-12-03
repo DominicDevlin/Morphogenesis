@@ -424,8 +424,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       }
 
 
-
-
       if (true && t>= par.begin_network)
       {
         if (t == par.begin_network)
@@ -447,10 +445,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
       }
 
-      if (par.velocities && t % 1 == 0)
-      {
-        dishes[i].CPM->RecordMasses(true);
-      }
 
       if (t > 200 && par.measure_time_order_params && t % 1 == 0)
       {
@@ -588,7 +582,6 @@ int main(int argc, char *argv[])
   par.sizey=240;
   par.begin_network = par.mcs;
 
-  // typical wetting parameters used:
   par.init_wetting=1000;
   par.sheet_depth=140;
   par.sheet_shift=10;

@@ -7267,7 +7267,7 @@ int CellularPotts::ContactAngle()
       }
     }
   }
-  if (PhaseContactCells.size() > 2 || PhaseContactCells.size() == 0)
+  if (PhaseContactCells.size() != 2)
   {
     // cerr << "Wrong number of contact points.\n";  
     return 0;
@@ -7297,6 +7297,8 @@ int CellularPotts::ContactAngle()
 
   int **ns = SearchNeighbours();
 
+  int med_nbhs1 = 0;
+  int med_nbhs2 = 0;
   int j = 0;
   while (ns[sig1][j] >= 0)
   {
@@ -7311,7 +7313,7 @@ int CellularPotts::ContactAngle()
         {
           nbh1.x = (*cell)[sig_check].get_xcen();
           nbh1.y = (*cell)[sig_check].get_ycen();
-          j=100;
+          ++med_nbhs1;
           break;
         }
       }
@@ -7321,7 +7323,7 @@ int CellularPotts::ContactAngle()
       break;
     ++j;
   }
-
+  
   j = 0;
   while (ns[sig2][j] >= 0)
   {
@@ -7338,7 +7340,7 @@ int CellularPotts::ContactAngle()
           
           nbh2.x = (*cell)[sig_check].get_xcen();
           nbh2.y = (*cell)[sig_check].get_ycen();
-          j=100;
+          ++med_nbhs2;
           break;
         }
       }
@@ -7349,6 +7351,19 @@ int CellularPotts::ContactAngle()
     ++j;
   }
 
+  if (med_nbhs1 > 1 || med_nbhs2 > 1)
+  {
+    return -1;
+  }
+
+  // cout << "left side x: " << nbh1.x << '\t' << cell1.x << 
+  // "\n left side y: " << nbh1.y << '\t' << cell1.y << endl;
+
+
+  // cout << "left side x: " << nbh2.x << '\t' << cell2.x << 
+  // "\n left side y: " << nbh2.y << '\t' << cell2.y << endl;
+
+  // cout << "med neighbours: " << med_nbhs1 << '\t' << med_nbhs2 << endl;
 
   cellPoint leftref = {1.,0.};
   cellPoint rightref = {-1.,0.};
@@ -7376,6 +7391,8 @@ int CellularPotts::ContactAngle()
 
   tmp_angles.push_back(angle1);
   tmp_angles.push_back(angle2);
+
+  cout << "ANGLES: " << angle1 << '\t' << angle2 << endl;
 
   if (tmp_angles.size() > 10000)
   {

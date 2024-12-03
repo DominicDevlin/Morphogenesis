@@ -57,7 +57,7 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = false;
+    velocities = true;
     record_directions = false;
 
     // record cell sizes
@@ -89,8 +89,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 350;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 240;
+    sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 200;
     mcs = 80000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -138,11 +138,11 @@
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
     
-    tension_params = false;
+    tension_params = true;
     if (tension_params)
     {
-      gamma_lm = 5.5;
-      gamma_sl = 6.5;
+      gamma_lm = 3.5;
+      gamma_sl = 8.5;
       J_stem = 2;
       J_med = gamma_lm + 1;
       J_med2 = J_med;
@@ -156,10 +156,10 @@
     wetting params:
     */
     init_wetting=1000;
-    sheet_depth=140;
+    sheet_depth=95;
     sheet_shift=10;
     dewet_length=80;
-    dewet_cell_depth=11;
+    dewet_cell_depth=3;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
     ball_radius=54;

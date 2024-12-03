@@ -190,7 +190,20 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       }
 
       if (t > 100)
-        dishes[i].CPM->ContactAngle();
+      {
+        int check = dishes[i].CPM->ContactAngle();
+        if (check < 0)
+        {
+          bool check_shape = dishes[i].CPM->CheckShape();
+          if (check_shape == false)
+          {
+            ++n_times_apart;
+            stayed_together=false;
+            t = par.mcs;
+          }
+        }
+      }
+        
 
       if (t > 100 && t % par.measure_interval == 0)
       {
@@ -364,11 +377,13 @@ int main(int argc, char *argv[])
   par.begin_network=2000;
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 40000;
+  par.mcs = 4000;
   par.sheet_hex=false;
-  par.n_orgs = 120;
+  par.n_orgs = 4;
   par.do_voronoi = true;
   par.add_cells = false;
+
+  par.measure_interval = 20;
 
 
   par.sizex=200;
@@ -386,8 +401,8 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
 
-  par.gamma_lm = 0;
-  par.gamma_sl = 0;
+  par.gamma_lm = 1;
+  par.gamma_sl = 1;
 
   while (par.gamma_lm < 12.1)
   {
