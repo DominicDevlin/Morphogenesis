@@ -7353,6 +7353,8 @@ int CellularPotts::ContactAngle()
 
   if (med_nbhs1 > 1 || med_nbhs2 > 1)
   {
+    free(ns[0]);
+    free(ns);
     return -1;
   }
 
@@ -7392,7 +7394,7 @@ int CellularPotts::ContactAngle()
   tmp_angles.push_back(angle1);
   tmp_angles.push_back(angle2);
 
-  cout << "ANGLES: " << angle1 << '\t' << angle2 << endl;
+  // cout << "ANGLES: " << angle1 << '\t' << angle2 << endl;
 
   if (tmp_angles.size() > 10000)
   {

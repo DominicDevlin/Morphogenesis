@@ -377,9 +377,9 @@ int main(int argc, char *argv[])
   par.begin_network=2000;
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 4000;
+  par.mcs = 40000;
   par.sheet_hex=false;
-  par.n_orgs = 4;
+  par.n_orgs = 120;
   par.do_voronoi = true;
   par.add_cells = false;
 
