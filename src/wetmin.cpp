@@ -479,7 +479,26 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
       }
 
+      if (par.pics_for_opt && t % 500 == 0)
+      {
+        string dirn = par.pic_dir;
+        if (mkdir(dirn.c_str(), 0777) != -1)
+        {
+          cout << "Directory created." << endl;
+        }
 
+        for (int org=0; org < par.n_orgs; ++org)
+        {
+          dishes[i].CPM->ColourCells(par.phase_evolution);
+          fft new_org(par.sizex,par.sizey);
+          new_org.ImportCPM(dishes[org].get_cpm());
+          string f2 = "org-";
+          string n2 = to_string(org);
+          string ftype = ".png";
+          string foutput = dirn + "/" + f2 + n2 + "-" + to_string(t) + ftype;
+          new_org.cpmOutput(foutput);
+        }
+      }
 
     }
 
@@ -568,7 +587,7 @@ int main(int argc, char *argv[])
   
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 600000;
+  par.mcs = 500000;
   par.sheet_hex=false;
   par.n_orgs = 120;
   par.do_voronoi = true;
@@ -579,16 +598,16 @@ int main(int argc, char *argv[])
   par.coop_start=1000;
 
   par.sizex=350;
-  par.sizey=240;
+  par.sizey=260;
   par.begin_network = par.mcs;
 
   par.init_wetting=1000;
   par.sheet_depth=140;
   par.sheet_shift=10;
-  par.dewet_cell_depth=11;
+  par.dewet_cell_depth=7;
   // 1240 is mass * 15.5 cells, 100 is the baseline length
   double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
-  par.dewet_length=floor(tmp_length);
+  par.dewet_length=floor(tmp_length)-26;
 
   
   bool perimeter_model = false;
