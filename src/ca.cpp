@@ -7269,6 +7269,10 @@ int CellularPotts::ContactAngle()
   }
   if (PhaseContactCells.size() != 2)
   {
+    if (PhaseContactCells.size() == 0)
+    {
+      return -1;
+    }
     // cerr << "Wrong number of contact points.\n";  
     return 0;
   }
@@ -7311,6 +7315,11 @@ int CellularPotts::ContactAngle()
         // if we find medium
         if (ns[sig_check][k] == 0)
         {
+          if (med_nbhs1 > 0)
+          {
+            ++med_nbhs1;
+            break;
+          }
           nbh1.x = (*cell)[sig_check].get_xcen();
           nbh1.y = (*cell)[sig_check].get_ycen();
           ++med_nbhs1;
@@ -7337,7 +7346,11 @@ int CellularPotts::ContactAngle()
         // if we find medium
         if (ns[sig_check][k] == 0)
         {
-          
+          if (med_nbhs2 > 0)
+          {
+            ++med_nbhs2;
+            break;
+          }
           nbh2.x = (*cell)[sig_check].get_xcen();
           nbh2.y = (*cell)[sig_check].get_ycen();
           ++med_nbhs2;
@@ -7350,12 +7363,21 @@ int CellularPotts::ContactAngle()
       break;
     ++j;
   }
+  // cout << med_nbhs1 << '\t' << med_nbhs2 << endl;
+  // if (med_nbhs1 > 1 || med_nbhs2 > 1)
+  // {
+  //   cout << "INHERE" << '\t' << med_nbhs1 << '\t' << med_nbhs2 << endl;
+  //   free(ns[0]);
+  //   free(ns);
+  //   return -1;
+  // }
 
-  if (med_nbhs1 > 1 || med_nbhs2 > 1)
+  if (med_nbhs1 == 0 && med_nbhs2 == 0)
   {
+    // cout << "INHERE" << '\t' << med_nbhs1 << '\t' << med_nbhs2 << endl;
     free(ns[0]);
     free(ns);
-    return -1;
+    return 0;    
   }
 
   // cout << "left side x: " << nbh1.x << '\t' << cell1.x << 
@@ -7392,6 +7414,7 @@ int CellularPotts::ContactAngle()
   // cout << "right side y: " << cell2.y << '\t' << nbh2.y << endl;
 
   tmp_angles.push_back(angle1);
+
   tmp_angles.push_back(angle2);
 
   // cout << "ANGLES: " << angle1 << '\t' << angle2 << endl;
@@ -7412,6 +7435,11 @@ int CellularPotts::ContactAngle()
   // average over angles
   double avg = std::accumulate(tmp_angles.begin(), tmp_angles.end(), 0.0);
   avg /= tmp_angles.size();
+  if (avg != avg)
+  {
+    cout << "size: " << tmp_angles.size() << endl;
+  }
+
   tmp_angles.clear();
   return avg;
 }

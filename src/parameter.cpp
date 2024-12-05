@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=5843685142097402997;//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -91,7 +91,7 @@
 /* Cellular Potts parameters */
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 200;
-    mcs = 80000;
+    mcs = 200000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -120,7 +120,7 @@
     // phase transition params;
     phase_evolution=true;
     J_stem=1;
-    J_diff=12;
+    J_diff=9;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
@@ -138,17 +138,18 @@
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
     
-    tension_params = true;
+    tension_params = false;
     if (tension_params)
     {
-      gamma_lm = 3.5;
-      gamma_sl = 8.5;
+      gamma_lm = 2.5;
+      gamma_sl = 5.5;
       J_stem = 2;
       J_med = gamma_lm + 1;
       J_med2 = J_med;
       J_stem_diff = 1.75 + gamma_lm + gamma_sl;
       J_diff = 2 * gamma_lm + 1.5;
     }
+    start_topping = 100;
 
 
 
@@ -159,7 +160,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=80;
-    dewet_cell_depth=3;
+    dewet_cell_depth=5;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
     ball_radius=54;

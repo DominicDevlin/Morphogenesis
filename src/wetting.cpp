@@ -295,13 +295,16 @@ TIMESTEP {
 
     }
 
-    if (t > 1100 && t%1000==0)
+    if (t > 1000 && t%1==0)
     {
       dish->CPM->RecordMasses();
       dish->CPM->ContactAngle();
-      dish->CPM->NeighbourExchangeRate();
+      // dish->CPM->NeighbourExchangeRate();
     }
-      
+    if (t > 1000 + par.measure_interval && t % par.measure_interval == 0)
+    {
+      double contacta = dish->CPM->GetContactAngles();      
+    }
 
     // static vector<double> cooperativities;
 
@@ -342,19 +345,17 @@ TIMESTEP {
     //   // dish->CPM->MeasureCellPerimeters();
     // }
     
-    if ((t == 0) && par.lambda_perimeter > 0)
-    {
-      par.H_perim = true; 
-      dish->CPM->SetPerims(par.ptarget_perimeter);
-      dish->CPM->MeasureCellPerimeters();
-    }
+    // if ((t == 0) && par.lambda_perimeter > 0)
+    // {
+    //   par.H_perim = true; 
+    //   dish->CPM->SetPerims(par.ptarget_perimeter);
+    //   dish->CPM->MeasureCellPerimeters();
+    // }
 
     if (par.velocities)
     {
       dish->CPM->RecordMasses();
     }
-
-
 
     // if (t == 22000)
     // {
@@ -372,7 +373,7 @@ TIMESTEP {
     //   dish->CPM->CellGrowthAndDivision(t);
     // }
 
-    if (GRN && t >= 100000)
+    if (GRN && t >= par.mcs)
     {
       if (t==3000)
       {

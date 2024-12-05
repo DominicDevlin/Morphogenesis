@@ -155,7 +155,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         dishes[i].CPM->MeasureCellPerimeters();
       }
 
-      if (t == 100)
+      if (t == par.start_topping)
       {
         dishes[i].CPM->ToppingVoronoi(); 
       }      
@@ -189,8 +189,14 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         } 
       }
 
-      if (t > 100)
+      if (par.velocities && t % 1 == 0)
       {
+        dishes[i].CPM->RecordMasses(true);
+      }
+
+      if (t > par.start_topping)
+      {
+        dishes[i].CPM->SetCellCenters();
         int check = dishes[i].CPM->ContactAngle();
         if (check < 0)
         {
@@ -205,16 +211,13 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       }
         
 
-      if (t > 100 && t % par.measure_interval == 0)
+      if (t > par.start_topping && t % par.measure_interval == 0)
       {
         double contacta = dishes[i].CPM->GetContactAngles();
         contact_angles[i].push_back(contacta);
       }
 
-      if (par.velocities && t % 1 == 0)
-      {
-        dishes[i].CPM->RecordMasses(true);
-      }      
+      
 
       // dishes[i].CPM->DiscreteGrowthAndDivision(t);
       if (t % par.cell_addition_rate == 0 && t > 200 && par.add_cells)
@@ -369,7 +372,7 @@ int main(int argc, char *argv[])
   par.gene_output=false;
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
-  par.velocities=true;
+  par.velocities=false;
   par.output_sizes = false;
   Parameter();
   par.measure_time_order_params=false;

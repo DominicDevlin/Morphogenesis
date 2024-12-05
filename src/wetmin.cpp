@@ -587,9 +587,10 @@ int main(int argc, char *argv[])
   
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 500000;
+  par.mcs = 400000;
+  par.begin_network = par.mcs;
   par.sheet_hex=false;
-  par.n_orgs = 120;
+  par.n_orgs = 60;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -597,17 +598,27 @@ int main(int argc, char *argv[])
   par.coop_stime=0;
   par.coop_start=1000;
 
-  par.sizex=350;
-  par.sizey=260;
-  par.begin_network = par.mcs;
+  // deep parameters?
+  // par.sizex=350;
+  // par.sizey=260;
+  // par.init_wetting=1000;
+  // par.sheet_depth=140;
+  // par.sheet_shift=10;
+  // par.dewet_cell_depth=7;
+  // // 1240 is mass * 15.5 cells, 100 is the baseline length
+  // double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
+  // par.dewet_length=floor(tmp_length)-26;
 
+  // long parameters:
+  par.sizex = 512;
+  par.dewet_length = 36;  
   par.init_wetting=1000;
-  par.sheet_depth=140;
+  par.sheet_depth=95;
   par.sheet_shift=10;
-  par.dewet_cell_depth=7;
+  par.dewet_cell_depth=3;
   // 1240 is mass * 15.5 cells, 100 is the baseline length
   double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
-  par.dewet_length=floor(tmp_length)-26;
+  par.dewet_length=floor(tmp_length);
 
   
   bool perimeter_model = false;

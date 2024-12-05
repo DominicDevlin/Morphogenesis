@@ -296,7 +296,7 @@ TIMESTEP {
 
     }
 
-    if (t == 100)
+    if (t == par.start_topping)
     {
       dish->CPM->ToppingVoronoi(); 
     }
@@ -318,10 +318,17 @@ TIMESTEP {
     if (par.velocities)
     {
       dish->CPM->RecordMasses();
+      if (t > par.start_topping)
+      {
+        dish->CPM->ContactAngle();
+      }
     }
 
-    dish->CPM->ContactAngle();
-
+    if (t > par.start_topping && t % par.measure_interval == 0)
+    {
+      double contacta = dish->CPM->GetContactAngles();   
+      cout << "angle is: " << contacta << endl;
+    }
 
     if (GRN && t >= par.begin_network)
     {
