@@ -145,6 +145,7 @@ class Parameter {
   int sheet_shift;
   int dewet_length;
   int dewet_cell_depth;
+  bool wetabove;
 
   int ball_radius;
 

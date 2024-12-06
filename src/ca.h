@@ -489,6 +489,8 @@ public:
 
   void WetTopCells(int width, int depth);
 
+  void WetAbove(int width, int depth);
+
   void StartWettingNetwork();
 
   int WettingLength();

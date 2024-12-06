@@ -310,7 +310,8 @@ TIMESTEP {
 
     if (t == 1000)
     {
-      dish->CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
+      // dish->CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
+      dish->CPM->WetAbove(par.dewet_length, par.dewet_cell_depth);
       // dish->CPM->WetRandomCells();
     } 
     par.measure_time_order_params = false;

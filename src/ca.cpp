@@ -4617,6 +4617,82 @@ void CellularPotts::WetRandomCells()
 
 
 
+void CellularPotts::WetAbove(int width, int depth)
+{
+  vector<int> mark_for_deletion{};
+
+  // we use 2.5 * circle (circle being a cell) as max depth.
+  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+  for (int x = 1; x < sizex; ++x) 
+  {
+    int cells_encountered;
+    int counter = 0;
+    set<int> c_list{};
+    for (int y = 1 ; y < sizey; ++y) 
+    {
+      if (x >= width && x < sizex-width)
+      {
+        if (sigma[x][y] > 0)
+        {
+          cell->at(sigma[x][y]).TransformPhase(true);
+          ++counter;
+          c_list.insert(sigma[x][y]);
+          if (c_list.size() >= depth)
+            break;
+          if (counter > max_depth)
+            break;
+        }
+      }
+      else
+      {
+        // we need to apoptose all cells outside of this width
+        if (sigma[x][y] > 0)
+        {
+          mark_for_deletion.push_back(sigma[x][y]);
+          ++counter;
+          c_list.insert(sigma[x][y]);
+          if (c_list.size() >= depth)
+            break;
+          if (counter > max_depth)
+            break;
+        }
+      }
+
+    }  
+  }
+  // now iterate through and delete cells 
+  for (int x = 1; x < sizex; ++x)
+  {
+    for (int y = 1; y < sizey; ++y)
+    {
+      int sig = sigma[x][y];
+      auto it = find(mark_for_deletion.begin(), mark_for_deletion.end(), sig);
+      if (it != mark_for_deletion.end())
+      {
+        sigma[x][y] = 0;
+        (*cell)[sig].DecrementArea();
+      }
+
+    }
+  }
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+      }
+    }
+  }
+
+
+  init_wet_length = WettingLength();
+  
+}
+
+
 
 void CellularPotts::WetTopCells(int width, int depth)
 {

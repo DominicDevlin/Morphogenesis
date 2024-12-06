@@ -404,7 +404,12 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
       if (t == par.init_wetting)
       {
-        dishes[i].CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
+        if (par.wetabove)
+        {
+          dishes[i].CPM->WetAbove(par.dewet_length, par.dewet_cell_depth);
+        }
+        else
+          dishes[i].CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
       }
 
       if (t > par.init_wetting && t % 100 == 0)
@@ -610,12 +615,23 @@ int main(int argc, char *argv[])
   // par.dewet_length=floor(tmp_length)-26;
 
   // long parameters:
-  par.sizex = 512;
-  par.dewet_length = 36;  
+  // par.sizex = 512;
+  // par.dewet_length = 36;  
+  // par.init_wetting=1000;
+  // par.sheet_depth=95;
+  // par.sheet_shift=10;
+  // par.dewet_cell_depth=3;
+  // // 1240 is mass * 15.5 cells, 100 is the baseline length
+  // double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
+  // par.dewet_length=floor(tmp_length);
+
+  // typical wetting parameters used:
+  par.sizex=300;
+  par.sizey=200;
   par.init_wetting=1000;
   par.sheet_depth=95;
   par.sheet_shift=10;
-  par.dewet_cell_depth=3;
+  par.dewet_cell_depth=5;
   // 1240 is mass * 15.5 cells, 100 is the baseline length
   double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
   par.dewet_length=floor(tmp_length);

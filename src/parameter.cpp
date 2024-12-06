@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=5843685142097402997;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=0;//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -119,8 +119,8 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=1;
-    J_diff=9;
+    J_stem=2;
+    J_diff=10;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
@@ -164,6 +164,7 @@
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
     ball_radius=54;
+    wetabove=true;
 
 
 
