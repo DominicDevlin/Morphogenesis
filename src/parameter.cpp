@@ -91,7 +91,7 @@
 /* Cellular Potts parameters */
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 200;
-    mcs = 200000;
+    mcs = 400000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -119,8 +119,8 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=2;
-    J_diff=10;
+    J_stem=1;
+    J_diff=9;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
@@ -165,7 +165,8 @@
     dewet_length=floor(tmp_length);
     ball_radius=54;
     wetabove=true;
-
+    
+    // testing
 
 
     melting_adhesion = false;

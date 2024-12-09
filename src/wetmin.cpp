@@ -626,12 +626,16 @@ int main(int argc, char *argv[])
   // par.dewet_length=floor(tmp_length);
 
   // typical wetting parameters used:
-  par.sizex=300;
+  
   par.sizey=200;
+  par.sizex=300;
   par.init_wetting=1000;
-  par.sheet_depth=95;
   par.sheet_shift=10;
   par.dewet_cell_depth=5;
+  par.sheet_depth=95;
+  par.sheet_depth+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+  par.sizey+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+  
   // 1240 is mass * 15.5 cells, 100 is the baseline length
   double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
   par.dewet_length=floor(tmp_length);
