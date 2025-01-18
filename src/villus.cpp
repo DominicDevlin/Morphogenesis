@@ -299,6 +299,10 @@ TIMESTEP {
     if (t == par.start_topping)
     {
       dish->CPM->ToppingVoronoi(); 
+      if (par.MakeEpithelia)
+      {
+        dish->CPM->AddEpithelialLayer();
+      }
     }
 
 

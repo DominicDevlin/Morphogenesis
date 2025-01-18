@@ -151,6 +151,8 @@ public:
     chem = new double[par.n_chem];
     for (int ch=0;ch<par.n_chem;ch++)
       chem[ch]=src.chem[ch];
+
+    epithelial = src.epithelial;
     
     
   }
@@ -242,6 +244,9 @@ public:
 
     perimeter = src.perimeter;
     target_perimeter = src.target_perimeter;
+
+    epithelial = src.epithelial;
+
 
     diffs = new double[par.n_diffusers];
 
@@ -720,6 +725,16 @@ private:
   inline double& get_phase_M(void)
   {
     return medium_protein_conc;
+  }
+
+  inline void SetEpithelial(bool setter)
+  {
+    epithelial = setter;
+  }
+
+  inline bool IsEpithelia(void)
+  {
+    return epithelial;
   }
 
   inline bool& getmJ(void)
@@ -1440,6 +1455,8 @@ protected:
   
   int area;
   int target_area;
+
+  bool epithelial=false;
 
   double v[2];
   int n_copies; // number of expansions of this cell

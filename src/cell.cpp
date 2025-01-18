@@ -131,6 +131,8 @@ void Cell::CellBirth(Cell &mother_cell) {
   temp_hexes = mother_cell.temp_hexes;
   temp_shapes = mother_cell.temp_shapes;
 
+  epithelial = mother_cell.epithelial;
+
   for (int i=0;i<par.n_diffusers;i++)
   {
     diffs[i]=mother_cell.diffs[i];

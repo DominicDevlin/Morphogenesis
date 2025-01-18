@@ -4799,6 +4799,107 @@ bool CellularPotts::WettingDepinned()
   }
 }
 
+
+void CellularPotts::AddEpithelialLayer()
+{
+  // first fill with pixels. Want to make this colour pink!
+  // Main problem is the whole set up is with a single "phase" variable. Now we are adding another!
+
+  // make a new cell.
+
+  Cell *motherp=&((*cell)[1]);
+  Cell *daughterp = new Cell(*(motherp->owner));
+  daughterp->CellBirth(*motherp);
+  cell->push_back(*daughterp);
+  daughterp->SetEpithelial(true);
+  int newsigma = daughterp->Sigma();
+
+  int radius = par.ball_radius;
+  vector<pair<int,int>> hitpoints{};
+  for (int x=1;x<sizex-1;x++)
+  {
+    for (int y=1;y<sizey-1;y++)
+    {
+      if (sigma[x][y] > 0)
+      {
+        pair<int,int> newp = {x,y};
+        hitpoints.push_back(newp);
+        break;
+      }    
+    }
+
+  }
+  for (auto hitpoint : hitpoints)
+  {
+    int x = hitpoint.first;
+    int y = hitpoint.second;
+    int radiuss = 10;
+    for (int xx = x - radiuss; xx <= x + radiuss; ++xx )
+    {
+      for (int yy = y - radiuss; yy <= y + radiuss; ++yy )
+      {
+        if (xx < sizex-1 && yy < sizey-1 && yy > 1 && xx > 1)
+        {
+          if (sigma[xx][yy] == 0 )
+          {
+            sigma[xx][yy] = newsigma;
+            daughterp->AddSiteToMoments(xx,yy);
+            daughterp->IncrementArea();
+            daughterp->IncrementTargetArea();
+          }
+
+        }
+      }
+    }
+  }
+
+  if (par.H_perim)
+    MeasureCellPerimeters();
+
+  
+  bool reached_min = false;
+  while (!reached_min)
+  {
+    vector<bool> to_divide = divide_vector();
+    for (int i = 0; i < to_divide.size(); ++i)
+    {
+      if (i < newsigma)
+      {
+        to_divide[i] = false;
+      }
+    }
+    DivideCells(to_divide);
+    MeasureCellSizes();
+    vector<Cell>::iterator c;
+    for ((c=cell->begin(), c++); c!=cell->end(); c++)
+    {
+      if (c->AliveP() && c->Sigma() >= newsigma)
+      {
+        c->SetTargetArea(par.cell_areas);
+        if (c->Area() < par.cell_areas)
+        {
+          reached_min = true;
+          break;
+        }
+      }
+    }  
+    for ((c=cell->begin(), c++); c!=cell->end(); c++)
+    {
+      if (c->AliveP() && c->Sigma() >= newsigma)
+      {
+        c->SetTargetArea(par.cell_areas);
+        c->SetEpithelial(true);
+      }
+    } 
+
+
+
+  }
+}
+
+
+
+
 struct vec2d
 {
   double x, y;
@@ -6067,6 +6168,11 @@ void CellularPotts::ColourCells(bool phase)
       // set the type of the cell based on network arrangement.
       c->set_ctype(set_type(ptype));// * c->getTau());
       // c->add_to_cycle();
+
+      if (c->IsEpithelia())
+      {
+        c->set_ctype(par.epithelial_colour);
+      }
     }
   }
 }

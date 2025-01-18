@@ -252,6 +252,9 @@ class Parameter {
   int sheetcol2;
   double mix_swaprate;
 
+  int epithelial_colour;
+  bool MakeEpithelia;
+
   bool do_voronoi;
 
   double J_stem;

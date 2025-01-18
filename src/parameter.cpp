@@ -89,8 +89,8 @@
     start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 200;
+    sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 300;
     mcs = 400000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -119,8 +119,8 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=1;
-    J_diff=9;
+    J_stem=3;
+    J_diff=11;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
@@ -167,7 +167,8 @@
     wetabove=true;
     
     // testing
-
+    epithelial_colour = 5;
+    MakeEpithelia=true;
 
     melting_adhesion = false;
     tip_max = 50;

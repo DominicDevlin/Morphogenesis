@@ -511,6 +511,8 @@ public:
 
   double ReturnShapeProportion();
 
+  void AddEpithelialLayer();
+
 
 
 
