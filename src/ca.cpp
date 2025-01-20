@@ -4799,6 +4799,20 @@ bool CellularPotts::WettingDepinned()
   }
 }
 
+int CellularPotts::CountEpithelial()
+{
+  int ccount{};
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP() && c->IsEpithelia() == true)
+    {
+      ++ccount;
+    }
+  }
+  return ccount;
+}
+
 
 void CellularPotts::AddEpithelialLayer()
 {
@@ -5988,7 +6002,7 @@ int CellularPotts::CountPhaseOnCells()
   vector<Cell>::iterator i;
   for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
   {
-    if (i->AliveP() && i->GetPhase()) 
+    if (i->AliveP() && i->GetPhase() && i->IsEpithelia() == false) 
     {
       amount++;
     }
@@ -9206,7 +9220,7 @@ bool CellularPotts::CheckAllConnected(double threshold)
   vector<Cell>::iterator c;
   for ( (c = cell->begin(), c++); c != cell->end(); c++) 
   {
-    if (c->AliveP())
+    if (c->AliveP() && c->IsEpithelia() == false)
     {
       unordered_set<int> tempcon{};
       int id = c->Sigma();
@@ -9222,7 +9236,7 @@ bool CellularPotts::CheckAllConnected(double threshold)
             {
               xp = x + nx[i];
               yp = y + ny[i];
-              if (sigma[xp][yp] > 0 && sigma[xp][yp] != id)
+              if (sigma[xp][yp] > 0 && sigma[xp][yp] != id && (*cell)[sigma[xp][yp]].IsEpithelia() == false)
                 tempcon.emplace(sigma[xp][yp]);
             }
           }
@@ -9287,16 +9301,18 @@ bool CellularPotts::CheckAllConnected(double threshold)
     }
   }
 
+  int cbl_cells = CountCells() - CountEpithelial();
+
   if (threshold>0.99)
   {
-    if ((int)MaxConnections.size() == CountCells())
+    if ((int)MaxConnections.size() == cbl_cells)
       return true;
     else
       return false;
   }
   else
   {
-    double mc = double(MaxConnections.size()) / double(CountCells());
+    double mc = double(MaxConnections.size()) / double(cbl_cells);
     if (mc > threshold)
       return true;
     else

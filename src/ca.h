@@ -516,6 +516,8 @@ public:
 
   void AddEpithelialLayer();
 
+  int CountEpithelial();
+
 
 
 
