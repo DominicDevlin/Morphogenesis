@@ -314,12 +314,23 @@ double Cell::EnergyDifference(Cell &cell2, bool phase, double Jstemdiff)
   else
   {
     // cout << "3: " << PhaseJ(cell2.GetPhase(), Jstemdiff) << endl;
-    return PhaseJ(cell2.GetPhase(), Jstemdiff);
+    return PhaseJ(cell2.GetPhase(), Jstemdiff, cell2.epithelial);
   }
 }
 
-double Cell::PhaseJ(bool phase, double Jstemdiff)
+double Cell::PhaseJ(bool &phase, double &Jstemdiff, bool &epith)
 {
+
+  if (epithelial && epith)
+  {
+    return par.epiJ;
+  }
+
+  if (epithelial || epith)
+  {
+    return par.epiJelse;
+  }
+
   if (phase && phase_state)
   {
     return par.J_stem;
@@ -336,7 +347,9 @@ double Cell::PhaseJ(bool phase, double Jstemdiff)
 
 double Cell::PhaseJwithMed()
 {
-  if (phase_state)
+  if (epithelial)
+    return par.epiM;
+  else if (phase_state)
     return par.J_med;
   else
     return par.J_med2;
@@ -344,7 +357,9 @@ double Cell::PhaseJwithMed()
 
 double Cell::phaseJfromMed()
 {
-  if (phase_state)
+  if (epithelial)
+    return par.epiM;
+  else if (phase_state)
     return par.J_med;
   else
     return par.J_med2;

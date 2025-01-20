@@ -158,6 +158,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       if (t == par.start_topping)
       {
         dishes[i].CPM->ToppingVoronoi(); 
+        if (par.MakeEpithelia)
+        {
+          dishes[i].CPM->AddEpithelialLayer();
+        }
       }      
       if (t == 1000)
       {
@@ -197,7 +201,11 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       if (t > par.start_topping)
       {
         dishes[i].CPM->SetCellCenters();
-        int check = dishes[i].CPM->ContactAngle();
+        int check{};
+        if (par.MakeEpithelia)
+          check = dishes[i].CPM->EpiContactAngle();
+        else
+          check = dishes[i].CPM->ContactAngle();
         if (check < 0)
         {
           bool check_shape = dishes[i].CPM->CheckShape();

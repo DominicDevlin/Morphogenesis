@@ -119,12 +119,12 @@
 
     // phase transition params;
     phase_evolution=true;
-    J_stem=3;
+    J_stem=2;
     J_diff=11;
     J_med=J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=J_diff;
+    J_stem_diff=20;//J_diff;
     // J_med=8;
     J_med2=J_med;//0.5*J_diff+0.5;
     add_cells = false;
@@ -137,6 +137,11 @@
     Vs_max = 0.398977; // 1;
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
+
+
+    epiJ=2;
+    epiJelse=J_med*2;
+    epiM=1;
     
     tension_params = false;
     if (tension_params)

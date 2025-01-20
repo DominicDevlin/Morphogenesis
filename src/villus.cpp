@@ -324,7 +324,10 @@ TIMESTEP {
       dish->CPM->RecordMasses();
       if (t > par.start_topping)
       {
-        dish->CPM->ContactAngle();
+        if (par.MakeEpithelia)
+          dish->CPM->EpiContactAngle();
+        else
+          dish->CPM->ContactAngle();
       }
     }
 

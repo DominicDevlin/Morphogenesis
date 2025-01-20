@@ -843,7 +843,7 @@ private:
 
   double CalculateJfromMed(vector<bool>& medp2);
 
-  double PhaseJ(bool phase, double Jstemdiff);
+  double PhaseJ(bool &phase, double &Jstemdiff, bool &epith);
 
   double PhaseJwithMed();
 
@@ -1334,6 +1334,8 @@ protected:
   int sigma; // cell identity, 0 if medium
   int tau; // Cell type, when dynamicJ's are not used
 
+  bool epithelial=false;
+
   // Two dimensional (square) array of ints, containing the J's.
   double length; // length of the cell;
   double target_length;
@@ -1456,7 +1458,7 @@ protected:
   int area;
   int target_area;
 
-  bool epithelial=false;
+  
 
   double v[2];
   int n_copies; // number of expansions of this cell

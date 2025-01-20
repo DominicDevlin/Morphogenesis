@@ -504,6 +504,9 @@ public:
 
   int ContactAngle();
 
+  int EpiContactAngle();
+
+
   double GetContactAngles();
   vector<double> tmp_angles;
 

@@ -254,6 +254,10 @@ class Parameter {
 
   int epithelial_colour;
   bool MakeEpithelia;
+  double epiJ;
+  double epiJelse;
+  double epiM;
+
 
   bool do_voronoi;
 

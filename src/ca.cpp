@@ -4811,7 +4811,6 @@ void CellularPotts::AddEpithelialLayer()
   Cell *daughterp = new Cell(*(motherp->owner));
   daughterp->CellBirth(*motherp);
   cell->push_back(*daughterp);
-  daughterp->SetEpithelial(true);
   int newsigma = daughterp->Sigma();
 
   int radius = par.ball_radius;
@@ -4833,19 +4832,19 @@ void CellularPotts::AddEpithelialLayer()
   {
     int x = hitpoint.first;
     int y = hitpoint.second;
-    int radiuss = 10;
+    int radiuss = 200;
     for (int xx = x - radiuss; xx <= x + radiuss; ++xx )
     {
       for (int yy = y - radiuss; yy <= y + radiuss; ++yy )
       {
-        if (xx < sizex-1 && yy < sizey-1 && yy > 1 && xx > 1)
+        if (xx < sizex-1 && yy < sizey-1 && yy > 0 && xx > 0)
         {
           if (sigma[xx][yy] == 0 )
           {
             sigma[xx][yy] = newsigma;
-            daughterp->AddSiteToMoments(xx,yy);
-            daughterp->IncrementArea();
-            daughterp->IncrementTargetArea();
+            cell->back().AddSiteToMoments(xx,yy);
+            cell->back().IncrementArea();
+            cell->back().IncrementTargetArea();
           }
 
         }
@@ -4860,10 +4859,17 @@ void CellularPotts::AddEpithelialLayer()
   bool reached_min = false;
   while (!reached_min)
   {
+    int n_divided =0;
     vector<bool> to_divide = divide_vector();
     for (int i = 0; i < to_divide.size(); ++i)
     {
-      if (i < newsigma)
+      // cout << "celln\t" << i << " has area: " << cell->at(i).Area() << endl;
+      if (i >= newsigma && cell->at(i).Area() > par.cell_areas)
+      {
+        to_divide[i] = true;
+        ++n_divided;
+      }
+      else
       {
         to_divide[i] = false;
       }
@@ -4871,28 +4877,33 @@ void CellularPotts::AddEpithelialLayer()
     DivideCells(to_divide);
     MeasureCellSizes();
     vector<Cell>::iterator c;
+
+    // for ((c=cell->begin(), c++); c!=cell->end(); c++)
+    // {
+    //   if (c->AliveP() && c->Sigma() >= newsigma)
+    //   {
+    //     c->SetTargetArea(par.cell_areas);
+    //     if (c->Area() < par.cell_areas)
+    //     {
+    //       reached_min = true;
+    //       break;
+    //     }
+    //   }
+    // }  
     for ((c=cell->begin(), c++); c!=cell->end(); c++)
     {
       if (c->AliveP() && c->Sigma() >= newsigma)
       {
-        c->SetTargetArea(par.cell_areas);
-        if (c->Area() < par.cell_areas)
-        {
-          reached_min = true;
-          break;
-        }
-      }
-    }  
-    for ((c=cell->begin(), c++); c!=cell->end(); c++)
-    {
-      if (c->AliveP() && c->Sigma() >= newsigma)
-      {
-        c->SetTargetArea(par.cell_areas);
+        c->SetTargetArea(c->Area());
         c->SetEpithelial(true);
+        c->TransformPhase(true);
       }
     } 
 
-
+    if (n_divided==0)
+    {
+      break;
+    }
 
   }
 }
@@ -5616,6 +5627,10 @@ void CellularPotts::update_phase_network(int tsteps)
   {
     if (c->AliveP())
     {
+      if (c->IsEpithelia())
+      {
+        continue;
+      }
       vector<double>& genes = c->get_genes();
       vector<double>& diffusers = c->get_diffusers(); 
 
@@ -7397,10 +7412,6 @@ map<int, int> CellularPotts::get_AdultTypes()
 }
 
 
-
-
-
-
 int CellularPotts::ContactAngle()
 {
   vector<int> PhaseContactCells{};
@@ -7611,6 +7622,227 @@ int CellularPotts::ContactAngle()
   return 0;
 
 }
+
+
+int CellularPotts::EpiContactAngle()
+{
+  vector<int> PhaseContactCells{};
+  // used to define left and right contact angle;
+  vector<int> ContactPoints{};
+
+  for (int x = 1; x < sizex-1; ++ x)
+  {
+    for (int y = 1; y < sizey-1; ++y)
+    {
+      int sig = sigma[x][y];
+      if (cell->at(sig).IsEpithelia() == false)
+      {
+        if (cell->at(sig).GetPhase() == 1)
+        {
+          bool encountered_med=false;
+          bool encountered_diff=false;
+          for (int i = 1;i<=nbh_level[2];++i)
+          {
+            int xp = x + nx[i];
+            int yp = y + ny[i];
+            int nbhsig = sigma[xp][yp];
+            if (cell->at(nbhsig).IsEpithelia() == true && encountered_med == false)
+            {
+              encountered_med = true;
+            }
+            if (sigma[xp][yp] != sig && cell->at(nbhsig).IsEpithelia() == false && encountered_diff == false)
+            {
+              if ((*cell)[sigma[xp][yp]].GetPhase() == 0)
+              {
+                encountered_diff = true;
+              }
+            }
+            if (encountered_med == true && encountered_diff == true)
+            {
+              if (find(PhaseContactCells.begin(), PhaseContactCells.end(), sig) == PhaseContactCells.end())
+              {
+                // cout << sig << '\t' << x << endl;
+                PhaseContactCells.push_back(sig);
+                ContactPoints.push_back(x);
+              }
+
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (PhaseContactCells.size() != 2)
+  {
+    if (PhaseContactCells.size() == 0)
+    {
+      return -1;
+    }
+    // cerr << "Wrong number of contact points.\n";  
+    return 0;
+  }
+  int sig1 = *PhaseContactCells.begin();
+  int sig2 = *std::prev(PhaseContactCells.end());
+
+  int pos1 = *ContactPoints.begin();
+  int pos2 = *std::prev(ContactPoints.end());
+
+
+
+  if (pos1 > pos2)
+  {
+    swap(sig1, sig2);
+    swap(pos1, pos2);
+    
+  }
+
+  cellPoint cell1 = {(*cell)[sig1].get_xcen(), (*cell)[sig1].get_ycen()};
+  cellPoint cell2 = {(*cell)[sig2].get_xcen(), (*cell)[sig2].get_ycen()};
+
+
+  // find nearest neighbour that is in contact with the medium.
+  cellPoint nbh1;
+  cellPoint nbh2;
+
+  int **ns = SearchNeighbours();
+
+  int med_nbhs1 = 0;
+  int med_nbhs2 = 0;
+  int j = 0;
+  while (ns[sig1][j] >= 0)
+  {
+    int sig_check = ns[sig1][j];
+    int k = 0;
+    while (ns[sig_check][k] >= 0)
+    {
+      if ((*cell)[sig_check].GetPhase() == true && (*cell)[sig_check].IsEpithelia() == false)
+      {
+        // if we find medium
+        if ((*cell)[ns[sig_check][k]].IsEpithelia() == true)
+        {
+          if (med_nbhs1 > 0)
+          {
+            ++med_nbhs1;
+            break;
+          }
+          nbh1.x = (*cell)[sig_check].get_xcen();
+          nbh1.y = (*cell)[sig_check].get_ycen();
+          ++med_nbhs1;
+          break;
+        }
+      }
+      ++k;
+    }
+    if (j > 20)
+      break;
+    ++j;
+  }
+  
+  j = 0;
+  while (ns[sig2][j] >= 0)
+  {
+    int sig_check = ns[sig2][j];
+    int k = 0;
+    // cout << "cell: " << sig_check << " has neighbours: ";
+    while (ns[sig_check][k] >= 0)
+    {
+      if ((*cell)[sig_check].GetPhase() == true && (*cell)[sig_check].IsEpithelia() == false)
+      {
+        // if we find medium
+        if ((*cell)[ns[sig_check][k]].IsEpithelia() == true)
+        {
+          if (med_nbhs2 > 0)
+          {
+            ++med_nbhs2;
+            break;
+          }
+          nbh2.x = (*cell)[sig_check].get_xcen();
+          nbh2.y = (*cell)[sig_check].get_ycen();
+          ++med_nbhs2;
+          break;
+        }
+      }
+      ++k;
+    }
+    if (j > 20)
+      break;
+    ++j;
+  }
+  // cout << med_nbhs1 << '\t' << med_nbhs2 << endl;
+  // if (med_nbhs1 > 1 || med_nbhs2 > 1)
+  // {
+  //   cout << "INHERE" << '\t' << med_nbhs1 << '\t' << med_nbhs2 << endl;
+  //   free(ns[0]);
+  //   free(ns);
+  //   return -1;
+  // }
+
+  if (med_nbhs1 == 0 && med_nbhs2 == 0)
+  {
+    // cout << "INHERE" << '\t' << med_nbhs1 << '\t' << med_nbhs2 << endl;
+    free(ns[0]);
+    free(ns);
+    return 0;    
+  }
+
+  // cout << "left side x: " << nbh1.x << '\t' << cell1.x << 
+  // "\n left side y: " << nbh1.y << '\t' << cell1.y << endl;
+
+
+  // cout << "left side x: " << nbh2.x << '\t' << cell2.x << 
+  // "\n left side y: " << nbh2.y << '\t' << cell2.y << endl;
+
+  // cout << "med neighbours: " << med_nbhs1 << '\t' << med_nbhs2 << endl;
+
+  cellPoint leftref = {1.,0.};
+  cellPoint rightref = {-1.,0.};
+
+  cellPoint leftvec = {nbh1.x - cell1.x, nbh1.y - cell1.y};
+  cellPoint rightvec = {nbh2.x - cell2.x, nbh2.y - cell2.y};
+
+  double dp1 = GetdotProduct(leftref, leftvec);
+  double cross1 = leftref.x * leftvec.y - leftref.y * leftvec.x ;
+  double dp2 = GetdotProduct(rightref, rightvec);
+  double cross2 = rightref.x * rightvec.y - rightref.y * rightvec.x ;
+
+  double angle1 = atan2(cross1, dp1);
+  double angle2 = atan2(cross2, dp2);
+
+  if (angle1 < 0) angle1 += 2*M_PI;
+  if (angle1 > M_PI) angle1 = 2*M_PI - angle1;
+
+  if (angle2 < 0) angle2 += 2*M_PI;
+  if (angle2 > M_PI) angle2 = 2*M_PI - angle2;
+  // cout << "left side x: " << cell1.x << '\t' << nbh1.x << endl;
+  // cout << "left side y: " << cell1.y << '\t' << nbh1.y << endl;
+  // cout << "right side x: " << cell2.x << '\t' << nbh2.x << endl;
+  // cout << "right side y: " << cell2.y << '\t' << nbh2.y << endl;
+
+  tmp_angles.push_back(angle1);
+
+  tmp_angles.push_back(angle2);
+
+  // cout << "ANGLES: " << angle1 << '\t' << angle2 << endl;
+
+  if (tmp_angles.size() > 10000)
+  {
+    tmp_angles.clear();
+  }
+  free(ns[0]);
+  free(ns);
+
+  return 0;
+
+}
+
+
+
+
+
+
+
+
 
  double CellularPotts::GetContactAngles()
 {
