@@ -193,8 +193,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         } 
       }
 
-      cout << t << endl;
-
       if (par.velocities && t % 1 == 0)
       {
         dishes[i].CPM->RecordMasses(true);
