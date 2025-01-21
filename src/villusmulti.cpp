@@ -360,7 +360,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = true;
+  par.pics_for_opt = false;
 
 #ifdef QTGRAPHICS
   {
@@ -388,9 +388,9 @@ int main(int argc, char *argv[])
   par.begin_network=2000;
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 12000;
+  par.mcs = 40000;
   par.sheet_hex=false;
-  par.n_orgs = 2;
+  par.n_orgs = 120;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -412,25 +412,35 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
 
-  par.gamma_lm = 1;
-  par.gamma_sl = 1;
+  par.gamma_lm = 7;
+  par.gamma_sl = 7;
 
-  while (par.gamma_lm < 12.1)
+  while (par.gamma_lm < 14.1)
   {
-    while (par.gamma_sl < 12.1)
+    while (par.gamma_sl < 14.1)
     {
       par.J_stem = 2;
       par.J_med = par.gamma_lm + 1;
       par.J_med2 = par.J_med;
       par.J_stem_diff = 1.75 + par.gamma_lm + par.gamma_sl;
       par.J_diff = 2 * par.gamma_lm + 1.5;
-      process_population(networks);
-      par.gamma_sl += 0.5;
       if (par.MakeEpithelia)
       {
+        if (par.gamma_lm < 7 || par.gamma_sl < 7)
+        {
+          cerr << "wrong gamma vals for epi\n" << endl;
+          break;
+        }
         par.epiJ=2;
-        par.epiJelse=par.J_med*2;   
+        par.epiJelse = par.gamma_lm - 2;
+        par.J_stem_diff = (par.gamma_lm/2.) + par.gamma_sl + 1 - (3.25/2);
+        par.J_diff = par.gamma_lm - 3.25;
       }
+
+
+      process_population(networks);
+      par.gamma_sl += 0.5;
+
     }
     par.gamma_sl = 0.;
     par.gamma_lm += 0.5;

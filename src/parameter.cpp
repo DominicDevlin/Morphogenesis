@@ -120,13 +120,13 @@
     // phase transition params;
     phase_evolution=true;
     J_stem=2;
-    J_diff=32;
-    J_med=4;//J_diff/2+0.25;
+    J_diff=11.5;
+    J_med=6;//J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=14;//J_diff;
+    J_stem_diff=11.75;//J_diff;
     // J_med=8;
-    J_med2=28;//J_med;//0.5*J_diff+0.5;
+    J_med2=J_med;//0.5*J_diff+0.5;
     add_cells = false;
     cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
@@ -140,12 +140,12 @@
 
     // testing
     epithelial_colour = 5;
-    MakeEpithelia=false;
+    MakeEpithelia=true;
     epiJ=2;
-    epiJelse=J_med*2;
+    epiJelse=J_med;
     epiM=1;
     
-    tension_params = false;
+    tension_params = true;
     if (tension_params)
     {
       gamma_lm = 2.5;
@@ -156,6 +156,17 @@
       J_stem_diff = 1.75 + gamma_lm + gamma_sl;
       J_diff = 2 * gamma_lm + 1.5;
     }
+    if (tension_params && MakeEpithelia)
+    {
+      gamma_lm = 12;
+      gamma_sl = 12;
+      J_stem = 2;
+      epiJ = 2;
+      epiJelse=gamma_lm - 2;
+      J_stem_diff = gamma_lm/2. + gamma_sl + 1 - (3.25/2);
+      J_diff = gamma_lm - 3.25;
+    }
+
     start_topping = 100;
 
 
