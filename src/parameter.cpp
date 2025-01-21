@@ -120,13 +120,13 @@
     // phase transition params;
     phase_evolution=true;
     J_stem=2;
-    J_diff=11;
-    J_med=J_diff/2+0.25;
+    J_diff=32;
+    J_med=4;//J_diff/2+0.25;
     if (J_stem > J_med)
       J_med = J_stem;
-    J_stem_diff=20;//J_diff;
+    J_stem_diff=14;//J_diff;
     // J_med=8;
-    J_med2=J_med;//0.5*J_diff+0.5;
+    J_med2=28;//J_med;//0.5*J_diff+0.5;
     add_cells = false;
     cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
@@ -138,7 +138,9 @@
     Vd_max = 0; // 1; 
     addition_distance = sqrt(cell_areas / M_PI);
 
-
+    // testing
+    epithelial_colour = 5;
+    MakeEpithelia=false;
     epiJ=2;
     epiJelse=J_med*2;
     epiM=1;
@@ -171,9 +173,7 @@
     ball_radius=54;
     wetabove=true;
     
-    // testing
-    epithelial_colour = 5;
-    MakeEpithelia=true;
+
 
     melting_adhesion = false;
     tip_max = 50;
