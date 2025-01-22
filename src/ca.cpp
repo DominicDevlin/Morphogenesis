@@ -7869,14 +7869,7 @@ int CellularPotts::EpiContactAngle()
 }
 
 
-
-
-
-
-
-
-
- double CellularPotts::GetContactAngles()
+double CellularPotts::GetContactAngles()
 {
   // average over angles
   double avg = std::accumulate(tmp_angles.begin(), tmp_angles.end(), 0.0);
@@ -8018,6 +8011,125 @@ double CellularPotts::NeighbourExchangeRate()
   return percent_swapped;
 
 }
+
+
+
+int CellularPotts::MediumExchangeRate()
+{
+  if (previous_neighbours.size() == 0)
+  {
+    old_nbhs = SearchNeighbours();
+    old_cell_count = cell->size();
+    return -1;
+  }
+
+  int** new_nbhs = SearchNeighbours();
+
+  int i = 1;
+  int n_cells = cell->size();
+
+  int counter=0;
+
+  int n_swapped_neighbours=0;
+
+  while (i < n_cells)
+  {
+    if (i >= old_cell_count)
+      break;
+    vector<int> curr_nbhs;
+    int j = 0;
+    if (!(*cell)[i].GetPhase())
+    {
+      ++i;
+      continue;
+    }
+      
+
+    while (new_nbhs[i][j] >= 0)
+    {
+      if (new_nbhs[i][j] == 0)
+      {
+        j = 100;
+        break;
+      }
+      else
+      {
+        if ((*cell)[new_nbhs[i][j]].GetPhase())
+          curr_nbhs.push_back(new_nbhs[i][j]);
+      }
+      ++j;
+    }
+    if (j > 50)
+    {
+      ++i;
+      continue;
+    }
+
+    // now need to check old nbhs
+    j = 0;
+    vector<int> prev_nbhs;
+    while (old_nbhs[i][j] >= 0)
+    {
+      if (old_nbhs[i][j] == 0)
+      {
+        j = 100;
+        break;
+      }
+      else
+      {
+        if ((*cell)[old_nbhs[i][j]].GetPhase())
+          prev_nbhs.push_back(old_nbhs[i][j]);
+      }  
+      ++j;    
+    }
+
+    if (j > 50)
+    {
+      ++i;
+      continue;
+    }
+    
+    ++counter;
+    bool checkequal = areVectorsEqual(curr_nbhs, prev_nbhs);
+    if (!checkequal)
+      ++n_swapped_neighbours;  
+
+    ++i;
+  }
+
+
+  free(old_nbhs[0]);
+  free(old_nbhs);
+  old_nbhs=0;
+
+  // cout << "neighbours swapped and total: " << n_swapped_neighbours << '\t' << counter << endl;
+  old_nbhs=(int **)malloc((cell->size()+1)*sizeof(int *));
+  if (old_nbhs==NULL) 
+    MemoryWarning();
+  
+  old_nbhs[0]=(int *)malloc((cell->size()+1)*(cell->size()+1)*sizeof(int));
+  if (old_nbhs[0]==NULL)
+    MemoryWarning();
+  
+  for (i=1;i<(int)cell->size()+1;i++)
+    old_nbhs[i]=old_nbhs[i-1]+(cell->size()+1);
+  
+  for (i=0;i<((int)cell->size()+1)*((int)cell->size()+1);i++)
+    old_nbhs[0][i]=new_nbhs[0][i];  
+
+  free(new_nbhs[0]);
+  free(new_nbhs);
+
+  if (counter == 0)
+    return 0;
+  
+  double percent_swapped = double(n_swapped_neighbours) / double(counter);
+  return percent_swapped;
+}
+
+
+
+
 
 
 

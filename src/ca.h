@@ -518,6 +518,7 @@ public:
 
   int CountEpithelial();
 
+  int MediumExchangeRate();
 
 
 
@@ -802,7 +803,8 @@ protected:
   int **outside;
 
   int **old_nbhs;
-  int old_cell_count=0;
+
+  vector<int> previous_neighbours;
 
 
   std::map<int, std::set< std::pair<int, int>>> cellVolumeList;
