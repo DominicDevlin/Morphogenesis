@@ -312,7 +312,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     cout << "Directory created." << endl;
 
   ostringstream stream;
-  stream << fixed << setprecision(2) << par.gamma_lm << '-' << par.gamma_sl; // Setting precision to 2 decimal points
+  stream << fixed << setprecision(2) << par.gamma_hm << '-' << par.gamma_hl; // Setting precision to 2 decimal points
   string formatted_value = stream.str();
   double sum_heights;
   double square_heights;
@@ -340,7 +340,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << par.gamma_lm << '\t' << par.gamma_sl << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
+  outfile << par.gamma_hm << '\t' << par.gamma_hl << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
   outfile.close();
 
   
@@ -412,38 +412,40 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
 
-  par.gamma_lm = 7;
-  par.gamma_sl = 7;
+  par.gamma_hm = 7;
+  par.gamma_hl = 7;
 
-  while (par.gamma_lm < 14.1)
+  while (par.gamma_hm < 14.1)
   {
-    while (par.gamma_sl < 14.1)
+    while (par.gamma_hl < 14.1)
     {
       par.J_stem = 2;
-      par.J_med = par.gamma_lm + 1;
+      par.J_med = par.gamma_hm + 1;
       par.J_med2 = par.J_med;
-      par.J_stem_diff = 1.75 + par.gamma_lm + par.gamma_sl;
-      par.J_diff = 2 * par.gamma_lm + 1.5;
+      par.J_stem_diff = 1.75 + par.gamma_hm + par.gamma_hl;
+      par.J_diff = 2 * par.gamma_hm + 1.5;
       if (par.MakeEpithelia)
       {
-        if (par.gamma_lm < 7 || par.gamma_sl < 7)
+        if (par.gamma_hm < 7 || par.gamma_hl < 7)
         {
           cerr << "wrong gamma vals for epi\n" << endl;
           break;
         }
         par.epiJ=2;
-        par.epiJelse = par.gamma_lm - 2;
-        par.J_stem_diff = (par.gamma_lm/2.) + par.gamma_sl + 1 - (3.25/2);
-        par.J_diff = par.gamma_lm - 3.25;
+        par.epiJelse = par.gamma_hm - 2;
+        par.J_stem_diff = (par.gamma_hm/2.) + par.gamma_hl + 1 - (3.25/2);
+        par.J_diff = par.gamma_hm - 3.25;
       }
 
 
       process_population(networks);
-      par.gamma_sl += 0.5;
+      par.gamma_hl += 0.5;
 
     }
-    par.gamma_sl = 0.;
-    par.gamma_lm += 0.5;
+    par.gamma_hl = 1.;
+    if (par.MakeEpithelia)
+      par.gamma_hl = 7.;
+    par.gamma_hm += 0.5;
   }
 
   

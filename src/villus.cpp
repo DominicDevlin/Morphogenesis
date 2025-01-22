@@ -277,7 +277,7 @@ TIMESTEP {
     }
 
     bool GRN = true;
-    par.begin_network = 2000;
+    par.begin_network = par.mcs;
 
     static Info *info=new Info(*dish, *this);
     // record initial expression state. This occurs before any time step updates. 

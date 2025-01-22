@@ -140,7 +140,7 @@
 
     // testing
     epithelial_colour = 5;
-    MakeEpithelia=true;
+    MakeEpithelia=false;
     epiJ=2;
     epiJelse=J_med;
     epiM=1;
@@ -148,23 +148,23 @@
     tension_params = true;
     if (tension_params)
     {
-      gamma_lm = 2.5;
-      gamma_sl = 5.5;
+      gamma_hm = 10.0;
+      gamma_hl = 6.0;
       J_stem = 2;
-      J_med = gamma_lm + 1;
+      J_med = gamma_hm + 1;
       J_med2 = J_med;
-      J_stem_diff = 1.75 + gamma_lm + gamma_sl;
-      J_diff = 2 * gamma_lm + 1.5;
+      J_stem_diff = 1.75 + gamma_hm + gamma_hl;
+      J_diff = 2 * gamma_hm + 1.5;
     }
     if (tension_params && MakeEpithelia)
     {
-      gamma_lm = 12;
-      gamma_sl = 12;
+      gamma_hm = 12;
+      gamma_hl = 12;
       J_stem = 2;
       epiJ = 2;
-      epiJelse=gamma_lm - 2;
-      J_stem_diff = gamma_lm/2. + gamma_sl + 1 - (3.25/2);
-      J_diff = gamma_lm - 3.25;
+      epiJelse=gamma_hm - 2;
+      J_stem_diff = gamma_hm/2. + gamma_hl + 1 - (3.25/2);
+      J_diff = gamma_hm - 3.25;
     }
 
     start_topping = 100;

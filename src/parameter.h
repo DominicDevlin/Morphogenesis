@@ -149,8 +149,8 @@ class Parameter {
 
   int ball_radius;
 
-  double gamma_lm;
-  double gamma_sl;
+  double gamma_hm;
+  double gamma_hl;
   int linear_increase;
   bool tension_params; 
   int start_topping;
