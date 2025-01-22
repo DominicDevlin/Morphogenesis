@@ -140,7 +140,7 @@
 
     // testing
     epithelial_colour = 5;
-    MakeEpithelia=false;
+    MakeEpithelia=true;
     epiJ=2;
     epiJelse=J_med;
     epiM=1;

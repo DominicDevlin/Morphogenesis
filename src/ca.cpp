@@ -3172,17 +3172,35 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift)
 int CellularPotts::ReturnHeight()
 {
   int max_height=0;
-  for (int y=1;y<sizey-1;y++)
-    for (int x=1;x<sizex-1;x++)
-    {
-      if (sigma[x][y] > 0)
+  if (par.MakeEpithelia)
+  {
+    for (int y=1;y<sizey-1;y++)
+      for (int x=1;x<sizex-1;x++)
       {
-        max_height = y;
-        y = sizey;
-        break;
+        if (sigma[x][y] > 0 && (*cell)[sigma[x][y]].IsEpithelia() == false)
+        {
+          max_height = y;
+          y = sizey;
+          break;
+        }
       }
-    }
+  }
+  else
+  {
+    for (int y=1;y<sizey-1;y++)
+      for (int x=1;x<sizex-1;x++)
+      {
+        if (sigma[x][y] > 0)
+        {
+          max_height = y;
+          y = sizey;
+          break;
+        }
+      }
+  }
+  
   return max_height;
+
 }
 
 
