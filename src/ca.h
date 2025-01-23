@@ -806,6 +806,8 @@ protected:
 
   vector<int> previous_neighbours;
 
+  int old_cell_count;
+
 
   std::map<int, std::set< std::pair<int, int>>> cellVolumeList;
   map<int, int> vlist;
