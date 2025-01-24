@@ -274,7 +274,7 @@ void PDE::increase_secretion(int t)
 {
   if (t > par.begin_network-500)
   {
-    isecr_rate[0] = 0.00275 + (t-par.begin_network+500) * 0.00000006;
+    isecr_rate[0] = par.increase_start_secr + (t-par.begin_network+500) * 0.00000006;
   }
 }
 

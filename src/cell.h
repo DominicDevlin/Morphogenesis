@@ -730,6 +730,10 @@ private:
   inline void SetEpithelial(bool setter)
   {
     epithelial = setter;
+    for (auto &cc : diff_genes)
+    {
+      cc = 0;
+    }
   }
 
   inline bool IsEpithelia(void)

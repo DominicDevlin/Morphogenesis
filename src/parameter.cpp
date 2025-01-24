@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -132,6 +132,7 @@
     secr_rate = new double[n_diffusers];
     secr_rate[0] = 0.00255; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     linear_increase=true;
+    increase_start_secr = 0.00275;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
@@ -144,12 +145,15 @@
     epiJ=2;
     epiJelse=J_med;
     epiM=1;
+
+    makesemicircle=false;
     
     tension_params = true;
     if (tension_params)
     {
-      gamma_hm = 9.0;
-      gamma_hl = 7.0;
+
+      gamma_hm = 6;
+      gamma_hl = 20.0;
       J_stem = 2;
       J_med = gamma_hm + 1;
       J_med2 = J_med;
@@ -181,7 +185,7 @@
     dewet_cell_depth=5;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
-    ball_radius=54;
+    ball_radius=80;
     wetabove=true;
     
 

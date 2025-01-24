@@ -276,8 +276,8 @@ TIMESTEP {
       
     }
 
-    bool GRN = true;
-    par.begin_network = 2000;
+    bool GRN = false;
+    par.begin_network = 100;
 
     static Info *info=new Info(*dish, *this);
     // record initial expression state. This occurs before any time step updates. 
@@ -303,6 +303,15 @@ TIMESTEP {
       {
         dish->CPM->AddEpithelialLayer();
       }
+        if (t > par.begin_network)
+          dish->CPM->StartWettingNetwork();
+
+    }
+
+    if (t % 1000 == 0)
+    {
+      double d = dish->CPM->NewDeviationFromCircle();
+      cout << "Deviation from circle is: " << d << endl;
     }
 
 
