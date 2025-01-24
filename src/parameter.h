@@ -152,8 +152,10 @@ class Parameter {
   double gamma_hm;
   double gamma_hl;
   int linear_increase;
+  double increase_start_secr;
   bool tension_params; 
   int start_topping;
+  bool makesemicircle;
 
   int coop_wtime;
   int coop_stime;

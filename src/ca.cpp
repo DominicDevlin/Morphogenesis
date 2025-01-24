@@ -3306,7 +3306,19 @@ void CellularPotts::ToppingVoronoi()
 
 
   }
-  
+  if (par.makesemicircle)
+  {
+    for (int x=1;x<sizex-1;x++)
+      for (int y=1;y<sizey-1;y++)
+      {
+        if ((*cell)[sigma[x][y]].GetPhase() == false)
+        {
+          sigma[x][y] = 0;
+        }
+      }
+  }
+
+
 
 }
 
