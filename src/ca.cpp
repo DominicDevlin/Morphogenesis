@@ -282,6 +282,8 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
   /* Compute energydifference *IF* the copying were to occur */
   sxy = sigma[x][y];
   sxyp = sigma[xp][yp];
+
+
     
   /* DH due to cell adhesion */
   for (i=1;i<=n_nb;i++) 
@@ -877,13 +879,26 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
         // dH_tally += D_H;
         // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
         //   cout << D_H << endl;
-
+        bool is_med_attempt = false;
+        if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
+        {
+          is_med_attempt = true;
+          ++medp_count;
+        }
+          
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
           if (par.H_perim)
             ConvertSpinPerim( x,y,xp,yp );
           else
+          {
             ConvertSpin( x,y,xp,yp );
+            if (is_med_attempt)
+            {
+              ++medp_success;
+            }
+          }
+            
         }
         //   if (par.recordcopies)
         //   {
@@ -8016,13 +8031,6 @@ double CellularPotts::NeighbourExchangeRate()
 
 int CellularPotts::MediumExchangeRate()
 {
-  if (previous_neighbours.size() == 0)
-  {
-    old_nbhs = SearchNeighbours();
-    old_cell_count = cell->size();
-    return -1;
-  }
-
   int** new_nbhs = SearchNeighbours();
 
   int i = 1;
@@ -8031,12 +8039,14 @@ int CellularPotts::MediumExchangeRate()
   int counter=0;
 
   int n_swapped_neighbours=0;
+  vector<int> med_nbhs{};
+
 
   while (i < n_cells)
   {
     if (i >= old_cell_count)
       break;
-    vector<int> curr_nbhs;
+    
     int j = 0;
     if (!(*cell)[i].GetPhase())
     {
@@ -8049,86 +8059,189 @@ int CellularPotts::MediumExchangeRate()
     {
       if (new_nbhs[i][j] == 0)
       {
+        med_nbhs.push_back(i);
         j = 100;
         break;
       }
-      else
+
+      if (new_nbhs[i][j] < 0)
       {
-        if ((*cell)[new_nbhs[i][j]].GetPhase())
-          curr_nbhs.push_back(new_nbhs[i][j]);
+        j = 100;
+        break;
       }
       ++j;
     }
-    if (j > 50)
-    {
-      ++i;
-      continue;
-    }
-
-    // now need to check old nbhs
-    j = 0;
-    vector<int> prev_nbhs;
-    while (old_nbhs[i][j] >= 0)
-    {
-      if (old_nbhs[i][j] == 0)
-      {
-        j = 100;
-        break;
-      }
-      else
-      {
-        if ((*cell)[old_nbhs[i][j]].GetPhase())
-          prev_nbhs.push_back(old_nbhs[i][j]);
-      }  
-      ++j;    
-    }
-
-    if (j > 50)
-    {
-      ++i;
-      continue;
-    }
-    
-    ++counter;
-    bool checkequal = areVectorsEqual(curr_nbhs, prev_nbhs);
-    if (!checkequal)
-      ++n_swapped_neighbours;  
-
     ++i;
   }
-
-
-  free(old_nbhs[0]);
-  free(old_nbhs);
-  old_nbhs=0;
-
-  // cout << "neighbours swapped and total: " << n_swapped_neighbours << '\t' << counter << endl;
-  old_nbhs=(int **)malloc((cell->size()+1)*sizeof(int *));
-  if (old_nbhs==NULL) 
-    MemoryWarning();
-  
-  old_nbhs[0]=(int *)malloc((cell->size()+1)*(cell->size()+1)*sizeof(int));
-  if (old_nbhs[0]==NULL)
-    MemoryWarning();
-  
-  for (i=1;i<(int)cell->size()+1;i++)
-    old_nbhs[i]=old_nbhs[i-1]+(cell->size()+1);
-  
-  for (i=0;i<((int)cell->size()+1)*((int)cell->size()+1);i++)
-    old_nbhs[0][i]=new_nbhs[0][i];  
 
   free(new_nbhs[0]);
   free(new_nbhs);
 
-  if (counter == 0)
+  if (exchange_encounter == false)
+  {
+    exchange_encounter = true;
+    old_med_nbhs = med_nbhs;
     return 0;
-  
-  double percent_swapped = double(n_swapped_neighbours) / double(counter);
-  return percent_swapped;
+  }
+
+  unordered_set<int> olds(old_med_nbhs.begin(), old_med_nbhs.end());
+  unordered_set<int> news(med_nbhs.begin(), med_nbhs.end());
+  int newEntries = 0;
+  for (int num : med_nbhs) 
+  {
+    if (olds.find(num) == olds.end()) 
+    {
+        ++newEntries;
+    }
+  }
+
+  int oldNoLongerPresent = 0;
+  for (int num : old_med_nbhs) 
+  {
+    if (news.find(num) == news.end()) 
+    {
+        ++oldNoLongerPresent;
+    }
+  }
+  old_med_nbhs = med_nbhs;
+  cout << "new entries: " << newEntries << '\t' << "old no longer present: " << oldNoLongerPresent << endl;
+
+
+  return newEntries + oldNoLongerPresent;
 }
 
 
 
+double CellularPotts::avgMedMovement()
+{
+  vector<double> curr_xs{};
+  vector<double> curr_ys{};
+  vector<int> curr_sigmas{};
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP() && c->GetPhase())
+    {
+      curr_sigmas.push_back(c->Sigma());
+      double xcen = c->get_xcen();
+      double ycen = c->get_ycen();
+      curr_xs.push_back(xcen);
+      curr_ys.push_back(ycen);
+
+    }
+  }
+  
+
+  int** new_nbhs = SearchNeighbours();
+
+  int i = 1;
+  int n_cells = cell->size();
+
+  vector<int> med_nbhs{};
+
+  while (i < n_cells)
+  {
+    if (i >= old_cell_count)
+      break;
+    
+    int j = 0;
+    if (!(*cell)[i].GetPhase())
+    {
+      ++i;
+      continue;
+    }
+      
+
+    while (new_nbhs[i][j] >= 0)
+    {
+      if (new_nbhs[i][j] == 0)
+      {
+        med_nbhs.push_back(i);
+        j = 100;
+        break;
+      }
+
+      if (new_nbhs[i][j] < 0)
+      {
+        j = 100;
+        break;
+      }
+      ++j;
+    }
+    ++i;
+  }
+
+  // we assume cell C.O.M has been set. Need to compare to previous? Lets say every 10 MCS?
+  if (prev_sigmas.size() == 0)
+  {
+    prev_x_med = curr_xs;
+    prev_y_med = curr_ys;
+    prev_sigmas = curr_sigmas;
+    return 0;
+  }
+
+  double avg_dist{};
+
+  for (int i=0;i<med_nbhs.size();++i)
+  {
+    int indexnew{};
+    int indexold{};
+    auto it = std::find(curr_sigmas.begin(), curr_sigmas.end(), med_nbhs[i]);
+    if (it != curr_sigmas.end()) 
+    {
+       indexnew = std::distance(curr_sigmas.begin(), it);
+    }
+    else if (it == curr_sigmas.end())
+    {
+      cerr << "ERROR IN MED MOVEMENT CALCULATION\n";
+      return 0;
+    }
+
+    it = std::find(prev_sigmas.begin(), prev_sigmas.end(), med_nbhs[i]);
+    if (it != prev_sigmas.end()) 
+    {
+       indexold = std::distance(prev_sigmas.begin(), it);
+    }
+    else if (it == prev_sigmas.end())
+    {
+      cerr << "ERROR IN MED MOVEMENT CALCULATION\n";
+      return 0;
+    }
+
+    double xdiff = curr_xs[indexnew] - prev_x_med[indexold];
+    double ydiff = curr_ys[indexnew] - prev_y_med[indexold];
+    // cout << xdiff << '\t' << ydiff << endl;
+    double dist = sqrt(xdiff*xdiff + ydiff*ydiff);
+    avg_dist+= dist;
+
+  }
+
+  if (med_nbhs.size() > 0)
+  {
+    avg_dist /= med_nbhs.size();
+  }
+  else
+  {
+    avg_dist = 0;
+  }
+  prev_x_med = curr_xs;
+  prev_y_med = curr_ys;
+  prev_sigmas = curr_sigmas;
+
+  return avg_dist;
+}
+
+
+double CellularPotts::MedPSuccessRate()
+{
+  if (medp_count==0)
+  return 0;
+
+  double scr = double(medp_success)/double(medp_count);
+  medp_success = 0;
+  medp_count=0;
+  return scr;
+}
 
 
 

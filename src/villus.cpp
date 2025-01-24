@@ -277,7 +277,7 @@ TIMESTEP {
     }
 
     bool GRN = true;
-    par.begin_network = par.mcs;
+    par.begin_network = 2000;
 
     static Info *info=new Info(*dish, *this);
     // record initial expression state. This occurs before any time step updates. 
@@ -319,6 +319,13 @@ TIMESTEP {
       dish->CPM->MeasureCellPerimeters();
     }
 
+    if (t % 10 == 0)
+    {
+      // cout << "Distance is: " << dish->CPM->avgMedMovement() << endl;'
+      cout << dish->CPM->MedPSuccessRate() << endl;
+
+    }
+
     if (par.velocities)
     {
       dish->CPM->RecordMasses();
@@ -334,7 +341,6 @@ TIMESTEP {
     if (t > par.start_topping && t % par.measure_interval == 0)
     {
       double contacta = dish->CPM->GetContactAngles();   
-      cout << "angle is: " << contacta << endl;
     }
 
     if (GRN && t >= par.begin_network)

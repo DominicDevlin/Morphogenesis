@@ -520,7 +520,9 @@ public:
 
   int MediumExchangeRate();
 
+  double avgMedMovement();
 
+  double MedPSuccessRate();
 
 
 
@@ -803,9 +805,17 @@ protected:
   int **outside;
 
   int **old_nbhs;
+  int old_cell_count;
 
-  vector<int> previous_neighbours;
+  vector<int> old_med_nbhs;
+  bool exchange_encounter=false;
 
+  vector<double> prev_x_med;
+  vector<double> prev_y_med;
+  vector<int> prev_sigmas;
+
+  int medp_success=0;
+  int medp_count=0;
 
   std::map<int, std::set< std::pair<int, int>>> cellVolumeList;
   map<int, int> vlist;

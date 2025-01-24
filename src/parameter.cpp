@@ -140,7 +140,7 @@
 
     // testing
     epithelial_colour = 5;
-    MakeEpithelia=true;
+    MakeEpithelia=false;
     epiJ=2;
     epiJelse=J_med;
     epiM=1;
@@ -148,8 +148,8 @@
     tension_params = true;
     if (tension_params)
     {
-      gamma_hm = 10.0;
-      gamma_hl = 6.0;
+      gamma_hm = 14;
+      gamma_hl = 14;
       J_stem = 2;
       J_med = gamma_hm + 1;
       J_med2 = J_med;
