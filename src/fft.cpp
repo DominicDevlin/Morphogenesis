@@ -290,7 +290,7 @@ double fft::DeviationFromCircle()
 		dev += abs(max_r - rad);// rad;
 		++rad_count;
 	}
-	cout << "dev" << '\t' << rad_count << '\t' << dev / rad_count << endl;
+	// cout << "dev" << '\t' << rad_count << '\t' << dev / rad_count << endl;
 	double result = dev / double(rad_count);
 	return result;
 }

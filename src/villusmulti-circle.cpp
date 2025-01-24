@@ -176,10 +176,13 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
     dishes[i].CPM->AmoebaeMove(t);
 
-    if (t > 12000 && t % 400 == 0)
+    if (t > 8000 && t % 20 == 0)
     {
-      local_cirlce_devs += dishes[i].CPM->NewDeviationFromCircle();
+      double newval = dishes[i].CPM->NewDeviationFromCircle();
+      cout << newval << endl;
+      local_cirlce_devs += newval;
       ++circle_count;
+      
     }
 
 
@@ -206,6 +209,9 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       }
 
     }
+    cout << local_cirlce_devs << "\t" << circle_count << endl;
+    local_cirlce_devs /= circle_count;
+    circle_deviations[i] = local_cirlce_devs;
 
   }
 
@@ -216,10 +222,18 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 
 
+  double sum = std::accumulate(circle_deviations.begin(), circle_deviations.end(), 0.0);
+  double mean_circle = sum / circle_deviations.size();
+
+  double sq_sum = std::inner_product(circle_deviations.begin(), circle_deviations.end(), circle_deviations.begin(), 0.0);
+  double variance = sq_sum / circle_deviations.size() - mean_circle * mean_circle;
+
+
+
   ofstream outfile;
-  string infoname = par.data_file + "/info.txt";
+  string infoname = par.data_file + "/circle-info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << par.gamma_hm << '\t' << par.gamma_hl << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
+  outfile << par.gamma_hm << '\t' << mean_circle << '\t' << variance << endl;
   outfile.close();
 
   
@@ -262,14 +276,14 @@ int main(int argc, char *argv[])
   Parameter();
   par.measure_time_order_params=false;
   
-  par.mcs = 15000;
+  par.mcs = 10000;
   par.begin_network=par.mcs;
   par.start_topping=1000;
   par.phase_evolution = true;
   par.min_phase_cells=4;
   
   par.sheet_hex=false;
-  par.n_orgs = 20;
+  par.n_orgs = 16;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -277,7 +291,7 @@ int main(int argc, char *argv[])
 
 
   par.sizex=200;
-  par.sizey=300;
+  par.sizey=200;
 
   // typical wetting parameters used:
   par.sheet_depth=95;
@@ -291,9 +305,9 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
 
-  par.gamma_hm = 7;
+  par.gamma_hm = 0.5;
 
-  while (par.gamma_hm < 14.1)
+  while (par.gamma_hm < 20.1)
   {
 
     par.J_stem = 2;
