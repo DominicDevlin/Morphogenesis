@@ -132,7 +132,8 @@
     secr_rate = new double[n_diffusers];
     secr_rate[0] = 0.00255; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     linear_increase=true;
-    increase_start_secr = 0.00275;
+    increase_start_secr = 0.00275;//0.00275
+    increase_secr_mod = 0.00000006;//0.00000006
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;

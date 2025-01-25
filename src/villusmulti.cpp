@@ -418,9 +418,9 @@ int main(int argc, char *argv[])
   par.gamma_hm = 7;
   par.gamma_hl = 7;
 
-  while (par.gamma_hm < 14.1)
+  while (par.gamma_hm < 18.1)
   {
-    while (par.gamma_hl < 14.1)
+    while (par.gamma_hl < 18.1)
     {
       par.J_stem = 2;
       par.J_med = par.gamma_hm + 1;

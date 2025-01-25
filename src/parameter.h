@@ -153,6 +153,7 @@ class Parameter {
   double gamma_hl;
   int linear_increase;
   double increase_start_secr;
+  double increase_secr_mod;
   bool tension_params; 
   int start_topping;
   bool makesemicircle;
