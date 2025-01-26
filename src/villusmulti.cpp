@@ -396,6 +396,7 @@ int main(int argc, char *argv[])
   par.n_orgs = 120;
   par.do_voronoi = true;
   par.add_cells = false;
+  par.ball_radius=54;
 
   par.measure_interval = 20;
 

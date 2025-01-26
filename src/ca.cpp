@@ -3241,6 +3241,8 @@ void CellularPotts::ToppingVoronoi()
     cerr << "error in topping voronoi. No cells made previously\n";
   }
 
+  hit -= par.add_to_topping;
+
   // make a new cell.
 
   Cell *motherp=&((*cell)[1]);

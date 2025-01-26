@@ -156,6 +156,7 @@ class Parameter {
   double increase_secr_mod;
   bool tension_params; 
   int start_topping;
+  int add_to_topping;
   bool makesemicircle;
 
   int coop_wtime;

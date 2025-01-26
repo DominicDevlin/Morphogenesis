@@ -154,7 +154,7 @@
     {
 
       gamma_hm = 6;
-      gamma_hl = 20.0;
+      gamma_hl = 4.0;
       J_stem = 2;
       J_med = gamma_hm + 1;
       J_med2 = J_med;
@@ -172,7 +172,6 @@
       J_diff = gamma_hm - 3.25;
     }
 
-    start_topping = 100;
 
 
 
@@ -186,10 +185,11 @@
     dewet_cell_depth=5;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
-    ball_radius=80;
+    ball_radius=48;
+    add_to_topping=30;
     wetabove=true;
     
-
+    start_topping = 100;
 
     melting_adhesion = false;
     tip_max = 50;
