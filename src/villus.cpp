@@ -276,7 +276,7 @@ TIMESTEP {
       
     }
 
-    bool GRN = false;
+    bool GRN = true;
     par.begin_network = 100;
 
     static Info *info=new Info(*dish, *this);
@@ -328,12 +328,12 @@ TIMESTEP {
       dish->CPM->MeasureCellPerimeters();
     }
 
-    if (t % 10 == 0)
-    {
-      // cout << "Distance is: " << dish->CPM->avgMedMovement() << endl;'
-      cout << dish->CPM->MedPSuccessRate() << endl;
+    // if (t % 10 == 0)
+    // {
+    //   // cout << "Distance is: " << dish->CPM->avgMedMovement() << endl;'
+    //   /// cout << dish->CPM->MedPSuccessRate() << endl;
 
-    }
+    // }
 
     if (par.velocities)
     {
