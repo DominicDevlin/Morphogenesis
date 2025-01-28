@@ -132,8 +132,8 @@
     secr_rate = new double[n_diffusers];
     secr_rate[0] = 0.00255; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     linear_increase=true;
-    increase_start_secr = 0.00255;//0.00275
-    increase_secr_mod = 0.000000035;//0.00000006
+    increase_start_secr = 0.00275;
+    increase_secr_mod = 0.00000006;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
@@ -142,7 +142,7 @@
 
     // testing
     epithelial_colour = 5;
-    MakeEpithelia=true;
+    MakeEpithelia=false;
     epiJ=2;
     epiJelse=J_med;
     epiM=1;
@@ -185,8 +185,8 @@
     dewet_cell_depth=5;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
-    ball_radius=48;
-    add_to_topping=30;
+    ball_radius=54; // I used 48 and 30 for the equilibria test
+    add_to_topping=0;
     wetabove=true;
     
     start_topping = 100;

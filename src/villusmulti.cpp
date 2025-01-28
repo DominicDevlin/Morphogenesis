@@ -124,6 +124,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   int n_times_apart{};
 
+  bool do_single=true;
+  vector<vector<double>> dymheights(par.n_orgs);
+  vector<vector<double>> n_cells_left(par.n_orgs);
+
   vector<vector<double>> contact_angles(par.n_orgs);
   vector<int> starting_heights(par.n_orgs);
 
@@ -165,9 +169,14 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         if (t > par.begin_network)
           dishes[i].CPM->StartWettingNetwork();
       }      
-      if (t == 1000)
+      if (t == par.begin_network)
       {
         starting_heights[i] = dishes[i].CPM->ReturnHeight(); 
+      }
+
+      if (t == par.start_topping + 40)
+      {
+        dishes[i].CPM->ApoptoseDeadCells();
       }
 
       if (par.linear_increase)
@@ -225,6 +234,12 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       {
         double contacta = dishes[i].CPM->GetContactAngles();
         contact_angles[i].push_back(contacta);
+
+        if (do_single)
+        {
+          dymheights[i].push_back(dishes[i].CPM->ReturnHeight());
+          n_cells_left[i].push_back(dishes[i].CPM->CountPhaseOnCells());
+        }
       }
 
       
@@ -352,6 +367,11 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   string fname = par.data_file + "/contact.angle-" + formatted_value + ".dat";
   OutputColumnData(contact_angles, fname);
 
+  fname = par.data_file + "/heights-" + formatted_value + ".dat";
+  OutputColumnData(dymheights, fname);
+
+  fname = par.data_file + "/cells-" + formatted_value + ".dat";
+  OutputColumnData(n_cells_left, fname);
 
   delete[] dishes;
 
@@ -417,11 +437,11 @@ int main(int argc, char *argv[])
   }
 
   par.gamma_hm = 7;
-  par.gamma_hl = 7;
+  par.gamma_hl = 4;
 
-  while (par.gamma_hm < 18.1)
+  while (par.gamma_hm < 7.1)
   {
-    while (par.gamma_hl < 18.1)
+    while (par.gamma_hl < 10.1)
     {
       par.J_stem = 2;
       par.J_med = par.gamma_hm + 1;

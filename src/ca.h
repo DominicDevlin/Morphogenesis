@@ -524,6 +524,7 @@ public:
 
   double MedPSuccessRate();
 
+  void ApoptoseDeadCells();
 
 
   // inline double prop_success()

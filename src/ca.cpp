@@ -3302,6 +3302,10 @@ void CellularPotts::ToppingVoronoi()
       if (c->AliveP() && c->Sigma() >= newsigma)
       {
         c->SetTargetArea(par.cell_areas);
+        if (c->Area() == 0)
+        {
+          c->Apoptose();
+        }
       }
     } 
 
@@ -3325,6 +3329,39 @@ void CellularPotts::ToppingVoronoi()
 }
 
 
+
+void CellularPotts::ApoptoseDeadCells(void) {
+  
+  // Clean areas of all cells, including medium
+
+  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) {
+    c->area = 0;
+  }
+  
+  // calculate the area of the cells
+  for (int x=1;x<sizex-1;x++) {
+    for (int y=1;y<sizey-1;y++) {
+      if (sigma[x][y]) {
+	(*cell)[sigma[x][y]].IncrementArea();
+
+      }
+    }
+  }
+  
+  // set the actual area to the target area
+  {
+  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
+  {
+    if (c->Area() == 0)
+    {
+      cout << "Found dead cell/" << endl;
+      c->Apoptose();
+    }
+
+
+  }
+  }
+}
 
 
 
@@ -9462,9 +9499,12 @@ bool CellularPotts::RemoveUnconnectedCells(int max_cells)
 
   return true;
 
-  
-
 }
+
+
+
+
+
 
 
 //IMPORTANT METHOD:  Function to ensure all cells are connected indirectly to all other cells on lattice.  
