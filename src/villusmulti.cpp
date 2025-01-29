@@ -367,11 +367,15 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   string fname = par.data_file + "/contact.angle-" + formatted_value + ".dat";
   OutputColumnData(contact_angles, fname);
 
-  fname = par.data_file + "/heights-" + formatted_value + ".dat";
-  OutputColumnData(dymheights, fname);
+  if (do_single)
+  {
+    fname = par.data_file + "/heights-" + formatted_value + ".dat";
+    OutputColumnData(dymheights, fname);
 
-  fname = par.data_file + "/cells-" + formatted_value + ".dat";
-  OutputColumnData(n_cells_left, fname);
+    fname = par.data_file + "/cells-" + formatted_value + ".dat";
+    OutputColumnData(n_cells_left, fname);
+  }
+
 
   delete[] dishes;
 
@@ -436,12 +440,12 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
 
-  par.gamma_hm = 7;
-  par.gamma_hl = 4;
+  par.gamma_hm = 1;
+  par.gamma_hl = 1;
 
-  while (par.gamma_hm < 7.1)
+  while (par.gamma_hm < 12.1)
   {
-    while (par.gamma_hl < 10.1)
+    while (par.gamma_hl < 12.1)
     {
       par.J_stem = 2;
       par.J_med = par.gamma_hm + 1;
@@ -450,15 +454,8 @@ int main(int argc, char *argv[])
       par.J_diff = 2 * par.gamma_hm + 1.5;
       if (par.MakeEpithelia)
       {
-        if (par.gamma_hm < 7 || par.gamma_hl < 7)
-        {
-          cerr << "wrong gamma vals for epi\n" << endl;
-          break;
-        }
         par.epiJ=2;
-        par.epiJelse = par.gamma_hm - 2;
-        par.J_stem_diff = (par.gamma_hm/2.) + par.gamma_hl + 1 - (3.25/2);
-        par.J_diff = par.gamma_hm - 3.25;
+        par.epiJelse = par.gamma_hm + 2;
       }
 
 
@@ -467,8 +464,6 @@ int main(int argc, char *argv[])
 
     }
     par.gamma_hl = 1.;
-    if (par.MakeEpithelia)
-      par.gamma_hl = 7.;
     par.gamma_hm += 0.5;
   }
 
