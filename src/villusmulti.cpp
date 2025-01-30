@@ -124,7 +124,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   int n_times_apart{};
 
-  bool do_single=true;
+  bool do_single=false;
   vector<vector<double>> dymheights(par.n_orgs);
   vector<vector<double>> n_cells_left(par.n_orgs);
 
@@ -169,7 +169,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         if (t > par.begin_network)
           dishes[i].CPM->StartWettingNetwork();
       }      
-      if (t == par.begin_network)
+      if (t == par.start_topping)
       {
         starting_heights[i] = dishes[i].CPM->ReturnHeight(); 
       }

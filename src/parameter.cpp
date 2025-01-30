@@ -153,8 +153,8 @@
     if (tension_params)
     {
 
-      gamma_hm = 7.0;
-      gamma_hl = 7.0;
+      gamma_hm = 1.0;
+      gamma_hl = 12.0;
       J_stem = 2;
       J_med = gamma_hm + 1;
       J_med2 = J_med;
@@ -164,16 +164,19 @@
     if (tension_params && MakeEpithelia)
     {
       gamma_hm = 7;
-      gamma_hl = 7;
+      gamma_hl = 9;
       J_stem = 2;
       epiJ = 2;
       // epiJelse=gamma_hm - 2;
       // J_stem_diff = gamma_hm/2. + gamma_hl + 1 - (3.25/2);
       // J_diff = gamma_hm - 3.25;
 
+      J_med = gamma_hm + 1;
+      J_med2 = J_med;
       epiJelse = gamma_hm + 2;
       J_stem_diff = 1.75 + gamma_hm + gamma_hl;
       J_diff = 2 * gamma_hm + 1.5;
+      cout << epiJelse << '\t' << J_stem_diff << '\t' << J_diff << endl;
 
 
     }
