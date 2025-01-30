@@ -198,7 +198,7 @@
     add_to_topping=0;
     wetabove=true;
     
-    start_topping = 100;
+    start_topping = 1000;
 
     melting_adhesion = false;
     tip_max = 50;
