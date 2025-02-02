@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -142,7 +142,7 @@
 
     // testing
     epithelial_colour = 5;
-    MakeEpithelia=true;
+    MakeEpithelia=false;
     epiJ=2;
     epiJelse=J_med;
     epiM=1;
@@ -153,8 +153,8 @@
     if (tension_params)
     {
 
-      gamma_hm = 1.0;
-      gamma_hl = 12.0;
+      gamma_hm = 7.0;
+      gamma_hl = 7.0;
       J_stem = 2;
       J_med = gamma_hm + 1;
       J_med2 = J_med;
