@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
   Parameter();
   par.measure_time_order_params=false;
   
-  par.begin_network=100;
+  par.begin_network=800;
   par.start_topping=1000;
   par.phase_evolution = true;
   par.min_phase_cells=4;

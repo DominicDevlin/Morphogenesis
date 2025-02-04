@@ -384,10 +384,9 @@
     starter = false;
     n_orgs = 60; // should be multiple of 4, 60 used for evolution
 
-    start_n = { { 0, 0, 1, 1, -2, 0 }, { -2, 0, -1, 1, 0, 0 }, { 0, 1, 0, 0, -2, 0 }, { 0, 1, -1, 0, 0, 1 }, { 2, 0, 1, -1, 2, 0 }, { 2, 0, 1, -1, 0, 1 }, { 2, -2, -2, 0, 1, -1 }, { -1, 2, 0, 1, 0, -1 }, };
-    
-    evo_pics = true;
-    pic_gen_interval = 50;
+    start_n = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
+    evo_pics = false;
+    pic_gen_interval = 1;
     pic_dir = "images";
   
     evs = 10000;
