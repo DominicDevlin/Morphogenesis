@@ -347,6 +347,11 @@ TIMESTEP {
       }
     }
 
+    if (par.output_sizes)
+    {
+      dish->CPM->RecordSizes();
+    }
+
     if (t > par.start_topping && t % par.measure_interval == 0)
     {
       double contacta = dish->CPM->GetContactAngles();   
@@ -577,7 +582,7 @@ TIMESTEP {
     
       BeginScene();
       ClearImage();    
-      // dish->Plot(this);
+      dish->Plot(this);
 
       if (t>par.end_program && par.contours)
       {

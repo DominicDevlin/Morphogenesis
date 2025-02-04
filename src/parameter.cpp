@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -91,7 +91,7 @@
 /* Cellular Potts parameters */
     sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 300;
-    mcs = 400000;
+    mcs = 35000;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -133,7 +133,7 @@
     secr_rate[0] = 0.00255; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
     linear_increase=true;
     increase_start_secr = 0.00275;
-    increase_secr_mod = 0.00000008;
+    increase_secr_mod = 0.00000006;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
