@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -130,8 +130,10 @@
     add_cells = false;
     cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
-    secr_rate[0] = 0.00255; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
-    linear_increase=true;
+    diff_coeff = new double[n_diffusers];
+    secr_rate[0] = 0.006; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    diff_coeff[0] = 7e-7; // Keeping it at this for now. Maybe this could be evolvable. 
+    linear_increase=false;
     increase_start_secr = 0.00275;
     increase_secr_mod = 0.00000006;
     // might make this a optimizable parameter as well
@@ -548,7 +550,7 @@
     n_chem = 0; // Dom not currently using, instead using n_diffusers
 
     
-    diff_coeff = new double[n_diffusers];
+    
     decay_rate = new double[n_diffusers];
 
     
@@ -560,7 +562,7 @@
     dx = double(1)/double(250);// 1/((double)sizex);
     pde_its = 1;
 
-    diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 
+    
     diff_coeff[1] = 8e-7;
 
     decay_rate[0] = 2e-3;
