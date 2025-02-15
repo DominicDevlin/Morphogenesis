@@ -57,11 +57,11 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = true;
+    velocities = false;
     record_directions = false;
 
     // record cell sizes
-    output_sizes = true;
+    output_sizes = false;
 
     // record gamma parameter
     output_gamma = false;
@@ -86,12 +86,14 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
+    start_matrix =  { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
+
+    // THIS IS IMPORTANT ONE!!!! { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
     sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 300;
-    mcs = 35000;
+    mcs = 40001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -132,8 +134,10 @@
     secr_rate = new double[n_diffusers];
     diff_coeff = new double[n_diffusers];
     secr_rate[0] = 0.006; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
-    diff_coeff[0] = 7e-7; // Keeping it at this for now. Maybe this could be evolvable. 
-    linear_increase=false;
+    diff_coeff[0] = 4e-7; // Keeping it at this for now. Maybe this could be evolvable. 
+    linear_increase=true;
+    if (linear_increase)
+      diff_coeff[0] = 8e7;
     increase_start_secr = 0.00275;
     increase_secr_mod = 0.00000006;
     // might make this a optimizable parameter as well

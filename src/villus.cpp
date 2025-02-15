@@ -257,6 +257,10 @@ INIT
 
   }
 
+  // trying
+  par.pde_its = 4;
+  par.dt = 0.25;
+
 }
 
 TIMESTEP { 

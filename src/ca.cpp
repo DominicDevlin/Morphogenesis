@@ -8906,7 +8906,6 @@ void CellularPotts::Vectorfield()
 
         
           // we want displacement from a while ago to account for back and forth motion
-          cout << i << xm.size() << endl;
           double x2 = xm[i];
           double y2 = ym[i];
 
