@@ -134,7 +134,7 @@
     secr_rate = new double[n_diffusers];
     diff_coeff = new double[n_diffusers];
     secr_rate[0] = 0.006; //126251;// 2.039e12*pow((J_stem+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
-    diff_coeff[0] = 4e-7; // Keeping it at this for now. Maybe this could be evolvable. 
+    diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 
     linear_increase=true;
     if (linear_increase)
       diff_coeff[0] = 8e7;
