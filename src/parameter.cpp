@@ -137,7 +137,7 @@
     diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 
     linear_increase=true;
     if (linear_increase)
-      diff_coeff[0] = 8e7;
+      diff_coeff[0] = 8e-7;
     increase_start_secr = 0.00275;
     increase_secr_mod = 0.00000006;
     // might make this a optimizable parameter as well
