@@ -36,9 +36,9 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -57,8 +57,8 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = false;
-    record_directions = false;
+    velocities = true;
+    record_directions = true;
 
     // record cell sizes
     output_sizes = false;
@@ -93,7 +93,7 @@
 /* Cellular Potts parameters */
     sizex = 250;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 250;
-    mcs = 40001;
+    mcs = 30001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
