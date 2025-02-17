@@ -319,7 +319,11 @@ TIMESTEP {
     if (par.graphics && t%freq==0)// !(t%par.screen_freq)) 
     {
       if (!par.sheetmix)
+      {
         dish->CPM->ColourCellsByIndex();
+        // dish->CPM->ColourCells(true);
+      }
+        
 
       BeginScene();
       ClearImage();

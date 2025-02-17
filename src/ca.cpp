@@ -6281,7 +6281,6 @@ void CellularPotts::ColourCells(bool phase)
       // set the type of the cell based on network arrangement.
       c->set_ctype(set_type(ptype));// * c->getTau());
       // c->add_to_cycle();
-
       if (c->IsEpithelia())
       {
         c->set_ctype(par.epithelial_colour);
@@ -10659,7 +10658,8 @@ void CellularPotts::ColourCellsByIndex()
   vector<Cell>::iterator c=cell->begin(); ++c;
   for (;c!=cell->end();c++) 
   {
-    c->set_ctype(c->Sigma());   
+    c->set_ctype(11); 
+    // c->set_ctype(c->Sigma());   
   } 
 }
 

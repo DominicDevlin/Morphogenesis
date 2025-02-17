@@ -184,6 +184,11 @@ INIT
 {
   try 
   {
+    par.J_diff = par.J_stem + 8.;
+    par.J_med = par.J_diff / 2 + 0.25;
+    par.J_med2 = par.J_med;
+    par.J_stem_diff = par.J_diff;
+    
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
@@ -662,6 +667,8 @@ int main(int argc, char *argv[]) {
 #endif
     Parameter();
     par.phase_evolution = true;    
+    par.sheet_depth+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+    par.sizey+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
     // Read parameters
     bool read = false;
     if (read)
