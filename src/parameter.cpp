@@ -36,7 +36,7 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -197,7 +197,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=80;
-    dewet_cell_depth=5;
+    dewet_cell_depth=12;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
     ball_radius=54; // I used 48 and 30 for the equilibria test

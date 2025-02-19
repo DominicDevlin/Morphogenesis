@@ -12,7 +12,11 @@ contains( GRAPHICS, qt ) {
   
 }	
 
+<<<<<<< HEAD
 TARGET = sheet
+=======
+TARGET = wetting
+>>>>>>> 94d598c025ba82b3f5e596d52dedde8ced0e8420
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 
 message( $$MAINFILE )

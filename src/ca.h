@@ -491,6 +491,8 @@ public:
 
   void WetAbove(int width, int depth);
 
+  double HTouchMedium();
+  
   void StartWettingNetwork();
 
   int WettingLength();
