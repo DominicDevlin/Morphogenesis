@@ -320,6 +320,7 @@ TIMESTEP {
       // dish->CPM->WetRandomCells();
       double nht = dish->CPM->HTouchMedium();
       cout << nht << endl;
+      cout << "WET CELLS: " << dish->CPM->CountPhaseOnCells() << endl;
     } 
     par.measure_time_order_params = false;
     if (par.measure_time_order_params && t > 1000)
