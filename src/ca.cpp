@@ -7555,6 +7555,8 @@ map<int, int> CellularPotts::get_AdultTypes()
 
 int CellularPotts::ContactAngle()
 {
+  if (!par.velocities)
+    SetCellCenters();
   vector<int> PhaseContactCells{};
   // used to define left and right contact angle;
   vector<int> ContactPoints{};

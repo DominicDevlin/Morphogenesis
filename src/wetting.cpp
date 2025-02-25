@@ -184,6 +184,7 @@ INIT
 {
   try 
   {
+    par.J_stem = 3;
     par.J_diff = par.J_stem + 8.;
     par.J_med = par.J_diff / 2 + 0.25;
     par.J_med2 = par.J_med;
@@ -300,9 +301,13 @@ TIMESTEP {
 
     }
 
-    if (t > 1000 && t%1==0)
+    if (par.velocities)
     {
       dish->CPM->RecordMasses();
+    }
+
+    if (t > 1000 && t%1==0)
+    {
       dish->CPM->ContactAngle();
       // dish->CPM->NeighbourExchangeRate();
     }
@@ -313,19 +318,22 @@ TIMESTEP {
 
     // static vector<double> cooperativities;
 
-    if (t == 1000)
+    if (t == par.init_wetting)
     {
-      // dish->CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
-      dish->CPM->WetAbove(par.dewet_length, par.dewet_cell_depth);
-      // dish->CPM->WetRandomCells();
-      double nht = dish->CPM->HTouchMedium();
-      cout << nht << endl;
-      cout << "WET CELLS: " << dish->CPM->CountPhaseOnCells() << endl;
-    } 
+      if (par.wetabove)
+      {
+        dish->CPM->WetAbove(par.dewet_length, par.dewet_cell_depth);
+        double nht = dish->CPM->HTouchMedium();
+        cout << nht << endl;
+        cout << "WET CELLS: " << dish->CPM->CountPhaseOnCells() << endl;
+      }
+      else
+        dish->CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
+    }
+
     par.measure_time_order_params = false;
     if (par.measure_time_order_params && t > 1000)
     {
-      dish->CPM->RecordMasses();
       dish->CPM->PhaseHexaticOrder(t);
       dish->CPM->PhaseShapeIndex(t, true);
     
@@ -347,7 +355,6 @@ TIMESTEP {
       
     }
 
-    
     // if (t % 1000 == 0 && t > 0)
     // {
     //   dish->CPM->RemoveUnconnectedCells();
@@ -361,10 +368,7 @@ TIMESTEP {
     //   dish->CPM->MeasureCellPerimeters();
     // }
 
-    if (par.velocities)
-    {
-      dish->CPM->RecordMasses();
-    }
+
 
     // if (t == 22000)
     // {
