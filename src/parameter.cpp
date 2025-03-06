@@ -57,8 +57,8 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = true;
-    record_directions = true;
+    velocities = false;
+    record_directions = false;
 
     // record cell sizes
     output_sizes = false;
@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=4393032600144072054;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=17808888435913930458;//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -92,8 +92,8 @@
 
 /* Cellular Potts parameters */
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 250;
-    mcs = 30001;
+    sizey = 200;
+    mcs = 100001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
