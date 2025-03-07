@@ -86,7 +86,7 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix =  { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { 1, 1, 0  } };
+    start_matrix =  { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { 1, 1, 1  } };
 
     // THIS IS IMPORTANT ONE!!!! { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
