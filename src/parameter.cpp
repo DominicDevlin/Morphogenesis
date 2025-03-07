@@ -92,8 +92,8 @@
 
 /* Cellular Potts parameters */
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 250;
-    mcs = 30001;
+    sizey = 200;
+    mcs = 36001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
