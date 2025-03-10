@@ -159,6 +159,8 @@ class Parameter {
   int add_to_topping;
   bool makesemicircle;
 
+  bool morphogen_sweep;
+
   int coop_wtime;
   int coop_stime;
   int coop_start;
