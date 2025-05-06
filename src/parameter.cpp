@@ -299,6 +299,9 @@
     n_length_genes = 2;
     n_MF = 2;
 
+    MF1_position = n_diffusers;
+    MF2_position = n_diffusers+1;
+
     // number of genes. All gene types must sum to this value (except if using morphogenwave, then activators is +1).
     n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes +n_MF + shrink_on + (enzymes * n_diffusers); 
 
@@ -382,12 +385,15 @@
 
 
     saturation = 0;
-    dt = 1.0;
+    dt = 0.1;
     dx = double(1)/double(250);// 1/((double)sizex);
     pde_its = 1;
+    int dtmult = round(1/dt);
+    pde_its = dtmult * pde_its;
+    program_its = dtmult * program_its;
 
     diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 
-    diff_coeff[1] = 8e-7;
+    diff_coeff[1] = 8e-6;
 
     decay_rate[0] = 2e-3;
     decay_rate[1] = 2e-3;
@@ -400,7 +406,7 @@
     if (n_diffusers > 2)
     {
       
-      diff_coeff[2] = 8e-7; 
+      diff_coeff[2] = 8e-6; 
       decay_rate[2] = 2e-3;
       secr_rate[2] = 2.4e-3;//2.4e-3;
       

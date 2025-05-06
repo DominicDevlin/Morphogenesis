@@ -161,20 +161,6 @@ TIMESTEP {
     if (t < par.end_program)
     {
 
-      // // first division
-      // if (t==par.div1)
-      // {
-      //   dish->CPM->Programmed_Division();
-      // }
-      // // second division
-      // if (t==par.div2)
-      // {
-      //   dish->CPM->Programmed_Division();
-      // }
-      // //slow division period
-      // if (t%par.div_freq==200 && t > par.begin_movement)
-      //   dish->CPM->Programmed_Division();
-
       if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
       {
         dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
@@ -289,7 +275,6 @@ TIMESTEP {
 
     if (t == par.mcs - 1)
     {
-
 
       if (par.output_gamma)
         dish->CPM->OutputGamma();
@@ -485,7 +470,7 @@ TIMESTEP {
     }
 
     // used to create morphogen stuff
-    if (t==8000)
+    if (t==4000)
     {
       dish->PDEfield->PrintAxisConcentrations(true, 125);
       // dish->CPM->OutputProteinNorms();
@@ -546,22 +531,22 @@ TIMESTEP {
       // Plot the dish. 
       dish->Plot(this);
       
-      static vector<array<int,2>> perim;
-      static vector<int> pcells;
-      if (t > 1000 && t % 500 == 0)
-      {
-        perim = dish->CPM->PerimeterCAC();
-        pcells = dish->CPM->CellsFromCAC(perim);
-        pcells = dish->CPM->LinkPerimeter();
-        //
-        // dish->CPM->AngleCurvature();
-      }
+      // static vector<array<int,2>> perim;
+      // static vector<int> pcells;
+      // if (t > 1000 && t % 500 == 0)
+      // {
+      //   perim = dish->CPM->PerimeterCAC();
+      //   pcells = dish->CPM->CellsFromCAC(perim);
+      //   pcells = dish->CPM->LinkPerimeter();
+      //   //
+      //   // dish->CPM->AngleCurvature();
+      // }
       
-      if (t > 1500)
-      {
-        dish->CPM->DrawListofCAC(this, perim);
-        dish->CPM->DrawPerimeter(this, pcells);
-      }
+      // if (t > 1500)
+      // {
+      //   dish->CPM->DrawListofCAC(this, perim);
+      //   dish->CPM->DrawPerimeter(this, pcells);
+      // }
 
 
       // static bool c4 = false;

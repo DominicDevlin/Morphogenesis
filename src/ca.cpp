@@ -2029,14 +2029,14 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene)
       // genes expression defualt is at 0 so only have to modify one
       std::vector<double>& g_list = cell->at(middles.at(0).at(0)).get_genes();
       g_list.at(gene) = 1;
-      int val = g_list.at(2) * 4 + g_list.at(3)*3;
+      int val = g_list.at(par.MF1_position) * 4 + g_list.at(par.MF2_position)*3;
       cell->at(middles.at(0).at(0)).set_ctype(val);
     }
     else
     {
       std::vector<double>& g_list = cell->at(middles.at(1).at(0)).get_genes();
       g_list.at(gene) = 1;
-      int val = g_list.at(2) * 4 + g_list.at(3)*3;
+      int val = g_list.at(par.MF1_position) * 4 + g_list.at(par.MF2_position)*3;
       cell->at(middles.at(1).at(0)).set_ctype(val);
     }
   }
@@ -2047,14 +2047,14 @@ void CellularPotts::set_MF(vector<vector<int>> middles, int gene)
       // furthest on bottom(maybe decreasing y from top??) gets MF at 4 --> 1  
       std::vector<double>& g_list = cell->at(middles.at(0).at(0)).get_genes();
       g_list.at(gene) = 1;
-      int val = g_list.at(2) * 4 + g_list.at(3)*3;
+      int val = g_list.at(par.MF1_position) * 4 + g_list.at(par.MF2_position)*3;
       cell->at(middles.at(0).at(0)).set_ctype(val);
     }
     else
     {
       std::vector<double>& g_list = cell->at(middles.at(1).at(0)).get_genes();
       g_list.at(gene) = 1;
-      int val = g_list.at(2) * 4 + g_list.at(3)*3;
+      int val = g_list.at(par.MF1_position) * 4 + g_list.at(par.MF2_position)*3;
       cell->at(middles.at(1).at(0)).set_ctype(val);
     }
   }  
@@ -2093,7 +2093,7 @@ void CellularPotts::Programmed_Division(void)
         middles.push_back(MiddleOfCell(i->Sigma()));
       }
     }
-    set_MF(middles, 2);  
+    set_MF(middles, par.MF1_position);  
   }
   // set second maternal factor  
   else if (n_cells < 4)
@@ -2124,7 +2124,7 @@ void CellularPotts::Programmed_Division(void)
       if (i->AliveP()) 
       {
         std::vector<double>& g = i->get_genes();
-        if (g.at(2) > 0.5)
+        if (g.at(par.MF1_position) > 0.5)
           g4_on.push_back(i->Sigma());
         else
           g4_off.push_back(i->Sigma());
@@ -2136,14 +2136,14 @@ void CellularPotts::Programmed_Division(void)
     {
       middles1.push_back(MiddleOfCell(cell->at(j).Sigma()));
     }
-    set_MF(middles1, 3);
+    set_MF(middles1, par.MF2_position);
     
     vector<vector<int>> middles2;
     for (int j : g4_off)
     {
       middles2.push_back(MiddleOfCell(cell->at(j).Sigma()));
     }
-    set_MF(middles2, 3);
+    set_MF(middles2, par.MF2_position);
 
     
   }

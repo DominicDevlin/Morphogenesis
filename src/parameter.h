@@ -241,6 +241,8 @@ class Parameter {
 
   double morphogen_dose;
 
+  int MF1_position;
+  int MF2_position;
 
   int div1;
   int div2;
