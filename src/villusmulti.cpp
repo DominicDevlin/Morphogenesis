@@ -357,7 +357,15 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << par.gamma_hm << '\t' << par.gamma_hl << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
+  if (par.morphogen_sweep)
+  {
+    outfile << par.diff_coeff[0] << '\t' << par.secr_rate[0] << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
+
+  }
+  else
+  {
+    outfile << par.gamma_hm << '\t' << par.gamma_hl << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
+  }
   outfile.close();
 
   
@@ -386,7 +394,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = false;
+  par.pics_for_opt = true;
 
 #ifdef QTGRAPHICS
   {
@@ -440,32 +448,63 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
 
-  par.gamma_hm = 1;
-  par.gamma_hl = 1;
+  par.gamma_hm = 7;
+  par.gamma_hl = 7;
 
-  while (par.gamma_hm < 12.1)
+
+  if (par.morphogen_sweep)
   {
-    while (par.gamma_hl < 12.1)
+    par.J_stem = 2;
+    par.J_med = par.gamma_hm + 1;
+    par.J_med2 = par.J_med;
+    par.J_stem_diff = 1.75 + par.gamma_hm + par.gamma_hl;
+    par.J_diff = 2 * par.gamma_hm + 1.5;
+
+    par.linear_increase = true;
+    par.secr_rate[0] = 0.00275; 
+    par.diff_coeff[0] = 8e-7; 
+    par.increase_start_secr = par.secr_rate[0];
+    par.increase_secr_mod = 0.00000006;
+    vector<double> secr_list = {0.002, 0.00225, 0.0025, 0.00275, 0.003, 0.0035, 0.004, 0.005, 0.006};
+    vector<double> diff_list = {8e-7, 4e-7};
+    for (auto dd : diff_list)
     {
-      par.J_stem = 2;
-      par.J_med = par.gamma_hm + 1;
-      par.J_med2 = par.J_med;
-      par.J_stem_diff = 1.75 + par.gamma_hm + par.gamma_hl;
-      par.J_diff = 2 * par.gamma_hm + 1.5;
-      if (par.MakeEpithelia)
+      par.diff_coeff[0] = dd;
+      for (auto ss : diff_list)
       {
-        par.epiJ=2;
-        par.epiJelse = par.gamma_hm + 2;
+        par.secr_rate[0] = ss;
+        process_population(networks);
       }
-
-
-      process_population(networks);
-      par.gamma_hl += 0.5;
-
     }
-    par.gamma_hl = 1.;
-    par.gamma_hm += 0.5;
+
   }
+  else
+  {
+    while (par.gamma_hm < 12.1)
+    {
+      while (par.gamma_hl < 12.1)
+      {
+        par.J_stem = 2;
+        par.J_med = par.gamma_hm + 1;
+        par.J_med2 = par.J_med;
+        par.J_stem_diff = 1.75 + par.gamma_hm + par.gamma_hl;
+        par.J_diff = 2 * par.gamma_hm + 1.5;
+        if (par.MakeEpithelia)
+        {
+          par.epiJ=2;
+          par.epiJelse = par.gamma_hm + 2;
+        }
+
+
+        process_population(networks);
+        par.gamma_hl += 0.5;
+
+      }
+      par.gamma_hl = 1.;
+      par.gamma_hm += 0.5;
+    }
+  }
+
 
   
   // finished

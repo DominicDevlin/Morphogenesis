@@ -86,8 +86,7 @@
     print_fitness = true; 
 
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix =  { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { 1, 1, 0  } };
-
+    start_matrix =  { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
     // THIS IS IMPORTANT ONE!!!! { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
@@ -140,6 +139,7 @@
       diff_coeff[0] = 8e-7;
     increase_start_secr = 0.00275;
     increase_secr_mod = 0.00000006;
+    morphogen_sweep = true;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
     Vs_max = 0.398977; // 1;
