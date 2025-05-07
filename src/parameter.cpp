@@ -42,10 +42,10 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
 
     // Generate a random genome
-    randomise = false;
+    randomise = true;
 
     // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
     // output data for analysis (connectivity, gene expression, state transitions)
@@ -76,7 +76,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=18196839256458241740;
+    pickseed=0;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -385,14 +385,21 @@
 
 
     saturation = 0;
-    dt = 0.1;
+    dt = 0.2;
     dx = double(1)/double(250);// 1/((double)sizex);
     pde_its = 1;
     int dtmult = round(1/dt);
     pde_its = dtmult * pde_its;
     program_its = dtmult * program_its;
 
-    diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 
+    // lets say min is 2e-7 and max is 8e-6 which gives a 40 fold difference? Will have to do multiplicative mutation. 
+    // For dynamics the important feature is the characteristic length, which scales as sqrt(D), so maybe this should be accounted for
+    // in mutation as well.
+    // ** 
+    // Given the long length scale of the highest diffusion rate relative to organism size, its okay to increase the secr rate slightly.
+    // Currently unsure what the relationship between secr rate and D should be to maintain approx constant peak conc.
+
+    diff_coeff[0] = 2e-7; // Keeping it at this for now. Maybe this could be evolvable. 
     diff_coeff[1] = 8e-6;
 
     decay_rate[0] = 2e-3;
@@ -401,14 +408,19 @@
     secr_rate[0] = 2.4e-3;//2.4e-3;
     secr_rate[1] = 2.4e-3;//2.4e-3;
 
+    secr_rate[0] = secr_rate[0] + sqrt((diff_coeff[0] - 2e-7)/(8e-6 - 2e-7)) * 0.4e-3;
+    secr_rate[1] = secr_rate[1] + sqrt((diff_coeff[1] - 2e-7)/(8e-6 - 2e-7)) * 0.4e-3;
+
     reaction_rate = 5e-3; // small rate = 5e-3; // large rate = 1e-2
 
     if (n_diffusers > 2)
     {
       
-      diff_coeff[2] = 8e-6; 
+      diff_coeff[2] = 8e-7; 
       decay_rate[2] = 2e-3;
       secr_rate[2] = 2.4e-3;//2.4e-3;
+
+      secr_rate[2] = secr_rate[2] + sqrt((diff_coeff[2] - 2e-7)/(8e-6 - 2e-7)) * 0.4e-3;
       
       // Morphogens with shorter range 
 
