@@ -36,6 +36,10 @@ std::uniform_real_distribution<double> double_num(0.0, 1.0);
 std::uniform_int_distribution<> genes_dist(0, par.n_genes-1);
 std::uniform_int_distribution<> activ_dist(0, par.n_activators-1);
 std::uniform_int_distribution<> TF_dist(0, par.n_TF-1);
+std::uniform_int_distribution<> choose_diffuser(0, par.n_diffusers-1);
+
+std::normal_distribution<double> diff_mut_curve(0.0, 0.25);
+
 
 
 int PDE::MapColour(double val) {
@@ -82,6 +86,13 @@ void swapv(vector<vector<int>> *xp, vector<vector<int>> *yp)
 
 }
 
+void swapvv(vector<double> *xp, vector<double> *yp)
+{
+  vector<double> temp = *xp;
+  *xp = *yp;
+  *yp = temp;
+}
+
 void swapb(vector<bool> *xp, vector<bool> *yp)
 {
   vector<bool> temp = *xp;
@@ -96,7 +107,7 @@ void swapd(Dish *d, int max_idx, int i)
   d[i] = tmp;
 }
 
-void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, vector<double> &fitlist, Dish *dishes)
+void sorter(vector<vector<vector<int>>> &networks, vector<double> &fitlist, Dish *dishes, vector<vector<double>>& coeffs)
 {
   int i, j, max_idx;
   int n = par.n_orgs;
@@ -112,7 +123,7 @@ void sorter(vector<vector<vector<int>>> &networks, vector<vector<bool>> &pol, ve
     // swap largest element with first element
     swap(&fitlist.at(max_idx), &fitlist.at(i));
     swapv(&networks.at(max_idx), &networks.at(i));
-    swapb(&pol.at(max_idx), &pol.at(i));
+    swapvv(&coeffs.at(max_idx), &coeffs.at(i));
     // std::swap(dishes[max_idx], dishes[i]);
 
     // swapd(&dishes[max_idx], &dishes[i]);
@@ -161,20 +172,19 @@ vector<vector<int>> get_random_network()
   return matrix;
 }
 
-vector<bool> get_random_pol()
+vector<double> get_random_diff_coeffs()
 {
-  vector<bool> pol;
-  pol.resize(par.n_TF);
-  for (int i=0;i<par.n_TF;++i)
+  vector<double> rand_diff_coeffs;
+  for (int i = 0; i < par.n_diffusers; ++i)
   {
     double val = double_num(mersenne);
-    if (val < 0.7)
-      pol[i]=0;
-    else
-      pol[i]=1;
+    val = pow(val, 3.);
+    double diff_co = par.min_diff_coeff + val * (par.max_diff_coeff - par.min_diff_coeff);
+    rand_diff_coeffs.push_back(diff_co);
   }
-  return pol;
+  return rand_diff_coeffs;
 }
+
 
 
 // mutate a network. Currently no bias towards ON when mutating networks. 
@@ -208,15 +218,11 @@ void mutate(vector<vector<int>> &network)
   }
 }
 
-// mutate the TF polarities (whether each TF is passed onto daughter upon cell reproduction)
-void polmutate(vector<bool> &pol)
+void diff_mutate(vector<double> &coeffs)
 {
-  int i = TF_dist(mersenne);
-  double val = double_num(mersenne);
-  if (val > 0.7)
-    pol[i] = true;
-  else
-    pol[i] = false;
+  int tm = choose_diffuser(mersenne);
+  coeffs[tm] = coeffs[tm] * exp( diff_mut_curve(mersenne));
+
 }
 
 
@@ -270,7 +276,7 @@ void record_networks(vector<vector<vector<int>>>& netw, string oname)
 
 
 
-void printn(vector<vector<int>> netw, vector<bool> pol, vector<double> fitn)
+void printn(vector<vector<int>> netw, vector<double> fitn, vector<double> coeffs)
 {
   // create and open file
   std::string var_name = "gene_networks.txt";
@@ -293,16 +299,22 @@ void printn(vector<vector<int>> netw, vector<bool> pol, vector<double> fitn)
     if (i == par.n_genes -1)
       outfile << "}" << endl;
   }
-  // outfile << "{ ";
-  // for (int i=0;i<par.n_TF;++i)
-  // {
-  //   if (i < par.n_TF - 1)
-  //     outfile << pol[i] << ", ";
-  //   else 
-  //     outfile << pol[i] << " }";
-  // }
-  // outfile << endl;
   outfile.close();
+
+  std::string coeff_file = "diff_coeffs.txt";
+  outfile.open(coeff_file, ios::app);
+  for (int i = 0; i < par.n_diffusers; ++i)
+  {
+    if (i == 0)
+      outfile << "{ ";
+
+    outfile << coeffs[i] << ", ";
+
+    if (i == par.n_diffusers-1)
+      outfile << "}" << endl;
+  }
+  outfile.close();
+
 
   // max fitness 
   double max_fit = fitn.front();
@@ -340,7 +352,7 @@ void printn(vector<vector<int>> netw, vector<bool> pol, vector<double> fitn)
 
 
 // function that simulates a population for a single evolutionary step. 
-vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, int time)
+vector<double> process_population(vector<vector<vector<int>>>& network_list, int time, vector<vector<double>>& org_diff_coeffs)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -359,7 +371,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
     int t;
 
-    dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
+    dishes[i].CPM->start_network(network_list.at(i));
+    dishes[i].PDEfield->SetParameters(org_diff_coeffs[i]);
 
 
     // make temperature lower for division section
@@ -469,17 +482,19 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   delete[] dishes;
 
   // do sorting algorithm and return fitness
-  sorter(network_list, pols, inter_org_fitness, dishes);
+  sorter(network_list, inter_org_fitness, dishes, org_diff_coeffs);
 
   //output to standard output
   output_networks(network_list);
 
   // output to file
-  printn(network_list.front(), pols.front(), inter_org_fitness);
+  printn(network_list.front(), inter_org_fitness, org_diff_coeffs.front());
 
 
   vector<vector<vector<int>>> nextgen{};
-  vector<vector<bool>> nextgenpol{};
+
+  vector<vector<double>> nextgen_diffs{};
+
   int j = 0;
   for (int i=0; i < par.n_orgs;++i)
   {
@@ -487,7 +502,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     if (inter_org_fitness.front() > 30 || !par.insert_randoms)
     {
       nextgen.push_back(network_list.at(j));
-      nextgenpol.push_back(pols.at(j));
+      nextgen_diffs.push_back(org_diff_coeffs.at(j));
 
       //mutate network with probability = mut_rate
       double mu = double_num(mersenne);
@@ -496,9 +511,9 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         mutate(nextgen.back());
       }
       double mu2 = double_num(mersenne);
-      if  (mu2 < par.polm_rate)
+      if (mu2 < par.diff_mut_rate)
       {
-        polmutate(nextgenpol.back());
+        diff_mutate(nextgen_diffs.back());
       }
       ++j; 
       if (j >= par.n_orgs / 4)
@@ -510,12 +525,12 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (i >= (par.n_orgs * 3)/4)
       {
         nextgen.push_back(get_random_network());
-        nextgenpol.push_back(get_random_pol());
+        nextgen_diffs.push_back(get_random_diff_coeffs());
       }
       else 
       {
         nextgen.push_back(network_list.at(j));
-        nextgenpol.push_back(pols.at(j));
+        nextgen_diffs.push_back(nextgen_diffs.at(j));
       }
 
       //mutate network with probability = 0.5
@@ -525,9 +540,9 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         mutate(nextgen.back());
       }
       double mu2 = double_num(mersenne);
-      if  (mu2 > 0.5)
+      if (mu2 < par.diff_mut_rate)
       {
-        polmutate(nextgenpol.back());
+        diff_mutate(nextgen_diffs.back());
       }
 
       ++j;
@@ -540,7 +555,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   for (int i=0;i<par.n_orgs;++i)
   {
     network_list.at(i) = nextgen.at(i);
-    pols.at(i) = nextgenpol.at(i);
+    org_diff_coeffs.at(i) = nextgen_diffs.at(i);
   }
   return inter_org_fitness;
 }
@@ -578,23 +593,24 @@ int main(int argc, char *argv[]) {
 
   Parameter();
 
-  // This is currently depracated. 
-  vector<bool> start_p = { 0, 0, 0, 0 };
+
 
   // make initial random networks. 
   vector<vector<vector<int>>> networks{};
-  vector<vector<bool>> polarities{};
+
+  vector<vector<double>> org_diff_coeffs{};
+
   for (int i=0;i<par.n_orgs;++i)
   {
     if (par.starter)
     {
       networks.push_back(par.start_n);
-      polarities.push_back(start_p);
+      org_diff_coeffs.push_back(par.init_diff_coeffs);
     }
     else
     {
       networks.push_back(get_random_network());
-      polarities.push_back(get_random_pol());
+      org_diff_coeffs.push_back(get_random_diff_coeffs());
     }
   }
 
@@ -603,12 +619,12 @@ int main(int argc, char *argv[]) {
   {
     cout << "current ev timestep is: " << t+1 << endl;
     // process population. 
-    vector<double> fit = process_population(networks, polarities, t);
+    vector<double> fit = process_population(networks, t, org_diff_coeffs);
 
     // output every x evolution steps. 
     // if (t%1==0)
     // {
-    //   printn(networks.front(), polarities.front(), fit);
+    //   printn(networks.front(), fit);
     // }
   }
   // finished

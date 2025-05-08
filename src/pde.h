@@ -26,6 +26,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <stdio.h>
 #include <float.h>
 #include "graph.h"
+#include <vector>
 
 class CellularPotts;
 class PDE {
@@ -235,6 +236,8 @@ class PDE {
 
   void FlushGrid();
 
+  void SetParameters(std::vector<double>& org_diff_coeffs);
+
 
  protected:
 
@@ -250,6 +253,10 @@ class PDE {
   int sizex;
   int sizey;
   int layers;
+
+  double * diff_coeff;
+  double * decay_rate;
+  double * secr_rate;
  
  
   // Protected member functions

@@ -31,6 +31,7 @@
   #include "output.h"
   #include "parse.h"
   #include <cmath>
+  #include <algorithm>
 
   Parameter::Parameter()
   {
@@ -135,7 +136,7 @@
     // mut rate for gene network
     mut_rate = 0.5;
     // mutation rate for polarities
-    polm_rate = 0.2;
+    diff_mut_rate = 0.25;
     n_pred = n_orgs / 2;
 
 
@@ -262,8 +263,8 @@
 
 
     // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
-    tlength1 = 3;
-    tlength2 = 2;
+    tlength1 = 1.65;
+    tlength2 = 1.25;
 
 
     //growing and dividng
@@ -279,18 +280,19 @@
 
 
     // Number of morphogens, Does changes depending on sim
-    n_diffusers = 3;
+    n_diffusers = 4;
 
     // enzymes that can break down the morphogen
     enzymes = false;
 
     // gene network parameters
     
-    n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
-    n_locks = 5; // must be half lockandkey. locks = keys
+    n_lockandkey = 8; // number of lock and keys (==), stored in separate vector for ease
+    n_locks = 4; // must be half lockandkey. locks = keys
     
     //adding new medium genes to release constraint on keys
-    n_mediums = 5;
+    n_mediums = 3;
+    med_table = new int[n_mediums]{9, 3, 1};
 
 
     // number of transcription factors. The first two transcription factors must be ON for stem cell identity. 
@@ -383,14 +385,24 @@
     decay_rate = new double[n_diffusers];
     secr_rate = new double[n_diffusers];
 
+    init_diff_coeffs = {2e-7, 2e-7, 2e-7, 2e-7};
+    init_decay_rate = 2e-3;
+    init_secr_rate = 2.4e-3;
 
-    saturation = 0;
-    dt = 0.2;
-    dx = double(1)/double(250);// 1/((double)sizex);
-    pde_its = 1;
-    int dtmult = round(1/dt);
-    pde_its = dtmult * pde_its;
-    program_its = dtmult * program_its;
+    max_diff_coeff = 8e-6;
+    min_diff_coeff = 2e-7;
+
+    secr_rate_modifier = 1.5e-3;
+
+    for (int i = 0; i < n_diffusers; ++i)
+    {
+      diff_coeff[i] = init_diff_coeffs[i];
+      diff_coeff[i] = init_diff_coeffs[i];
+      diff_coeff[i] = init_diff_coeffs[i];
+
+      secr_rate[i] = init_secr_rate + (diff_coeff[i] - min_diff_coeff)/(max_diff_coeff - min_diff_coeff) * secr_rate_modifier;
+      decay_rate[i] = init_decay_rate;
+    }
 
     // lets say min is 2e-7 and max is 8e-6 which gives a 40 fold difference? Will have to do multiplicative mutation. 
     // For dynamics the important feature is the characteristic length, which scales as sqrt(D), so maybe this should be accounted for
@@ -399,44 +411,16 @@
     // Given the long length scale of the highest diffusion rate relative to organism size, its okay to increase the secr rate slightly.
     // Currently unsure what the relationship between secr rate and D should be to maintain approx constant peak conc.
 
-    diff_coeff[0] = 2e-7; // Keeping it at this for now. Maybe this could be evolvable. 
-    diff_coeff[1] = 8e-6;
-
-    decay_rate[0] = 2e-3;
-    decay_rate[1] = 2e-3;
-    
-    secr_rate[0] = 2.4e-3;//2.4e-3;
-    secr_rate[1] = 2.4e-3;//2.4e-3;
-
-    secr_rate[0] = secr_rate[0] + sqrt((diff_coeff[0] - 2e-7)/(8e-6 - 2e-7)) * 0.4e-3;
-    secr_rate[1] = secr_rate[1] + sqrt((diff_coeff[1] - 2e-7)/(8e-6 - 2e-7)) * 0.4e-3;
-
     reaction_rate = 5e-3; // small rate = 5e-3; // large rate = 1e-2
 
-    if (n_diffusers > 2)
-    {
-      
-      diff_coeff[2] = 8e-7; 
-      decay_rate[2] = 2e-3;
-      secr_rate[2] = 2.4e-3;//2.4e-3;
 
-      secr_rate[2] = secr_rate[2] + sqrt((diff_coeff[2] - 2e-7)/(8e-6 - 2e-7)) * 0.4e-3;
-      
-      // Morphogens with shorter range 
-
-      // diff_coeff[2] = 8e-7;
-      // decay_rate[2] = 5e-3;
-      // secr_rate[2] = 5.5e-3;
-
-
-      // Morphogens with longer range
-
-      // diff_coeff[2] = 4e-6;
-      // decay_rate[2] = 1e-3;
-      // secr_rate[2] = 1.5e-3;
-
-
-    }
+    saturation = 0;
+    dt = 0.2;
+    dx = double(1)/double(250);// 1/((double)sizex);
+    pde_its = 1;
+    int dtmult = round(1/dt);
+    pde_its = dtmult * pde_its;
+    program_its = dtmult * program_its;
 
 
     // morphogen wave at the end of programmed division. 
@@ -484,12 +468,12 @@
   void Parameter::CleanUp(void) {
     if (Jtable) 
       free(Jtable);
-    // if (diff_coeff) 
-    //    free(diff_coeff);
-    // if (decay_rate) 
-    //    free(decay_rate);
-    // if (secr_rate) 
-    //    free(secr_rate);
+
+    delete[] diff_coeff;
+    delete[] med_table;
+    delete[] secr_rate;
+    delete[]decay_rate;
+
     if (datadir) 
       free(datadir);
 

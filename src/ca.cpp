@@ -2278,6 +2278,14 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
 }
 
 
+void CellularPotts::start_morphogen_grid(vector<double> org_diff_coeffs)
+{
+  
+}
+
+
+
+
 double CellularPotts::numeric_step(vector<double>& gene_list, double conc, int gene_n, int tsteps)
 {
 
@@ -2444,12 +2452,12 @@ void CellularPotts::update_network(int tsteps)
       /// change target length based on boolified values of two target genes
       if (genes.at(par.tloc1) > 0.5 && genes.at(par.tloc2) > 0.5)
       {
-        c->SetTargetLength(round(c->Area() / par.tlength2)); 
+        c->SetTargetLength(round(sqrt(c->Area()) * par.tlength2)); 
         c->set_lambda_2(par.lambda2);
       }
       else if (genes.at(par.tloc1) > 0.5 || genes.at(par.tloc2) > 0.5)
       {
-        c->SetTargetLength(round(c->Area() / par.tlength1));
+        c->SetTargetLength(round(sqrt(c->Area()) * par.tlength1));
         c->set_lambda_2(par.lambda2);
       }
       else

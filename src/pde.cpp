@@ -29,6 +29,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include "pde.h"
 #include "conrec.h"
 #include <fstream>
+#include <vector>
 
 /* STATIC DATA MEMBER INITIALISATION */
 const int PDE::nx[9] = {0, 1, 1, 1, 0,-1,-1,-1, 0 };
@@ -58,6 +59,9 @@ PDE::PDE(void) {
   alt_sigma=0;
   sizex=0; sizey=0; layers=0;
   thetime=0;
+  diff_coeff=0;
+  decay_rate=0;
+  secr_rate=0;
   
 }
 
@@ -75,6 +79,10 @@ PDE::~PDE(void) {
     free(alt_sigma);
     alt_sigma=0;
   }
+  delete[] diff_coeff;
+  delete[] decay_rate;
+  delete[] secr_rate; 
+
 }
 
 double ***PDE::AllocateSigma(const int layers, const int sx, const int sy) {
@@ -173,6 +181,24 @@ void PDE::ContourPlot(Graphics *g, int l, int colour) {
  
 }
 
+void PDE::SetParameters(std::vector<double>& org_diff_coeffs)
+{
+  diff_coeff = new double[par.n_diffusers];
+  decay_rate = new double[par.n_diffusers];
+  secr_rate = new double[par.n_diffusers];
+
+  for (int i = 0; i < par.n_diffusers; ++i)
+  {
+    diff_coeff[i] = org_diff_coeffs[i];
+    diff_coeff[i] = org_diff_coeffs[i];
+    diff_coeff[i] = org_diff_coeffs[i];
+
+    secr_rate[i] = par.init_secr_rate + (diff_coeff[i] - par.min_diff_coeff)/(par.max_diff_coeff - par.min_diff_coeff) * par.secr_rate_modifier;
+    decay_rate[i] = par.init_decay_rate;
+  }
+
+}
+
 
 bool PDE::CheckSecreting(int l)
 {
@@ -211,17 +237,17 @@ void PDE::Secrete(CellularPotts *cpm)
           {
             
             double conc = cpm->diffuser_check(n,x,y);
-            sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
+            sigma[n][x][y]+= (secr_rate[n]*dt*conc - decay_rate[n]*dt*sigma[n][x][y]);
           } 
           else 
           {
           // cells without diffuser on (only decay). 
-            sigma[n][x][y]-= par.decay_rate[n]*dt*sigma[n][x][y];
+            sigma[n][x][y]-= decay_rate[n]*dt*sigma[n][x][y];
           }
         }
     }
   }
-  else
+  else // depracated
   {
     for (int n = 0;n<par.n_diffusers;++n)
     {
@@ -234,13 +260,13 @@ void PDE::Secrete(CellularPotts *cpm)
             
             double conc = cpm->diffuser_check(n,x,y);
             double enzyme = cpm->get_enzyme_conc(n,x,y);
-            sigma[n][x][y]+= (par.secr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]) - par.reaction_rate*dt*sigma[n][x][y]*enzyme;
+            sigma[n][x][y]+= (secr_rate[n]*dt*conc - decay_rate[n]*dt*sigma[n][x][y]) - par.reaction_rate*dt*sigma[n][x][y]*enzyme;
             // cout << (par.reaction_rate*dt*conc*enzyme) << "   secretion: " << (par.secr_rate[n]*dt*conc) <<  endl;
           } 
           else 
           {
           // cells without diffuser on (only decay). 
-            sigma[n][x][y]-= par.decay_rate[n]*dt*sigma[n][x][y];
+            sigma[n][x][y]-= decay_rate[n]*dt*sigma[n][x][y];
           }
         }
     }    
@@ -329,7 +355,7 @@ void PDE::Diffuse(int repeat)
           sum+=sigma[l][x][y-1];
             
           sum-=4*sigma[l][x][y];
-          alt_sigma[l][x][y]=sigma[l][x][y]+sum*dt*par.diff_coeff[l]/dx2;
+          alt_sigma[l][x][y]=sigma[l][x][y]+sum*dt*diff_coeff[l]/dx2;
 
 	    }
     }

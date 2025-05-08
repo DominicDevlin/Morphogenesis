@@ -95,6 +95,8 @@ public:
 
   void start_network(vector<vector<int>> start_matrix, vector<bool> start_pol={0,0,0,0});
 
+  void start_morphogen_grid(vector<double> org_diff_coeffs);
+
   void update_network(int tsteps);
 
   double numeric_step(vector<double>& gene_list, double conc, int gene_n, int tsteps);
@@ -639,7 +641,6 @@ private:
   vector<vector<int>> matrix;
   vector<bool> polarity;
   int org_num=1;
-
 
   //count grid hits for awkward gradients
   long griditcount;

@@ -51,7 +51,22 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 using namespace std;
 
 
+auto mseed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+mt19937 mersenne( static_cast<mt19937::result_type>(mseed) );
+std::uniform_real_distribution<double> double_num(0.0, 1.0);
 
+vector<double> get_random_diff_coeffs()
+{
+  vector<double> rand_diff_coeffs;
+  for (int i = 0; i < par.n_diffusers; ++i)
+  {
+    double val = double_num(mersenne);
+    val = pow(val, 3.);
+    double diff_co = par.min_diff_coeff + val * (par.max_diff_coeff - par.min_diff_coeff);
+    rand_diff_coeffs.push_back(diff_co);
+  }
+  return rand_diff_coeffs;
+}
 
 INIT 
 {
@@ -85,6 +100,16 @@ INIT
     CPM->SetRandomTypes();
 
     CPM->start_network(par.start_matrix, par.start_polarity);
+
+    if (par.randomise)
+    {
+      vector<double> rand_diff_coeffs = get_random_diff_coeffs();
+      PDEfield->SetParameters(rand_diff_coeffs);
+    }
+    else
+    {
+      PDEfield->SetParameters(par.init_diff_coeffs);
+    }
 
     par.print_fitness = true;
     par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
@@ -496,7 +521,7 @@ TIMESTEP {
       // dish->CPM->ConvertToStem(140,125,25,123107, dish->PDEfield, true); // - did 6998 for fungi to create figure
       // dish->CPM->ConvertToStem(140,125,35,107651, dish->PDEfield, true, 60);  // fungi trash
       // dish->CPM->ConvertToStem(125,160,30,115711, dish->PDEfield, true, 30); 
-      dish->CPM->ConvertToStem(105,120,6,99327, dish->PDEfield, true, 6); 
+      // dish->CPM->ConvertToStem(105,120,6,99327, dish->PDEfield, true, 6); 
       // dish->IntroduceMorphogen(1, 120, 90);
     }
 

@@ -111,7 +111,7 @@ class Parameter {
   int n_pred;
   int n_mutations;
   double mut_rate;
-  double polm_rate;
+  double diff_mut_rate;
 
 
   //programmed division parameters
@@ -147,7 +147,7 @@ class Parameter {
 
   int n_diffusers;
   int n_locks;
-  int med_table[5] = {5,4,3,2,1};
+  int * med_table;
 
   int div_threshold;
   int gthresh;
@@ -254,6 +254,13 @@ class Parameter {
   bool umap;
   unordered_map<int,int> colour_index;
   bool use_colour_index;
+
+  double max_diff_coeff;
+  double min_diff_coeff;
+  vector<double> init_diff_coeffs;
+  double init_decay_rate;
+  double init_secr_rate;
+  double secr_rate_modifier;
 
 
   bool asymmetry_selection;
