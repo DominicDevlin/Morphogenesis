@@ -113,6 +113,8 @@ class Parameter {
   double mut_rate;
   double diff_mut_rate;
 
+  
+
 
   //programmed division parameters
   int end_program;
@@ -179,6 +181,7 @@ class Parameter {
   bool record_directions;
 
   string data_file;
+  string sim_file;
 
   bool stem_counts;
 

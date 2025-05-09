@@ -279,7 +279,7 @@ void record_networks(vector<vector<vector<int>>>& netw, string oname)
 void printn(vector<vector<int>> netw, vector<double> fitn, vector<double> coeffs)
 {
   // create and open file
-  std::string var_name = "gene_networks.txt";
+  std::string var_name = par.sim_file + "/gene_networks.txt";
   std::ofstream outfile;
   outfile.open(var_name, ios::app);
 
@@ -301,7 +301,7 @@ void printn(vector<vector<int>> netw, vector<double> fitn, vector<double> coeffs
   }
   outfile.close();
 
-  std::string coeff_file = "diff_coeffs.txt";
+  std::string coeff_file = par.sim_file + "/diff_coeffs.txt";
   outfile.open(coeff_file, ios::app);
   for (int i = 0; i < par.n_diffusers; ++i)
   {
@@ -338,7 +338,7 @@ void printn(vector<vector<int>> netw, vector<double> fitn, vector<double> coeffs
   auto diff = end - start;
 
   //output fitness and time since beginning simulation. 
-  var_name = "fitness.txt";
+  var_name = par.sim_file + "/fitness.txt";
   outfile.open(var_name, ios::app);
   outfile << max_fit << '\t' << avgfit << '\t' << chrono::duration <double, milli> (diff).count() << endl;
 
@@ -494,7 +494,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
   vector<vector<vector<int>>> nextgen{};
 
   vector<vector<double>> nextgen_diffs{};
-
   int j = 0;
   for (int i=0; i < par.n_orgs;++i)
   {
@@ -521,6 +520,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
     }
     else
     {
+      
       // the last 1/4 are random networks
       if (i >= (par.n_orgs * 3)/4)
       {
@@ -530,13 +530,14 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
       else 
       {
         nextgen.push_back(network_list.at(j));
-        nextgen_diffs.push_back(nextgen_diffs.at(j));
+        nextgen_diffs.push_back(org_diff_coeffs.at(j));
       }
 
       //mutate network with probability = 0.5
       double mu = double_num(mersenne);
       if (mu > par.mut_rate)
       {
+        
         mutate(nextgen.back());
       }
       double mu2 = double_num(mersenne);
@@ -575,6 +576,9 @@ int main(int argc, char *argv[]) {
   
 #endif
 
+  par.sim_file = "sim_data";
+  if (mkdir(par.sim_file.c_str(), 0777) != -1)
+    cout << "Directory created." << endl;
 
   par.graphics=false;
   par.contours=false;
@@ -589,6 +593,9 @@ int main(int argc, char *argv[]) {
   par.umap = false;
   par.output_sizes=false;
   par.mcs = 12100;
+  par.n_orgs = 60;
+  par.evo_pics = true;
+  par.pic_gen_interval = 250;
   
 
   Parameter();
