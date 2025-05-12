@@ -172,21 +172,6 @@ vector<vector<int>> get_random_network()
   return matrix;
 }
 
-vector<double> get_random_diff_coeffs()
-{
-  vector<double> rand_diff_coeffs;
-  for (int i = 0; i < par.n_diffusers; ++i)
-  {
-    double val = double_num(mersenne);
-    val = pow(val, 3.);
-    double diff_co = par.min_diff_coeff + val * (par.max_diff_coeff - par.min_diff_coeff);
-    rand_diff_coeffs.push_back(diff_co);
-  }
-  return rand_diff_coeffs;
-}
-
-
-
 // mutate a network. Currently no bias towards ON when mutating networks. 
 void mutate(vector<vector<int>> &network)
 {
@@ -218,11 +203,28 @@ void mutate(vector<vector<int>> &network)
   }
 }
 
+
+vector<double> get_random_diff_coeffs()
+{
+  vector<double> rand_diff_coeffs;
+  for (int i = 0; i < par.n_diffusers; ++i)
+  {
+    double val = double_num(mersenne);
+    val = pow(val, 3.);
+    double diff_co = par.min_diff_coeff + val * (par.max_diff_coeff - par.min_diff_coeff);
+    rand_diff_coeffs.push_back(diff_co);
+  }
+  return rand_diff_coeffs;
+}
+
 void diff_mutate(vector<double> &coeffs)
 {
   int tm = choose_diffuser(mersenne);
-  coeffs[tm] = coeffs[tm] * exp( diff_mut_curve(mersenne));
-
+  coeffs[tm] = coeffs[tm] * exp( -diff_mut_curve(mersenne));
+  if (coeffs[tm] > par.max_diff_coeff)
+    coeffs[tm] = par.max_diff_coeff;
+  else if (coeffs[tm] < par.min_diff_coeff)
+    coeffs[tm] = par.min_diff_coeff;
 }
 
 
