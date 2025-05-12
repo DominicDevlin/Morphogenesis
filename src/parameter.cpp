@@ -425,6 +425,8 @@
     pde_its = dtmult * pde_its;
     program_its = dtmult * program_its;
 
+    pde_divisor=2;
+
 
     // morphogen wave at the end of programmed division. 
     // The morphogen occupies a hidden spot at the back of the cell "genes" vector. This allows it to decay but not be increased.

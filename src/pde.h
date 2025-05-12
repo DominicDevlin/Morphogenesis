@@ -254,6 +254,9 @@ class PDE {
   int sizey;
   int layers;
 
+  int divisor;
+  double jump;
+
   double * diff_coeff;
   double * decay_rate;
   double * secr_rate;
