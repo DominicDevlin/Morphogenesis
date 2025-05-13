@@ -230,8 +230,7 @@ void Dish::set_maxsigma(int max)
 }
 
 
-
-void Dish::AverageChemCell() // d is number of diffusers (2?)
+void Dish::AverageChemCell() // d is number of diffusers
 {
 
   const int sizex = par.sizex;
@@ -250,7 +249,9 @@ void Dish::AverageChemCell() // d is number of diffusers (2?)
         int cn = CPM->Sigma(x,y);
         if (cn > 0)
         {
-          (cell)[cn].diffs[i] += PDEfield->Sigma(i,x,y);
+          int gx = floor(double(x) / double(par.pde_divisor));
+          int gy = floor(double(y) / double(par.pde_divisor));
+          (cell)[cn].diffs[i] += PDEfield->Sigma(i,gx,gy);
         }
       }
   
@@ -266,7 +267,14 @@ void Dish::AverageChemCell() // d is number of diffusers (2?)
     if (c->AliveP())
     {
       c->average_chem();
-
+      
+      // if (c->Sigma() < 10)
+      // {
+      //   vector<double> &genes = c->get_genes();
+      //   for (auto i : genes)
+      //     cout << i << '\t';
+      //   cout << endl;
+      // }
 
       // if (c->chem_conc(0) > max_conc)
       //   max_conc = c->chem_conc(0);
