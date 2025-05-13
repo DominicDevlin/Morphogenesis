@@ -46,7 +46,7 @@ Dish::Dish()
   
   CPM=new CellularPotts(&cell, par.sizex, par.sizey);
   if (par.n_diffusers)
-    PDEfield=new PDE(par.n_diffusers,par.sizex, par.sizey);
+    PDEfield=new PDE(par.n_diffusers,par.pde_sx, par.pde_sy);
   
   // Initial cell distribution is defined by user in INIT {} block
   // Init();

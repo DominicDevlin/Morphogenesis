@@ -58,6 +58,8 @@ class Parameter {
   double dx;
   int pde_its;
   int pde_divisor;
+  int pde_sx;
+  int pde_sy;
 
   int n_init_cells;
   int size_init_cells;

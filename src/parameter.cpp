@@ -427,6 +427,8 @@
 
     pde_divisor=2;
     dx = double(1)/(double(250)/double(pde_divisor));
+    pde_sx=round(double(par.sizex)/double(pde_divisor));
+    pde_sy=round(double(par.sizey)/double(pde_divisor));
 
     // morphogen wave at the end of programmed division. 
     // The morphogen occupies a hidden spot at the back of the cell "genes" vector. This allows it to decay but not be increased.
