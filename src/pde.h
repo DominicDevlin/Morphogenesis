@@ -256,6 +256,7 @@ class PDE {
 
   int divisor;
   double jump;
+  double dt;
 
   double * diff_coeff;
   double * decay_rate;
