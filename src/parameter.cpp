@@ -419,14 +419,14 @@
 
     saturation = 0;
     dt = 0.2;
-    dx = double(1)/double(250);// 1/((double)sizex);
+    
     pde_its = 1;
     int dtmult = round(1/dt);
     pde_its = dtmult * pde_its;
     program_its = dtmult * program_its;
 
     pde_divisor=2;
-
+    dx = double(1)/(double(250)/double(pde_divisor));
 
     // morphogen wave at the end of programmed division. 
     // The morphogen occupies a hidden spot at the back of the cell "genes" vector. This allows it to decay but not be increased.
