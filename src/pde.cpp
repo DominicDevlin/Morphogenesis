@@ -265,8 +265,6 @@ bool PDE::CheckSecreting(int l)
 }
 
 
-
-
 void PDE::Secrete(CellularPotts *cpm) 
 {
   const double dt=par.dt;
@@ -278,19 +276,16 @@ void PDE::Secrete(CellularPotts *cpm)
       for (int x=0;x<sizex;x++)
         for (int y=0;y<sizey;y++) 
         {
+          double conc{};
           for (int xp=0;xp<divisor;xp++)
             for (int yp=0;yp<divisor;yp++)
             {
-              if (cpm->Sigma(x,y) > 0)
+              if (cpm->Sigma((x*divisor+xp),(y*divisor+yp)) > 0)
               {
-                double conc = cpm->diffuser_check(n,x,y);
-                sigma[n][x][y]+= (secr_rate[n]*dt*conc/jump - decay_rate[n]*dt*sigma[n][x][y]);
-              }
-              else
-              {
-                sigma[n][x][y]-= decay_rate[n]*dt*sigma[n][x][y];
+                conc += cpm->diffuser_check(n,(x*divisor+xp),(y*divisor+yp));
               }
             }
+          sigma[n][x][y]+= (secr_rate[n]*dt*conc/jump - decay_rate[n]*dt*sigma[n][x][y]);
         }
     }
   }
