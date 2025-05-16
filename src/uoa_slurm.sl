@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #SBATCH --job-name=CPM_evolution  
-#SBATCH --time=70:00:00      # Walltime (HH:MM:SS)
+#SBATCH --time=80:00:00      # Walltime (HH:MM:SS)
 #SBATCH --mem=2GB 
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=60  
@@ -16,6 +16,6 @@ module load Qt5/5.12.3-GCCcore-9.2.0
 qmake
 make
 module load LegacySystemLibs/7
-./multisort-replay
+./evolution
 
 ## to output images on the cluster, prepend the output with "xvfb-run". e.g. "xvfb-run ./evolution"

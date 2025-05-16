@@ -265,9 +265,12 @@ class Parameter {
   double max_diff_coeff;
   double min_diff_coeff;
   vector<double> init_diff_coeffs;
+  vector<double> start_diff_coeffs;
   double init_decay_rate;
   double init_secr_rate;
   double secr_rate_modifier;
+
+  bool read_in_evolution;
 
 
   bool asymmetry_selection;

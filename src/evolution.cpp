@@ -18,6 +18,8 @@
 #include <random>
 #include "fft.h"
 #include <sys/stat.h>
+#include <sstream>
+
 
 
 #ifdef QTGRAPHICS
@@ -609,19 +611,67 @@ int main(int argc, char *argv[]) {
 
   vector<vector<double>> org_diff_coeffs{};
 
-  for (int i=0;i<par.n_orgs;++i)
+  if (par.read_in_evolution)
   {
-    if (par.starter)
+    ifstream file("genomes.txt");
+    string line;
+    while (getline(file, line)) 
     {
-      networks.push_back(par.start_n);
+      vector<vector<int>> genome;
+  
+      vector<int> row{};
+      stringstream ss(line);
+      string value;
+      while (ss >> value)
+      {
+        for (int i=0;i < value.size();++i)
+        {
+          if (value[i] == '-')
+          {
+  
+            string ns{value[i]};
+            string ns2{value[i+1]};
+            string nsn = ns + ns2;
+            row.push_back(stoi(nsn));
+            break;
+          }
+          else if (isdigit(value[i]))
+          {
+            row.push_back(value[i] - '0');
+          }
+  
+        }      
+  
+        if (row.size() == 9)
+        {
+          genome.push_back(row);
+          row.clear();
+        }          
+      }
+      networks.push_back(genome);
+    }
+    file.close();
+    for (int i=0;i<par.n_orgs;++i)
+    {
       org_diff_coeffs.push_back(par.init_diff_coeffs);
-    }
-    else
-    {
-      networks.push_back(get_random_network());
-      org_diff_coeffs.push_back(get_random_diff_coeffs());
-    }
+    }    
+
+
   }
+  else
+    for (int i=0;i<par.n_orgs;++i)
+    {
+      if (par.starter)
+      {
+        networks.push_back(par.start_n);
+        org_diff_coeffs.push_back(par.init_diff_coeffs);
+      }
+      else
+      {
+        networks.push_back(get_random_network());
+        org_diff_coeffs.push_back(get_random_diff_coeffs());
+      }
+    }
 
 
   for (int t=0;t<par.evs;++t)
