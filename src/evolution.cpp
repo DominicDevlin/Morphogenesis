@@ -251,9 +251,9 @@ void output_networks(vector<vector<vector<int>>>& netw)
     }
 }
 
-void record_networks(vector<vector<vector<int>>>& netw, string oname)
+void record_networks(vector<vector<vector<int>>>& netw, string oname, string time="")
 {
-  string nname = oname + "/" + "genomes.txt";
+  string nname = oname + "/" + "genomes" + "-" + time + ".txt";
   std::ofstream outfile;
   outfile.open(nname, ios::app);
   for (int org=0;org<par.n_orgs;++org)
@@ -469,7 +469,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
     string dirn = par.data_file + "/" + to_string(time+1);
     if (mkdir(dirn.c_str(), 0777) != -1)
       cout << "Directory created." << endl;
-    record_networks(network_list, dirn);
     for (int i=0; i < par.n_orgs; ++i)
     {
       dishes[i].CPM->ColourCells();
@@ -482,6 +481,9 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
       new_org.cpmOutput(foutput);
     }
   }
+  string dirn = par.sim_file;
+  if (time % 100 == 0)
+    record_networks(network_list, dirn, to_string(time));
 
   delete[] dishes;
 
@@ -642,7 +644,7 @@ int main(int argc, char *argv[]) {
   
         }      
   
-        if (row.size() == 9)
+        if (row.size() == par.n_activators)
         {
           genome.push_back(row);
           row.clear();
@@ -653,7 +655,7 @@ int main(int argc, char *argv[]) {
     file.close();
     for (int i=0;i<par.n_orgs;++i)
     {
-      org_diff_coeffs.push_back(par.init_diff_coeffs);
+      org_diff_coeffs.push_back(par.start_diff_coeffs);
     }    
 
 
