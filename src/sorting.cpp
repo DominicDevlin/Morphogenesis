@@ -76,35 +76,38 @@ INIT
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
 
+    if (par.make_sheet)
+    {
+      CPM->ConstructSheet(par.sheetx,par.sheety);
+      par.divisions = 6;
+    }      
+    else
+      CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
+    CPM->ConstructInitCells(*this);
+
     if (par.make_rectangle)
     {
-      int CELLS_X = 5;
-      int CELLS_Y = 12;
-      CPM->ConstructRectangleSeed(CELLS_X, CELLS_Y, par.size_init_cells, par.rect_offset_x, par.rect_offset_y, /*spacing =*/ 0);
+      CPM->Voronoi(0);
+      cout << "Voronoi done" << endl;
+      CPM->SetRectangularMF();
+      cout << "MF done" << endl;
     }
     else
     {
-      if (par.make_sheet)
-      {
-        CPM->ConstructSheet(par.sheetx,par.sheety);
-        par.divisions = 6;
-      }      
-      else
-        CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
-      CPM->ConstructInitCells(*this);
+      for (int i=0;i<par.divisions;i++) {
+        CPM->DivideCells();
+      }
+      if (par.velocities)
+        par.output_sizes = true;
     }
 
-    if (par.velocities)
-      par.output_sizes = true;
     
     // If we have only one big cell and divide it a few times
     // we start with a nice initial clump of cells. 
     // 
     // The behavior can be changed in the parameter file using 
     // parameters n_init_cells, size_init_cells and divisions
-    for (int i=0;i<par.divisions;i++) {
-      CPM->DivideCells();
-    }
+
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();

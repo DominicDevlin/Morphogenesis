@@ -2153,29 +2153,272 @@ void CellularPotts::Programmed_Division(void)
 
 
 
-void CellularPotts::ConstructRectangleSeed(int nx, int ny, int cell_size, int offset_x, int offset_y, int spacing)
+//split sheet into cells
+void CellularPotts::FractureSheet()
 {
-  // sanity
-  if (nx <= 0 || ny <= 0) return;
+  
+  bool dividing = true;
 
-  // delta between neighbouring cell centres
-  const int pitch = cell_size + spacing;
-
-  // add exactly nx*ny single Eden-grown cells
-  for (int ix = 0; ix < nx; ++ix)
+  while (dividing)
   {
-    for (int iy = 0; iy < ny; ++iy)
+    vector<bool> which_cells(cell->size());
+    dividing = false;
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
-      int cx = offset_x + ix * pitch;
-      int cy = offset_y + iy * pitch;
+      if (c->AliveP())
+      {
+        int area = c->Area();  
+        if (area>par.div_threshold)
+        {
 
-      // use GrowInCells() overload that places 1 cell centred in a sub-field
-      //             n , size , sx , sy , offx , offy
-      cout << "here" << endl;
-      GrowInCells(1,  cell_size,  cx,  cy,   0,     0);
+          dividing = true;
+          which_cells[c->Sigma()]=true;
+
+        }
+      }
+    }
+    if (dividing)
+      DivideCells(which_cells);
+  }
+}
+
+//split sheet into cells
+void CellularPotts::FractureSheet(int n_cells)
+{
+  int counter=0;
+  bool dividing = true;
+
+  while (dividing)
+  {
+    vector<bool> which_cells(cell->size());
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+    {
+      if (c->AliveP())
+      {
+        if (counter<=n_cells)
+        {
+
+          which_cells[c->Sigma()]=true;
+          ++counter;
+        }
+      }
+    }
+    if (dividing)
+      DivideCells(which_cells);
+    if (counter >= n_cells)
+    {
+      dividing=false;
     }
   }
 }
+
+
+
+struct VPoint 
+{
+    double x, y;
+    int id;
+     // Corresponding Voronoi seed
+};
+
+vector<VPoint> HexaCenters(int m, int n, double r)
+{
+  vector<VPoint> centers;
+  int num_cols = static_cast<int>(std::floor(m / (2 * r)));  
+  int num_rows = static_cast<int>(std::floor(n / (sqrt(3) * r)));
+  int center_count = 1;
+
+    // Generate centers
+    for (int row = 0; row < num_rows; ++row) 
+    {
+      for (int col = 0; col < num_cols; ++col) 
+      {
+          double x = col * 2 * r;
+          double y = row * sqrt(3) * r;
+          
+          // Stagger odd rows
+          if (row % 2 == 1) {
+              x += r;  // Shift odd rows horizontally by r
+          }
+          
+          // Ensure the center is within the grid bounds
+          if (x < m+2 && y < n+2) {
+              centers.push_back({x+2+(r/2), y+2+(r/2), center_count});
+              center_count++;
+          }
+        }
+    }
+    // cout << "CENTRE COUNT IS: " << center_count << endl;
+    return centers;
+}
+
+int HexaCounter(int m, int n, double r)
+{
+  // int num_rows = static_cast<int>(std::floor(m / (sqrt(3) * r)));
+  // int num_cols = static_cast<int>(std::floor(n / (2 * r)));  
+
+  int num_cols = static_cast<int>(std::floor(m / (2 * r)));  
+  int num_rows = static_cast<int>(std::floor(n / (sqrt(3) * r)));
+
+
+  int center_count = 0;
+    // Generate centers
+    for (int row = 0; row < num_rows; ++row) 
+    {
+      for (int col = 0; col < num_cols; ++col) 
+      {
+          double x = col * 2 * r;
+          double y = row * sqrt(3) * r;
+          
+          // Stagger odd rows
+          if (row % 2 == 1) {
+              x += r;  // Shift odd rows horizontally by r
+          }
+          
+          // Ensure the center is within the grid bounds
+          if (x < m && y < n) {
+              center_count++;
+          }
+        }
+    }
+    return center_count;
+}
+
+
+
+
+double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey) 
+{
+  // Calculate direct distances
+  double dx = std::abs(x2 - x1);
+  double dy = std::abs(y2 - y1);
+  if (par.periodic_boundaries)
+  {
+    // Apply periodic boundary conditions
+    if (dx > sizex / 2) {
+        dx = sizex - dx - 2;  // Wrap around horizontally
+    }
+    if (dy > sizey / 2) {
+        dy = sizey - dy - 2;  // Wrap around vertically
+    }
+  }
+
+  
+  // Return the Euclidean distance
+  return std::sqrt(dx * dx + dy * dy);
+}
+
+void CellularPotts::Voronoi(int shift /* = 0 */)
+{
+  //------------------------------------------------------------
+  // 1.  Geometric set-up
+  //------------------------------------------------------------
+  double A        = double(par.size_init_cells);              // cell area
+  double cell_length    = std::sqrt( A / (2.0 * std::sqrt(3.0)) );  // hex-packing formula
+
+  // We want an integral number of cells to fit exactly:
+  int  nx_cells   = par.rect_cells_x;
+  int  ny_cells   = par.rect_cells_y;
+
+  int xlen = int(std::round(nx_cells * cell_length)) + 2;  // +2 for boundary frame
+  int ylen = int(std::round(ny_cells * cell_length)) + 2;
+
+  // Re-tune cell_length so that the rectangle is filled edge-to-edge.
+  cell_length = double(xlen - 2) / nx_cells;
+
+  //------------------------------------------------------------
+  // 2.  Build the cell pool and clear the rectangle
+  //------------------------------------------------------------
+  int ncells = nx_cells * ny_cells;        // exactly what we’re going to use
+  FractureSheet(ncells);                         // creates ncells and puts them in *cell
+
+  // blank ONLY the target rectangle (leave the rest of the dish intact)
+  int x0 = sizex - xlen;
+  int y0 = sizey - ylen - shift;
+  for (int x = x0; x < x0 + xlen; ++x)
+    for (int y = y0; y < y0 + ylen; ++y)
+      sigma[x][y] = 0;
+
+  //------------------------------------------------------------
+  // 3.  Generate a regular hexagonal array of centre points
+  //------------------------------------------------------------
+  struct Ctr { double x, y; int id; };
+  std::vector<Ctr> centres;
+  centres.reserve(ncells);
+
+  int id = 1;                           //   sigma index   (0 = medium)
+  double dx = cell_length;
+  double dy = cell_length * std::sqrt(3.0) / 2.0;
+
+  for (int iy = 0; iy < ny_cells; ++iy)
+  {
+    double cy = y0 + 1 + iy * dy;            // +1 keeps us inside the 1-pixel frame
+    bool   odd = iy & 1;
+
+    for (int ix = 0; ix < nx_cells; ++ix)
+    {
+      double cx = x0 + 1 + ix * dx + (odd ? dx / 2.0 : 0.0);
+      centres.push_back({cx, cy, id++});
+    }
+  }
+
+  //------------------------------------------------------------
+  // 4.  Assign each lattice site inside the rectangle to its
+  //     nearest centre (ordinary Voronoi)
+  //------------------------------------------------------------
+  for (int x = x0; x < x0 + xlen; ++x)
+    for (int y = y0; y < y0 + ylen; ++y)
+    {
+      double best = std::numeric_limits<double>::max();
+      int    bid  = 0;
+
+      for (auto& c : centres)
+      {
+        double dx = x - c.x;
+        double dy = y - c.y;
+        double d2 = dx*dx + dy*dy;
+        if (d2 < best) { best = d2; bid = c.id; }
+      }
+      sigma[x][y] = bid;
+    }
+
+  //------------------------------------------------------------
+  // 5.  Update Cell objects (area, target area, cull empties)
+  //------------------------------------------------------------
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP()) 
+      c->CleanMoments();
+  }
+  
+
+  for (int x = x0; x < x0 + xlen; ++x)
+    for (int y = y0; y < y0 + ylen; ++y)
+      if (sigma[x][y] > 0)
+        (*cell)[sigma[x][y]].area++;
+
+  int dead = 0;
+  for (auto &c : *cell)
+    if (c.AliveP())
+    {
+      if (c.area == 0)
+      {
+        c.Apoptose();
+        ++dead;
+      }
+      else
+        c.SetTargetArea(c.area);
+    }
+
+  std::cout << "Voronoi rectangle seeded (" << nx_cells << " × "
+            << ny_cells << " = " << ncells << " cells).  "
+            << "Culled empty: " << dead << std::endl;
+}
+
+
 
 
 void CellularPotts::SetRectangularMF(void)
@@ -2188,6 +2431,7 @@ void CellularPotts::SetRectangularMF(void)
     for (int y = 0; y < sizey; ++y)
       if (sigma[x][y] > 0)
       {
+        cout << x << '\t' << y << '\t' << sigma[x][y] << endl;
         if (x < minx) minx = x;
         if (x > maxx) maxx = x;
         if (y < miny) miny = y;
@@ -2203,10 +2447,11 @@ void CellularPotts::SetRectangularMF(void)
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
   {
-    if (!c->AliveP()) continue;
+    if (!c->AliveP()) 
+      continue;
 
     std::vector<int> pos = MiddleOfCell(c->Sigma());   // [σ, x, y]
-    const int y = pos[2];
+    int y = pos[2];
 
     // which horizontal band (0 = top … 3 = bottom)?
     int band = static_cast<int>( (y - miny) / band_h );

@@ -382,6 +382,13 @@ void ConstructRectangleSeed(int nx, int ny, int cell_size, int offset_x = 0,int 
 void SetRectangularMF(void);
 
 
+void Voronoi(int shift);
+
+//split sheet into cells
+void FractureSheet();
+
+void FractureSheet(int n_cells);
+
   // personal random numbers for xoshiro RNG (each grid has its own state)
   uint64_t s_val[4]{1,1,1,1};
 
