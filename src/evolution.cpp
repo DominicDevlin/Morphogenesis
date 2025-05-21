@@ -600,7 +600,7 @@ int main(int argc, char *argv[]) {
   par.output_sizes=false;
   par.mcs = 12100;
   par.n_orgs = 60;
-  par.evo_pics = true;
+  
   par.pic_gen_interval = 250;
   
 
@@ -655,10 +655,8 @@ int main(int argc, char *argv[]) {
     file.close();
     for (int i=0;i<par.n_orgs;++i)
     {
-      org_diff_coeffs.push_back(par.start_diff_coeffs);
+      org_diff_coeffs.push_back(par.evostart_diff_coeffs);
     }    
-
-
   }
   else
     for (int i=0;i<par.n_orgs;++i)
@@ -666,7 +664,7 @@ int main(int argc, char *argv[]) {
       if (par.starter)
       {
         networks.push_back(par.start_n);
-        org_diff_coeffs.push_back(par.init_diff_coeffs);
+        org_diff_coeffs.push_back(par.evostart_diff_coeffs);
       }
       else
       {

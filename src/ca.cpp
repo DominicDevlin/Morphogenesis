@@ -2153,6 +2153,85 @@ void CellularPotts::Programmed_Division(void)
 
 
 
+void CellularPotts::ConstructRectangleSeed(int nx, int ny, int cell_size, int offset_x, int offset_y, int spacing)
+{
+  // sanity
+  if (nx <= 0 || ny <= 0) return;
+
+  // delta between neighbouring cell centres
+  const int pitch = cell_size + spacing;
+
+  // add exactly nx*ny single Eden-grown cells
+  for (int ix = 0; ix < nx; ++ix)
+  {
+    for (int iy = 0; iy < ny; ++iy)
+    {
+      int cx = offset_x + ix * pitch;
+      int cy = offset_y + iy * pitch;
+
+      // use GrowInCells() overload that places 1 cell centred in a sub-field
+      //             n , size , sx , sy , offx , offy
+      cout << "here" << endl;
+      GrowInCells(1,  cell_size,  cx,  cy,   0,     0);
+    }
+  }
+}
+
+
+void CellularPotts::SetRectangularMF(void)
+{
+  // -----------------------------------------------------------------
+  // 1.  Bounding box of all sites with sigma > 0
+  // -----------------------------------------------------------------
+  int minx = sizex, miny = sizey, maxx = 0, maxy = 0;
+  for (int x = 0; x < sizex; ++x)
+    for (int y = 0; y < sizey; ++y)
+      if (sigma[x][y] > 0)
+      {
+        if (x < minx) minx = x;
+        if (x > maxx) maxx = x;
+        if (y < miny) miny = y;
+        if (y > maxy) maxy = y;
+      }
+
+  double total_h = maxy - miny + 1.0;      // height of rectangle
+  double band_h  = total_h / 4.0;          // height of one stripe
+
+  // -----------------------------------------------------------------
+  // 2.  Iterate over all cells and set MF genes + colour
+  // -----------------------------------------------------------------
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (!c->AliveP()) continue;
+
+    std::vector<int> pos = MiddleOfCell(c->Sigma());   // [σ, x, y]
+    const int y = pos[2];
+
+    // which horizontal band (0 = top … 3 = bottom)?
+    int band = static_cast<int>( (y - miny) / band_h );
+    if (band > 3) band = 3;                           // guard rounding
+
+    // MF logic: bottom two bands → MF1=1; right/odd bands → MF2=1
+    bool mf1 = (band >= 2);           // bands 2 & 3   → MF1 = 1
+    bool mf2 = (band % 2 == 1);       // bands 1 & 3   → MF2 = 1
+
+    std::vector<double>& g = c->get_genes();
+    g[par.MF1_position] = mf1 ? 1.0 : 0.0;
+    g[par.MF2_position] = mf2 ? 1.0 : 0.0;
+
+    // update cell-type colour (same encoding as elsewhere)
+    int new_ctype = static_cast<int>(mf1) * 4 + static_cast<int>(mf2) * 3;
+    c->set_ctype(new_ctype);
+  }
+}
+
+
+
+
+
+
+
 void CellularPotts::randomise_network()
 {
   for (int i = 0; i < par.n_genes; ++i)

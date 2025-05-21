@@ -75,15 +75,25 @@ INIT
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
-    if (par.make_sheet)
+
+    if (par.make_rectangle)
     {
-      CPM->ConstructSheet(par.sheetx,par.sheety);
-      par.divisions = 6;
+      int CELLS_X = 5;
+      int CELLS_Y = 12;
+      CPM->ConstructRectangleSeed(CELLS_X, CELLS_Y, par.size_init_cells, par.rect_offset_x, par.rect_offset_y, /*spacing =*/ 0);
     }
-      
     else
-      CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
-    CPM->ConstructInitCells(*this);
+    {
+      if (par.make_sheet)
+      {
+        CPM->ConstructSheet(par.sheetx,par.sheety);
+        par.divisions = 6;
+      }      
+      else
+        CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
+      CPM->ConstructInitCells(*this);
+    }
+
     if (par.velocities)
       par.output_sizes = true;
     

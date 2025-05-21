@@ -359,6 +359,27 @@ public:
   //Output norm on cell proteins for all cells. 
   void OutputProteinNorms();
 
+  /** Seed a regular (nx × ny) rectangular lattice of cells.
+ *
+ *  @param nx          # cells horizontally  (e.g. 8)
+ *  @param ny          # cells vertically    (e.g. 8)
+ *  @param cell_size   Eden-growth iterations per cell (≈ initial area)
+ *  @param offset_x    bottom-left corner of rectangle
+ *  @param offset_y    bottom-left corner of rectangle
+ *  @param spacing     gap (lattice sites) between cell centres
+ */
+void ConstructRectangleSeed(int nx, int ny, int cell_size, int offset_x = 0,int offset_y = 0, int spacing  = 0);
+
+
+/** Paint the four quadrants of the previously seeded rectangle
+ *  with the 2-gene MF pattern:
+ *      top-left     0 0
+ *      top-right    0 1
+ *      bottom-left  1 0
+ *      bottom-right 1 1
+ *  (MF gene indices come from par.MF1_position / MF2_position)
+ */
+void SetRectangularMF(void);
 
 
   // personal random numbers for xoshiro RNG (each grid has its own state)

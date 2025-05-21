@@ -265,10 +265,16 @@ class Parameter {
   double max_diff_coeff;
   double min_diff_coeff;
   vector<double> init_diff_coeffs;
-  vector<double> start_diff_coeffs;
+  vector<double> evostart_diff_coeffs;
   double init_decay_rate;
   double init_secr_rate;
   double secr_rate_modifier;
+
+  bool make_rectangle;
+  int rect_cells_x;
+  int rect_cells_y;
+  int rect_offset_x;
+  int rect_offset_y;
 
   bool read_in_evolution;
 
