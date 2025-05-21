@@ -2335,11 +2335,21 @@ void CellularPotts::Voronoi(int shift /* = 0 */)
   FractureSheet(ncells);                         // creates ncells and puts them in *cell
 
   // blank ONLY the target rectangle (leave the rest of the dish intact)
-  int x0 = sizex - xlen;
-  int y0 = sizey - ylen - shift;
-  for (int x = x0; x < x0 + xlen; ++x)
-    for (int y = y0; y < y0 + ylen; ++y)
-      sigma[x][y] = 0;
+  int x0 = (sizex - xlen)/2;              // centred in X
+  int y0 = (sizey - ylen)/2 - shift;      // centred in Y, then offset by “shift”
+  // keep everything inside the lattice
+  x0 = std::max(1, std::min(x0, sizex - xlen - 1));
+  y0 = std::max(1, std::min(y0, sizey - ylen - 1));
+
+  std::cout << "Rectangle origin (x0,y0) = (" << x0 << ", " << y0 << ")\n";
+
+  for (int x = 1; x < sizex-1; ++x) 
+  {
+    for (int y = 1; y < sizey-1; ++y) 
+    {
+      sigma[x][y]=0;
+    }
+  }
 
   //------------------------------------------------------------
   // 3.  Generate a regular hexagonal array of centre points
@@ -2348,13 +2358,13 @@ void CellularPotts::Voronoi(int shift /* = 0 */)
   std::vector<Ctr> centres;
   centres.reserve(ncells);
 
-  int id = 1;                           //   sigma index   (0 = medium)
+  int    id = 1;
   double dx = cell_length;
   double dy = cell_length * std::sqrt(3.0) / 2.0;
 
   for (int iy = 0; iy < ny_cells; ++iy)
   {
-    double cy = y0 + 1 + iy * dy;            // +1 keeps us inside the 1-pixel frame
+    double cy  = y0 + 1 + iy * dy;          // +1 : stay inside 1-pixel frame
     bool   odd = iy & 1;
 
     for (int ix = 0; ix < nx_cells; ++ix)
@@ -2382,40 +2392,66 @@ void CellularPotts::Voronoi(int shift /* = 0 */)
         if (d2 < best) { best = d2; bid = c.id; }
       }
       sigma[x][y] = bid;
+      // cout << x << '\t' << y << '\t' << sigma[x][y] << endl;
     }
 
   //------------------------------------------------------------
   // 5.  Update Cell objects (area, target area, cull empties)
   //------------------------------------------------------------
   vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
   {
-    if (c->AliveP()) 
-      c->CleanMoments();
-  }
-  
-
-  for (int x = x0; x < x0 + xlen; ++x)
-    for (int y = y0; y < y0 + ylen; ++y)
-      if (sigma[x][y] > 0)
-        (*cell)[sigma[x][y]].area++;
-
-  int dead = 0;
-  for (auto &c : *cell)
-    if (c.AliveP())
+    if (c->AliveP())
     {
-      if (c.area == 0)
+      c->area = 0;
+    }
+  }
+
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
       {
-        c.Apoptose();
-        ++dead;
+        (*cell)[sigma[x][y]].area +=1;
+        (*cell)[sigma[x][y]].AddSiteToMoments(x,y);
+      }
+    }   
+  
+  int deadcells{};
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
       }
       else
-        c.SetTargetArea(c.area);
+      {
+        c->SetTargetArea(c->area);
+        // cout << c->area << endl;
+      }
     }
+  }
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
+      }
+      else
+      {
+        c->SetTargetArea(c->area);
+      }
+    }
+  }
+  cout << "Total cells killed: " << deadcells << endl;
 
-  std::cout << "Voronoi rectangle seeded (" << nx_cells << " × "
-            << ny_cells << " = " << ncells << " cells).  "
-            << "Culled empty: " << dead << std::endl;
 }
 
 
@@ -2431,7 +2467,7 @@ void CellularPotts::SetRectangularMF(void)
     for (int y = 0; y < sizey; ++y)
       if (sigma[x][y] > 0)
       {
-        cout << x << '\t' << y << '\t' << sigma[x][y] << endl;
+        // cout << x << '\t' << y << '\t' << sigma[x][y] << endl;
         if (x < minx) minx = x;
         if (x > maxx) maxx = x;
         if (y < miny) miny = y;
@@ -2447,27 +2483,29 @@ void CellularPotts::SetRectangularMF(void)
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
   {
+    cout << "start" << endl;
     if (!c->AliveP()) 
       continue;
 
     std::vector<int> pos = MiddleOfCell(c->Sigma());   // [σ, x, y]
     int y = pos[2];
-
+    cout << "here-1" << endl;
     // which horizontal band (0 = top … 3 = bottom)?
     int band = static_cast<int>( (y - miny) / band_h );
     if (band > 3) band = 3;                           // guard rounding
-
+    cout << "here0" << endl;
     // MF logic: bottom two bands → MF1=1; right/odd bands → MF2=1
     bool mf1 = (band >= 2);           // bands 2 & 3   → MF1 = 1
     bool mf2 = (band % 2 == 1);       // bands 1 & 3   → MF2 = 1
-
+    cout << "here1" << endl;
     std::vector<double>& g = c->get_genes();
     g[par.MF1_position] = mf1 ? 1.0 : 0.0;
     g[par.MF2_position] = mf2 ? 1.0 : 0.0;
-
+    cout << "here2" << endl;
     // update cell-type colour (same encoding as elsewhere)
     int new_ctype = static_cast<int>(mf1) * 4 + static_cast<int>(mf2) * 3;
     c->set_ctype(new_ctype);
+    cout << "end" << endl;
   }
 }
 

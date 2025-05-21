@@ -89,8 +89,6 @@ INIT
     {
       CPM->Voronoi(0);
       cout << "Voronoi done" << endl;
-      CPM->SetRectangularMF();
-      cout << "MF done" << endl;
     }
     else
     {
@@ -194,17 +192,27 @@ TIMESTEP {
         dish->CPM->OutputInitConcs();
     }
       
-    
+    bool done_rectangle = false;
     // programmed cell division section
     if (t < par.end_program)
     {
 
-      if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
+
+      if (par.make_rectangle && done_rectangle == false)
       {
-        dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
+        dish->CPM->SetRectangularMF();
+        cout << "MF done" << endl;
+        done_rectangle = true;
+      }
+      else if (par.make_rectangle == false)
+      {
+        if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
+        {
+          dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
+        }
       }
 
-      
+ 
      
       if (t >= par.begin_network && t % par.update_freq == 0)
       {
