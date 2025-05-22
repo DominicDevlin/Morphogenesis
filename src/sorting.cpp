@@ -75,26 +75,37 @@ INIT
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
+
     if (par.make_sheet)
     {
       CPM->ConstructSheet(par.sheetx,par.sheety);
       par.divisions = 6;
-    }
-      
+    }      
     else
       CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
     CPM->ConstructInitCells(*this);
-    if (par.velocities)
-      par.output_sizes = true;
+
+    if (par.make_rectangle)
+    {
+      CPM->Voronoi(0);
+      cout << "Voronoi done" << endl;
+    }
+    else
+    {
+      for (int i=0;i<par.divisions;i++) {
+        CPM->DivideCells();
+      }
+      if (par.velocities)
+        par.output_sizes = true;
+    }
+
     
     // If we have only one big cell and divide it a few times
     // we start with a nice initial clump of cells. 
     // 
     // The behavior can be changed in the parameter file using 
     // parameters n_init_cells, size_init_cells and divisions
-    for (int i=0;i<par.divisions;i++) {
-      CPM->DivideCells();
-    }
+
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
@@ -181,17 +192,27 @@ TIMESTEP {
         dish->CPM->OutputInitConcs();
     }
       
-    
+    bool done_rectangle = false;
     // programmed cell division section
     if (t < par.end_program)
     {
 
-      if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
+
+      if (par.make_rectangle && done_rectangle == false)
       {
-        dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
+        dish->CPM->SetRectangularMF();
+        cout << "MF done" << endl;
+        done_rectangle = true;
+      }
+      else if (par.make_rectangle == false)
+      {
+        if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
+        {
+          dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
+        }
       }
 
-      
+ 
      
       if (t >= par.begin_network && t % par.update_freq == 0)
       {
