@@ -192,27 +192,21 @@ TIMESTEP {
         dish->CPM->OutputInitConcs();
     }
       
-    bool done_rectangle = false;
     // programmed cell division section
     if (t < par.end_program)
     {
 
-
-      if (par.make_rectangle && done_rectangle == false)
+      if (t == 100 && par.make_rectangle)
       {
         dish->CPM->SetRectangularMF();
-        cout << "MF done" << endl;
-        done_rectangle = true;
       }
-      else if (par.make_rectangle == false)
+      else if (!par.make_rectangle)
       {
         if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
         {
           dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
         }
       }
-
- 
      
       if (t >= par.begin_network && t % par.update_freq == 0)
       {

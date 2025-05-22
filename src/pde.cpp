@@ -234,16 +234,24 @@ void PDE::SetParameters(std::vector<double>& org_diff_coeffs)
   decay_rate = new double[par.n_diffusers];
   secr_rate = new double[par.n_diffusers];
 
-  for (int i = 0; i < par.n_diffusers; ++i)
+  if (par.do_morphogen_evolution)
   {
-    diff_coeff[i] = org_diff_coeffs[i];
-    diff_coeff[i] = org_diff_coeffs[i];
-    diff_coeff[i] = org_diff_coeffs[i];
-
-    secr_rate[i] = par.init_secr_rate + (diff_coeff[i] - par.min_diff_coeff)/(par.max_diff_coeff - par.min_diff_coeff) * par.secr_rate_modifier;
-    decay_rate[i] = par.init_decay_rate;
+    for (int i = 0; i < par.n_diffusers; ++i)
+    {
+      diff_coeff[i] = org_diff_coeffs[i];
+      secr_rate[i] = par.init_secr_rate + (diff_coeff[i] - par.min_diff_coeff)/(par.max_diff_coeff - par.min_diff_coeff) * par.secr_rate_modifier;
+      decay_rate[i] = par.init_decay_rate;
+    }
   }
-
+  else
+  {
+    for (int i = 0; i < par.n_diffusers; ++i)
+    {
+      diff_coeff[i] = par.init_diffusion_rate;
+      secr_rate[i] = par.init_secr_rate;
+      decay_rate[i] = par.init_decay_rate;
+    }
+  }
 }
 
 

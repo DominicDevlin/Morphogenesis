@@ -56,6 +56,12 @@ INIT {
     CPM->set_seed();
     CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
     CPM->ConstructInitCells(*this);
+
+    if (par.make_rectangle)
+    {
+      CPM->Voronoi(0);
+    }
+
     CPM->SetRandomTypes();
     
   } catch(const char* error) {
@@ -305,19 +311,22 @@ void printn(vector<vector<int>> netw, vector<double> fitn, vector<double> coeffs
   }
   outfile.close();
 
-  std::string coeff_file = par.sim_file + "/diff_coeffs.txt";
-  outfile.open(coeff_file, ios::app);
-  for (int i = 0; i < par.n_diffusers; ++i)
+  if (par.do_morphogen_evolution)
   {
-    if (i == 0)
-      outfile << "{ ";
+    std::string coeff_file = par.sim_file + "/diff_coeffs.txt";
+    outfile.open(coeff_file, ios::app);
+    for (int i = 0; i < par.n_diffusers; ++i)
+    {
+      if (i == 0)
+        outfile << "{ ";
 
-    outfile << coeffs[i] << ", ";
+      outfile << coeffs[i] << ", ";
 
-    if (i == par.n_diffusers-1)
-      outfile << "}" << endl;
+      if (i == par.n_diffusers-1)
+        outfile << "}" << endl;
+    }
+    outfile.close();
   }
-  outfile.close();
 
 
   // max fitness 
@@ -394,11 +403,17 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
       // PROGRAMMED CELL DIVISION SECTION
       if (t < par.end_program)
       {
-
-        //programmed divisions
-        if (t % par.div_freq == 0 && t <= par.div_end)
+        if (t==100 && par.make_rectangle)
         {
-          dishes[i].CPM->Programmed_Division(); // need to get the number of divisions right. 
+          dishes[i].CPM->SetRectangularMF();
+        }
+        else if (!par.make_rectangle)
+        {
+          //programmed divisions
+          if (t % par.div_freq == 0 && t <= par.div_end)
+          {
+            dishes[i].CPM->Programmed_Division(); // need to get the number of divisions right. 
+          }
         }
 
         
@@ -504,7 +519,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
   for (int i=0; i < par.n_orgs;++i)
   {
     // Currently no random networks are added if largest fitness > this
-    if (inter_org_fitness.front() > 30 || !par.insert_randoms)
+    if (inter_org_fitness.front() > 35 || !par.insert_randoms)
     {
       nextgen.push_back(network_list.at(j));
       nextgen_diffs.push_back(org_diff_coeffs.at(j));

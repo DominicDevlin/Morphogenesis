@@ -2315,39 +2315,100 @@ void CellularPotts::Voronoi(int shift /* = 0 */)
   //------------------------------------------------------------
   // 1.  Geometric set-up
   //------------------------------------------------------------
-  double A        = double(par.size_init_cells);              // cell area
-  double cell_length    = std::sqrt( A / (2.0 * std::sqrt(3.0)) );  // hex-packing formula
+  double A = par.size_init_cells; // Target cell area
 
-  // We want an integral number of cells to fit exactly:
-  int  nx_cells   = par.rect_cells_x;
-  int  ny_cells   = par.rect_cells_y;
+  // Based on analysis, the original 'cell_length' calculation:
+  //   cell_length = round(2* std::sqrt( A / (2.0 * std::sqrt(3.0)) ))
+  // corresponds to d_short (distance between parallel sides, or width) of a flat-topped hexagon.
+  // Formula for d_short from Area A: d_short = sqrt(2*A/sqrt(3)).
+  // The code's calculation is equivalent to this. Let's call it hex_flat_width.
+  double hex_flat_width = std::round(std::sqrt(2.0 * A / std::sqrt(3.0)));
+  if (hex_flat_width < 1.0 && A > 0) hex_flat_width = 1.0; // Ensure it's at least 1 pixel if area is positive
 
-  int xlen = int(std::round(nx_cells * cell_length)) + 2;  // +2 for boundary frame
-  int ylen = int(std::round(ny_cells * cell_length)) + 2;
+  // For flat-topped hexagons:
+  // Side length s = hex_flat_width / sqrt(3.0)
+  // Height H (vertex to vertex) = 2 * s = 2.0 * hex_flat_width / std::sqrt(3.0)
+  double hex_side_length = hex_flat_width / std::sqrt(3.0);
+  double hex_actual_height = 2.0 * hex_side_length;
 
-  // Re-tune cell_length so that the rectangle is filled edge-to-edge.
-  cell_length = double(xlen - 2) / nx_cells;
+  // Center-to-center distances for a grid of flat-topped hexagons
+  double dx_centers = hex_flat_width; // Horizontal distance between centers in the same row
+  double dy_rows = 1.5 * hex_side_length; // Vertical distance between rows. Equivalent to hex_flat_width * std::sqrt(3.0) / 2.0
+
+  int nx_cells = par.rect_cells_x;
+  int ny_cells = par.rect_cells_y;
+
+  if (nx_cells <= 0 || ny_cells <= 0) {
+      std::cout << "Voronoi: No cells to generate (nx_cells=" << nx_cells << " or ny_cells=" << ny_cells << " is zero or negative)." << std::endl;
+      // Clear the sheet (assuming sigma is already allocated)
+      for (int x_idx = 0; x_idx < sizex; ++x_idx) { // Clear full sigma
+          for (int y_idx = 0; y_idx < sizey; ++y_idx) {
+              sigma[x_idx][y_idx]=0;
+          }
+      }
+      FractureSheet(0); // Ensure cell pool is empty or sized for 0 cells
+      return;
+  }
+  
+  // Calculate the dimensions of the rectangle for Voronoi tessellation
+  // This rectangle should tightly bound the generated hexagons.
+  double rect_total_width_double;
+  if (nx_cells == 1) {
+    rect_total_width_double = hex_flat_width; // A single column of cells has this width
+  } else {
+    // (nx_cells - 1) steps between centers + one hex_flat_width (for the body of the first cell column)
+    rect_total_width_double = (nx_cells - 1) * dx_centers + hex_flat_width;
+    if (ny_cells > 1) { // Staggering adds to width only if there's more than one row and multiple columns
+      rect_total_width_double += 0.5 * dx_centers;
+    }
+  }
+
+  double rect_total_height_double;
+  // (ny_cells - 1) steps between row centers + one full hex_actual_height (for the body of the cells)
+  rect_total_height_double = (ny_cells - 1) * dy_rows + hex_actual_height;
+  
+  int xlen = static_cast<int>(std::round(rect_total_width_double));
+  int ylen = static_cast<int>(std::round(rect_total_height_double));
+
+   if (xlen <=0 || ylen <=0) { // Should not happen if nx_cells/ny_cells > 0 and A > 0
+       std::cout << "Voronoi: Calculated rectangle extent is zero or negative. xlen=" << xlen << ", ylen=" << ylen << std::endl;
+       for (int x_idx = 0; x_idx < sizex; ++x_idx) for (int y_idx = 0; y_idx < sizey; ++y_idx) sigma[x_idx][y_idx]=0;
+       FractureSheet(0);
+       return;
+   }
 
   //------------------------------------------------------------
   // 2.  Build the cell pool and clear the rectangle
   //------------------------------------------------------------
-  int ncells = nx_cells * ny_cells;        // exactly what we’re going to use
-  FractureSheet(ncells);                         // creates ncells and puts them in *cell
+  int n_actual_cells = nx_cells * ny_cells; // Assuming all cells fit and are generated
+  FractureSheet(n_actual_cells);
 
-  // blank ONLY the target rectangle (leave the rest of the dish intact)
-  int x0 = (sizex - xlen)/2;              // centred in X
-  int y0 = (sizey - ylen)/2 - shift;      // centred in Y, then offset by “shift”
-  // keep everything inside the lattice
-  x0 = std::max(1, std::min(x0, sizex - xlen - 1));
-  y0 = std::max(1, std::min(y0, sizey - ylen - 1));
+  int x0 = (sizex - xlen) / 2;
+  int y0 = (sizey - ylen) / 2 - shift;
+  // Clamp x0, y0 to ensure the entire [x0, x0+xlen-1] by [y0, y0+ylen-1] rectangle is within bounds [1, size-2]
+  // Assuming sigma is [0..sizex-1][0..sizey-1] and we use [1..sizex-2][1..sizey-2]
+  x0 = std::max(1, x0);
+  y0 = std::max(1, y0);
+  if (x0 + xlen > sizex - 1) x0 = sizex - 1 - xlen;
+  if (y0 + ylen > sizey - 1) y0 = sizey - 1 - ylen;
+  x0 = std::max(1, x0); // Re-clamp if xlen itself is too large
+  y0 = std::max(1, y0);
 
-  std::cout << "Rectangle origin (x0,y0) = (" << x0 << ", " << y0 << ")\n";
 
-  for (int x = 1; x < sizex-1; ++x) 
-  {
-    for (int y = 1; y < sizey-1; ++y) 
-    {
-      sigma[x][y]=0;
+  // std::cout << "Voronoi Setup:" << std::endl;
+  // std::cout << "  Target Area A: " << A << std::endl;
+  // std::cout << "  Hex Flat Width (d_short): " << hex_flat_width << ", Side Length: " << hex_side_length << ", Actual Height: " << hex_actual_height << std::endl;
+  // std::cout << "  Center Spacing: dx_ctr=" << dx_centers << ", dy_rows=" << dy_rows << std::endl;
+  // std::cout << "  Cells Requested (nx, ny): (" << nx_cells << ", " << ny_cells << ")" << std::endl;
+  // std::cout << "  Calculated Patch Size (xlen, ylen): (" << xlen << ", " << ylen << ")" << std::endl;
+  // std::cout << "  Patch Origin (x0, y0): (" << x0 << ", " << y0 << ")" << std::endl;
+
+
+  // Blank ONLY the target rectangle (or the whole grid if preferred)
+  // Assuming 1-based indexing for active area based on original loops.
+  for (int x = 1; x < sizex - 1; ++x) {
+    for (int y = 1; y < sizey - 1; ++y) {
+      sigma[x][y] = 0;
     }
   }
 
@@ -2356,103 +2417,105 @@ void CellularPotts::Voronoi(int shift /* = 0 */)
   //------------------------------------------------------------
   struct Ctr { double x, y; int id; };
   std::vector<Ctr> centres;
-  centres.reserve(ncells);
+  centres.reserve(n_actual_cells);
 
-  int    id = 1;
-  double dx = cell_length;
-  double dy = cell_length * std::sqrt(3.0) / 2.0;
+  int id_counter = 1; // Cell IDs start from 1
+  
+  // Offset for the first cell's center to align the grid of hexagons within the (x0,y0) box.
+  // The first cell's bounding box corner should be at (x0,y0). Its center is (x0+width/2, y0+height/2).
+  double first_center_x_offset = hex_flat_width / 2.0;
+  double first_center_y_offset = hex_actual_height / 2.0;
 
-  for (int iy = 0; iy < ny_cells; ++iy)
-  {
-    double cy  = y0 + 1 + iy * dy;          // +1 : stay inside 1-pixel frame
-    bool   odd = iy & 1;
+  for (int iy = 0; iy < ny_cells; ++iy) {
+    double current_cy_local = first_center_y_offset + iy * dy_rows; // y-coord relative to local grid origin
+    bool odd_row = (iy % 2 != 0);
 
-    for (int ix = 0; ix < nx_cells; ++ix)
-    {
-      double cx = x0 + 1 + ix * dx + (odd ? dx / 2.0 : 0.0);
-      centres.push_back({cx, cy, id++});
+    for (int ix = 0; ix < nx_cells; ++ix) {
+      if (id_counter > n_actual_cells) break; 
+
+      double current_cx_local = first_center_x_offset + ix * dx_centers; // x-coord relative to local grid origin
+      if (odd_row && nx_cells > 1) { // Apply stagger if it's an odd row and there's potential for multiple columns
+        current_cx_local += 0.5 * dx_centers;
+      }
+      
+      centres.push_back({x0 + current_cx_local, y0 + current_cy_local, id_counter++});
+      // Debug: std::cout << "Center " << centres.back().id << ": (" << centres.back().x << ", " << centres.back().y << ")" << std::endl;
     }
   }
-
+  
   //------------------------------------------------------------
   // 4.  Assign each lattice site inside the rectangle to its
   //     nearest centre (ordinary Voronoi)
   //------------------------------------------------------------
-  for (int x = x0; x < x0 + xlen; ++x)
-    for (int y = y0; y < y0 + ylen; ++y)
-    {
-      double best = std::numeric_limits<double>::max();
-      int    bid  = 0;
+  for (int x_px = x0; x_px < x0 + xlen; ++x_px) {
+    // Ensure x_px is within drawable lattice bounds [1, sizex-2]
+    if (x_px <= 0 || x_px >= sizex - 1) continue; 
+    for (int y_px = y0; y_px < y0 + ylen; ++y_px) {
+      // Ensure y_px is within drawable lattice bounds [1, sizey-2]
+      if (y_px <= 0 || y_px >= sizey - 1) continue;
 
-      for (auto& c : centres)
-      {
-        double dx = x - c.x;
-        double dy = y - c.y;
-        double d2 = dx*dx + dy*dy;
-        if (d2 < best) { best = d2; bid = c.id; }
+      double best_dist_sq = std::numeric_limits<double>::max();
+      int    best_id  = 0; // Default to medium if no center is found (should not happen here)
+
+      for (const auto& c_pt : centres) {
+        // Using pixel center at (x_px, y_px) directly, common in CPM.
+        // If pixels are (x_px+0.5, y_px+0.5), adjust here.
+        double pdx = (double)x_px - c_pt.x;
+        double pdy = (double)y_px - c_pt.y;
+        double d2 = pdx*pdx + pdy*pdy;
+        if (d2 < best_dist_sq) {
+          best_dist_sq = d2;
+          best_id = c_pt.id;
+        }
       }
-      sigma[x][y] = bid;
-      // cout << x << '\t' << y << '\t' << sigma[x][y] << endl;
+      sigma[x_px][y_px] = best_id;
     }
+  }
 
   //------------------------------------------------------------
   // 5.  Update Cell objects (area, target area, cull empties)
   //------------------------------------------------------------
-  vector<Cell>::iterator c;
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      c->area = 0;
+  for (auto c_it = cell->begin() + 1; c_it != cell->end(); ++c_it) { // Skip cell 0 (medium)
+    if (c_it->AliveP()) {
+      c_it->area = 0;
+      // c_it->ClearMoments(); // If moments need clearing before recount
     }
   }
 
-
-  for (int x=1; x<sizex; ++x)
-    for (int y=1; y<sizey; ++y)
-    {
-      if (sigma[x][y] > 0)
-      {
-        (*cell)[sigma[x][y]].area +=1;
-        (*cell)[sigma[x][y]].AddSiteToMoments(x,y);
+  // Sum areas from the grid. Iterate over the actual region where cells were placed,
+  // or the whole grid if unsure about exact bounds or if other cells exist.
+  // For safety, iterate where cells could be, e.g., 1 to sizex-2.
+  for (int x_px = 1; x_px < sizex - 1; ++x_px) {
+    for (int y_px = 1; y_px < sizey - 1; ++y_px) {
+      int cell_id = sigma[x_px][y_px];
+      // Ensure cell_id is valid and corresponds to a managed cell
+      if (cell_id > 0 && static_cast<size_t>(cell_id) < cell->size()) { 
+        Cell& current_cell = (*cell)[cell_id];
+        if (current_cell.AliveP()) { // Should be true unless error in FractureSheet
+             current_cell.area +=1;
+             current_cell.AddSiteToMoments(x_px,y_px);
+        }
       }
-    }   
+    }
+  }  
   
-  int deadcells{};
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      if (!c->area)
-      {
-        c->Apoptose();
-        ++deadcells;
-      }
-      else
-      {
-        c->SetTargetArea(c->area);
-        // cout << c->area << endl;
+  int deadcells_count = 0;
+  for (auto c_it = cell->begin() + 1; c_it != cell->end(); ++c_it) {
+    if (c_it->AliveP()) { 
+      if (c_it->area == 0) {
+        // This cell was intended to be created but got no pixels.
+        std::cout << "Cell ID " << c_it->Sigma() << " has zero area after Voronoi. Apoptosing." << std::endl;
+        c_it->Apoptose();
+        ++deadcells_count;
+      } else {
+        c_it->SetTargetArea(par.size_init_cells); // Set target area to A
+        // std::cout << "Cell ID " << c_it->id << " area: " << c_it->area << " target: " << c_it->GetTargetArea() << std::endl;
       }
     }
   }
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      if (!c->area)
-      {
-        c->Apoptose();
-        ++deadcells;
-      }
-      else
-      {
-        c->SetTargetArea(c->area);
-      }
-    }
-  }
-  cout << "Total cells killed: " << deadcells << endl;
-
+  // std::cout << "Total cells killed due to zero area: " << deadcells_count << std::endl;
 }
+
 
 
 
@@ -2483,29 +2546,23 @@ void CellularPotts::SetRectangularMF(void)
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
   {
-    cout << "start" << endl;
     if (!c->AliveP()) 
       continue;
 
     std::vector<int> pos = MiddleOfCell(c->Sigma());   // [σ, x, y]
     int y = pos[2];
-    cout << "here-1" << endl;
     // which horizontal band (0 = top … 3 = bottom)?
     int band = static_cast<int>( (y - miny) / band_h );
     if (band > 3) band = 3;                           // guard rounding
-    cout << "here0" << endl;
     // MF logic: bottom two bands → MF1=1; right/odd bands → MF2=1
     bool mf1 = (band >= 2);           // bands 2 & 3   → MF1 = 1
     bool mf2 = (band % 2 == 1);       // bands 1 & 3   → MF2 = 1
-    cout << "here1" << endl;
     std::vector<double>& g = c->get_genes();
     g[par.MF1_position] = mf1 ? 1.0 : 0.0;
     g[par.MF2_position] = mf2 ? 1.0 : 0.0;
-    cout << "here2" << endl;
     // update cell-type colour (same encoding as elsewhere)
     int new_ctype = static_cast<int>(mf1) * 4 + static_cast<int>(mf2) * 3;
     c->set_ctype(new_ctype);
-    cout << "end" << endl;
   }
 }
 
@@ -2637,12 +2694,6 @@ void CellularPotts::start_network(vector<vector<int>> start_matrix, vector<bool>
       }
     }
   }
-}
-
-
-void CellularPotts::start_morphogen_grid(vector<double> org_diff_coeffs)
-{
-  
 }
 
 

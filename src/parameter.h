@@ -60,6 +60,7 @@ class Parameter {
   int pde_divisor;
   int pde_sx;
   int pde_sy;
+  bool do_morphogen_evolution;
 
   int n_init_cells;
   int size_init_cells;
@@ -269,6 +270,7 @@ class Parameter {
   double init_decay_rate;
   double init_secr_rate;
   double secr_rate_modifier;
+  double init_diffusion_rate;
 
   bool make_rectangle;
   int rect_cells_x;
