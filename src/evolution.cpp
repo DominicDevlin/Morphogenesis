@@ -506,7 +506,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
   sorter(network_list, inter_org_fitness, dishes, org_diff_coeffs);
 
   //output to standard output
-  output_networks(network_list);
+  // output_networks(network_list);
 
   // output to file
   printn(network_list.front(), inter_org_fitness, org_diff_coeffs.front());

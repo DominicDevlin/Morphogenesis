@@ -2504,7 +2504,7 @@ void CellularPotts::Voronoi(int shift /* = 0 */)
     if (c_it->AliveP()) { 
       if (c_it->area == 0) {
         // This cell was intended to be created but got no pixels.
-        std::cout << "Cell ID " << c_it->Sigma() << " has zero area after Voronoi. Apoptosing." << std::endl;
+        // std::cout << "Cell ID " << c_it->Sigma() << " has zero area after Voronoi. Apoptosing." << std::endl;
         c_it->Apoptose();
         ++deadcells_count;
       } else {
