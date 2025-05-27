@@ -95,10 +95,10 @@ INIT
       for (int i=0;i<par.divisions;i++) {
         CPM->DivideCells();
       }
-      if (par.velocities)
-        par.output_sizes = true;
-    }
 
+    }
+    if (par.velocities)
+      par.output_sizes = true;
     
     // If we have only one big cell and divide it a few times
     // we start with a nice initial clump of cells. 
@@ -171,9 +171,11 @@ TIMESTEP {
     if (t == par.end_program)
     {
       dish->CPM->CopyProb(par.lT);
-      par.T = par.lT;
-        
+      par.T = par.lT;      
+      // dish->CPM->SetCellTargetAreas();  
+      
     }
+    
 
     static Info *info=new Info(*dish, *this);
     
@@ -195,6 +197,7 @@ TIMESTEP {
     // programmed cell division section
     if (t < par.end_program)
     {
+      
 
       if (t == 100 && par.make_rectangle)
       {
@@ -236,6 +239,7 @@ TIMESTEP {
     }
     else
     {
+      
       if (t % par.update_freq == 0)
       {
         dish->CPM->update_network(t);
@@ -291,7 +295,6 @@ TIMESTEP {
       // {
       //   dish->PDEfield->print_concentrations(dish->CPM);
       // }
-
       dish->CPM->CellGrowthAndDivision(t);
     }
     dish->CPM->AmoebaeMove(t);

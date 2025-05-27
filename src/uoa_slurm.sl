@@ -7,15 +7,22 @@
 #SBATCH --account=uoa02799         
 #SBATCH --output=ev_sim_out-%j.out 
 #SBATCH --error=ev_sim_err-%j.out 
-#SBATCH --partition=milan
 
 
+module load GCCcore/11.3.0          #  or GCCcore/11.2.0
+module load binutils/2.38-GCCcore-11.3.0   # linker that matches GCC 11
 
-find . -name "*.o" -type f -delete
-module load Qt5/5.12.3-GCCcore-9.2.0 
-qmake
-make
-module load LegacySystemLibs/7
+#––– regenerate Makefile –––
+which qmake-qt5 && qmake-qt5 || qmake            # or `qmake-qt5` if that exists on your system
+
+#––– now the Makefile exists, so 'distclean' is defined –––
+make distclean             # optional – only if you want to wipe leftovers
+
+which qmake-qt5 && qmake-qt5 || qmake            # or `qmake-qt5` if that exists on your system
+
+# full build
+make  -j $SLURM_CPUS_ON_NODE
 ./evolution
-
 ## to output images on the cluster, prepend the output with "xvfb-run". e.g. "xvfb-run ./evolution"
+
+

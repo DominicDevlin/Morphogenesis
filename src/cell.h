@@ -1030,6 +1030,10 @@ private:
     return area=target_area;
   }
 
+  inline int SetTargetToArea(void) {
+    return target_area=area;
+  }
+
   //! Called whenever a cell is constructed, from constructor
   void ConstructorBody(int settau=1);
   

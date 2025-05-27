@@ -359,6 +359,9 @@ public:
   //Output norm on cell proteins for all cells. 
   void OutputProteinNorms();
 
+  void SetCellTargetAreas();
+
+
   /** Seed a regular (nx × ny) rectangular lattice of cells.
  *
  *  @param nx          # cells horizontally  (e.g. 8)

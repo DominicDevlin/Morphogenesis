@@ -439,6 +439,8 @@ void CellularPotts::CopyProb(double T) {
   int i;
   for ( i = 0; i < BOLTZMANN; i++ )
     copyprob[i] = exp( -( (double)(i)/T ) );
+
+
 }
 
 void CellularPotts::FreezeAmoebae(void) 
@@ -906,6 +908,18 @@ void CellularPotts::MeasureCellSizes(void) {
   }
 }
 
+
+void CellularPotts::SetCellTargetAreas(void) {
+  
+  
+  // set the actual area to the target area
+  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
+  {
+    c->SetTargetArea(c->Area() + 20);
+  }
+}
+
+
 void CellularPotts::MeasureCellSize(Cell &c) {
   
   c.CleanMoments();
@@ -1111,7 +1125,6 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 
           if (!(divflags[ motherp->Sigma() ]) ) 
           {
-      
             // add daughter cell, copying states of mother
             daughterp=new Cell(*(motherp->owner));
             daughterp->CellBirth(*motherp);
@@ -1883,11 +1896,14 @@ void CellularPotts::CellGrowthAndDivision(int time)
 
         if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
         {
+            cout << "Area of cell " << c->Sigma() << " is: " << c->Area() 
+            << "with target area: " << c->TargetArea() << endl << endl;
           int count= area-TA; //area-TA;
           while (count>0)
           {
             c->IncrementTargetArea();
             --count;
+
           }
         }
         else if ( (area-TA)<sthresh ) 
@@ -2478,7 +2494,7 @@ void CellularPotts::Voronoi(int shift /* = 0 */)
   for (auto c_it = cell->begin() + 1; c_it != cell->end(); ++c_it) { // Skip cell 0 (medium)
     if (c_it->AliveP()) {
       c_it->area = 0;
-      // c_it->ClearMoments(); // If moments need clearing before recount
+      c_it->CleanMoments(); // If moments need clearing before recount
     }
   }
 
@@ -2488,16 +2504,37 @@ void CellularPotts::Voronoi(int shift /* = 0 */)
   for (int x_px = 1; x_px < sizex - 1; ++x_px) {
     for (int y_px = 1; y_px < sizey - 1; ++y_px) {
       int cell_id = sigma[x_px][y_px];
+
       // Ensure cell_id is valid and corresponds to a managed cell
-      if (cell_id > 0 && static_cast<size_t>(cell_id) < cell->size()) { 
+      if (cell_id > 0 && static_cast<size_t>(cell_id) < cell->size()) 
+      { 
         Cell& current_cell = (*cell)[cell_id];
-        if (current_cell.AliveP()) { // Should be true unless error in FractureSheet
-             current_cell.area +=1;
-             current_cell.AddSiteToMoments(x_px,y_px);
-        }
+
+        current_cell.IncrementTargetArea();
+        current_cell.IncrementArea();
+        current_cell.AddSiteToMoments(x_px,y_px);
+
+
+
+        // if (current_cell.AliveP()) { // Should be true unless error in FractureSheet
+        //      current_cell.area +=1;
+        //      current_cell.AddSiteToMoments(x_px,y_px);
+        // }
       }
     }
   }  
+
+  // // calculate the area of the cells
+  // for (int x=1;x<sizex-1;x++) {
+  //   for (int y=1;y<sizey-1;y++) {
+  //     if (sigma[x][y]) {
+
+
+  //     }
+  //   }
+  // }
+
+
   
   int deadcells_count = 0;
   for (auto c_it = cell->begin() + 1; c_it != cell->end(); ++c_it) {
@@ -2507,7 +2544,8 @@ void CellularPotts::Voronoi(int shift /* = 0 */)
         // std::cout << "Cell ID " << c_it->Sigma() << " has zero area after Voronoi. Apoptosing." << std::endl;
         c_it->Apoptose();
         ++deadcells_count;
-      } else {
+      } 
+      else {
         c_it->SetTargetArea(par.size_init_cells); // Set target area to A
         // std::cout << "Cell ID " << c_it->id << " area: " << c_it->area << " target: " << c_it->GetTargetArea() << std::endl;
       }
@@ -2563,6 +2601,7 @@ void CellularPotts::SetRectangularMF(void)
     // update cell-type colour (same encoding as elsewhere)
     int new_ctype = static_cast<int>(mf1) * 4 + static_cast<int>(mf2) * 3;
     c->set_ctype(new_ctype);
+
   }
 }
 
