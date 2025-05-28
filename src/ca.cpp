@@ -1896,8 +1896,6 @@ void CellularPotts::CellGrowthAndDivision(int time)
 
         if ( (area-TA)>gthresh) // && area <= (double)(par.div_threshold) * 1.1) //  
         {
-            cout << "Area of cell " << c->Sigma() << " is: " << c->Area() 
-            << "with target area: " << c->TargetArea() << endl << endl;
           int count= area-TA; //area-TA;
           while (count>0)
           {
