@@ -52,6 +52,11 @@ INIT {
     CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
     CPM->ConstructInitCells(*this);
     CPM->SetRandomTypes();
+
+    if (par.make_rectangle)
+    {
+      CPM->Voronoi(0);
+    }
     
   } catch(const char* error) {
     cerr << "Caught exception\n";
@@ -70,7 +75,7 @@ TIMESTEP
 
 
 // function that simulates a population for a single evolutionary step. 
-void process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols, int org_number)
+void process_population(vector<vector<vector<int>>>& network_list,  vector<vector<double>>& org_diff_coeffs, int org_number)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -93,7 +98,8 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
     dishes[i].Init();
 
 
-    dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
+    dishes[i].CPM->start_network(network_list.at(i));
+    dishes[i].PDEfield->SetParameters(org_diff_coeffs[i]);
 
     for (int t=0;t<par.mcs;++t)
     {
@@ -121,18 +127,26 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
       // programmed cell division section
       if (t < par.end_program)
       {
+        
 
-
-        if (t % par.div_freq == 0 && t <= par.div_end)
+        if (t==100 && par.make_rectangle)
         {
-          dishes[i].CPM->Programmed_Division(); // need to get the number of divisions right. 
+          dishes[i].CPM->SetRectangularMF();
+        }
+        else if (!par.make_rectangle)
+        {
+          //programmed divisions
+          if (t % par.div_freq == 0 && t <= par.div_end)
+          {
+            dishes[i].CPM->Programmed_Division(); // need to get the number of divisions right. 
+          }
         }
 
         
       
         if (t >= par.begin_network && t % par.update_freq == 0)
         {
-
+          
           dishes[i].CPM->update_network(t);
           dishes[i].AverageChemCell(); 
           
@@ -145,6 +159,7 @@ void process_population(vector<vector<vector<int>>>& network_list, vector<vector
             dishes[i].PDEfield->Secrete(dishes[i].CPM);
             dishes[i].PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
           } 
+          
     
         }
       }
@@ -509,16 +524,19 @@ int main(int argc, char *argv[]) {
       pconcs.push_back(concs);
     }
   }
-
-
   par.n_orgs = 10;
 
-  vector<bool> start_p = { 0, 0, 0, 0 };
-  vector<vector<bool>> polarities{};
-  for (int i=0;i<par.n_orgs;++i)
+  vector<vector<double>> org_diff_coeffs{};
+  if (!par.do_morphogen_evolution)
   {
-    polarities.push_back(start_p);
+    for (int i=0;i<par.n_orgs;++i)
+    {
+      org_diff_coeffs.push_back(par.init_diff_coeffs);
+    }  
   }
+  // need to read in here
+
+  
 
 
   int count=1;
@@ -527,7 +545,7 @@ int main(int argc, char *argv[]) {
     if (par.flush_cells)
       par.flush_states = pconcs[count-1];
     vector<vector<vector<int>>> replays(par.n_orgs, i);
-    process_population(replays, polarities, count);
+    process_population(replays, org_diff_coeffs, count);
     ++count;
 
   }
