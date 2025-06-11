@@ -260,7 +260,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
   ofstream outfile;
-  string var_name = "overlap.txt";
+  string var_name = par.data_file + "/overlap.txt";
   outfile.open(var_name, ios::app);
 
   cout << "average proportion is: " << avgp << endl;
@@ -372,7 +372,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     inp_var += val;
   }
   inp_var = inp_var / proportions.size();
-  var_name = "overlap_invariant.txt";
+  var_name = par.data_file + "/overlap_invariant.txt";
   outfile.open(var_name, ios::app);
 
   outfile << inp_avg << '\t' << inp_var << endl;
@@ -380,7 +380,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
   if (par.between_org_overlap)
   {
-    var_name = "overlap-data.txt";
+    var_name = par.data_file + "/overlap-data.txt";
     outfile.open(var_name, ios::app);
     for (double i : invariant_p)
     {
@@ -435,7 +435,7 @@ void print_fitness(vector<double>& fitn)
 
 
   //output fitness  
-  string var_name = "fitness.txt";
+  string var_name = par.data_file + "/fitness.txt";
   ofstream outfile;
   outfile.open(var_name, ios::app);
   outfile << max_fit << '\t' << avgfit << '\t' << stdev << endl;
@@ -450,7 +450,9 @@ void print_fitness(vector<double>& fitn)
 // Main function
 int main(int argc, char *argv[]) 
 {
-
+  par.data_file = "org-data";
+  if (mkdir(par.data_file.c_str(), 0777) != -1)
+    cout << "Directory created." << endl;
 
 
 #ifdef QTGRAPHICS
@@ -475,7 +477,7 @@ int main(int argc, char *argv[])
   vector<vector<double>> total_diff_coeffs{};
   if (par.file_genomes)
   {
-    ifstream file("genomes.txt");
+    ifstream file(par.data_file + "/genomes.txt");
     vector<vector<vector<int>>> genomes;
     string line;
     while (getline(file, line)) 
@@ -515,17 +517,80 @@ int main(int argc, char *argv[])
 
       }
       genomes.push_back(genome);
+      if (!par.do_morphogen_evolution)
       total_diff_coeffs.push_back({});
 
     }
 
     file.close();
+    if (par.do_morphogen_evolution)
+    {
+      std::ifstream diff_file(par.data_file + "/diffcoeffs.txt");
+
+      // It's good practice to check if the file opened successfully
+      if (!diff_file.is_open()) 
+      {
+          std::cerr << "Error: Could not open file diffcoeffs.dat" << std::endl;
+          // Handle the error appropriately, maybe exit or return
+      }
+      else
+      {
+        std::string line;
+        // 3. Read the file line by line
+        while (std::getline(diff_file, line)) 
+        {
+          // Skip empty lines
+          if (line.empty()) {
+              continue;
+          }
+
+          // Create a temporary vector for the current row
+          std::vector<double> row;
+
+          // --- Parsing Logic for the new format ---
+
+          // a. Find the part of the string with the numbers (inside the braces)
+          size_t first_brace = line.find('{');
+          size_t last_brace = line.rfind('}');
+
+          if (first_brace == std::string::npos || last_brace == std::string::npos) {
+              // Malformed line, skip it
+              continue;
+          }
+
+          // b. Extract the substring with numbers and commas
+          std::string numbers_part = line.substr(first_brace + 1, last_brace - first_brace - 1);
+          
+          // c. Replace all commas with spaces so stringstream can parse it easily
+          std::replace(numbers_part.begin(), numbers_part.end(), ',', ' ');
+
+          // d. Use a stringstream to extract the double values
+          std::stringstream ss(numbers_part);
+          double value;
+          while (ss >> value) 
+          {
+              row.push_back(value);
+          }
+
+          // 4. Add the completed row to your main vector
+          if (!row.empty())
+          {
+              total_diff_coeffs.push_back(row);
+          }
+        }
+      }
+    }
+
+    if (total_diff_coeffs.size() != genomes.size())
+    {
+      cerr << "fatal error in read in!\n";
+      return 0;
+    }
 
     if (!par.between_org_overlap) // compare same genomes
     {
       for (int i = 0; i < genomes.size(); ++i)
       {
-
         vector<vector<vector<int>>> networks{};
         vector<vector<double>> org_diff_coeffs{};
         for (int j=0;j<par.n_orgs;++j)
@@ -533,6 +598,9 @@ int main(int argc, char *argv[])
             networks.push_back(genomes[i]);
             org_diff_coeffs.push_back(total_diff_coeffs[i]);
         }
+        // for (int x = 0; x < org_diff_coeffs[0].size();  ++x)
+        //   cout << org_diff_coeffs[0][x] << '\t';
+        // cout << endl;
         vector<double> fitness = process_population(networks, org_diff_coeffs);
         print_fitness(fitness);
       }

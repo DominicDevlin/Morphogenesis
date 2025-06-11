@@ -3,7 +3,7 @@
 #SBATCH --time=80:00:00      # Walltime (HH:MM:SS)
 #SBATCH --mem=2GB 
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=60  
+#SBATCH --cpus-per-task=30  
 #SBATCH --account=uoa02799         
 #SBATCH --output=ev_sim_out-%j.out 
 #SBATCH --error=ev_sim_err-%j.out 
