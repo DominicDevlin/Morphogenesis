@@ -188,7 +188,7 @@
 
     // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
     // NOTE - MUST RUN with tag: "-platform offscreen" when using cluster (there is no display).
-    overlap_images = true;
+    overlap_images = false;
     overlap_orgs = 60;
     // true = compare different genomes, false = compare same genomes
     between_org_overlap = false;
