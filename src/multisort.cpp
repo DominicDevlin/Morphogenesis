@@ -560,7 +560,7 @@ int main(int argc, char *argv[]) {
 
       }      
 
-      if (row.size() == 9)
+      if (row.size() == par.n_activators)
       {
         genome.push_back(row);
         row.clear();

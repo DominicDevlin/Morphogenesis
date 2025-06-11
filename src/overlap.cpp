@@ -51,6 +51,11 @@ INIT {
     CPM->set_seed();
     CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.subfield);
     CPM->ConstructInitCells(*this);
+
+    if (par.make_rectangle)
+    {
+      CPM->Voronoi(0);
+    }
     CPM->SetRandomTypes();
     
   } catch(const char* error) {
@@ -70,7 +75,7 @@ TIMESTEP
 
 
 // function that simulates a population for a single evolutionary step. 
-vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<bool>> &pols)
+vector<double> process_population(vector<vector<vector<int>>>& network_list, vector<vector<double>>& org_diff_coeffs)
 {
   vector<double> inter_org_fitness{};
   inter_org_fitness.resize(par.n_orgs);
@@ -93,7 +98,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   {
     int t;
 
-    dishes[i].CPM->start_network(network_list.at(i), pols.at(i));
+    dishes[i].CPM->start_network(network_list.at(i));
+    dishes[i].PDEfield->SetParameters(org_diff_coeffs[i]);
 
 
     // make temperature lower for division section
@@ -127,12 +133,19 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       // PROGRAMMED CELL DIVISION SECTION
       if (t < par.end_program)
       {
-
-        //programmed divisions
-        if (t % par.div_freq == 0 && t <= par.div_end)
+        if (t==100 && par.make_rectangle)
         {
-          dishes[i].CPM->Programmed_Division(); // need to get the number of divisions right. 
+          dishes[i].CPM->SetRectangularMF();
         }
+        else if (!par.make_rectangle)
+        {
+          //programmed divisions
+          if (t % par.div_freq == 0 && t <= par.div_end)
+          {
+            dishes[i].CPM->Programmed_Division(); // need to get the number of divisions right. 
+          }
+        }
+
 
         
         if (t >= par.begin_network && t % par.update_freq == 0)
@@ -189,6 +202,24 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       {
         inter_org_fitness[i] = dishes[i].CPM->get_fitness();
       }        
+
+      // if (t % 100 == 0 && t > 0)
+      // {
+
+      //   for (int i=0; i < par.n_orgs; ++i)
+      //   {
+      //     dishes[i].CPM->ColourCells();
+      //     fft new_org(par.sizex,par.sizey);
+      //     new_org.ImportCPM(dishes[i].get_cpm());
+      //     string f2 = "org-";
+      //     string n2 = to_string(i);
+      //     string n3 = "-" + to_string(t);
+      //     string ftype = ".png";
+      //     string foutput =  f2 + n2 + n3 + ftype;
+      //     new_org.cpmOutput(foutput);
+      //   }
+      // }
+
     }
         
     if (i == 1)
@@ -341,8 +372,6 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     inp_var += val;
   }
   inp_var = inp_var / proportions.size();
-
-
   var_name = "overlap_invariant.txt";
   outfile.open(var_name, ios::app);
 
@@ -363,8 +392,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
 
 
-
   delete[] dishes;
+
 
   return inter_org_fitness;
 }
@@ -439,9 +468,12 @@ int main(int argc, char *argv[])
   par.gene_output=false;
   par.gene_record=false;
   par.velocities=false;
+  par.file_genomes=true;
+  par.overlap_orgs = 2;
   
   Parameter();
   par.n_orgs = par.overlap_orgs;
+  vector<vector<double>> total_diff_coeffs{};
   if (par.file_genomes)
   {
     ifstream file("genomes.txt");
@@ -476,7 +508,7 @@ int main(int argc, char *argv[])
 
         }      
 
-        if (row.size() == 9)
+        if (row.size() == par.n_activators)
         {
           genome.push_back(row);
           row.clear();
@@ -484,6 +516,7 @@ int main(int argc, char *argv[])
 
       }
       genomes.push_back(genome);
+      total_diff_coeffs.push_back({});
 
     }
 
@@ -491,48 +524,44 @@ int main(int argc, char *argv[])
 
     if (!par.between_org_overlap) // compare same genomes
     {
-      for (vector<vector<int>> i : genomes)
+      for (int i = 0; i < genomes.size(); ++i)
       {
 
-        // This is currently depracated. 
-        vector<bool> start_p = { 0, 0, 0, 0 };
         vector<vector<vector<int>>> networks{};
-        vector<vector<bool>> polarities{};
+        vector<vector<double>> org_diff_coeffs{};
         for (int j=0;j<par.n_orgs;++j)
         {
-            networks.push_back(i);
-            polarities.push_back(start_p);
+            networks.push_back(genomes[i]);
+            org_diff_coeffs.push_back(total_diff_coeffs[i]);
         }
-        vector<double> fitness = process_population(networks, polarities);
+        vector<double> fitness = process_population(networks, org_diff_coeffs);
         print_fitness(fitness);
       }
     }
     else // compare different genomes 
     {
       par.n_orgs = genomes.size();
-      vector<bool> start_p = { 0, 0, 0, 0 };
       vector<vector<vector<int>>> networks{};
-      vector<vector<bool>> polarities{};      
-      for (vector<vector<int>> i : genomes)
+      vector<vector<double>> org_diff_coeffs{};      
+      for (int i = 0; i < genomes.size(); ++i)
       {
-          networks.push_back(i);
-          polarities.push_back(start_p);
+          networks.push_back(genomes[i]);
+          org_diff_coeffs.push_back(total_diff_coeffs[i]);
       }
-      process_population(networks, polarities);
+      process_population(networks, org_diff_coeffs);
     }
   }
   else // just use start matrix in parameter.cpp
   {
-      // This is currently depracated. 
-      vector<bool> start_p = { 0, 0, 0, 0 };
       vector<vector<vector<int>>> networks{};
-      vector<vector<bool>> polarities{};
+      vector<vector<double>> org_diff_coeffs{};
       for (int j=0;j<par.n_orgs;++j)
       {
           networks.push_back(par.start_matrix);
-          polarities.push_back(start_p);
+          org_diff_coeffs.push_back(par.init_diff_coeffs);
+
       }
-      vector<double> fitness = process_population(networks, polarities);  
+      vector<double> fitness = process_population(networks, org_diff_coeffs);  
       print_fitness(fitness);
   }
 

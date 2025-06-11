@@ -61,7 +61,6 @@ INIT {
     {
       CPM->Voronoi(0);
     }
-
     CPM->SetRandomTypes();
     
   } catch(const char* error) {

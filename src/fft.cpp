@@ -619,8 +619,8 @@ double fft::PolarComparison(int** polar2, bool record)
 
 		++counter;
 
-		if (par.print_fitness)
-			cout << "Count is... " << counter << "  Overlap is: " << overlap << "  Outer is: " << outer << "  Proportion is: " << proportion << endl;
+		// if (par.print_fitness)
+		// 	cout << "Count is... " << counter << "  Overlap is: " << overlap << "  Outer is: " << outer << "  Proportion is: " << proportion << endl;
 			
 		if (proportion > max_overlap)
 		{
@@ -686,8 +686,8 @@ double fft::PolarComparison(int** polar2, bool record)
 		
 		if (proportion < min_overlap)
 			min_overlap = proportion;
-		if (par.print_fitness)
-			cout << "Count is... " << counter << "  Overlap is: " << overlap << "  Outer is: " << outer << "  Proportion is: " << proportion << endl;
+		// if (par.print_fitness)
+		// 	cout << "Count is... " << counter << "  Overlap is: " << overlap << "  Outer is: " << outer << "  Proportion is: " << proportion << endl;
 
 		if (record)
 			loss.push_back(proportion);		

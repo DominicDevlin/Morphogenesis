@@ -382,7 +382,7 @@ void process_population(vector<vector<vector<int>>>& network_list,  vector<vecto
           outnet << "}" << endl;
       }
 
-      outnet << endl << "Seed is: " << endl << par.pickseed;
+      outnet << endl << "Seed is: " << par.pickseed << endl;
       outnet.close();
     }
 
@@ -495,7 +495,7 @@ int main(int argc, char *argv[]) {
 
       }      
 
-      if (row.size() == 9)
+      if (row.size() == par.n_activators)
       {
         genome.push_back(row);
         row.clear();
