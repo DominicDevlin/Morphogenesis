@@ -469,7 +469,6 @@ int main(int argc, char *argv[])
   par.gene_record=false;
   par.velocities=false;
   par.file_genomes=true;
-  par.overlap_orgs = 2;
   
   Parameter();
   par.n_orgs = par.overlap_orgs;
