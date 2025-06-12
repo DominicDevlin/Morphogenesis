@@ -2597,7 +2597,7 @@ void CellularPotts::SetRectangularMF(void)
     g[par.MF1_position] = mf1 ? 1.0 : 0.0;
     g[par.MF2_position] = mf2 ? 1.0 : 0.0;
     // update cell-type colour (same encoding as elsewhere)
-    int new_ctype = static_cast<int>(mf1) * 4 + static_cast<int>(mf2) * 3;
+    int new_ctype = static_cast<int>(mf1) * 2 + static_cast<int>(mf2) * 3 + 2;
     c->set_ctype(new_ctype);
 
   }

@@ -99,6 +99,8 @@ INIT
     }
     if (par.velocities)
       par.output_sizes = true;
+    else
+      par.output_sizes=false;
     
     // If we have only one big cell and divide it a few times
     // we start with a nice initial clump of cells. 
@@ -419,7 +421,6 @@ TIMESTEP {
         Graph ungraph(phens.size());
         map<int,int> subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
       }
-
       if (par.gene_output)
       {
         ofstream outnet;
