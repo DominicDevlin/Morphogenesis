@@ -310,7 +310,7 @@ void printn(vector<vector<int>> netw, vector<double> fitn, vector<double> coeffs
   }
   outfile.close();
 
-  if (par.do_morphogen_evolution)
+  if (par.manual_morph_diffusion)
   {
     std::string coeff_file = par.sim_file + "/diff_coeffs.txt";
     outfile.open(coeff_file, ios::app);

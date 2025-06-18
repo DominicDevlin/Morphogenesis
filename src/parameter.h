@@ -60,7 +60,7 @@ class Parameter {
   int pde_divisor;
   int pde_sx;
   int pde_sy;
-  bool do_morphogen_evolution;
+  bool manual_morph_diffusion;
 
   int n_init_cells;
   int size_init_cells;

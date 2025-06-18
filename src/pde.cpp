@@ -234,7 +234,7 @@ void PDE::SetParameters(std::vector<double>& org_diff_coeffs)
   decay_rate = new double[par.n_diffusers];
   secr_rate = new double[par.n_diffusers];
 
-  if (par.do_morphogen_evolution)
+  if (par.manual_morph_diffusion)
   {
     for (int i = 0; i < par.n_diffusers; ++i)
     {

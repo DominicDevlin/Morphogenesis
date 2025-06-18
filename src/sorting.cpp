@@ -356,7 +356,7 @@ TIMESTEP {
       }
 
       vector<vector<int>> scc;
-      if (par.velocities)
+      if (par.potency_edges)
       {
         par.node_threshold = 0;
         par.prune_edges = true;

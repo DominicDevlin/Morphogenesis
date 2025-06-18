@@ -517,13 +517,13 @@ int main(int argc, char *argv[])
 
       }
       genomes.push_back(genome);
-      if (!par.do_morphogen_evolution)
+      if (!par.manual_morph_diffusion)
       total_diff_coeffs.push_back({});
 
     }
 
     file.close();
-    if (par.do_morphogen_evolution)
+    if (par.manual_morph_diffusion)
     {
       std::ifstream diff_file(par.data_file + "/diffcoeffs.txt");
 

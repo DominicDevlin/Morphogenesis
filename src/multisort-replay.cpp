@@ -527,7 +527,7 @@ int main(int argc, char *argv[]) {
   par.n_orgs = 10;
 
   vector<vector<double>> org_diff_coeffs{};
-  if (!par.do_morphogen_evolution)
+  if (!par.manual_morph_diffusion)
   {
     for (int i=0;i<par.n_orgs;++i)
     {
