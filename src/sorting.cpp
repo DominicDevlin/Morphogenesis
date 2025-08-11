@@ -557,11 +557,11 @@ TIMESTEP {
         // dish->CPM->AngleCurvature();
       }
       
-      if (t > 1500)
-      {
-        dish->CPM->DrawListofCAC(this, perim);
-        dish->CPM->DrawPerimeter(this, pcells);
-      }
+      // if (t > 1500)
+      // {
+      //   dish->CPM->DrawListofCAC(this, perim);
+      //   dish->CPM->DrawPerimeter(this, pcells);
+      // }
 
 
       // static bool c4 = false;
