@@ -564,6 +564,7 @@ TIMESTEP {
     static bool c1 = false;
     static bool c2 = false;
     static bool c3 = false;
+    static bool c4 = false;
 
     //cerr << "Done\n";
     if (par.graphics && t%5==0)// !(t%par.screen_freq)) 
@@ -602,7 +603,7 @@ TIMESTEP {
         if (par.n_diffusers > 2)
         {
           c3 = dish->PDEfield->CheckSecreting(2);
-          // c4 = dish->PDEfield->CheckSecreting(3);
+          c4 = dish->PDEfield->CheckSecreting(3);
         }
 
       }
@@ -617,8 +618,8 @@ TIMESTEP {
         {
           if (c3)
             dish->PDEfield->ContourPlot(this,2,14);
-          // if (c4)
-          //   dish->PDEfield->ContourPlot(this,3,37);
+          if (c4)
+            dish->PDEfield->ContourPlot(this,3,37);
         }
 
 
@@ -668,6 +669,7 @@ TIMESTEP {
           dish->PDEfield->ContourPlot(this,1,291);
         if (c3)
           dish->PDEfield->ContourPlot(this,2,292);
+        // dish->PDEfield->ContourPlot(this,3,292);
       }
       
       EndScene();

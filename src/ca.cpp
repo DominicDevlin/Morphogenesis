@@ -4130,7 +4130,6 @@ void CellularPotts::cell_concentrations()
           type_proteins.push_back(protein_list);
         }
       }
-
       if (par.single_cell && par.single_type == c->GetPhenotype())
       {
         var_name = data_file + "/proteins-" + to_string(c->GetPhenotype()) + ".dat";
@@ -6733,7 +6732,7 @@ void CellularPotts::Directionality()
         //   vectors.push_back(angle);
         // }
 
-        if ((t > 60000 && t < 65000))
+        if (t==7200)//((t > 7700 && t < 7800))
         {
           speeds.push_back(total);
           vectors.push_back(angle);
