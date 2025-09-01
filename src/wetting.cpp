@@ -184,7 +184,7 @@ INIT
 {
   try 
   {
-    par.J_stem = 4.5;
+    par.J_stem = 2 ;
     par.J_diff = par.J_stem + 8.;
     par.J_med = par.J_diff / 2 + 0.25;
     par.J_med2 = par.J_med;

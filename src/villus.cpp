@@ -356,7 +356,7 @@ TIMESTEP {
       dish->CPM->RecordSizes();
     }
 
-    if (t > par.start_topping && t % par.measure_interval == 0)
+    if (t > par.start_topping && t % par.measure_interval == 0 && par.output_sizes == true)
     {
       double contacta = dish->CPM->GetContactAngles();   
     }

@@ -92,7 +92,7 @@
 /* Cellular Potts parameters */
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 200;
-    mcs = 130001;
+    mcs = 100001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -155,13 +155,13 @@
 
     makesemicircle=false;
     
-    tension_params = true;
+    tension_params = false;
     if (tension_params)
     {
 
       gamma_hm = 7.0;
       gamma_hl = 7.0;
-      J_stem = 3.5;
+      J_stem = 2;
       J_med = gamma_hm + 1;
       J_med2 = J_med;
       J_stem_diff = 1.75 + gamma_hm + gamma_hl;
@@ -424,7 +424,7 @@
 
     //programmed division parameters
     end_program = 7;
-    begin_network = 40;
+    begin_network = 1000;
     div_freq = 1;
     // begin_movement=1200;
     program_its = 1; // we are doing more PDE iterations during the program. 
