@@ -451,7 +451,8 @@ int main(int argc, char *argv[])
   // sweeping params
   par.gamma_LM = 1;
   par.gamma_SL = 7.5;
-  double const_SL = 7.5;
+  double start_SL = 7.5;
+  double start_LM = 1;
   double max_SL = 7.6;
   double max_LM = 12.1;
   par.J_L = 1;
@@ -510,8 +511,8 @@ int main(int argc, char *argv[])
         par.gamma_SL += 0.5;
       }
       par.J_L += 1;
-      par.gamma_SL = 1;
-      par.gamma_LM = const_SL;
+      par.gamma_SL = start_SL;
+      par.gamma_LM = start_LM;
     }
   }
 
