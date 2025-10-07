@@ -13,7 +13,7 @@
 find . -name "*.o" -type f -delete
 module load Qt5/5.12.3-GCCcore-9.2.0 
 qmake
-make
+make -j $SLURM_CPUS_ON_NODE
 module load LegacySystemLibs/7
 ./wetmulti
 

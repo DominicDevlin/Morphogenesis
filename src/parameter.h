@@ -152,6 +152,7 @@ class Parameter {
   double gamma_LM;
   double gamma_SL;
   double gamma_SM;
+  bool add_J_L;
   int linear_increase;
   double increase_start_secr;
   double increase_secr_mod;

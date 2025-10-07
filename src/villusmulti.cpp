@@ -329,7 +329,14 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     cout << "Directory created." << endl;
 
   ostringstream stream;
-  stream << fixed << setprecision(2) << par.gamma_LM << '-' << par.gamma_SL; // Setting precision to 2 decimal points
+  if (par.add_J_L)
+  {
+    stream << fixed << setprecision(2) << par.gamma_LM << '-' << par.gamma_SL << '-' << par.J_L; // Setting precision to 2 decimal points
+  }
+  else
+  {
+    stream << fixed << setprecision(2) << par.gamma_LM << '-' << par.gamma_SL; // Setting precision to 2 decimal points
+  }
   string formatted_value = stream.str();
   double sum_heights;
   double square_heights;
@@ -364,6 +371,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   }
   else
   {
+    if (par.add_J_L)
+    {
+      outfile << par.J_L << '\t';
+    }
     outfile << par.gamma_LM << '\t' << par.gamma_SL << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
   }
   outfile.close();
@@ -457,6 +468,11 @@ int main(int argc, char *argv[])
   double max_LM = 12.1;
   par.J_L = 1;
   double max_J_L = 5.1;
+  par.add_J_L=false;
+  if (par.J_L != max_J_L)
+  {
+    par.add_J_L = true;
+  }
 
 
   if (par.morphogen_sweep)
