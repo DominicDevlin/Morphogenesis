@@ -378,7 +378,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     // does init block above.
     dishes[i].Init();
     dishes[i].CPM->start_network(network_list.at(i));
-    dishes[i].CPM->Set_evoJ(par.J_stem_diff);
+    dishes[i].CPM->Set_evoJ(par.J_SL);
     dishes[i].CPM->SetAreas(par.cell_areas);
 
     bool stayed_together=true;
@@ -516,7 +516,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     cout << "Directory created." << endl;
 
   ostringstream stream;
-  stream << fixed << setprecision(2) << par.J_stem; // Setting precision to 2 decimal points
+  stream << fixed << setprecision(2) << par.J_L; // Setting precision to 2 decimal points
   string formatted_value = stream.str();
 
 
@@ -553,7 +553,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << par.J_stem << '\t' << avg_depin << '\t' << double(n_times_apart) / double(par.n_orgs) << endl;
+  outfile << par.J_L << '\t' << avg_depin << '\t' << double(n_times_apart) / double(par.n_orgs) << endl;
   outfile.close();
 
   delete[] dishes;
@@ -648,16 +648,16 @@ int main(int argc, char *argv[])
   {
     networks.push_back(par.start_matrix);
   }
-  par.J_stem = 1;
-  while (par.J_stem < 10)
+  par.J_L = 1;
+  while (par.J_L < 10)
   {
     
-    par.J_diff = par.J_stem + 8.;
-    par.J_med = par.J_diff / 2 + 0.25;
+    par.J_S = par.J_L + 8.;
+    par.J_med = par.J_S / 2 + 0.25;
     par.J_med2 = par.J_med;
-    par.J_stem_diff = par.J_diff;
+    par.J_SL = par.J_S;
     process_population(networks);
-    par.J_stem+=0.25;
+    par.J_L+=0.25;
   }
 
   

@@ -136,7 +136,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     // does init block above.
     dishes[i].Init();
     dishes[i].PDEfield->SetSecretion(par.secr_rate);
-    dishes[i].CPM->Set_evoJ(par.J_stem_diff);
+    dishes[i].CPM->Set_evoJ(par.J_SL);
     dishes[i].CPM->SetAreas(par.cell_areas);
     dishes[i].CPM->start_network(network_list[i]);
 
@@ -233,7 +233,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   ofstream outfile;
   string infoname = par.data_file + "/circle-info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << par.gamma_hm << '\t' << mean_circle << '\t' << variance << endl;
+  outfile << par.gamma_LM << '\t' << mean_circle << '\t' << variance << endl;
   outfile.close();
 
   
@@ -305,18 +305,18 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
 
-  par.gamma_hm = 0.5;
+  par.gamma_LM = 0.5;
 
-  while (par.gamma_hm < 20.1)
+  while (par.gamma_LM < 20.1)
   {
 
-    par.J_stem = 2;
-    par.J_med = par.gamma_hm + 1;
+    par.J_L = 2;
+    par.J_med = par.gamma_LM + 1;
     par.J_med2 = par.J_med;
-    par.J_stem_diff = 1.75 + par.gamma_hm + par.gamma_hl;
-    par.J_diff = 2 * par.gamma_hm + 1.5;
+    par.J_SL = 1.75 + par.gamma_LM + par.gamma_SL;
+    par.J_S = 2 * par.gamma_LM + 1.5;
     process_population(networks);
-    par.gamma_hm += 0.5;
+    par.gamma_LM += 0.5;
   }
 
   

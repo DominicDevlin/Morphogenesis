@@ -219,7 +219,7 @@ INIT
 
     CPM->start_network(par.start_matrix, par.start_polarity);
 
-    CPM->Set_evoJ(par.J_stem_diff);
+    CPM->Set_evoJ(par.J_SL);
 
 
     par.print_fitness = true;

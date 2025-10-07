@@ -36,7 +36,7 @@ std::uniform_real_distribution<double> double_num(0.0, 1.0);
 std::uniform_int_distribution<> genes_dist(0, par.n_genes-1);
 std::uniform_int_distribution<> activ_dist(0, par.n_activators-1);
 std::uniform_int_distribution<> TF_dist(0, par.n_TF-1);
-std::uniform_int_distribution<> J_dist(0, par.J_diff);
+std::uniform_int_distribution<> J_dist(0, par.J_S);
 
 int PDE::MapColour(double val) {
   
@@ -234,26 +234,26 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   par.secr_rate[0] = params[0];
   // par.Vs_max = params[1];
   par.cell_addition_rate = int(round(params[1]));
-  par.J_stem_diff = params[2];
+  par.J_SL = params[2];
   // constant params
-  par.J_stem = params[3];
-  par.mcs= 40000 + int(par.J_stem)*15000;
-  par.J_diff = params[4];
+  par.J_L = params[3];
+  par.mcs= 40000 + int(par.J_L)*15000;
+  par.J_S = params[4];
 
-  // if (par.J_stem > par.J_diff)
-  //   par.J_stem_diff = par.J_stem;
+  // if (par.J_L > par.J_S)
+  //   par.J_SL = par.J_L;
   // else
-  //   par.J_stem_diff = par.J_diff;
+  //   par.J_SL = par.J_S;
 
-  if (par.J_diff > par.J_stem)
+  if (par.J_S > par.J_L)
   {
-    par.J_med = 0.5*par.J_diff+0.25;
-    par.J_med2 = 0.5*par.J_diff+0.25;
+    par.J_med = 0.5*par.J_S+0.25;
+    par.J_med2 = 0.5*par.J_S+0.25;
   }
-  if (par.J_med < par.J_stem)
+  if (par.J_med < par.J_L)
   {
-    par.J_med = par.J_stem;
-    par.J_med2 = par.J_stem;
+    par.J_med = par.J_L;
+    par.J_med2 = par.J_L;
   }
 
 
@@ -272,15 +272,15 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     // setting optimization params
     // 0 = secretion rate
 
-    // par.J_stem_diff = params[2];
-    dishes[i].CPM->Set_evoJ(par.J_stem_diff);
+    // par.J_SL = params[2];
+    dishes[i].CPM->Set_evoJ(par.J_SL);
     // par.Vs_max = params[3];
     // par.Vd_max = params[4];
 
 
     // if (i=0)
     // {
-    //   cout << "params are: " << par.secr_rate[0] << '\t' << par.J_med << '\t' << par.J_stem_diff << '\t' << par.Vs_max << '\t' <<
+    //   cout << "params are: " << par.secr_rate[0] << '\t' << par.J_med << '\t' << par.J_SL << '\t' << par.Vs_max << '\t' <<
     //   par.Vd_max << '\t' << par.secr_rate[0] << '\t' << par.secr_rate[0] << endl;
     // }
 

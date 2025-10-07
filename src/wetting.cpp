@@ -184,11 +184,11 @@ INIT
 {
   try 
   {
-    par.J_stem = 2 ;
-    par.J_diff = par.J_stem + 8.;
-    par.J_med = par.J_diff / 2 + 0.25;
+    par.J_L = 2 ;
+    par.J_S = par.J_L + 8.;
+    par.J_med = par.J_S / 2 + 0.25;
     par.J_med2 = par.J_med;
-    par.J_stem_diff = par.J_diff;
+    par.J_SL = par.J_S;
     
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
@@ -234,7 +234,7 @@ INIT
 
     CPM->start_network(par.start_matrix, par.start_polarity);
 
-    CPM->Set_evoJ(par.J_stem_diff);
+    CPM->Set_evoJ(par.J_SL);
 
 
     par.print_fitness = true;
@@ -372,14 +372,14 @@ TIMESTEP {
 
     // if (t == 22000)
     // {
-    //   par.J_stem=1.5; 
-    //   par.J_diff = 6;
+    //   par.J_L=1.5; 
+    //   par.J_S = 6;
     //   par.J_med = 4.25;
     //   par.J_med2 = 4.25;
-    //   par.J_stem_diff=5.6;
+    //   par.J_SL=5.6;
     //   par.gthresh=3;
     //   par.secr_rate[0]=0.00274;
-    //   dish->CPM->Set_evoJ(par.J_stem_diff);
+    //   dish->CPM->Set_evoJ(par.J_SL);
     // }
     // if (t>22000)
     // {

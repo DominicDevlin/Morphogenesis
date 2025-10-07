@@ -149,8 +149,9 @@ class Parameter {
 
   int ball_radius;
 
-  double gamma_hm;
-  double gamma_hl;
+  double gamma_LM;
+  double gamma_SL;
+  double gamma_SM;
   int linear_increase;
   double increase_start_secr;
   double increase_secr_mod;
@@ -267,9 +268,9 @@ class Parameter {
 
   bool do_voronoi;
 
-  double J_stem;
-  double J_diff;
-  double J_stem_diff;
+  double J_L;
+  double J_S;
+  double J_SL;
   double J_med;
   double J_med2;
   double Vs_max;

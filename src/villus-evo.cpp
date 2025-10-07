@@ -36,7 +36,7 @@ std::uniform_real_distribution<double> double_num(0.0, 1.0);
 std::uniform_int_distribution<> genes_dist(0, par.n_genes-1);
 std::uniform_int_distribution<> activ_dist(0, par.n_activators-1);
 std::uniform_int_distribution<> TF_dist(0, par.n_TF-1);
-std::uniform_int_distribution<> J_dist(0, par.J_diff);
+std::uniform_int_distribution<> J_dist(0, par.J_S);
 
 int PDE::MapColour(double val) {
   
@@ -221,10 +221,10 @@ void mutate_J(double &J)
   else
     J += 0.5;
 
-  if (J > par.J_diff)
-    J = par.J_diff;
-  else if (J < par.J_stem)
-    J = par.J_stem;
+  if (J > par.J_S)
+    J = par.J_S;
+  else if (J < par.J_L)
+    J = par.J_L;
 }
 
 
@@ -358,7 +358,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, int
     int t;
 
     dishes[i].PDEfield->SetSecretion(par.secr_rate);
-    dishes[i].CPM->Set_evoJ(par.J_stem_diff);
+    dishes[i].CPM->Set_evoJ(par.J_SL);
     dishes[i].CPM->SetAreas(par.cell_areas);
     dishes[i].CPM->start_network(network_list[i]);
 

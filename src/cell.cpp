@@ -333,11 +333,11 @@ double Cell::PhaseJ(bool &phase, double &Jstemdiff, bool &epith)
 
   if (phase && phase_state)
   {
-    return par.J_stem;
+    return par.J_L;
   }
   else if (!phase && !phase_state)
   {
-    return par.J_diff;
+    return par.J_S;
   }
   else
   {
@@ -368,7 +368,7 @@ double Cell::phaseJfromMed()
 
 double Cell::J_equation(int x)
 {
-  double eq = (double(par.J_diff-par.J_stem) / (1.+exp((double(par.tip_max - par.melt - x))/par.slope))) + par.J_stem;
+  double eq = (double(par.J_S-par.J_L) / (1.+exp((double(par.tip_max - par.melt - x))/par.slope))) + par.J_L;
   // double first = double(par.xtip - par.melt - x)/par.slope;
   // double second = 1.0 + exp(first);
   // cout << par.xtip << '\t' << par.melt << '\t' << x << '\t' << par.slope << '\t' << first << '\t' << second << endl;

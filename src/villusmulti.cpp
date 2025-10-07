@@ -139,7 +139,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     // does init block above.
     dishes[i].Init();
     dishes[i].PDEfield->SetSecretion(par.secr_rate);
-    dishes[i].CPM->Set_evoJ(par.J_stem_diff);
+    dishes[i].CPM->Set_evoJ(par.J_SL);
     dishes[i].CPM->SetAreas(par.cell_areas);
     dishes[i].CPM->start_network(network_list[i]);
 
@@ -329,7 +329,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     cout << "Directory created." << endl;
 
   ostringstream stream;
-  stream << fixed << setprecision(2) << par.gamma_hm << '-' << par.gamma_hl; // Setting precision to 2 decimal points
+  stream << fixed << setprecision(2) << par.gamma_LM << '-' << par.gamma_SL; // Setting precision to 2 decimal points
   string formatted_value = stream.str();
   double sum_heights;
   double square_heights;
@@ -353,7 +353,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   }
   double mean_height = sum_heights / lsize;
   double variance = (square_heights / lsize ) - (mean_height * mean_height);
-  avg_phase_remained = avg_phase_remained / lsize;
+  avg_phase_remained = avg_phase_remained / par.n_orgs;
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
@@ -364,7 +364,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   }
   else
   {
-    outfile << par.gamma_hm << '\t' << par.gamma_hl << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
+    outfile << par.gamma_LM << '\t' << par.gamma_SL << '\t' << mean_height << '\t' << variance << '\t' << double(n_times_apart) / double(par.n_orgs) << '\t' << avg_phase_remained << endl;
   }
   outfile.close();
 
@@ -448,17 +448,23 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
 
-  par.gamma_hm = 7;
-  par.gamma_hl = 7;
+  // sweeping params
+  par.gamma_LM = 1;
+  par.gamma_SL = 7.5;
+  double const_SL = 7.5;
+  double max_SL = 7.6;
+  double max_LM = 12.1;
+  par.J_L = 1;
+  double max_J_L = 5.1;
 
 
   if (par.morphogen_sweep)
   {
-    par.J_stem = 2;
-    par.J_med = par.gamma_hm + 1;
+    par.J_L = 2;
+    par.J_med = par.gamma_LM + par.J_L/2;
     par.J_med2 = par.J_med;
-    par.J_stem_diff = 1.75 + par.gamma_hm + par.gamma_hl;
-    par.J_diff = 2 * par.gamma_hm + 1.5;
+    par.J_SL = par.gamma_LM + par.gamma_SL - par.gamma_SM + par.J_L;
+    par.J_S = 2 * par.gamma_LM - 2*par.gamma_SM + par.J_L;
 
     par.linear_increase = true;
     par.secr_rate[0] = 0.00275; 
@@ -480,28 +486,32 @@ int main(int argc, char *argv[])
   }
   else
   {
-    while (par.gamma_hm < 12.1)
+    while (par.J_L < max_J_L)
     {
-      while (par.gamma_hl < 12.1)
+      while (par.gamma_SL < max_SL)
       {
-        par.J_stem = 2;
-        par.J_med = par.gamma_hm + 1;
-        par.J_med2 = par.J_med;
-        par.J_stem_diff = 1.75 + par.gamma_hm + par.gamma_hl;
-        par.J_diff = 2 * par.gamma_hm + 1.5;
-        if (par.MakeEpithelia)
+        while (par.gamma_LM < max_LM)
         {
-          par.epiJ=2;
-          par.epiJelse = par.gamma_hm + 2;
+          par.J_med = par.gamma_LM + par.J_L/2;
+          par.J_med2 = par.J_med;
+          par.J_SL = par.gamma_LM + par.gamma_SL - par.gamma_SM + par.J_L;
+          par.J_S = 2 * par.gamma_LM - 2*par.gamma_SM + par.J_L;
+          if (par.MakeEpithelia)
+          {
+            par.epiJ=2;
+            par.epiJelse = par.gamma_LM + par.J_L/2 + par.epiJ/2;
+          }
+
+
+          process_population(networks);
+          par.gamma_LM += 0.5;
+
         }
-
-
-        process_population(networks);
-        par.gamma_hl += 0.5;
-
+        par.gamma_SL += 0.5;
       }
-      par.gamma_hl = 1.;
-      par.gamma_hm += 0.5;
+      par.J_L += 1;
+      par.gamma_SL = 1;
+      par.gamma_LM = const_SL;
     }
   }
 

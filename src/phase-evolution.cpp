@@ -36,7 +36,7 @@ std::uniform_real_distribution<double> double_num(0.0, 1.0);
 std::uniform_int_distribution<> genes_dist(0, par.n_genes-1);
 std::uniform_int_distribution<> activ_dist(0, par.n_activators-1);
 std::uniform_int_distribution<> TF_dist(0, par.n_TF-1);
-std::uniform_int_distribution<> J_dist(0, par.J_diff);
+std::uniform_int_distribution<> J_dist(0, par.J_S);
 
 int PDE::MapColour(double val) {
   
@@ -228,10 +228,10 @@ void mutate_J(double &J)
   else
     J += 0.5;
 
-  if (J > par.J_diff)
-    J = par.J_diff;
-  else if (J < par.J_stem)
-    J = par.J_stem;
+  if (J > par.J_S)
+    J = par.J_S;
+  else if (J < par.J_L)
+    J = par.J_L;
 }
 
 // mutate the TF polarities (whether each TF is passed onto daughter upon cell reproduction)
@@ -294,7 +294,7 @@ void record_networks(vector<vector<vector<int>>>& netw, string oname)
 
 void output_Js(vector<double> Js, string oname)
 {
-  string nname = oname + "/" + "J_stem_diff.txt";
+  string nname = oname + "/" + "J_SL.txt";
   std::ofstream outfile;
   outfile.open(nname, ios::app);
   double mean = 0.;
@@ -651,13 +651,13 @@ int main(int argc, char *argv[]) {
     {
       networks.push_back(par.start_n);
       polarities.push_back(start_p);
-      evolveJ.push_back(par.J_stem_diff);
+      evolveJ.push_back(par.J_SL);
     }
     else
     {
       networks.push_back(get_random_network());
       polarities.push_back(get_random_pol());
-      evolveJ.push_back(par.J_stem_diff);
+      evolveJ.push_back(par.J_SL);
     }
   }
 

@@ -36,7 +36,7 @@ std::uniform_real_distribution<double> double_num(0.0, 1.0);
 std::uniform_int_distribution<> genes_dist(0, par.n_genes-1);
 std::uniform_int_distribution<> activ_dist(0, par.n_activators-1);
 std::uniform_int_distribution<> TF_dist(0, par.n_TF-1);
-std::uniform_int_distribution<> J_dist(0, par.J_diff);
+std::uniform_int_distribution<> J_dist(0, par.J_S);
 
 int PDE::MapColour(double val) {
   
@@ -240,9 +240,9 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   par.lambda_perimeter_phase = params[3];
   par.mcs= 100000;
   par.lambda_perimeter = params[4];
-  par.J_stem=1;
-  par.J_diff=1;
-  par.J_stem_diff=1;
+  par.J_L=1;
+  par.J_S=1;
+  par.J_SL=1;
 
 
   // run organisms in parallel. 
@@ -260,15 +260,15 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     // setting optimization params
     // 0 = secretion rate
 
-    // par.J_stem_diff = params[2];
-    dishes[i].CPM->Set_evoJ(par.J_stem_diff);
+    // par.J_SL = params[2];
+    dishes[i].CPM->Set_evoJ(par.J_SL);
     // par.Vs_max = params[3];
     // par.Vd_max = params[4];
 
 
     // if (i=0)
     // {
-    //   cout << "params are: " << par.secr_rate[0] << '\t' << par.J_med << '\t' << par.J_stem_diff << '\t' << par.Vs_max << '\t' <<
+    //   cout << "params are: " << par.secr_rate[0] << '\t' << par.J_med << '\t' << par.J_SL << '\t' << par.Vs_max << '\t' <<
     //   par.Vd_max << '\t' << par.secr_rate[0] << '\t' << par.secr_rate[0] << endl;
     // }
 

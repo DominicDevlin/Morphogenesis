@@ -320,7 +320,7 @@ public:
   // int EnergyDifference(Cell &cell2) const;
   double EnergyDifference(Cell &cell2); // DOM CHANGED TO NON-CONST
 
-  double EnergyDifference(Cell &cell2, bool phase, double Jstemdiff=par.J_stem_diff);
+  double EnergyDifference(Cell &cell2, bool phase, double Jstemdiff=par.J_SL);
 
   double Melt(Cell &cell2, int x);
 

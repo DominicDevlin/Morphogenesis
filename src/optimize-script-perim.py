@@ -29,35 +29,35 @@ if (len(sys.argv) > 1):
 p_stem = 1.
 p_diff = 1.
 
-# Define the possible values for J_stem and J_diff
-# J_stem_values = [1., 2., 3., 4., 5.]
-J_diff_values = [0.4,0.5]
+# Define the possible values for J_L and J_S
+# J_L_values = [1., 2., 3., 4., 5.]
+J_S_values = [0.4,0.5]
 
-J_stem_values = []
+J_L_values = []
 
 val = 0.0
 for i in range(12):
-    J_stem_values.append(round(val, 2))
+    J_L_values.append(round(val, 2))
     val += 0.02
 
 # Total number of combinations (5x5 = 25)
-n_cols = len(J_stem_values)
-n_rows = len(J_diff_values)
-num_combinations = len(J_stem_values) * len(J_diff_values)
+n_cols = len(J_L_values)
+n_rows = len(J_S_values)
+num_combinations = len(J_L_values) * len(J_S_values)
 # Ensure the index is within the valid range
 if index >= num_combinations:
     print("Index out of range, should be between 0 and 24.")
     exit()
 else:
-    # Determine J_stem and J_diff based on the index
-    rounder = index // n_cols  # Integer division to determine the row (J_diff)
-    leftover = index % n_cols  # Modulo to determine the column (J_stem)
+    # Determine J_L and J_S based on the index
+    rounder = index // n_cols  # Integer division to determine the row (J_S)
+    leftover = index % n_cols  # Modulo to determine the column (J_L)
 
     # Assign the values from the sets
-    p_stem = J_stem_values[leftover]
-    p_diff = J_diff_values[rounder]
+    p_stem = J_L_values[leftover]
+    p_diff = J_S_values[rounder]
 
-    print(f"Index: {index} => J_stem: {p_stem}, J_diff: {p_diff}")
+    print(f"Index: {index} => J_L: {p_stem}, J_S: {p_diff}")
 
 
 
@@ -93,8 +93,8 @@ diff_rate = [1e-3,5e-3]
 # J of stem to diff
 J_med = [2.,8.]
 # max growth rate per DTS OF stem cells. Taking this out for now.
-# growth rate should depnd on J_stem
-# Vmax = 1 / (1 + J_stem)
+# growth rate should depnd on J_L
+# Vmax = 1 / (1 + J_L)
 # V_smax = [0.,Vmax]
 # doing addtition rate now
 min_rate = 100 + 2000*p_stem

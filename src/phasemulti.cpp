@@ -233,7 +233,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     // does init block above.
     dishes[i].Init();
     dishes[i].CPM->start_network(network_list.at(i));
-    dishes[i].CPM->Set_evoJ(par.J_stem_diff);
+    dishes[i].CPM->Set_evoJ(par.J_SL);
 
     bool stayed_together=true;
 
@@ -616,11 +616,11 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   << "hex per step:\t" << double(t_hex_count) / sum_steps * par.measure_interval << '\n' 
   << "shape per step:\t" << double(t_shape_count) / sum_steps * par.measure_interval << '\n'
   << "average breaks:\t" << double(n_times_apart) / double(par.n_orgs) << '\n'
-  << "Jstem:\t" << par.J_stem << '\n'
-  << "Jdiff:\t" << par.J_diff << '\n'
+  << "Jstem:\t" << par.J_L << '\n'
+  << "Jdiff:\t" << par.J_S << '\n'
   << "differentiation rate:\t" << par.secr_rate[0] << '\n'
   << "addition rate:\t" << par.cell_addition_rate << '\n'
-  << "Jsd:\t" << par.J_stem_diff << endl;
+  << "Jsd:\t" << par.J_SL << endl;
   outfile.close();
 
   if (par.pics_for_opt)
@@ -748,17 +748,17 @@ int main(int argc, char *argv[])
         par.secr_rate[0] = params[0];
         // par.Vs_max = params[1];
         par.cell_addition_rate = params[1];
-        par.J_stem_diff = params[2];
-        par.J_stem = params[3];
-        par.J_diff = params[4];
-        par.J_med=par.J_diff/2 + 0.25;
-        par.mcs=40000 + int(par.J_stem)*15000;
-        if (par.J_stem > par.J_med)
-          par.J_med = par.J_stem;
+        par.J_SL = params[2];
+        par.J_L = params[3];
+        par.J_S = params[4];
+        par.J_med=par.J_S/2 + 0.25;
+        par.mcs=40000 + int(par.J_L)*15000;
+        if (par.J_L > par.J_med)
+          par.J_med = par.J_L;
         par.J_med2 = par.J_med;
         par.lambda_perimeter = 0.0;
         par.lambda_perimeter_phase = 0.0;
-        cout << par.J_stem << '\t' << par.J_diff << '\t' << par.J_med << endl;
+        cout << par.J_L << '\t' << par.J_S << '\t' << par.J_med << endl;
         process_population(networks, argnumber);
         ++argnumber;
         // control1 - no differentiation:
@@ -779,9 +779,9 @@ int main(int argc, char *argv[])
         par.J_med2 = par.J_med;
         par.lambda_perimeter_phase = params[3];
         par.lambda_perimeter = params[4];
-        par.J_stem = 1;
-        par.J_diff = 1;
-        par.J_stem_diff = 1;
+        par.J_L = 1;
+        par.J_S = 1;
+        par.J_SL = 1;
         par.mcs=5000;
         par.n_orgs = 1;
         process_population(networks, argnumber);
