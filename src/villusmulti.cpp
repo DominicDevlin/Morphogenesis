@@ -394,7 +394,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = true;
+  par.pics_for_opt = false;
 
 #ifdef QTGRAPHICS
   {
