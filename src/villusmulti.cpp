@@ -473,6 +473,8 @@ int main(int argc, char *argv[])
   {
     par.add_J_L = true;
   }
+  par.epiJ=1;
+  double max_epiJ = 5.1;
 
 
   if (par.morphogen_sweep)
@@ -503,7 +505,7 @@ int main(int argc, char *argv[])
   }
   else
   {
-    while (par.J_L < max_J_L)
+    while (par.epiJ < max_epiJ)
     {
       while (par.gamma_SL < max_SL)
       {
@@ -526,7 +528,7 @@ int main(int argc, char *argv[])
         }
         par.gamma_SL += 0.5;
       }
-      par.J_L += 1;
+      par.epiJ += 1;
       par.gamma_SL = start_SL;
       par.gamma_LM = start_LM;
     }

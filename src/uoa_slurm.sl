@@ -1,20 +1,26 @@
 #!/bin/bash -e
 #SBATCH --job-name=CPM_evolution  
-#SBATCH --time=35:00:00      # Walltime (HH:MM:SS)
-#SBATCH --mem=24GB 
+#SBATCH --time=30:00:00      # Walltime (HH:MM:SS)
+#SBATCH --mem=10GB 
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=60  
 #SBATCH --account=uoa02799         
 #SBATCH --output=ev_sim_out-%j.out 
 #SBATCH --error=ev_sim_err-%j.out 
-#SBATCH --partition=milan
 
+module load GCCcore/11.3.0          #  or GCCcore/11.2.0
+module load binutils/2.38-GCCcore-11.3.0   # linker that matches GCC 11
 
-find . -name "*.o" -type f -delete
-module load Qt5/5.12.3-GCCcore-9.2.0 
-qmake
-make -j $SLURM_CPUS_ON_NODE
-module load LegacySystemLibs/7
-./wetmulti
+#––– regenerate Makefile –––
+which qmake-qt5 && qmake-qt5 || qmake            # or `qmake-qt5` if that exists on your system
 
+#––– now the Makefile exists, so 'distclean' is defined –––
+make distclean             # optional – only if you want to wipe leftovers
+
+which qmake-qt5 && qmake-qt5 || qmake            # or `qmake-qt5` if that exists on your system
+
+# full build
+make  -j $SLURM_CPUS_ON_NODE
+./villusmulti
 ## to output images on the cluster, prepend the output with "xvfb-run". e.g. "xvfb-run ./evolution"
+
