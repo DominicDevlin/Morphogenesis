@@ -269,6 +269,10 @@ public:
     return alive;
   }
   
+  inline void makeAlive(void) {
+    alive = true;
+  }
+
   //! Returns the cell colour.
   inline int Colour(void) const {
    

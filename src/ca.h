@@ -359,7 +359,7 @@ public:
 
   void FractureSheet(int n_cells);
 
-  void Voronoi(int xlen, int ylen, int shift=0);
+  void Voronoi(int xlen, int ylen, int shift=0, int xshift=0, bool turnonphase=false);
 
   void ToppingVoronoi();
 
@@ -490,6 +490,8 @@ public:
   void WetTopCells(int width, int depth);
 
   void WetAbove(int width, int depth);
+
+  void WetAllCells();
 
   double HTouchMedium();
   

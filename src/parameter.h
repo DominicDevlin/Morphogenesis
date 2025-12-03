@@ -144,6 +144,10 @@ class Parameter {
   int sheet_depth;
   int sheet_shift;
   int dewet_length;
+  int conserved_dewet_distance;
+  double L2;
+  double theoretical_diameter;
+  int init_wet_length;
   int dewet_cell_depth;
   bool wetabove;
 

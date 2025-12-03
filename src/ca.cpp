@@ -3065,7 +3065,7 @@ double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey)
 }
 
 
-void CellularPotts::Voronoi(int xlen, int ylen, int shift)
+void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turnonphase)
 {
 
 
@@ -3100,13 +3100,13 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift)
   vector<VPoint> centers = HexaCenters(periodic_length_x, periodic_length_y, distance);
   for (auto& center : centers) 
   {
-    center.x += sizex - xlen;
+    center.x += sizex - xlen - xshift;
     center.y += sizey - ylen - shift;
     // std::cout << "Center at (" << center.x << ", " << center.y << ")\n";
   }
 
 
-  for (int x = 1 + sizex - xlen; x < sizex-1; ++x) {
+  for (int x = 1 + sizex - xlen - xshift; x < sizex - xshift - 1; ++x) {
       for (int y = 1 + sizey - ylen - shift; y < sizey - shift - 1; ++y) 
       {
         double minDistance = std::numeric_limits<double>::max();
@@ -3176,6 +3176,7 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift)
         c->SetTargetArea(c->area);
         double guess_perim = par.ptarget_perimeter * sqrt(c->area);// 2*M_PI * sqrt(c->area/M_PI)*par.neighbour_multiplier;
         c->SetTargetPerimeter(guess_perim);
+        c->makeAlive();
         // cout << c->area << endl;
       }
     }
@@ -4744,6 +4745,22 @@ double CellularPotts::HTouchMedium()
 }
 
 
+void CellularPotts::WetAllCells()
+{
+
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (c->area)
+      {
+        c->TransformPhase(true);
+      }
+    }
+  }
+}
+
 
 void CellularPotts::WetAbove(int width, int depth)
 {
@@ -4910,7 +4927,8 @@ int CellularPotts::WettingLength()
 double CellularPotts::WettingRatio()
 {
   double dlen = double(WettingLength());
-  double ratio = dlen / double(init_wet_length);
+  // cout << "init wet length: " << init_wet_length << "   thoeretical diam: " << par.theoretical_diameter << endl;  
+  double ratio = (par.init_wet_length - dlen) / double(par.init_wet_length - par.theoretical_diameter);
   return ratio;
 }
 

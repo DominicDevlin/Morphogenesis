@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=17608024185899528845;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=0;//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -90,8 +90,8 @@
     // THIS IS IMPORTANT ONE!!!! { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 300;
+    sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 250;
     mcs = 40001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -99,7 +99,7 @@
     lambda = 0.5;
     lambda2 = 0; 
     div_threshold = 100;
-    cell_areas = 80;
+    cell_areas = 100;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
     lambda_perimeter=0.0;
     lambda_perimeter_phase=0.0;
@@ -160,7 +160,7 @@
     if (tension_params)
     {
 
-      gamma_LM = 7.0;
+      gamma_LM = 6.0;
       gamma_SL = 7.0;
       J_L = 2;
       J_med = gamma_LM + J_L/2;
@@ -195,10 +195,17 @@
     init_wetting=1000;
     sheet_depth=95;
     sheet_shift=10;
-    dewet_length=80;
-    dewet_cell_depth=3;
-    double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
-    dewet_length=floor(tmp_length);
+    dewet_length=200;
+    dewet_cell_depth=10;
+    conserved_dewet_distance = 150;
+    // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
+
+    L2 = sqrt((sqrt(3.)/2) * cell_areas ) * dewet_cell_depth;
+    double tmp_length = L2 + (sqrt(pow(L2,2) + pow(M_PI * conserved_dewet_distance,2) )) / M_PI;
+    dewet_length=round(tmp_length);
+
+    theoretical_diameter = 2 * sqrt((dewet_length * L2)/M_PI);
+
     ball_radius=54; // I used 48 and 30 for the equilibria test
     add_to_topping=0;
     wetabove=true;
