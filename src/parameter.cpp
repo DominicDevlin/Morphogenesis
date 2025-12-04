@@ -92,7 +92,7 @@
 /* Cellular Potts parameters */
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 250;
-    mcs = 40001;
+    mcs = 70001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -162,7 +162,7 @@
 
       gamma_LM = 6.0;
       gamma_SL = 7.0;
-      J_L = 2;
+      J_L = 5;
       J_med = gamma_LM + J_L/2;
       J_med2 = J_med;
       J_SL = gamma_LM + gamma_SL + J_L - gamma_SM;
@@ -196,7 +196,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=200;
-    dewet_cell_depth=10;
+    dewet_cell_depth=7;
     conserved_dewet_distance = 150;
     // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
@@ -205,6 +205,9 @@
     dewet_length=round(tmp_length);
 
     theoretical_diameter = 2 * sqrt((dewet_length * L2)/M_PI);
+
+    record_pressure=true;
+    pressure_time_length = 250;
 
     ball_radius=54; // I used 48 and 30 for the equilibria test
     add_to_topping=0;

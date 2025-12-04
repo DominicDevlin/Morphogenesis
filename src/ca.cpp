@@ -4927,7 +4927,8 @@ int CellularPotts::WettingLength()
 double CellularPotts::WettingRatio()
 {
   double dlen = double(WettingLength());
-  // cout << "init wet length: " << init_wet_length << "   thoeretical diam: " << par.theoretical_diameter << endl;  
+  cout << "init wet length: " << par.init_wet_length << "   thoeretical diam: " << par.theoretical_diameter << endl;  
+  cout << "current wet length: " << dlen << endl;  
   double ratio = (par.init_wet_length - dlen) / double(par.init_wet_length - par.theoretical_diameter);
   return ratio;
 }
@@ -5377,6 +5378,39 @@ map<int, vector<pair<int,double>>> CellularPotts::Get_time_shape_index()
 {
   return time_shape_index;
 }
+
+
+void CellularPotts::RecordPressure()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->AddPressure();
+    }
+  }
+}
+
+
+vector<double> CellularPotts::HydrostaticPressure()
+{
+  vector<double> pressure_list{};
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      double pressure = c->GetCellPressure();
+      pressure_list.push_back(pressure);
+
+    }
+  }
+  return pressure_list;
+
+}
+
 
 
 

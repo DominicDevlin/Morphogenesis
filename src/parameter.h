@@ -151,6 +151,9 @@ class Parameter {
   int dewet_cell_depth;
   bool wetabove;
 
+  bool record_pressure;
+  int pressure_time_length;
+
   int ball_radius;
 
   double gamma_LM;

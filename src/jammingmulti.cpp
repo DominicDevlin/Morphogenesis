@@ -431,12 +431,12 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       //   if (nbh_exchange >= 0)
       //     nbh_exchange_rates[i].push_back(nbh_exchange);
       // }
-      if (t > 100 + par.measure_interval && par.measure_time_order_params && t % par.measure_interval == 0)
-      {
-        double shape_pr = dishes[i].CPM->ReturnShapeProportion();
+      // if (t > 100 + par.measure_interval && par.measure_time_order_params && t % par.measure_interval == 0)
+      // {
+      //   double shape_pr = dishes[i].CPM->ReturnShapeProportion();
 
-        shape_proportions[i].push_back(shape_pr);
-      }
+      //   shape_proportions[i].push_back(shape_pr);
+      // }
      
 
       dishes[i].CPM->AmoebaeMove(t);
@@ -571,9 +571,9 @@ int main(int argc, char *argv[])
   
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 5000;
+  par.mcs = 400000;
   par.sheet_hex=false;
-  par.n_orgs = 2;
+  par.n_orgs = 120;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -585,13 +585,14 @@ int main(int argc, char *argv[])
   par.sizey=250;
 
   
-  par.dewet_cell_depth=3;
+  par.dewet_cell_depth=5;
   par.conserved_dewet_distance = 150;
   // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
   par.L2 = sqrt((sqrt(3.)/2) * par.cell_areas ) * par.dewet_cell_depth;
   double tmp_length = par.L2 + (sqrt(pow(par.L2,2) + pow(M_PI * par.conserved_dewet_distance,2) )) / M_PI;
   par.dewet_length=round(tmp_length);
+  par.theoretical_diameter = 2 * sqrt((par.dewet_length * par.L2)/M_PI);
   
 
 

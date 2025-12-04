@@ -236,6 +236,37 @@ TIMESTEP {
       }
     }
 
+    if (par.record_pressure)
+    {
+      dish->CPM->RecordPressure();
+    }
+    if (t % par.pressure_time_length == 0)
+    {
+      vector<double> pressures = dish->CPM->HydrostaticPressure();
+      double len = double(pressures.size());
+      double pressure_var{};
+      double pressure_avg = accumulate(pressures.begin(), pressures.end(), 0.0);
+      pressure_avg = pressure_avg / len;
+      for (double &i : pressures)
+      {
+        double diff = i - pressure_avg;
+        pressure_var += diff * diff;
+      }
+      pressure_var = pressure_var / len;
+      // cout << pressure_avg << '\t' << pressure_var << endl;
+      string fnamee = "check.dat";
+      ofstream outfile;
+      outfile.open(fnamee, ios::app);  // Append mode
+      outfile << fixed << setprecision(4);
+      for (auto &pr : pressures)
+      {
+        outfile << pr << '\t';
+      }
+      outfile << endl;
+      outfile.close();
+
+    }
+
     if (par.velocities)
     {
       dish->CPM->RecordMasses();

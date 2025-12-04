@@ -530,6 +530,10 @@ public:
 
   void ApoptoseDeadCells();
 
+  vector<double> HydrostaticPressure();
+
+  void RecordPressure();
+
 
   // inline double prop_success()
   // {

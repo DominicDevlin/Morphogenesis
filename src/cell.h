@@ -29,6 +29,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <unordered_map>
 #include <utility>
 #include <map>
+#include <deque>
 
 
 extern Parameter par;
@@ -953,6 +954,28 @@ private:
     return vel_phens;
   }
 
+  inline void AddPressure()
+  {
+      double cpressure = - par.lambda * 2 * (area - target_area);
+      pressure.push_front(cpressure);
+      if (pressure.size() > par.pressure_time_length)
+      {
+        pressure.pop_back();
+      }
+  }
+
+  inline double GetCellPressure()
+  {
+    double avgpressure{};
+    for (double &i : pressure)
+    {
+      avgpressure+=i;
+    }
+    avgpressure = avgpressure / double(pressure.size());
+    return avgpressure;
+  }
+
+
   inline void cellmed()
   {
     ++medium_contact;
@@ -1372,6 +1395,8 @@ protected:
 
   vector<double> gamma_list; 
   vector<double> mass_list;
+
+  deque<double> pressure;
 
   double phase_protein_conc;
   bool phase_state=false;
