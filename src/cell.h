@@ -975,6 +975,26 @@ private:
     return avgpressure;
   }
 
+  inline void AddAdhesionStress(double stress)
+  {
+    adhesion_stress.push_front(stress);
+    if (adhesion_stress.size() > par.pressure_time_length)
+    {
+      adhesion_stress.pop_back();
+    } 
+  }
+
+  inline double GetAdhesionStress()
+  {
+    double avg_adhstress{};
+    for (double &i : adhesion_stress)
+    {
+      avg_adhstress+=i;
+    }
+    avg_adhstress = avg_adhstress / double(adhesion_stress.size());
+    return avg_adhstress;
+  }
+
 
   inline void cellmed()
   {
@@ -1397,6 +1417,7 @@ protected:
   vector<double> mass_list;
 
   deque<double> pressure;
+  deque<double> adhesion_stress;
 
   double phase_protein_conc;
   bool phase_state=false;

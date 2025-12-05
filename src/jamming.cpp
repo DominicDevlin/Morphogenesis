@@ -236,13 +236,33 @@ TIMESTEP {
       }
     }
 
-    if (par.record_pressure)
+    if (par.record_pressure & t > 10)
     {
-      dish->CPM->RecordPressure();
+      dish->CPM->RecordStress();
     }
-    if (t % par.pressure_time_length == 0)
+
+    if (t % 100 == 0)
+    {
+      dish->CPM->CheckIfCellTouchingMedium();
+    }
+    if (t == par.mcs - 1)
+    {
+      map<int, bool> medtouches = dish->CPM->ReturnMediumTouching();
+      ofstream outfile;
+      string fnamee = "cell-medium-touchlist.dat";
+      outfile.open(fnamee, ios::app);  // Append mode
+      outfile << fixed << setprecision(3);
+      for (auto &pr : medtouches)
+      {
+        outfile << pr.first << '\t' << pr.second << endl;
+      }
+      outfile.close();
+    }
+
+    if (t % par.pressure_time_length == 0 && t > 0)
     {
       vector<double> pressures = dish->CPM->HydrostaticPressure();
+      vector<double> adh_stress = dish->CPM->AdhesionStress();
       double len = double(pressures.size());
       double pressure_var{};
       double pressure_avg = accumulate(pressures.begin(), pressures.end(), 0.0);
@@ -253,17 +273,31 @@ TIMESTEP {
         pressure_var += diff * diff;
       }
       pressure_var = pressure_var / len;
+
+
       // cout << pressure_avg << '\t' << pressure_var << endl;
-      string fnamee = "check.dat";
+      string fnamee = par.data_file + "/pressures.dat";
       ofstream outfile;
       outfile.open(fnamee, ios::app);  // Append mode
-      outfile << fixed << setprecision(4);
+      outfile << fixed << setprecision(3);
       for (auto &pr : pressures)
       {
         outfile << pr << '\t';
       }
       outfile << endl;
       outfile.close();
+      
+      fnamee = par.data_file + "/total_stress.dat";
+      outfile.open(fnamee, ios::app);  // Append mode
+      outfile << fixed << setprecision(3);
+      for (double i = 0; i < len; ++i)
+      {
+        outfile << pressures[i] + adh_stress[i] << '\t';
+      }
+      outfile << endl;
+      outfile.close();
+
+
 
     }
 
@@ -290,16 +324,6 @@ TIMESTEP {
       //   double coop = dish->CPM->Cooperativity(200);
       //   cooperativities.push_back(coop);
       // }
-      if (t % 1000 == 0)
-      {
-        cout << "Wetting length is... " << dish->CPM->WettingLength() << endl;
-      }
-
-      if (t % 50 == 0)
-      {
-        double prp = dish->CPM->ReturnShapeProportion();
-        cout << "proportion is: " << prp << endl;
-      }
       
     }    
     dish->CPM->ColourCells(true);

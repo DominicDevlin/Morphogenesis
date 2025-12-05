@@ -382,6 +382,8 @@ public:
 
   vector<double> TruePerimeters();
 
+  map<int, double> TruePerimetersMap();
+
   void ShapeIndexByState();
 
   void PhaseShapeIndex(int time=0, bool measure_proportion=false);
@@ -533,6 +535,15 @@ public:
   vector<double> HydrostaticPressure();
 
   void RecordPressure();
+
+  void RecordStress();
+
+  void CheckIfCellTouchingMedium();
+
+  map<int, bool> ReturnMediumTouching();
+
+  vector<double> AdhesionStress();
+
 
 
   // inline double prop_success()
@@ -895,7 +906,7 @@ private:
   vector<double> type_fitness_list;
   vector<double> shape_fitness_list;
 
-
+  map<int, bool> touching_medium;
   // long flip_true{};
   // long flip_false{};
   // double dH_tally{};

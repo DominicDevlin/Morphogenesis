@@ -5393,6 +5393,83 @@ void CellularPotts::RecordPressure()
 }
 
 
+
+void CellularPotts::RecordStress()
+{
+  RecordPressure();
+
+  initVolume();
+  adjustPerimeters();
+  
+  map<int, double> perims = TruePerimetersMap();
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      int csig = c->Sigma();
+
+      double adh_stress = par.J_L * perims[csig] / (2*c->Area());
+      c->AddAdhesionStress(adh_stress);
+    }
+  }
+}
+
+
+
+void CellularPotts::CheckIfCellTouchingMedium()
+{
+  
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      bool touched = false;
+      int celln = c->Sigma();
+      pair<int, bool> touch = {celln, false};
+
+      
+
+      for ( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (sigma[xp2][yp2] == 0)
+          {
+            touching_medium[celln] = true;
+            touched = true;
+            break;
+          }
+        }
+        if (touched) 
+        {
+            break; // Breaks the perimeter loop (it loop)
+        }
+      }
+      if (!touched)
+      {
+        touching_medium[celln] = false;
+      }
+    }
+  }
+}
+
+map<int,bool> CellularPotts::ReturnMediumTouching()
+{
+  return touching_medium;
+}
+
+
+
+
 vector<double> CellularPotts::HydrostaticPressure()
 {
   vector<double> pressure_list{};
@@ -5408,7 +5485,24 @@ vector<double> CellularPotts::HydrostaticPressure()
     }
   }
   return pressure_list;
+}
 
+
+vector<double> CellularPotts::AdhesionStress()
+{
+  vector<double> stress_list{};
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      double adhstress = c->GetAdhesionStress();
+      stress_list.push_back(adhstress);
+
+    }
+  }
+  return stress_list;
 }
 
 
@@ -10586,6 +10680,76 @@ void CellularPotts::adjustPerimeters()
     }
 	}
 }
+
+
+map<int, double> CellularPotts::TruePerimetersMap()
+{
+  //  See Magno et al (2015) BMC biophysics for correction factor.
+  int neigh_level=2; // (using n_nb because 2)
+  double correction=par.neighbour_multiplier;
+
+  map<int, double> toreturn;
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      int perim_length{};
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+              continue;
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          } 
+        }
+      }
+      double correted_perim = perim_length / correction; 
+      toreturn[celln] = correted_perim;      
+    }
+  }  
+  return toreturn;
+}
+
+
 
 
 vector<double> CellularPotts::TruePerimeters()
