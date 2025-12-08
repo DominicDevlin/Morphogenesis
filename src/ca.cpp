@@ -4927,8 +4927,8 @@ int CellularPotts::WettingLength()
 double CellularPotts::WettingRatio()
 {
   double dlen = double(WettingLength());
-  cout << "init wet length: " << par.init_wet_length << "   thoeretical diam: " << par.theoretical_diameter << endl;  
-  cout << "current wet length: " << dlen << endl;  
+  // cout << "init wet length: " << par.init_wet_length << "   thoeretical diam: " << par.theoretical_diameter << endl;  
+  // cout << "current wet length: " << dlen << endl;  
   double ratio = (par.init_wet_length - dlen) / double(par.init_wet_length - par.theoretical_diameter);
   return ratio;
 }
@@ -8351,6 +8351,189 @@ int CellularPotts::MediumExchangeRate()
 
   return newEntries + oldNoLongerPresent;
 }
+
+
+
+
+
+#include <vector>
+#include <algorithm>
+#include <set>
+#include <queue>
+#include <map>
+
+using namespace std;
+
+// Change return type to vector of vectors to group events
+vector<vector<int>> CellularPotts::t1transitions()
+{
+  vector<vector<int>> t1_events;
+
+  if (!old_cell_count)
+  {
+    old_nbhs = SearchNeighbours();
+    old_cell_count = cell->size();
+    return t1_events;
+  }
+
+  int** new_nbhs = SearchNeighbours();
+  int n_cells = cell->size();
+
+  // Sets to track which cells have changed topology
+  set<int> changed_cells_set;
+  
+  // Maps to store clean neighbor lists for changed cells so we don't parse raw pointers twice
+  map<int, vector<int>> clean_new_nbhs;
+  map<int, vector<int>> clean_old_nbhs;
+
+  // --- PASS 1: Identify all cells that underwent a change ---
+  for (int i = 1; i < n_cells; ++i)
+  {
+    if (i >= old_cell_count) break;
+
+    // 1. Extract Current Neighbours
+    vector<int> curr_nbhs;
+    bool touching_medium = false;
+    int j = 0;
+    while (new_nbhs[i][j] >= 0)
+    {
+      if (new_nbhs[i][j] == 0) { touching_medium = true; break; }
+      curr_nbhs.push_back(new_nbhs[i][j]);
+      ++j;
+    }
+    if (touching_medium || j > 50) continue;
+
+    // 2. Extract Previous Neighbours
+    vector<int> prev_nbhs;
+    touching_medium = false;
+    j = 0;
+    while (old_nbhs[i][j] >= 0)
+    {
+      if (old_nbhs[i][j] == 0) { touching_medium = true; break; }
+      prev_nbhs.push_back(old_nbhs[i][j]);
+      ++j;
+    }
+    if (touching_medium || j > 50) continue;
+
+    // 3. Compare
+    // Sort to ensure valid comparison regardless of order
+    sort(curr_nbhs.begin(), curr_nbhs.end());
+    sort(prev_nbhs.begin(), prev_nbhs.end());
+
+    if (curr_nbhs != prev_nbhs)
+    {
+      changed_cells_set.insert(i);
+      clean_new_nbhs[i] = curr_nbhs;
+      clean_old_nbhs[i] = prev_nbhs;
+    }
+  }
+
+  // --- PASS 2: Group connected changed cells into events ---
+  set<int> visited;
+  
+  for (int cell_id : changed_cells_set)
+  {
+    if (visited.count(cell_id)) continue;
+
+    // Start a new event group
+    vector<int> current_event;
+    queue<int> q;
+    
+    q.push(cell_id);
+    visited.insert(cell_id);
+    current_event.push_back(cell_id);
+
+    while (!q.empty())
+    {
+      int u = q.front();
+      q.pop();
+
+      // Check all neighbors of u (both old and new)
+      // If a neighbor is also in 'changed_cells_set' and not visited, group it.
+      
+      // Helper lambda to process a neighbor list
+      auto check_neighbors = [&](const vector<int>& nbhs) {
+        for (int neighbor : nbhs) {
+          // If the neighbor is also undergoing a transition and hasn't been grouped yet
+          if (changed_cells_set.count(neighbor) && !visited.count(neighbor)) {
+            visited.insert(neighbor);
+            current_event.push_back(neighbor);
+            q.push(neighbor);
+          }
+        }
+      };
+
+      check_neighbors(clean_new_nbhs[u]);
+      check_neighbors(clean_old_nbhs[u]);
+    }
+
+    // Only store events if they involve a cluster of cells (usually 4 for a standard T1)
+    if (!current_event.empty()) {
+        t1_events.push_back(current_event);
+    }
+  }
+
+  // --- MEMORY MANAGEMENT (Preserved from original code) ---
+  free(old_nbhs[0]);
+  free(old_nbhs);
+  old_nbhs = 0;
+
+  old_nbhs = (int **)malloc((cell->size() + 1) * sizeof(int *));
+  if (old_nbhs == NULL) MemoryWarning();
+
+  old_nbhs[0] = (int *)malloc((cell->size() + 1) * (cell->size() + 1) * sizeof(int));
+  if (old_nbhs[0] == NULL) MemoryWarning();
+
+  for (int i = 1; i < (int)cell->size() + 1; i++)
+    old_nbhs[i] = old_nbhs[i - 1] + (cell->size() + 1);
+
+  for (int i = 0; i < ((int)cell->size() + 1) * ((int)cell->size() + 1); i++)
+    old_nbhs[0][i] = new_nbhs[0][i];
+
+  free(new_nbhs[0]);
+  free(new_nbhs);
+
+  return t1_events;
+}
+
+
+
+
+vector<pair<double, double>> CellularPotts::find_shared_centres()
+{
+  vector<pair<double, double>> cpoints{};
+  vector<vector<int>> t1s = t1transitions();
+  if (!t1s.size())
+  {
+    return cpoints;
+  }
+
+  for (vector<int> trans : t1s)
+  {
+    double xtot{};
+    double ytot{};
+    for (int id : trans)
+    {
+      // make sure setcellcenters has been called already!!
+      double xc = cell->at(id).get_xcen();
+      double yc = cell->at(id).get_ycen();
+      xtot += xc;
+      ytot += yc;
+    }
+    xtot = xtot / double(trans.size());
+    ytot = ytot / double(trans.size());
+    pair<double, double> t1_cen = {xtot, ytot};
+    cpoints.push_back(t1_cen);
+    cout << xtot << '\t' << ytot << endl;
+  }
+
+  return cpoints;
+
+
+}
+
+
+
 
 
 

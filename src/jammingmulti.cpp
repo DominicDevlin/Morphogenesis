@@ -441,10 +441,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
       dishes[i].CPM->AmoebaeMove(t);
 
-      if (t % 1000 == 0 && t > 0)
-      {
-        dishes[i].CPM->RemoveUnconnectedCells();
-      }
+      // if (t % 1000 == 0 && t > 0)
+      // {
+      //   dishes[i].CPM->RemoveUnconnectedCells();
+      // }
 
       if (par.pics_for_opt && t % 500 == 0)
       {
@@ -519,10 +519,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   // fname = par.data_file + "/neighbour.exchange-" + formatted_value + ".dat";
   // OutputColumnData(nbh_exchange_rates, fname);
-
-
-  fname = par.data_file + "/transition.proportion-" + formatted_value + ".dat";
-  OutputColumnData(shape_proportions, fname);
 
 
   fname = par.data_file + "/dewetting.length-" + formatted_value + ".dat";

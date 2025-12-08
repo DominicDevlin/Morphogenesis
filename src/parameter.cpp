@@ -57,7 +57,7 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = false;
+    velocities = true;
     record_directions = false;
 
     // record cell sizes
@@ -207,7 +207,7 @@
     theoretical_diameter = 2 * sqrt((dewet_length * L2)/M_PI);
 
     record_pressure=true;
-    pressure_time_length = 250;
+    pressure_time_length = 5;
 
     ball_radius=54; // I used 48 and 30 for the equilibria test
     add_to_topping=0;

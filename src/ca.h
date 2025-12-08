@@ -544,6 +544,10 @@ public:
 
   vector<double> AdhesionStress();
 
+  vector<vector<int>> t1transitions();
+
+  vector<pair<double, double>> find_shared_centres();
+
 
 
   // inline double prop_success()

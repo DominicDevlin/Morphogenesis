@@ -249,7 +249,7 @@ TIMESTEP {
     {
       map<int, bool> medtouches = dish->CPM->ReturnMediumTouching();
       ofstream outfile;
-      string fnamee = "cell-medium-touchlist.dat";
+      string fnamee = par.data_file + "/cell-medium-touchlist.dat";
       outfile.open(fnamee, ios::app);  // Append mode
       outfile << fixed << setprecision(3);
       for (auto &pr : medtouches)
@@ -259,7 +259,7 @@ TIMESTEP {
       outfile.close();
     }
 
-    if (t % par.pressure_time_length == 0 && t > 0)
+    if (t % par.pressure_time_length == 0 && t > 100)
     {
       vector<double> pressures = dish->CPM->HydrostaticPressure();
       vector<double> adh_stress = dish->CPM->AdhesionStress();
@@ -306,6 +306,8 @@ TIMESTEP {
       dish->CPM->RecordMasses();
     }
 
+    dish->CPM->find_shared_centres();
+
     // static vector<double> cooperativities;
 
     if (t==0)
@@ -313,7 +315,6 @@ TIMESTEP {
       dish->CPM->WetAllCells();
     }
 
-    par.measure_time_order_params = false;
     if (par.measure_time_order_params && t > 1000)
     {
       dish->CPM->PhaseHexaticOrder(t);
@@ -348,10 +349,6 @@ TIMESTEP {
         set = dish->CPM->SpawnCell(val.first, val.second, cnum, t);
       }
         
-    }
-    if (t % 4000 == 0)
-    {
-      bool check_shape = dish->CPM->CheckAllConnected(0.9);
     }
 
 
