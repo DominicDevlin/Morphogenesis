@@ -546,7 +546,7 @@ public:
 
   vector<vector<int>> t1transitions();
 
-  vector<pair<double, double>> find_shared_centres();
+  vector<vector<double>> find_shared_centres();
 
 
 
@@ -829,7 +829,7 @@ protected:
   int **outside;
 
   int **old_nbhs;
-  int old_cell_count;
+  int old_cell_count{};
 
   vector<int> old_med_nbhs;
   bool exchange_encounter=false;
@@ -929,6 +929,7 @@ private:
   vector<vector<int>> matrix;
   vector<bool> polarity;
   int org_num=1;
+  map<int,int> transition_cooldown_list;
 
 
   //count grid hits for awkward gradients

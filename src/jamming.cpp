@@ -194,6 +194,11 @@ INIT
         cout << "data_film created." << endl;       
     }
 
+    if (mkdir(par.data_file.c_str(), 0777) == -1)
+      cerr << "Error : " << strerror(errno) << endl;
+    else
+      cout << "Directory created." << endl;
+
     
   } 
   catch(const char* error) 
@@ -240,26 +245,25 @@ TIMESTEP {
     {
       dish->CPM->RecordStress();
     }
+    // if (t % 100 == 0)
+    // {
+    //   dish->CPM->CheckIfCellTouchingMedium();
+    // }
+    // if (t == par.mcs - 1)
+    // {
+    //   map<int, bool> medtouches = dish->CPM->ReturnMediumTouching();
+    //   ofstream outfile;
+    //   string fnamee = par.data_file + "/cell-medium-touchlist.dat";
+    //   outfile.open(fnamee, ios::app);  // Append mode
+    //   outfile << fixed << setprecision(3);
+    //   for (auto &pr : medtouches)
+    //   {
+    //     outfile << pr.first << '\t' << pr.second << endl;
+    //   }
+    //   outfile.close();
+    // }
 
-    if (t % 100 == 0)
-    {
-      dish->CPM->CheckIfCellTouchingMedium();
-    }
-    if (t == par.mcs - 1)
-    {
-      map<int, bool> medtouches = dish->CPM->ReturnMediumTouching();
-      ofstream outfile;
-      string fnamee = par.data_file + "/cell-medium-touchlist.dat";
-      outfile.open(fnamee, ios::app);  // Append mode
-      outfile << fixed << setprecision(3);
-      for (auto &pr : medtouches)
-      {
-        outfile << pr.first << '\t' << pr.second << endl;
-      }
-      outfile.close();
-    }
-
-    if (t % par.pressure_time_length == 0 && t > 100)
+    if (par.record_pressure && t % par.pressure_time_length == 0 && t > 100)
     {
       vector<double> pressures = dish->CPM->HydrostaticPressure();
       vector<double> adh_stress = dish->CPM->AdhesionStress();
@@ -296,17 +300,29 @@ TIMESTEP {
       }
       outfile << endl;
       outfile.close();
-
-
-
     }
 
     if (par.velocities)
     {
       dish->CPM->RecordMasses();
     }
-
-    dish->CPM->find_shared_centres();
+    if (t>10 && t % 10 == 0)
+    {
+      vector<vector<double>> shared_centres = dish->CPM->find_shared_centres();
+      if (shared_centres.size() > 0)
+      {
+        string fnamee = par.data_file + "/transitions.dat";
+        ofstream outfile;
+        outfile.open(fnamee, ios::app);  // Append mode
+        outfile << fixed << setprecision(3);
+        for (auto &vv : shared_centres)
+        {
+          outfile << t << '\t' << vv[4] << '\t' << vv[5] << '\t' << vv[0] << '\t' << vv[1] <<'\t' << vv[2] <<'\t' << vv[3] <<endl;
+        }
+        outfile.close();
+      }
+    }
+      
 
     // static vector<double> cooperativities;
 
@@ -355,10 +371,7 @@ TIMESTEP {
     if (t == par.mcs - 1)
     {
 
-      if (mkdir(par.data_file.c_str(), 0777) == -1)
-        cerr << "Error : " << strerror(errno) << endl;
-      else
-        cout << "Directory created." << endl;
+
 
       if (par.measure_time_order_params)
       {

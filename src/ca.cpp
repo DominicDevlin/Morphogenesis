@@ -8385,35 +8385,34 @@ vector<vector<int>> CellularPotts::t1transitions()
   // Maps to store clean neighbor lists for changed cells so we don't parse raw pointers twice
   map<int, vector<int>> clean_new_nbhs;
   map<int, vector<int>> clean_old_nbhs;
-
   // --- PASS 1: Identify all cells that underwent a change ---
   for (int i = 1; i < n_cells; ++i)
   {
-    if (i >= old_cell_count) break;
+    if (i >= old_cell_count) 
+      break;
 
     // 1. Extract Current Neighbours
     vector<int> curr_nbhs;
-    bool touching_medium = false;
     int j = 0;
     while (new_nbhs[i][j] >= 0)
     {
-      if (new_nbhs[i][j] == 0) { touching_medium = true; break; }
+      // if (new_nbhs[i][j] == 0) // { touching_medium = true; break; }
       curr_nbhs.push_back(new_nbhs[i][j]);
       ++j;
     }
-    if (touching_medium || j > 50) continue;
+    if (j > 50) 
+      continue;
 
     // 2. Extract Previous Neighbours
     vector<int> prev_nbhs;
-    touching_medium = false;
     j = 0;
     while (old_nbhs[i][j] >= 0)
     {
-      if (old_nbhs[i][j] == 0) { touching_medium = true; break; }
+      // if (old_nbhs[i][j] == 0) // { touching_medium = true; break; }
       prev_nbhs.push_back(old_nbhs[i][j]);
       ++j;
     }
-    if (touching_medium || j > 50) continue;
+    if (j > 50) continue;
 
     // 3. Compare
     // Sort to ensure valid comparison regardless of order
@@ -8430,7 +8429,6 @@ vector<vector<int>> CellularPotts::t1transitions()
 
   // --- PASS 2: Group connected changed cells into events ---
   set<int> visited;
-  
   for (int cell_id : changed_cells_set)
   {
     if (visited.count(cell_id)) continue;
@@ -8472,7 +8470,6 @@ vector<vector<int>> CellularPotts::t1transitions()
         t1_events.push_back(current_event);
     }
   }
-
   // --- MEMORY MANAGEMENT (Preserved from original code) ---
   free(old_nbhs[0]);
   free(old_nbhs);
@@ -8499,37 +8496,64 @@ vector<vector<int>> CellularPotts::t1transitions()
 
 
 
-vector<pair<double, double>> CellularPotts::find_shared_centres()
+vector<vector<double>> CellularPotts::find_shared_centres()
 {
-  vector<pair<double, double>> cpoints{};
+  vector<vector<double>> cpoints{};
   vector<vector<int>> t1s = t1transitions();
   if (!t1s.size())
   {
     return cpoints;
   }
-
   for (vector<int> trans : t1s)
   {
     double xtot{};
     double ytot{};
+    int checked=false;
+    if (trans.size() != 4)
+      continue;
+    
+    // int how_cool{};
+    // for (int id : trans)
+    // {
+    //   auto it = transition_cooldown_list.find(id);
+     
+    //   if (it == transition_cooldown_list.end() || it->second == 0)
+    //   {
+    //     ++how_cool;
+    //   }
+    // }
+    // if (how_cool < 2)
+    //   continue;
+    vector<double> to_push{};
+    string id_code{};
     for (int id : trans)
     {
+      to_push.push_back(id);
+      id_code += to_string(id);
       // make sure setcellcenters has been called already!!
       double xc = cell->at(id).get_xcen();
       double yc = cell->at(id).get_ycen();
       xtot += xc;
       ytot += yc;
+      // transition_cooldown_list[id] = 0;
     }
+    // cout << endl;
     xtot = xtot / double(trans.size());
     ytot = ytot / double(trans.size());
-    pair<double, double> t1_cen = {xtot, ytot};
-    cpoints.push_back(t1_cen);
-    cout << xtot << '\t' << ytot << endl;
+    
+    to_push.push_back(xtot);
+    to_push.push_back(ytot);
+    cpoints.push_back(to_push);
+
   }
-
+  for (auto &id : transition_cooldown_list)
+  {
+    if (id.second > 0)
+    {
+      --id.second;
+    }
+  }
   return cpoints;
-
-
 }
 
 

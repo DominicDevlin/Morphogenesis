@@ -162,7 +162,7 @@
 
       gamma_LM = 6.0;
       gamma_SL = 7.0;
-      J_L = 5;
+      J_L = 1;
       J_med = gamma_LM + J_L/2;
       J_med2 = J_med;
       J_SL = gamma_LM + gamma_SL + J_L - gamma_SM;
@@ -206,7 +206,7 @@
 
     theoretical_diameter = 2 * sqrt((dewet_length * L2)/M_PI);
 
-    record_pressure=true;
+    record_pressure=false;
     pressure_time_length = 5;
 
     ball_radius=54; // I used 48 and 30 for the equilibria test

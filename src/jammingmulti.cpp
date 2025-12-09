@@ -560,9 +560,9 @@ int main(int argc, char *argv[])
   par.gene_output=false;
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
-  par.velocities=true;
+  par.velocities=false;
   par.output_sizes = false;
-  par.measure_time_order_params=true;
+  par.measure_time_order_params=false;
   Parameter();
   
   par.phase_evolution = true;
