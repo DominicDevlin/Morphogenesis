@@ -296,6 +296,8 @@ class Parameter {
   bool measure_time_order_params;
   int measure_interval;
 
+  bool record_transitions;
+
   bool melting_adhesion;  
   int tip_max;
   int tip_min;

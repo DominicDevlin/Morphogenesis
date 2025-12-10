@@ -388,6 +388,20 @@ public:
 
   void PhaseShapeIndex(int time=0, bool measure_proportion=false);
 
+  void MeasureShapeIndex();
+
+  void AverageShapeIndex();
+
+  vector<double>& ReturnShapeIndex();
+
+  void MeasureHexaticOrder();
+
+  void AverageHexaticOrder();
+
+  vector<double>& ReturnHexaticOrder();
+
+
+
   vector<double> GetVolumes();
 
   vector<double> measureAnisotropy();
@@ -893,6 +907,14 @@ private:
 
   int start_width;
   int opt_starty;
+
+  double hexatic_tally{};
+  double hexatic_counter{};
+  vector<double> hex_vec{};
+
+  double shape_tally{};
+  double shape_counter{};
+  vector<double> shape_vec{};
 
   int rows;
   int cols;

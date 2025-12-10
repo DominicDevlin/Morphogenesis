@@ -30,6 +30,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <utility>
 #include <map>
 #include <deque>
+#include <numeric>
 
 
 extern Parameter par;
@@ -1126,6 +1127,26 @@ private:
     return shape_index;
   }
 
+  inline void AddShapeIndex(double ind)
+  {
+    shape_indices.push_back(ind);
+  }
+
+  inline double& GetShapeIndices()
+  {
+    double avg_ind=-1;
+    if (shape_indices.size() == 0)
+    {
+      cerr << "error in shape counting";
+      return avg_ind;
+    }
+    avg_ind = accumulate(shape_indices.begin(), shape_indices.end(), 0.0);
+    avg_ind = avg_ind / double(shape_indices.size());
+    shape_indices.clear();
+    return avg_ind;
+  }
+
+
   inline void SetTimeCreated(int &time)
   {
     time_created = time;
@@ -1532,6 +1553,7 @@ protected:
   
   // N.B: N is area!
   double shape_index;
+  vector<double> shape_indices;
   
   long int sum_x;
   long int sum_y;

@@ -242,6 +242,7 @@
     measure_time_order_params = false;
     measure_interval = 50;
 
+    record_transitions = false;
   
     // GRN params
     n_TF = 0; 

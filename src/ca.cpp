@@ -5236,8 +5236,6 @@ double CellularPotts::ReturnShapeProportion()
 
 void CellularPotts::PhaseHexaticOrder(int time)
 {
-  if (!par.velocities)
-    SetCellCenters();
 
   tmp_hex_order=0;
   int tmp_counter=0;
@@ -5367,6 +5365,108 @@ void CellularPotts::PhaseHexaticOrder(int time)
   free(ns);
 
 }
+
+
+void CellularPotts::MeasureHexaticOrder()
+{
+
+  tmp_hex_order=0;
+  int tmp_counter=0;
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      double XCEN = cell->at(i).get_xcen();
+      double YCEN = cell->at(i).get_ycen();
+      vector<double> xcens{};
+      vector<double> ycens{};
+      int n_neighbours=0;
+      bool med_check=false;
+      int j = 0;
+      while (ns[i][j] >= 0)
+      {
+        med_check = false;
+        if (ns[i][j] == 0)
+        {
+          med_check=true;
+          break;
+        }
+        else
+        {
+          double xc = cell->at(ns[i][j]).get_xcen();
+          double yc = cell->at(ns[i][j]).get_ycen();
+          xcens.push_back(xc);
+          ycens.push_back(yc);
+          ++n_neighbours;
+        }
+        ++j;
+      }
+      // cout << i << '\t' << n_neighbours << endl;
+
+      if (med_check) 
+        continue;
+
+      vector<vec2d> com_vectors{};
+      vec2d reference_axis(1.0,0.0);
+
+      for (int n1 = 0; n1 < n_neighbours; ++n1)
+      {
+        double ABx = XCEN - xcens[n1];
+        double ABy = YCEN - ycens[n1];
+        vec2d newvec(ABx, ABy);
+        com_vectors.push_back(newvec);
+      }
+      sort(com_vectors.begin(), com_vectors.end(), compareVec);
+      // for (auto v : com_vectors)
+      //   cout << v.x << '\t' << v.y << '\t';
+
+      // cout << endl;
+      vector<double> angles{};
+      for (const auto& vec : com_vectors) 
+      {
+        double angle = atan2(vec.y, vec.x);
+        angles.push_back(angle);
+      }
+      // Now use angles to calculate psi_6 for each particle
+      complex<double> psi_sum(0,0);
+      for (const auto& angle : angles) {
+        psi_sum += std::exp(std::complex<double>(0, 6 * angle));
+      }
+      psi_sum /= static_cast<double>(angles.size());
+      double psi_mag = std::abs(psi_sum);
+
+      hexatic_tally += psi_mag;
+      ++hexatic_counter;
+
+    }
+  }
+  free(ns[0]);
+  free(ns);
+}
+
+void CellularPotts::AverageHexaticOrder()
+{
+  if (hexatic_counter>0)
+  {
+    double to_add = hexatic_tally / hexatic_counter;
+    hex_vec.push_back(to_add);
+    hexatic_tally = 0;
+    hexatic_counter = 0;
+  }
+  else
+  {
+    return hex_vec.push_back(-1);
+  }
+}
+
+vector<double>& CellularPotts::ReturnHexaticOrder()
+{
+  return hex_vec;
+}
+
+
 
 
 map<int, vector<pair<int,double>>> CellularPotts::Get_time_hexatic_order()
@@ -11203,7 +11303,98 @@ void CellularPotts::ShapeIndex()
 }
 
 
+void CellularPotts::MeasureShapeIndex()
+{
+  initVolume();
+  adjustPerimeters();
 
+  int neigh_level=par.neighbours; // (using n_nb because 2)
+  double correction=par.neighbour_multiplier;
+
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      int perim_length{};
+      bool touching_med=false;
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+        for (int i=1;i<=n_nb;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+              continue;
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          } 
+        }
+      }
+      // cout << corrected_perim << '\t' << vlist[p] << endl;
+      double corrected_perim = perim_length / correction; 
+      double sindex = corrected_perim / sqrt(double(vlist[celln]));
+      // cout << sindex << endl;
+      
+      shape_tally += sindex;
+      ++shape_counter;
+    }
+  }  
+}
+
+void CellularPotts::AverageShapeIndex()
+{
+  if (shape_counter > 0)
+  {
+    double to_add = shape_tally / shape_counter;
+    shape_vec.push_back(to_add);
+    shape_tally = 0;
+    shape_counter = 0;
+  }
+  else
+  {
+    shape_vec.push_back(0.);
+  }
+
+}
+
+vector<double>& CellularPotts::ReturnShapeIndex()
+{
+  return shape_vec;
+}
 
 
 vector<double> CellularPotts::GetHexes()

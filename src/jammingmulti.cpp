@@ -37,7 +37,6 @@ int WriteData(const vector<map<int, vector<pair<int, double>>>>& shapedata, cons
 {
     ofstream outfile;
     outfile.open(oname, ios::app);  // Append mode
-
     int phase_counts{};
 
     // First, find the maximum number of rows required across all maps
@@ -363,7 +362,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   Dish *dishes = new Dish[par.n_orgs];
 
-
+  int time_measure_interval = 100;
   vector<vector<double>> cooperativities(par.n_orgs);
   // should be normalised to zero.
   vector<vector<double>> dewetting_ratio(par.n_orgs);
@@ -371,6 +370,15 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   vector<vector<double>> shape_proportions(par.n_orgs);
   // vector<vector<double>> nbh_exchange_rates(par.n_orgs);
+
+  ostringstream makefll;
+  makefll << fixed << setprecision(2) << par.J_L; // Setting precision to 2 decimal points
+  string fnamer = par.data_file + "/" + makefll.str();
+  if (mkdir(fnamer.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;
+
 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
@@ -410,7 +418,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
       }
 
-      if (t > 0 && t % 100 == 0)
+      if (t > 0 && t % time_measure_interval == 0)
       {
         double dl = dishes[i].CPM->WettingRatio();
         dewetting_ratio[i].push_back(dl);
@@ -419,12 +427,38 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 
 
-      if (t > 100 && par.measure_time_order_params && t % 1 == 0)
+      if (t > 99 && par.measure_time_order_params && t % 4 == 0)
       {
-        dishes[i].CPM->PhaseHexaticOrder(t);
-        dishes[i].CPM->PhaseShapeIndex(t, true);
-        
+        dishes[i].CPM->MeasureHexaticOrder();
+        dishes[i].CPM->MeasureShapeIndex();
+        if (t % time_measure_interval == 0 && t > time_measure_interval)
+        {
+          dishes[i].CPM->AverageShapeIndex();
+          dishes[i].CPM->AverageHexaticOrder();
+        }     
       }
+
+      if (t>10 && t % 10 == 0)
+      {
+        vector<vector<double>> shared_centres = dishes[i].CPM->find_shared_centres();
+        if (shared_centres.size() > 0)
+        {
+          ostringstream stream;
+          stream << fixed << setprecision(2) << par.J_L; // Setting precision to 2 decimal points
+          string formatted_value = stream.str();
+          string fnamee = fnamer + "/transitions-" + formatted_value + "-" + to_string(i+1) +".dat";
+          ofstream outfile;
+          outfile.open(fnamee, ios::app);  // Append mode
+          outfile << fixed << setprecision(3);
+          for (auto &vv : shared_centres)
+          {
+            outfile << t << '\t' << vv[4] << '\t' << vv[5] << '\t' << vv[0] << '\t' << vv[1] <<'\t' << vv[2] <<'\t' << vv[3] <<endl;
+          }
+          outfile.close();
+        }
+      }
+
+
       // if (t >= par.init_wetting && t % 1000 == 0)
       // {
       //   double nbh_exchange = dishes[i].CPM->NeighbourExchangeRate();
@@ -471,11 +505,69 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 
   }
+  
 
-  if (mkdir(par.data_file.c_str(), 0777) == -1)
-    cerr << "Error : " << strerror(errno) << endl;
-  else
-    cout << "Directory created." << endl;
+  if (par.measure_time_order_params)
+  {
+    int container_size = par.mcs / time_measure_interval - 2;
+    vector<double> shape_index_output(container_size, 0.);
+    vector<int> hex_counts(container_size, 0);
+    vector<double> hex_order_output(container_size, 0.);
+    for (int i = 0; i < par.n_orgs; ++i)
+    {
+      vector<double>& org_shapes = dishes[i].CPM->ReturnShapeIndex();
+      vector<double>& org_hexes = dishes[i].CPM->ReturnHexaticOrder();
+      for (int j = 0; j < container_size; ++j)
+      {
+        shape_index_output[j] += org_shapes[j];
+
+        if (org_hexes[j] > 0.)
+        {
+          hex_order_output[j] += org_hexes[j];
+          hex_counts[j] += 1;
+        }
+      }
+    }
+    for (int i = 0; i < container_size; ++i)
+    {
+      shape_index_output[i] /= par.n_orgs;
+      if (hex_counts[i]==0)
+      {
+        hex_order_output[i] = 0.;
+      }
+      else
+      {
+        hex_order_output[i] /= hex_counts[i];
+      }
+    }
+    
+    ostringstream stream;
+    stream << fixed << setprecision(2) << par.J_L; // Setting precision to 2 decimal points
+    string formatted_value = stream.str();
+    string oname = par.data_file + "/hex_time-" + formatted_value + ".dat";
+    ofstream outfile;
+    outfile.open(oname, ios::app);  // Append mode
+    outfile << fixed << setprecision(3);
+    for (int i = 0; i < container_size; ++i)
+    {
+      outfile << i*time_measure_interval + 2*time_measure_interval << '\t' << hex_order_output[i] << endl;
+    }
+    outfile.close();
+
+    oname = par.data_file + "/shape_time-" + formatted_value + ".dat";
+    outfile.open(oname, ios::app);  // Append mode
+    outfile << fixed << setprecision(3);
+    for (int i = 0; i < container_size; ++i)
+    {
+      outfile << i*time_measure_interval + 2*time_measure_interval << '\t' << shape_index_output[i] << endl;
+    }
+    outfile.close();
+
+  }
+
+
+
+
 
   ostringstream stream;
   stream << fixed << setprecision(2) << par.J_L; // Setting precision to 2 decimal points
@@ -484,35 +576,11 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   int t_shape_count{};
   int t_hex_count{};
 
-  if (par.measure_time_order_params)
+  if (par.velocities)
   {
-    vector<map<int, vector<pair<int,double>>>> hexdata;
-    vector<map<int, vector<pair<int,double>>>> shapedata;
-
-    for (int i = 0; i < par.n_orgs;++i)
-    {
-      hexdata.push_back(dishes[i].CPM->Get_time_hexatic_order());
-      shapedata.push_back(dishes[i].CPM->Get_time_shape_index());
-
-    }
-
-
-    string oname = par.data_file + "/hex_time-" + formatted_value + ".dat";
-    t_hex_count = WriteData(hexdata, oname);
-
-    oname = par.data_file + "/shape_time-" + formatted_value + ".dat";
-    t_shape_count = WriteData(shapedata, oname);
+    string coopname = par.data_file + "/coop-" + formatted_value + ".dat";
+    OutputCooperativities(cooperativities, coopname);
   }
-
-  string coopname = par.data_file + "/coop-" + formatted_value + ".dat";
-  OutputCooperativities(cooperativities, coopname);
-
-  coopname = par.data_file + "/coop-" + formatted_value + ".dat";
-
-
-
-
-
 
   string fname = par.data_file + "/dewetting.ratio-" + formatted_value + ".dat";
   OutputColumnData(dewetting_ratio, fname);
@@ -520,10 +588,8 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   // fname = par.data_file + "/neighbour.exchange-" + formatted_value + ".dat";
   // OutputColumnData(nbh_exchange_rates, fname);
 
-
   fname = par.data_file + "/dewetting.length-" + formatted_value + ".dat";
   OutputIntColumnData(dewetting_length, fname);
-
 
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
@@ -540,7 +606,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = true;
+  par.pics_for_opt = false;
 
 #ifdef QTGRAPHICS
   {
@@ -553,6 +619,11 @@ int main(int argc, char *argv[])
   }
 #endif
 
+  if (mkdir(par.data_file.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;
+  Parameter();
   par.graphics=false;
   par.contours=false;
   par.print_fitness=true;
@@ -563,11 +634,12 @@ int main(int argc, char *argv[])
   par.velocities=false;
   par.output_sizes = false;
   par.measure_time_order_params=false;
-  Parameter();
+  par.record_transitions=true;
+  
   
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 400000;
+  par.mcs = 200000;
   par.sheet_hex=false;
   par.n_orgs = 120;
   par.do_voronoi = true;
@@ -581,7 +653,7 @@ int main(int argc, char *argv[])
   par.sizey=250;
 
   
-  par.dewet_cell_depth=5;
+  par.dewet_cell_depth=3;
   par.conserved_dewet_distance = 150;
   // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
@@ -601,7 +673,7 @@ int main(int argc, char *argv[])
   while (par.J_L < 12.1)
   {
     
-    par.J_S = par.J_L + 8.;
+    par.J_S = par.J_L + 1.;
     par.J_med = par.J_S / 2 + 0.25;
     par.J_med2 = par.J_med;
     par.J_SL = par.J_S;
