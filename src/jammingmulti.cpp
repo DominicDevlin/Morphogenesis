@@ -362,7 +362,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   Dish *dishes = new Dish[par.n_orgs];
 
-  int time_measure_interval = 100;
   vector<vector<double>> cooperativities(par.n_orgs);
   // should be normalised to zero.
   vector<vector<double>> dewetting_ratio(par.n_orgs);
@@ -418,7 +417,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
       }
 
-      if (t > 0 && t % time_measure_interval == 0)
+      if (t > 0 && t % 100 == 0)
       {
         double dl = dishes[i].CPM->WettingRatio();
         dewetting_ratio[i].push_back(dl);
@@ -427,18 +426,19 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 
 
-      if (t > 99 && par.measure_time_order_params && t % 4 == 0)
+      if (t > par.struct_avg_interval-1 && par.measure_time_order_params && t % par.measure_interval == 0)
       {
         dishes[i].CPM->MeasureHexaticOrder();
-        dishes[i].CPM->MeasureShapeIndex();
-        if (t % time_measure_interval == 0 && t > time_measure_interval)
-        {
-          dishes[i].CPM->AverageShapeIndex();
-          dishes[i].CPM->AverageHexaticOrder();
-        }     
+        dishes[i].CPM->MeasureShapeIndex();    
       }
+      if (par.measure_time_order_params && t % par.struct_avg_interval == 0 && t > par.struct_avg_interval)
+      {
+        dishes[i].CPM->AverageShapeIndex();
+        dishes[i].CPM->AverageHexaticOrder();
+      } 
 
-      if (t>10 && t % 10 == 0)
+
+      if (par.record_transitions && t>10 && t % 10 == 0)
       {
         vector<vector<double>> shared_centres = dishes[i].CPM->find_shared_centres();
         if (shared_centres.size() > 0)
@@ -509,7 +509,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   if (par.measure_time_order_params)
   {
-    int container_size = par.mcs / time_measure_interval - 2;
+    int container_size = par.mcs / par.struct_avg_interval - 2;
     vector<double> shape_index_output(container_size, 0.);
     vector<int> hex_counts(container_size, 0);
     vector<double> hex_order_output(container_size, 0.);
@@ -550,7 +550,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     outfile << fixed << setprecision(3);
     for (int i = 0; i < container_size; ++i)
     {
-      outfile << i*time_measure_interval + 2*time_measure_interval << '\t' << hex_order_output[i] << endl;
+      outfile << i*par.struct_avg_interval + 2*par.struct_avg_interval << '\t' << hex_order_output[i] << endl;
     }
     outfile.close();
 
@@ -559,7 +559,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     outfile << fixed << setprecision(3);
     for (int i = 0; i < container_size; ++i)
     {
-      outfile << i*time_measure_interval + 2*time_measure_interval << '\t' << shape_index_output[i] << endl;
+      outfile << i*par.struct_avg_interval + 2*par.struct_avg_interval << '\t' << shape_index_output[i] << endl;
     }
     outfile.close();
 
@@ -633,17 +633,15 @@ int main(int argc, char *argv[])
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   par.velocities=false;
   par.output_sizes = false;
-  par.measure_time_order_params=false;
-  par.record_transitions=true;
+  par.measure_time_order_params=true;
+  par.record_transitions=false;
   
   
   par.phase_evolution = true;
-  par.min_phase_cells=4;
-  par.mcs = 200000;
+  par.mcs = 400000;
   par.sheet_hex=false;
   par.n_orgs = 120;
   par.do_voronoi = true;
-  par.add_cells = false;
 
   par.coop_wtime=3000;
   par.coop_stime=0;

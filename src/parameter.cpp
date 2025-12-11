@@ -240,7 +240,8 @@
     penalty=250;
 
     measure_time_order_params = false;
-    measure_interval = 50;
+    measure_interval = 4;
+    struct_avg_interval = 100;
 
     record_transitions = false;
   

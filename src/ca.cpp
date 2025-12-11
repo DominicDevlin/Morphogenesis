@@ -3064,6 +3064,93 @@ double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey)
   return std::sqrt(dx * dx + dy * dy);
 }
 
+void CellularPotts::Voronoi()
+{
+  // double total = sizex*sizey;
+  // int ncells = round(total / 75.);
+  // cout << ncells << endl;
+  double A = double(par.cell_areas);
+  double distance = sqrt((A)/(2*sqrt(3)));
+  double leftover = fmod(sizex-2, distance);
+  int dividor = int(floor(double(sizex-2)/distance));
+  // cout << "LEFTOVERS: " << leftover << '\t' << dividor << endl;
+  distance += leftover/dividor;
+
+
+  int ncells = HexaCounter(sizex-2,sizey-2,distance);
+  FractureSheet(ncells);
+  cout << ncells << endl;
+
+  cout << CountCells() << endl;
+  int periodic_length_x = sizex - 2;
+  int periodic_length_y = sizey - 2;
+
+  vector<VPoint> centers = HexaCenters(periodic_length_x, periodic_length_y, distance);
+  // for (const auto& center : centers) 
+  // {
+  //     std::cout << "Center at (" << center.x << ", " << center.y << ")\n";
+  // }
+
+
+  for (int x = 1; x < sizex-1; ++x) {
+      for (int y = 1; y < sizey-1; ++y) 
+      {
+        double minDistance = std::numeric_limits<double>::max();
+        int closestCenter = -1;
+        
+        // Find the closest center to (i, j)
+        for (const auto& center : centers) 
+        {
+          double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
+          if (dist < minDistance) {
+              minDistance = dist;
+              closestCenter = center.id;
+          }
+        }
+          
+        // Assign the closest center id to the grid cell
+        sigma[x][y] = closestCenter;
+      }
+  }
+
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      c->area = 0;
+    }
+  }
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        (*cell)[sigma[x][y]].area +=1;
+      }
+    }   
+  
+  int deadcells{};
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
+      }
+      else
+      {
+        c->SetTargetArea(c->area);
+        // cout << c->area << endl;
+      }
+    }
+  }
+  cout << "Total cells killed: " << deadcells << endl;
+}
+
 
 void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turnonphase)
 {
@@ -11348,6 +11435,10 @@ void CellularPotts::MeasureShapeIndex()
             if (sigma[x][y]!=sigma[xp2][yp2])  
             {
               ++perim_length;
+              if (sigma[xp2][yp2] == 0)
+              {
+                touching_med = true;
+              }
             }
           }
           else
@@ -11360,17 +11451,25 @@ void CellularPotts::MeasureShapeIndex()
             else if (sigma[x][y]!=sigma[xp2][yp2])  
             {
               ++perim_length;
+              if (sigma[xp2][yp2] == 0)
+              {
+                touching_med = true;
+              }
             }
           } 
         }
       }
-      // cout << corrected_perim << '\t' << vlist[p] << endl;
-      double corrected_perim = perim_length / correction; 
-      double sindex = corrected_perim / sqrt(double(vlist[celln]));
-      // cout << sindex << endl;
-      
-      shape_tally += sindex;
-      ++shape_counter;
+      if (!touching_med)
+      {
+        // cout << corrected_perim << '\t' << vlist[p] << endl;
+        double corrected_perim = perim_length / correction; 
+        double sindex = corrected_perim / sqrt(double(vlist[celln]));
+        // cout << sindex << endl;
+        
+        shape_tally += sindex;
+        ++shape_counter;
+      }
+
     }
   }  
 }

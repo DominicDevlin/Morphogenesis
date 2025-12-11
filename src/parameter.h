@@ -297,6 +297,8 @@ class Parameter {
   int measure_interval;
 
   bool record_transitions;
+  int struct_avg_interval;
+  int struct_measure_interval;
 
   bool melting_adhesion;  
   int tip_max;

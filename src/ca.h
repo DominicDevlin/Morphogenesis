@@ -359,6 +359,10 @@ public:
 
   void FractureSheet(int n_cells);
 
+  // make whole grid voronoi cell tesselatoin
+  void Voronoi();
+  
+  //specify rectangular area of voronoi tesselation
   void Voronoi(int xlen, int ylen, int shift=0, int xshift=0, bool turnonphase=false);
 
   void ToppingVoronoi();
