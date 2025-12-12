@@ -373,10 +373,14 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   ostringstream makefll;
   makefll << fixed << setprecision(2) << par.J_L; // Setting precision to 2 decimal points
   string fnamer = par.data_file + "/" + makefll.str();
-  if (mkdir(fnamer.c_str(), 0777) == -1)
-    cerr << "Error : " << strerror(errno) << endl;
-  else
-    cout << "Directory created." << endl;
+  if (par.record_transitions)
+  {
+    if (mkdir(fnamer.c_str(), 0777) == -1)
+      cerr << "Error : " << strerror(errno) << endl;
+    else
+      cout << "Directory created." << endl;
+  }
+
 
 
   omp_set_num_threads(par.n_orgs);
@@ -511,6 +515,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   {
     int container_size = par.mcs / par.struct_avg_interval - 2;
     vector<double> shape_index_output(container_size, 0.);
+    vector<int> shape_counts(container_size, 0);
     vector<int> hex_counts(container_size, 0);
     vector<double> hex_order_output(container_size, 0.);
     for (int i = 0; i < par.n_orgs; ++i)
@@ -519,9 +524,14 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
       vector<double>& org_hexes = dishes[i].CPM->ReturnHexaticOrder();
       for (int j = 0; j < container_size; ++j)
       {
-        shape_index_output[j] += org_shapes[j];
+        if (org_shapes[j] > 0.01)
+        {
+          shape_index_output[j] += org_shapes[j];
+          shape_counts[j] += 1;
+        }
+        
 
-        if (org_hexes[j] > 0.)
+        if (org_hexes[j] > 0.01)
         {
           hex_order_output[j] += org_hexes[j];
           hex_counts[j] += 1;
@@ -530,7 +540,15 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     }
     for (int i = 0; i < container_size; ++i)
     {
-      shape_index_output[i] /= par.n_orgs;
+      if (shape_counts[i]==0)
+      {
+        shape_index_output[i] = 0.;
+      }
+      else
+      {
+        shape_index_output[i] /= shape_counts[i];
+      }
+
       if (hex_counts[i]==0)
       {
         hex_order_output[i] = 0.;
@@ -670,8 +688,8 @@ int main(int argc, char *argv[])
   par.J_L = 1;
   while (par.J_L < 12.1)
   {
-    
-    par.J_S = par.J_L + 1.;
+    // DO NOT CHANGE THESE NUMBERS! Keeps surface tension at 4.25
+    par.J_S = par.J_L + 8.;
     par.J_med = par.J_S / 2 + 0.25;
     par.J_med2 = par.J_med;
     par.J_SL = par.J_S;
