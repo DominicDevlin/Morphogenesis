@@ -300,6 +300,8 @@ class Parameter {
   int struct_avg_interval;
   int struct_measure_interval;
 
+  int msd_interval;
+
   bool melting_adhesion;  
   int tip_max;
   int tip_min;

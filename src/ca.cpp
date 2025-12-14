@@ -3079,9 +3079,7 @@ void CellularPotts::Voronoi()
 
   int ncells = HexaCounter(sizex-2,sizey-2,distance);
   FractureSheet(ncells);
-  cout << ncells << endl;
 
-  cout << CountCells() << endl;
   int periodic_length_x = sizex - 2;
   int periodic_length_y = sizey - 2;
 
@@ -3148,7 +3146,6 @@ void CellularPotts::Voronoi()
       }
     }
   }
-  cout << "Total cells killed: " << deadcells << endl;
 }
 
 
@@ -10879,6 +10876,9 @@ vector<vector<double>> CellularPotts::ReturnMSD()
   vector<int> xbound_crossings(cell->size()+1, 0);
   vector<int> ybound_crossings(cell->size()+1, 0);
 
+  int start_point = round(par.equilibriate/par.msd_interval);
+  int end_point = round(par.mcs/par.msd_interval);
+
   int timer = 0;
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
@@ -10890,9 +10890,9 @@ vector<vector<double>> CellularPotts::ReturnMSD()
 
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
-      double x = xm[par.equilibriate];
-      double y = ym[par.equilibriate];
-      for (int i = par.equilibriate+1; i < par.mcs;++i)
+      double x = xm[start_point];
+      double y = ym[start_point];
+      for (int i = start_point+1; i < end_point;++i)
       {
         // we want displacement from a while ago to account for back and forth motion
         double x1 = xm[i];

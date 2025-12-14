@@ -232,7 +232,7 @@ void process_population()
         }
       }
 
-      if (par.velocities)
+      if (par.velocities && t % par.msd_interval == 0)
       {
         dishes[i].CPM->RecordMasses();
       }
@@ -325,7 +325,8 @@ void process_population()
     outfile.open(var_name, ios::app);  
 
     int timer = 1;
-    for (auto j=0;j<par.mcs-par.equilibriate-1;++j)
+    int nsteps = round((par.mcs - par.equilibriate)/(par.msd_interval)) - 1;
+    for (auto j=0;j<nsteps;++j)
     {
       double msd=0;
       int n = 0;
@@ -488,8 +489,8 @@ int main(int argc, char *argv[]) {
   par.end_program=0;
   par.sheet=true;
   par.periodic_boundaries=true;
-  par.mcs=150000 + par.equilibriate;
-  par.n_orgs = 120;
+  par.mcs=2000 + par.equilibriate;
+  par.n_orgs = 4;
 
   par.velocities=true;
   par.measure_time_order_params=true;
@@ -499,9 +500,9 @@ int main(int argc, char *argv[]) {
 
   par.record_transitions=false;
 
-  par.sheet_minJ=0.25;
+  par.sheet_minJ=0.5;
   par.sheet_maxJ=12.25;
-  par.J_width=0.5;
+  par.J_width=0.25;
 
   // par.velocities = true;
   //   par.output_sizes = true;
@@ -513,10 +514,6 @@ int main(int argc, char *argv[]) {
   else
     cout << "Directory created." << endl;
 
-  if (par.sheet_hex)
-  {
-    par.mcs = par.end_sheet_measure + par.equilibriate;
-  }
 
   par.periodic_boundaries = true;
   par.flush_cells = true;

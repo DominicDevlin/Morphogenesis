@@ -352,6 +352,7 @@
 
     start_sheet_measure = highT_time + 500;
     end_sheet_measure = start_sheet_measure + 100;
+    msd_interval=20;
 
     // diffusion parameters
     waiting_time = 2000;
