@@ -196,7 +196,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=200;
-    dewet_cell_depth=7;
+    dewet_cell_depth=10;
     conserved_dewet_distance = 150;
     // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 

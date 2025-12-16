@@ -245,6 +245,12 @@ TIMESTEP {
     {
       dish->CPM->RecordStress();
     }
+
+    if (t==10)
+    {
+      int n_cells = dish->CPM->CountCells();
+      cout << n_cells << endl;
+    }
     // if (t % 100 == 0)
     // {
     //   dish->CPM->CheckIfCellTouchingMedium();
