@@ -19,6 +19,7 @@
 #include "storage.h"
 #include "connections.h"
 #include <sys/stat.h>
+#include "fft.h"
 
 #ifdef QTGRAPHICS
 #include "qtgraph.h"
@@ -195,7 +196,7 @@ void process_population()
       dishes[i].CPM->CopyProb(par.T);
       dishes[i].CPM->Set_J(par.sheet_J);
       dishes[i].CPM->set_mixJ(par.sheetmixJ);
-      if (par.lambda_perimeter > 0)
+      if (par.lambda_perimeter > 0.01)
       {
         par.H_perim = true; 
         dishes[i].CPM->MeasureCellPerimeters();
@@ -225,11 +226,12 @@ void process_population()
         dishes[i].CPM->CopyProb(par.T);
         dishes[i].CPM->Set_J(par.sheet_J);
         dishes[i].CPM->set_mixJ(par.sheetmixJ);
-        if (par.lambda_perimeter > 0)
+        if (par.lambda_perimeter > 0.01)
         {
           par.H_perim = true; 
           dishes[i].CPM->MeasureCellPerimeters();
         }
+        dishes[i].CPM->SetAreas(par.cell_areas);
       }
 
       if (par.velocities && t % par.msd_interval == 0)
@@ -305,6 +307,28 @@ void process_population()
       } 
 
       dishes[i].CPM->AmoebaeMove(t);
+
+      if (par.pics_for_opt && t % 100 == 0)
+      {
+        string dirn = par.pic_dir;
+        if (mkdir(dirn.c_str(), 0777) != -1)
+        {
+          cout << "Directory created." << endl;
+        }
+
+        for (int org=0; org < par.n_orgs; ++org)
+        {
+          // dishes[i].CPM->ColourCells(par.phase_evolution);
+          fft new_org(par.sizex,par.sizey);
+          new_org.ImportCPM(dishes[org].get_cpm());
+          string f2 = "org-";
+          string n2 = to_string(org);
+          string ftype = ".png";
+          string foutput = dirn + "/" + f2 + n2 + "-" + to_string(t) + ftype;
+          new_org.cpmOutput(foutput);
+        }
+      }
+
     }
   }
 
@@ -473,9 +497,23 @@ void process_population()
 
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
+  par.pics_for_opt = false;
 
+#ifdef QTGRAPHICS
+  {
+    if (par.pics_for_opt)
+    {
+      QApplication* a = new QApplication(argc, argv);
+      // if (mkdir(par.pic_dir.c_str(), 0777) != -1)
+      //   cout << "Directory created." << endl;
+    }
+  }
+#endif
   
+
+  Parameter();
   par.graphics=false;
   par.contours=false;
   par.print_fitness=true;
@@ -489,8 +527,8 @@ int main(int argc, char *argv[]) {
   par.end_program=0;
   par.sheet=true;
   par.periodic_boundaries=true;
-  par.mcs=2000 + par.equilibriate;
-  par.n_orgs = 4;
+  par.mcs=200000 + par.equilibriate;
+  par.n_orgs = 120;
 
   par.velocities=true;
   par.measure_time_order_params=true;
@@ -508,7 +546,7 @@ int main(int argc, char *argv[]) {
   //   par.output_sizes = true;
   // else
   //   par.output_sizes = false;
-  Parameter();
+  
   if (mkdir(par.data_file.c_str(), 0777) == -1)
     cerr << "Error : " << strerror(errno) << endl;
   else

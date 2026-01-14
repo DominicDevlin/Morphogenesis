@@ -1,19 +1,17 @@
 # Morphogenesis
-Cellular Potts Model for the evolution of morphogenesis. Model in src. Most other folders are for visualsation, smaller models and creating graphs.
+Cellular Potts Model for the evolution of morphogenesis.
 
-Requires Qt libraries. The source code uses the "Tissue Simulation Toolkit" as a base. 
+The source code uses the "Tissue Simulation Toolkit" as a base and requires QT libraries. 
 
 To compile:
 Qmake -> Make -> executable
-Target file in "CellularPotts2.pro" must be either sorting.cpp, evolution.cpp, multisort.cpp, transition.cpp, potency.cpp etc. 
-
-"Sorting" runs the a cellular potts model of the development of single organism. The gene regulatory network used
-can be randomised or manually put in.
-
-"Evolution" runs a multithreaded simulation for the evolution of morphogenesis.
-Many organisms are simulated simultaneously. 
-
-Parameters are changed in "parameter.cpp".
+The target file can be changed in "CellularPotts2.pro." The target files are:
+sorting.cpp - visualising a single development
+evolution.cpp - evolutionary simulation described in the main text.
+multisort.cpp - simulate the development of the same organism N times. Used for reproducibility scores.
+potency.cpp - simulate the development of the same organisms N times. Used for making cell state spaces.
+ 
+All relevant parameters, including the GRN weights, numbers of genes and types of genes are all changed in "parameter.cpp".
 
 
 
