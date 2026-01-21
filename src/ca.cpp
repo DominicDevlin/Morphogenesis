@@ -10964,6 +10964,120 @@ vector<vector<double>> CellularPotts::ReturnMSD()
 
 
 
+vector<double> CellularPotts::ReturnDriftCorrectedMSD()
+{
+    // 1. Setup Iterators and Indices
+    int start_point = round(par.equilibriate / par.msd_interval);
+    int end_point = round(par.mcs / par.msd_interval);
+    int num_steps = end_point - start_point; 
+
+    // We need to identify valid cells first (skipping Medium/Background if necessary)
+    // Assuming c->begin() is background, we skip it as per your loop: (c=cell->begin(), c++)
+    vector<Cell*> valid_cells;
+    vector<Cell>::iterator c;
+    for (c = cell->begin(); c != cell->end(); c++) {
+        // Skip background (usually index 0) if that's your convention, 
+        // usually implicitly handled by the loop start or sigma check.
+        // Your loop started at c++, so I assume sigma=0 is skipped.
+        if (c->sigma == 0) continue; 
+        
+        if (c->AliveP()) {
+            valid_cells.push_back(&(*c));
+        }
+    }
+
+    int N = valid_cells.size();
+    if (N == 0) return {}; // Handle empty case
+
+    // 2. Storage for "Unwrapped" Displacements
+    // disp_x[i][t] stores the cumulative x-displacement of cell i at time t
+    // relative to t=start_point.
+    vector<vector<double>> disp_x(N, vector<double>(num_steps, 0.0));
+    vector<vector<double>> disp_y(N, vector<double>(num_steps, 0.0));
+
+    // 3. Compute Continuous Trajectories (Unwrapping PBC)
+    for (int i = 0; i < N; ++i) {
+        Cell* curr_cell = valid_cells[i];
+        vector<double>& xm = curr_cell->get_xcens();
+        vector<double>& ym = curr_cell->get_ycens();
+
+        // Previous unwrapped position (initialized to 0 displacement)
+        double cum_dx = 0;
+        double cum_dy = 0;
+
+        for (int t_idx = 0; t_idx < num_steps; ++t_idx) {
+            // Indices in the raw data
+            int current_time = start_point + t_idx;
+            // Use current_time + 1 to calculate step from t to t+1, 
+            // OR use current_time vs current_time-1. 
+            // Let's look at displacement from 'start_point' to 'start_point + t_idx'
+            
+            if (t_idx == 0) {
+                disp_x[i][0] = 0.0;
+                disp_y[i][0] = 0.0;
+                continue;
+            }
+
+            // Get raw step from previous recorded interval
+            double x_now = xm[current_time];
+            double y_now = ym[current_time];
+            double x_prev = xm[current_time - 1];
+            double y_prev = ym[current_time - 1];
+
+            double dx = x_now - x_prev;
+            double dy = y_now - y_prev;
+
+            // --- PBC UNWRAPPING ---
+            // If jump is > L/2, we actually crossed boundary.
+            // round(dx/L) gives -1, 0, or 1.
+            if (par.periodic_boundaries) {
+                dx -= sizex * round(dx / sizex);
+                dy -= sizey * round(dy / sizey);
+            }
+
+            cum_dx += dx;
+            cum_dy += dy;
+
+            disp_x[i][t_idx] = cum_dx;
+            disp_y[i][t_idx] = cum_dy;
+        }
+    }
+
+    // 4. Calculate Drift and Compute Corrected MSD
+    vector<double> msd_curve;
+    msd_curve.reserve(num_steps);
+
+    for (int t = 0; t < num_steps; ++t) {
+        
+        // A. Calculate Center of Mass Drift of the System at this time
+        double sum_dx = 0;
+        double sum_dy = 0;
+        for (int i = 0; i < N; ++i) {
+            sum_dx += disp_x[i][t];
+            sum_dy += disp_y[i][t];
+        }
+        
+        double drift_x = sum_dx / N;
+        double drift_y = sum_dy / N;
+
+        // B. Calculate MSD relative to the moving Center of Mass
+        double sq_disp_sum = 0;
+        for (int i = 0; i < N; ++i) {
+            // Subtract the system drift from the individual cell displacement
+            double corrected_x = disp_x[i][t] - drift_x;
+            double corrected_y = disp_y[i][t] - drift_y;
+
+            sq_disp_sum += (corrected_x * corrected_x) + (corrected_y * corrected_y);
+        }
+
+        msd_curve.push_back(sq_disp_sum / N);
+    }
+
+    return msd_curve;
+}
+
+
+
 void CellularPotts::initVolume()
 {
   cellVolumeList.clear();

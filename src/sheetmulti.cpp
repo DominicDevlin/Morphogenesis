@@ -150,7 +150,7 @@ void process_population()
 
   vector<vector<double>> hex_order(par.n_orgs);
   vector<vector<double>> shape_index(par.n_orgs);  
-  vector<vector<double>> cell_displacements;
+  
 
   Dish *dishes = new Dish[par.n_orgs];
 
@@ -174,7 +174,7 @@ void process_population()
     dishes[i].CPM->set_num(i + 1);
     // does init block above.
     dishes[i].Init();
-
+    dishes[i].CPM->SetAreas(par.cell_areas);
 
 
     if (par.sheetmix)
@@ -231,7 +231,6 @@ void process_population()
           par.H_perim = true; 
           dishes[i].CPM->MeasureCellPerimeters();
         }
-        dishes[i].CPM->SetAreas(par.cell_areas);
       }
 
       if (par.velocities && t % par.msd_interval == 0)
@@ -332,41 +331,73 @@ void process_population()
     }
   }
 
+  // outputting mean squared displacement.
+
   if (par.velocities)
   {
+    vector<vector<double>> cell_displacements;
+
+    // for (int i = 0; i < par.n_orgs; ++i)
+    // {
+    //   vector<vector<double>> displc = dishes[i].CPM->ReturnMSD();
+    //   for (auto i : displc)
+    //     cell_displacements.push_back(i);
+    // }
+    // std::stringstream stream;
+    // stream << std::fixed << std::setprecision(2) << "-" << par.sheet_J;
+    // string s = stream.str();
+
+    // string var_name = par.data_file + "/msd" + s + ".dat"; 
+    // ofstream outfile;
+    // outfile.open(var_name, ios::app);  
+
+    // int timer = 1;
+    // int nsteps = round((par.mcs - par.equilibriate)/(par.msd_interval)) - 1;
+    // for (auto j=0;j<nsteps;++j)
+    // {
+    //   double msd=0;
+    //   int n = 0;
+
+    //   for (auto i=0;i<cell_displacements.size();++i)
+    //   {
+    //     msd += cell_displacements[i][j];
+    //     ++n;
+    //   }
+    //   // outfile << timer << "\t" << msd/((double)n) << endl;
+    //   outfile << (msd)/((double)n) << endl;
+
+    //   ++timer;
+    // }
+
+    // outfile.close();
+
+
+    int nsteps = round((par.mcs - par.equilibriate)/(par.msd_interval)) - 1;
+    vector<double> grid_displacements(nsteps, 0.0);
     for (int i = 0; i < par.n_orgs; ++i)
     {
-      vector<vector<double>> displc = dishes[i].CPM->ReturnMSD();
-      for (auto i : displc)
-        cell_displacements.push_back(i);
+      vector<double> displc = dishes[i].CPM->ReturnDriftCorrectedMSD();
+      for (int j = 0; j < nsteps; ++j)
+      {
+        grid_displacements[j] += displc[j];
+      }
     }
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2) << "-" << par.sheet_J;
     string s = stream.str();
-
     string var_name = par.data_file + "/msd" + s + ".dat"; 
     ofstream outfile;
     outfile.open(var_name, ios::app);  
 
-    int timer = 1;
-    int nsteps = round((par.mcs - par.equilibriate)/(par.msd_interval)) - 1;
     for (auto j=0;j<nsteps;++j)
     {
-      double msd=0;
-      int n = 0;
-
-      for (auto i=0;i<cell_displacements.size();++i)
-      {
-        msd += cell_displacements[i][j];
-        ++n;
-      }
-      // outfile << timer << "\t" << msd/((double)n) << endl;
-      outfile << (msd)/((double)n) << endl;
-
-      ++timer;
+      outfile << grid_displacements[j]/double(par.n_orgs) << endl;
     }
 
     outfile.close();
+
+
+
   }
 
   // if (par.sheet_hex)
@@ -522,13 +553,13 @@ int main(int argc, char *argv[])
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   
-  par.sizex=200;
-  par.sizey=200;
+  par.sizex=300;
+  par.sizey=300;
   par.end_program=0;
   par.sheet=true;
   par.periodic_boundaries=true;
-  par.mcs=200000 + par.equilibriate;
-  par.n_orgs = 120;
+  par.mcs=25000 + par.equilibriate;
+  par.n_orgs = 4;
 
   par.velocities=true;
   par.measure_time_order_params=true;
@@ -538,10 +569,9 @@ int main(int argc, char *argv[])
 
   par.record_transitions=false;
 
-  par.sheet_minJ=0.5;
+  par.sheet_minJ=2.25; //0.5;
   par.sheet_maxJ=12.25;
-  par.J_width=0.25;
-
+  par.J_width=0.25; // 0.25
   // par.velocities = true;
   //   par.output_sizes = true;
   // else

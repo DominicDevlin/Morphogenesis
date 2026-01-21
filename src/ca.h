@@ -375,6 +375,8 @@ public:
 
   vector<vector<double>> ReturnMSD();
 
+  vector<double> ReturnDriftCorrectedMSD();
+
   void ShapeIndex();
 
   void removeVolume(int i, int j, int celln);

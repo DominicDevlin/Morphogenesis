@@ -225,7 +225,7 @@ TIMESTEP {
       dish->CPM->CopyProb(par.T);
 
       dish->CPM->SetAreas(par.cell_areas);
-      
+
     }
 
     // bool GRN = true;
@@ -250,6 +250,12 @@ TIMESTEP {
     {
       int n_cells = dish->CPM->CountCells();
       cout << n_cells << endl;
+
+      std::cout << "Press Enter to continue..."; // Nice to have a prompt
+      std::cin.get();                            // The actual pause
+
+      // Your main program code goes here
+      std::cout << "Program has started!" << std::endl;
     }
     // if (t % 100 == 0)
     // {

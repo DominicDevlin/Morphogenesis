@@ -196,7 +196,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=200;
-    dewet_cell_depth=10;
+    dewet_cell_depth=6;
     conserved_dewet_distance = 150;
     // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
@@ -357,7 +357,7 @@
     // diffusion parameters
     waiting_time = 2000;
     // equilibrate MUST be bigger than highT_time (pref 2000, 1000)
-    equilibriate = highT_time + 1000;
+    equilibriate = highT_time + 2000;
 
     // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
     // dH is calculated on the fly. 
