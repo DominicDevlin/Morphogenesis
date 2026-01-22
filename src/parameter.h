@@ -302,6 +302,8 @@ class Parameter {
 
   int msd_interval;
 
+  double gamma_circle;
+
   bool melting_adhesion;  
   int tip_max;
   int tip_min;

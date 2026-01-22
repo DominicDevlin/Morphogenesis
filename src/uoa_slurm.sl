@@ -1,7 +1,7 @@
 #!/bin/bash -e
 #SBATCH --job-name=CPM_evolution  
 #SBATCH --time=50:00:00      # Walltime (HH:MM:SS)
-#SBATCH --mem=10GB 
+#SBATCH --mem=2GB 
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=60  
 #SBATCH --account=uoa02799         

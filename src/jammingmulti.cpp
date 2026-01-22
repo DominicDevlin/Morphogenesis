@@ -624,7 +624,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = false;
+  par.pics_for_opt = true;
 
 #ifdef QTGRAPHICS
   {
@@ -669,7 +669,7 @@ int main(int argc, char *argv[])
   par.sizey=250;
 
   
-  par.dewet_cell_depth=3;
+  par.dewet_cell_depth=2;
   par.conserved_dewet_distance = 150;
   // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
@@ -686,7 +686,7 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
   par.J_L = 1;
-  while (par.J_L < 12.1)
+  while (par.J_L < 9.1)
   {
     // DO NOT CHANGE THESE NUMBERS! Keeps surface tension at 4.25
     par.J_S = par.J_L + 8.;

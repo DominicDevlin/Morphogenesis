@@ -140,7 +140,6 @@ INIT
     else
       CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
 
-    
 
     CPM->ConstructInitCells(*this);
     if (par.velocities)
@@ -228,6 +227,11 @@ TIMESTEP {
 
     }
 
+      if (t == 10)
+      {
+        par.init_wet_length = dish->CPM->WettingLength();
+      }
+
     // bool GRN = true;
 
     static Info *info=new Info(*dish, *this);
@@ -246,17 +250,22 @@ TIMESTEP {
       dish->CPM->RecordStress();
     }
 
-    if (t==10)
+    if (t==10 && par.MakeEpithelia)
     {
-      int n_cells = dish->CPM->CountCells();
-      cout << n_cells << endl;
-
-      std::cout << "Press Enter to continue..."; // Nice to have a prompt
-      std::cin.get();                            // The actual pause
-
-      // Your main program code goes here
-      std::cout << "Program has started!" << std::endl;
+      dish->CPM->AddEpithelialLayer();
     }
+
+    // if (t==10)
+    // {
+    //   int n_cells = dish->CPM->CountCells();
+    //   cout << n_cells << endl;
+
+    //   std::cout << "Press Enter to continue..."; // Nice to have a prompt
+    //   std::cin.get();                            // The actual pause
+
+    //   // Your main program code goes here
+    //   std::cout << "Program has started!" << std::endl;
+    // }
     // if (t % 100 == 0)
     // {
     //   dish->CPM->CheckIfCellTouchingMedium();
@@ -313,6 +322,10 @@ TIMESTEP {
       outfile << endl;
       outfile.close();
     }
+
+    if (t % 100 == 0) 
+      cout << dish->CPM->WettingRatio() << endl;
+
 
     if (par.velocities)
     {

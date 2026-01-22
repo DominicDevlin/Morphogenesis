@@ -4982,25 +4982,42 @@ int CellularPotts::WettingLength()
 {
   int length = 0;
   int minx = sizex;
+  int minxy=0;
   int maxx = 0;
-  for (int x = 1; x < sizex; ++x)
+  int maxxy = 0;
+
+  for (int x = 1; x < sizex-1; ++x)
   {
-    for (int y = 1; y < sizey; ++y)
+    for (int y = 1; y < sizey-1; ++y)
     {
+      // if (x < 150 && x > 148 && y < 102 && y > 100)
+      //   cout << x << '\t' << y << '\t' << sigma[x][y] << endl;      
       if (sigma[x][y] > 0)
       {
         bool ph = cell->at(sigma[x][y]).GetPhase();
-        if (ph)
+        bool epi = cell->at(sigma[x][y]).IsEpithelia();
+        if (ph && !epi)
         {
           if (x < minx)
+          {
             minx = x;
+            minxy = y;
+          }
+            
           if (x > maxx)
+          {
             maxx = x;
+            maxxy = y;
+          }
+            
         }
       }
     }
   }
   length = maxx - minx;
+  // cout << maxx << '\t' << minx << endl;
+  // cout << tminy << '\t' << tmaxy << endl;
+
   if (!init_wet_length)
   {
     init_wet_length = length;
@@ -5012,8 +5029,9 @@ double CellularPotts::WettingRatio()
 {
   double dlen = double(WettingLength());
   // cout << "init wet length: " << par.init_wet_length << "   thoeretical diam: " << par.theoretical_diameter << endl;  
-  // cout << "current wet length: " << dlen << endl;  
+  // cout << "current wet length: " << ratio << endl;  
   double ratio = (par.init_wet_length - dlen) / double(par.init_wet_length - par.theoretical_diameter);
+  cout << "current wet ratio: " << ratio << endl;
   return ratio;
 }
 
@@ -5047,109 +5065,136 @@ int CellularPotts::CountEpithelial()
 
 void CellularPotts::AddEpithelialLayer()
 {
-  // first fill with pixels. Want to make this colour pink!
-  // Main problem is the whole set up is with a single "phase" variable. Now we are adding another!
-
-  // make a new cell.
-
-  Cell *motherp=&((*cell)[1]);
+  // --- STEP 1: INITIALIZE PROGENITOR ---
+  Cell *motherp = &((*cell)[1]);
   Cell *daughterp = new Cell(*(motherp->owner));
   daughterp->CellBirth(*motherp);
+  // Give it a huge target area so it doesn't die immediately
+  daughterp->SetTargetArea(10000000); 
   cell->push_back(*daughterp);
   int newsigma = daughterp->Sigma();
 
-  int radius = par.ball_radius;
+  // --- STEP 2: FILL PIXELS AND CALCULATE TOTAL AREA ---
+  long long total_filled_pixels = 0; // Track total area filled
+  
   vector<pair<int,int>> hitpoints{};
-  for (int x=1;x<sizex-1;x++)
-  {
-    for (int y=1;y<sizey-1;y++)
-    {
-      if (sigma[x][y] > 0)
-      {
-        pair<int,int> newp = {x,y};
-        hitpoints.push_back(newp);
-        break;
+  
+  // Optimized boundary finder
+  for (int x = 1; x < sizex - 1; x++) {
+    for (int y = 1; y < sizey - 1; y++) {
+      if (sigma[x][y] > 0) {
+        hitpoints.push_back({x, y});
+        break; 
       }    
     }
-
   }
+
+  int fill_radius = 200; 
   for (auto hitpoint : hitpoints)
   {
-    int x = hitpoint.first;
-    int y = hitpoint.second;
-    int radiuss = 200;
-    for (int xx = x - radiuss; xx <= x + radiuss; ++xx )
-    {
-      for (int yy = y - radiuss; yy <= y + radiuss; ++yy )
-      {
-        if (xx < sizex-1 && yy < sizey-1 && yy > 0 && xx > 0)
-        {
-          if (sigma[xx][yy] == 0 )
-          {
-            sigma[xx][yy] = newsigma;
-            cell->back().AddSiteToMoments(xx,yy);
-            cell->back().IncrementArea();
-            cell->back().IncrementTargetArea();
-          }
+    int x_c = hitpoint.first;
+    int y_c = hitpoint.second;
+    int x_s = max(1, x_c - fill_radius);
+    int x_e = min(sizex - 2, x_c + fill_radius);
+    int y_s = max(1, y_c - fill_radius);
+    int y_e = min(sizey - 2, y_c + fill_radius);
 
+    for (int xx = x_s; xx <= x_e; ++xx) {
+      for (int yy = y_s; yy <= y_e; ++yy) {
+        if (sigma[xx][yy] == 0) {
+          sigma[xx][yy] = newsigma;
+          cell->back().AddSiteToMoments(xx, yy);
+          cell->back().IncrementArea();
+          total_filled_pixels++; 
         }
       }
     }
   }
-
-  if (par.H_perim)
-    MeasureCellPerimeters();
-
   
-  bool reached_min = false;
-  while (!reached_min)
+  // Update geometry tracking
+  if (par.H_perim) MeasureCellPerimeters();
+
+
+  // --- STEP 3: CALCULATE EXACTLY HOW MANY CELLS WE NEED ---
+  // If we filled 10,000 pixels and want size 100, we need 100 cells.
+  int current_layer_cell_count = 1; // We started with 1 giant cell
+  int target_layer_cell_count = 0;
+  
+  if (par.cell_areas > 0) {
+      target_layer_cell_count = total_filled_pixels / par.cell_areas;
+  }
+  
+  // Safety: at least 1 cell
+  if (target_layer_cell_count < 1) target_layer_cell_count = 1;
+
+
+  // --- STEP 4: DIVIDE UNTIL WE HIT THE TARGET COUNT ---
+  
+  // We loop until we have enough cells. 
+  // In every step, we split the LARGEST cell available.
+  
+  while (current_layer_cell_count < target_layer_cell_count)
   {
-    int n_divided =0;
-    vector<bool> to_divide = divide_vector();
-    for (int i = 0; i < to_divide.size(); ++i)
+    MeasureCellSizes(); 
+    
+    // Find the largest cell in the new layer
+    int largest_cell_index = -1;
+    double max_area = -1.0;
+
+    for (size_t i = 0; i < cell->size(); ++i)
     {
-      // cout << "celln\t" << i << " has area: " << cell->at(i).Area() << endl;
-      if (i >= newsigma && cell->at(i).Area() > par.cell_areas)
+      // Only check cells belonging to this new layer (>= newsigma)
+      // and ensure they are alive.
+      if (i >= newsigma && cell->at(i).AliveP())
       {
-        to_divide[i] = true;
-        ++n_divided;
-      }
-      else
-      {
-        to_divide[i] = false;
+        if (cell->at(i).Area() > max_area)
+        {
+          max_area = cell->at(i).Area();
+          largest_cell_index = i;
+        }
       }
     }
+
+    // Safety check: if we couldn't find a cell or the largest is already tiny 
+    // (edge case protection), stop.
+    if (largest_cell_index == -1 || max_area < 2) {
+        break; 
+    }
+
+    // Mark ONLY the largest cell for division
+    vector<bool> to_divide = divide_vector(); // ensure this creates valid size
+    if (to_divide.size() < cell->size()) to_divide.resize(cell->size(), false);
+    
+    // Reset vector
+    std::fill(to_divide.begin(), to_divide.end(), false);
+    
+    to_divide[largest_cell_index] = true;
+
+    // Execute Division
     DivideCells(to_divide);
-    MeasureCellSizes();
-    vector<Cell>::iterator c;
 
-    // for ((c=cell->begin(), c++); c!=cell->end(); c++)
-    // {
-    //   if (c->AliveP() && c->Sigma() >= newsigma)
-    //   {
-    //     c->SetTargetArea(par.cell_areas);
-    //     if (c->Area() < par.cell_areas)
-    //     {
-    //       reached_min = true;
-    //       break;
-    //     }
-    //   }
-    // }  
-    for ((c=cell->begin(), c++); c!=cell->end(); c++)
-    {
-      if (c->AliveP() && c->Sigma() >= newsigma)
-      {
-        c->SetTargetArea(c->Area());
-        c->SetEpithelial(true);
-        c->TransformPhase(true);
-      }
-    } 
+    // Update count. Note: DivideCells usually turns 1 parent into 2 daughters 
+    // (net +1 cell) or keeps parent and makes 1 daughter (net +1 cell).
+    // It is safer to recalculate count or just increment.
+    current_layer_cell_count++;
+  }
 
-    if (n_divided==0)
+
+  // --- STEP 5: CLEANUP AND SET TARGETS ---
+  // Now we have the correct number of cells. Their actual sizes might vary 
+  // (some 90, some 110), but the AVERAGE is perfect.
+  // We set the target area, and the CPM Hamiltonian will fix the shapes 
+  // in the first few MCS.
+  
+  for (size_t i = 0; i < cell->size(); ++i)
+  {
+    Cell* c = &((*cell)[i]);
+    if (c->AliveP() && c->Sigma() >= newsigma)
     {
-      break;
+      c->SetTargetArea(par.cell_areas);
+      c->SetEpithelial(true);
+      c->TransformPhase(true);
     }
-
   }
 }
 
