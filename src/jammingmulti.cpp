@@ -406,6 +406,11 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     {  
       dishes[i].CPM->SetCellCenters();
 
+      if (t==10 && par.MakeEpithelia)
+      {
+        dishes[i].CPM->AddEpithelialLayer();
+      }
+
       if (t == 10)
       {
         par.init_wet_length = dishes[i].CPM->WettingLength();
@@ -456,7 +461,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           outfile << fixed << setprecision(3);
           for (auto &vv : shared_centres)
           {
-            outfile << t << '\t' << vv[4] << '\t' << vv[5] << '\t' << vv[0] << '\t' << vv[1] <<'\t' << vv[2] <<'\t' << vv[3] <<endl;
+            outfile << t << '\t' << vv[4] << '\t' << vv[5] << '\t' << vv[0] << '\t' << vv[1] <<'\t' << vv[2] <<'\t' << vv[3] << vv[6] << endl;
           }
           outfile.close();
         }
@@ -624,7 +629,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
 int main(int argc, char *argv[])  
 {
-  par.pics_for_opt = true;
+  par.pics_for_opt = false;
 
 #ifdef QTGRAPHICS
   {
@@ -653,6 +658,7 @@ int main(int argc, char *argv[])
   par.output_sizes = false;
   par.measure_time_order_params=true;
   par.record_transitions=false;
+  par.MakeEpithelia=true;
   
   
   par.phase_evolution = true;
@@ -693,6 +699,16 @@ int main(int argc, char *argv[])
     par.J_med = par.J_S / 2 + 0.25;
     par.J_med2 = par.J_med;
     par.J_SL = par.J_S;
+
+    if (par.MakeEpithelia)
+    {
+      par.epiJ=1;
+      par.epiM=1;
+      par.gamma_circle=4.25;
+      par.epiJelse = par.gamma_circle + par.J_L / 2 + par.epiJ / 2;
+    }
+
+
     process_population(networks);
     par.J_L+=0.25;
   }

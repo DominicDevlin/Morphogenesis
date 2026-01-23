@@ -162,7 +162,7 @@
     makesemicircle=false;
     
     gamma_SM = 0.25; // we set to 0.25 for all simulations (other params derived from this)
-    tension_params = false;
+    tension_params = true;
     if (tension_params)
     {
       gamma_LM = 6.0;
@@ -200,7 +200,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=200;
-    dewet_cell_depth=3;
+    dewet_cell_depth=10;
     conserved_dewet_distance = 150;
     // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 

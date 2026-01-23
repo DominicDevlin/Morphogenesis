@@ -49,7 +49,12 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <fstream>
 #include "fft.h"
 #include <cmath>
+#include <vector>
+#include <algorithm>
+#include <queue>
+#include <map>
 
+using namespace std;
 
 
 // #define FILESYSTEM
@@ -5031,7 +5036,7 @@ double CellularPotts::WettingRatio()
   // cout << "init wet length: " << par.init_wet_length << "   thoeretical diam: " << par.theoretical_diameter << endl;  
   // cout << "current wet length: " << ratio << endl;  
   double ratio = (par.init_wet_length - dlen) / double(par.init_wet_length - par.theoretical_diameter);
-  cout << "current wet ratio: " << ratio << endl;
+  // cout << "current wet ratio: " << ratio << endl;
   return ratio;
 }
 
@@ -5505,7 +5510,10 @@ void CellularPotts::MeasureHexaticOrder()
   int n_size = CountCells();
   for (int i = 1; i < n_size; ++i)
   {
-    if (cell->at(i).AliveP())
+    bool phaser = cell->at(i).GetPhase();
+    bool isepi = cell->at(i).IsEpithelia();
+
+    if (cell->at(i).AliveP() && phaser && !isepi)
     {
       double XCEN = cell->at(i).get_xcen();
       double YCEN = cell->at(i).get_ycen();
@@ -6348,7 +6356,7 @@ double CellularPotts::Cooperativity(int time_skip)
     {
       // we are just going to program this for moving cells for now:
       bool phaser = cell->at(i).GetPhase();
-      if (phaser)
+      if (phaser && cell->at(i).IsEpithelia() == false)
       {
         vector<double>& xcens = cell->at(i).get_xcens();
         vector<double>& ycens = cell->at(i).get_ycens();
@@ -8585,13 +8593,7 @@ int CellularPotts::MediumExchangeRate()
 
 
 
-#include <vector>
-#include <algorithm>
-#include <set>
-#include <queue>
-#include <map>
 
-using namespace std;
 
 // Change return type to vector of vectors to group events
 vector<vector<int>> CellularPotts::t1transitions()
@@ -8611,9 +8613,10 @@ vector<vector<int>> CellularPotts::t1transitions()
   // Sets to track which cells have changed topology
   set<int> changed_cells_set;
   
-  // Maps to store clean neighbor lists for changed cells so we don't parse raw pointers twice
+  // Maps to store clean neighbor lists for changed cells
   map<int, vector<int>> clean_new_nbhs;
   map<int, vector<int>> clean_old_nbhs;
+
   // --- PASS 1: Identify all cells that underwent a change ---
   for (int i = 1; i < n_cells; ++i)
   {
@@ -8625,26 +8628,24 @@ vector<vector<int>> CellularPotts::t1transitions()
     int j = 0;
     while (new_nbhs[i][j] >= 0)
     {
-      // if (new_nbhs[i][j] == 0) // { touching_medium = true; break; }
-      curr_nbhs.push_back(new_nbhs[i][j]);
+      if (new_nbhs[i][j] > 0) // Ensure we don't count Medium (0) as a cell interaction
+        curr_nbhs.push_back(new_nbhs[i][j]);
       ++j;
     }
-    if (j > 50) 
-      continue;
+    if (j > 50) continue;
 
     // 2. Extract Previous Neighbours
     vector<int> prev_nbhs;
     j = 0;
     while (old_nbhs[i][j] >= 0)
     {
-      // if (old_nbhs[i][j] == 0) // { touching_medium = true; break; }
-      prev_nbhs.push_back(old_nbhs[i][j]);
+      if (old_nbhs[i][j] > 0)
+        prev_nbhs.push_back(old_nbhs[i][j]);
       ++j;
     }
     if (j > 50) continue;
 
     // 3. Compare
-    // Sort to ensure valid comparison regardless of order
     sort(curr_nbhs.begin(), curr_nbhs.end());
     sort(prev_nbhs.begin(), prev_nbhs.end());
 
@@ -8662,7 +8663,6 @@ vector<vector<int>> CellularPotts::t1transitions()
   {
     if (visited.count(cell_id)) continue;
 
-    // Start a new event group
     vector<int> current_event;
     queue<int> q;
     
@@ -8675,13 +8675,8 @@ vector<vector<int>> CellularPotts::t1transitions()
       int u = q.front();
       q.pop();
 
-      // Check all neighbors of u (both old and new)
-      // If a neighbor is also in 'changed_cells_set' and not visited, group it.
-      
-      // Helper lambda to process a neighbor list
       auto check_neighbors = [&](const vector<int>& nbhs) {
         for (int neighbor : nbhs) {
-          // If the neighbor is also undergoing a transition and hasn't been grouped yet
           if (changed_cells_set.count(neighbor) && !visited.count(neighbor)) {
             visited.insert(neighbor);
             current_event.push_back(neighbor);
@@ -8694,12 +8689,39 @@ vector<vector<int>> CellularPotts::t1transitions()
       check_neighbors(clean_old_nbhs[u]);
     }
 
-    // Only store events if they involve a cluster of cells (usually 4 for a standard T1)
+    // --- FILTERING LOGIC ADDED HERE ---
     if (!current_event.empty()) {
-        t1_events.push_back(current_event);
+        bool has_phase = false;
+        bool all_valid_types = true; 
+
+        // Analyze the cells in this specific event
+        for (int id : current_event) {
+            bool phaser = cell->at(id).GetPhase();
+            bool isepi = cell->at(id).IsEpithelia();
+
+            // Check Requirement: Must be Phase OR Epithelia. 
+            // If it's neither (e.g. some other type), invalidate the event.
+            if (!phaser && !isepi) {
+                all_valid_types = false;
+                break;
+            }
+
+            if (phaser) {
+                has_phase = true;
+            }
+        }
+
+        // Logic:
+        // 1. All cells must be either Phase or Epithelia (all_valid_types == true)
+        // 2. There must be at least one Phase cell involved (has_phase == true).
+        //    (This excludes transitions between only Epithelial cells).
+        if (all_valid_types && has_phase) {
+            t1_events.push_back(current_event);
+        }
     }
   }
-  // --- MEMORY MANAGEMENT (Preserved from original code) ---
+
+  // --- MEMORY MANAGEMENT ---
   free(old_nbhs[0]);
   free(old_nbhs);
   old_nbhs = 0;
@@ -8723,58 +8745,64 @@ vector<vector<int>> CellularPotts::t1transitions()
 }
 
 
-
-
 vector<vector<double>> CellularPotts::find_shared_centres()
 {
   vector<vector<double>> cpoints{};
   vector<vector<int>> t1s = t1transitions();
+  
   if (!t1s.size())
   {
     return cpoints;
   }
+
   for (vector<int> trans : t1s)
   {
     double xtot{};
     double ytot{};
-    int checked=false;
+    
     if (trans.size() != 4)
       continue;
     
-    // int how_cool{};
-    // for (int id : trans)
-    // {
-    //   auto it = transition_cooldown_list.find(id);
-     
-    //   if (it == transition_cooldown_list.end() || it->second == 0)
-    //   {
-    //     ++how_cool;
-    //   }
-    // }
-    // if (how_cool < 2)
-    //   continue;
     vector<double> to_push{};
-    string id_code{};
+    
+    // Variables to determine transition type
+    bool all_phase = true; 
+
     for (int id : trans)
     {
       to_push.push_back(id);
-      id_code += to_string(id);
-      // make sure setcellcenters has been called already!!
+      
       double xc = cell->at(id).get_xcen();
       double yc = cell->at(id).get_ycen();
       xtot += xc;
       ytot += yc;
-      // transition_cooldown_list[id] = 0;
+
+      // Check type for classification
+      // Note: t1transitions has already filtered out invalid types and pure-epithelia events.
+      // We only need to distinguish between "All Phase" and "Mixed".
+      if (!cell->at(id).GetPhase()) {
+          all_phase = false;
+      }
     }
-    // cout << endl;
+
     xtot = xtot / double(trans.size());
     ytot = ytot / double(trans.size());
     
     to_push.push_back(xtot);
     to_push.push_back(ytot);
-    cpoints.push_back(to_push);
 
+    // Append flag for transition type
+    // 1.0 -> Only Phase cells
+    // 2.0 -> Mixed Phase and Epithelia
+    if (all_phase) {
+        to_push.push_back(1.0); 
+    } else {
+        to_push.push_back(2.0);
+    }
+
+    cpoints.push_back(to_push);
   }
+
   for (auto &id : transition_cooldown_list)
   {
     if (id.second > 0)
@@ -11561,7 +11589,10 @@ void CellularPotts::MeasureShapeIndex()
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++)
   {
-    if (c->AliveP())
+    bool phaser = c->GetPhase();
+    bool isepi = c->IsEpithelia();
+
+    if (c->AliveP() && phaser && !isepi)
     {
       int celln=c->Sigma();
       int perim_length{};
