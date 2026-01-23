@@ -684,7 +684,7 @@ int main(int argc, char *argv[])
   par.dewet_length=round(tmp_length);
   par.theoretical_diameter = 2 * sqrt((par.dewet_length * par.L2)/M_PI);
   
-
+ddd
 
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
