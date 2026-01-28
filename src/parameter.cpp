@@ -149,10 +149,10 @@
     // basic jamming parameters
     epithelial_colour = 5;
     MakeEpithelia=true;
-    epiJ=2;
+    epiJ=3;
     epiJelse=J_med;
     epiM=1;
-    J_L = 3;
+    J_L = 4;
     gamma_circle=4.25;
 
     J_med = gamma_LM + J_L/2;
@@ -162,7 +162,7 @@
     makesemicircle=false;
     
     gamma_SM = 0.25; // we set to 0.25 for all simulations (other params derived from this)
-    tension_params = true;
+    tension_params = false;
     if (tension_params)
     {
       gamma_LM = 6.0;
@@ -200,7 +200,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=200;
-    dewet_cell_depth=10;
+    dewet_cell_depth=3;
     conserved_dewet_distance = 150;
     // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 

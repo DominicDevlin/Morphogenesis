@@ -342,7 +342,7 @@ TIMESTEP {
         outfile << fixed << setprecision(3);
         for (auto &vv : shared_centres)
         {
-          outfile << t << '\t' << vv[4] << '\t' << vv[5] << '\t' << vv[0] << '\t' << vv[1] <<'\t' << vv[2] <<'\t' << vv[3] <<endl;
+          outfile << t << '\t' << vv[4] << '\t' << vv[5] << '\t' << vv[0] << '\t' << vv[1] <<'\t' << vv[2] <<'\t' << vv[3] << '\t' << vv[6] << endl;
         }
         outfile.close();
       }

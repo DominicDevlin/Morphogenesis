@@ -8692,30 +8692,26 @@ vector<vector<int>> CellularPotts::t1transitions()
     // --- FILTERING LOGIC ADDED HERE ---
     if (!current_event.empty()) {
         bool has_phase = false;
-        bool all_valid_types = true; 
+        bool has_epi = false; 
 
         // Analyze the cells in this specific event
-        for (int id : current_event) {
+        for (int id : current_event) 
+        {
             bool phaser = cell->at(id).GetPhase();
             bool isepi = cell->at(id).IsEpithelia();
 
-            // Check Requirement: Must be Phase OR Epithelia. 
-            // If it's neither (e.g. some other type), invalidate the event.
-            if (!phaser && !isepi) {
-                all_valid_types = false;
-                break;
-            }
-
-            if (phaser) {
+            if (phaser && !isepi) 
+            {
                 has_phase = true;
             }
+
         }
 
         // Logic:
         // 1. All cells must be either Phase or Epithelia (all_valid_types == true)
         // 2. There must be at least one Phase cell involved (has_phase == true).
         //    (This excludes transitions between only Epithelial cells).
-        if (all_valid_types && has_phase) {
+        if (has_phase) {
             t1_events.push_back(current_event);
         }
     }
@@ -8780,7 +8776,8 @@ vector<vector<double>> CellularPotts::find_shared_centres()
       // Check type for classification
       // Note: t1transitions has already filtered out invalid types and pure-epithelia events.
       // We only need to distinguish between "All Phase" and "Mixed".
-      if (!cell->at(id).GetPhase()) {
+      if (cell->at(id).IsEpithelia()) 
+      {
           all_phase = false;
       }
     }

@@ -461,7 +461,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
           outfile << fixed << setprecision(3);
           for (auto &vv : shared_centres)
           {
-            outfile << t << '\t' << vv[4] << '\t' << vv[5] << '\t' << vv[0] << '\t' << vv[1] <<'\t' << vv[2] <<'\t' << vv[3] << vv[6] << endl;
+            outfile << t << '\t' << vv[4] << '\t' << vv[5] << '\t' << vv[0] << '\t' << vv[1] <<'\t' << vv[2] <<'\t' << vv[3] << '\t' << vv[6] << endl;
           }
           outfile.close();
         }
@@ -684,7 +684,6 @@ int main(int argc, char *argv[])
   par.dewet_length=round(tmp_length);
   par.theoretical_diameter = 2 * sqrt((par.dewet_length * par.L2)/M_PI);
   
-ddd
 
   vector<vector<vector<int>>> networks{};
   for (int i = 0; i < par.n_orgs; ++i)
