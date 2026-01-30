@@ -411,7 +411,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         dishes[i].CPM->AddEpithelialLayer();
       }
 
-      if (t == 10)
+      if (t == 100)
       {
         par.init_wet_length = dishes[i].CPM->WettingLength();
       }
@@ -662,7 +662,7 @@ int main(int argc, char *argv[])
   
   
   par.phase_evolution = true;
-  par.mcs = 400000;
+  par.mcs = 300000;
   par.sheet_hex=false;
   par.n_orgs = 120;
   par.do_voronoi = true;
@@ -671,7 +671,7 @@ int main(int argc, char *argv[])
   par.coop_stime=0;
   par.coop_start=1000;
 
-  par.sizex=300;
+  par.sizex=350;
   par.sizey=250;
 
   
@@ -701,8 +701,8 @@ int main(int argc, char *argv[])
 
     if (par.MakeEpithelia)
     {
-      par.epiJ=1;
-      par.epiM=1;
+      par.epiJ=3;
+      par.epiM=3;
       par.gamma_circle=4.25;
       par.epiJelse = par.gamma_circle + par.J_L / 2 + par.epiJ / 2;
     }
