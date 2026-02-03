@@ -411,7 +411,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         dishes[i].CPM->AddEpithelialLayer();
       }
 
-      if (t == 100)
+      if (t == 10)
       {
         par.init_wet_length = dishes[i].CPM->WettingLength();
       }
