@@ -370,7 +370,6 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
       
     }
   }
-
   
   // lambda is determined by chemical 0
   double lambda = (*cell)[sxy].get_lambda();
@@ -389,31 +388,26 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
 			       (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
 			       - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
 
+  /* Active motion term */
+  double tmp_action = 1;
+  if (tmp_action > 0)
+  {
+    double strength = 1.;
+    if ( sxyp == MEDIUM)
+    {
+      DH += strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+    }
+    else if (sxy == MEDIUM)
+    {
+      DH += strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
+    }
+    else
+    {
+      DH += strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
+      DH += strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+    }
+  }
 
-
-  // double Pconst=1;
-  // /* Perimeter constraint */
-  // if (sxyp == MEDIUM)
-  //   DH += (int)(Pconst *  (1. - 2. * (double) ( (*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) ));
-
-
-  /* Chemotaxis */
-  // if (PDEfield && (par.vecadherinknockout || (sxyp==0 || sxy==0))) {
-    
-  //   // copying from (xp, yp) into (x,y)
-  //   // If par.extensiononly == true, apply CompuCell's method, i.e.
-  //   // only chemotactic extensions contribute to energy change
-  //   if (!( par.extensiononly && sxyp==0)) {
-  //     int DDH=(int)(par.chemotaxis*(sat(PDEfield->Sigma(0,x,y))-sat(PDEfield->Sigma(0,xp,yp))));
-    
-  //     DH-=DDH;
-  //   }
-  // }
-  
-  // if (tsteps > par.end_program)
-  //   lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
-
-  // const double lambda_r=(*cell)[sxy].get_lambda_2();
   
   /* Length constraint */
   // sp is expanding cell, s is retracting cell  
@@ -437,12 +431,13 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
           ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
             - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
             (*cell)[sxy].TargetLength()) )) );
-  }
+    }
   }
 
-  double DH_perimeter = 0;
+  
   if (par.H_perim) 
   {
+    double DH_perimeter = 0;
     if (sxyp == MEDIUM) 
     {
       bool cphase = (*cell)[sxy].GetPhase();
@@ -505,13 +500,35 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
               DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
                   (*cell)[sxy].TargetPerimeter()));      
     }
+    DH += DH_perimeter;
   }
-  DH += DH_perimeter;
-
-
-
+  
 
   return DH;
+  // double Pconst=1;
+  // /* Perimeter constraint */
+  // if (sxyp == MEDIUM)
+  //   DH += (int)(Pconst *  (1. - 2. * (double) ( (*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) ));
+
+
+  /* Chemotaxis */
+  // if (PDEfield && (par.vecadherinknockout || (sxyp==0 || sxy==0))) {
+    
+  //   // copying from (xp, yp) into (x,y)
+  //   // If par.extensiononly == true, apply CompuCell's method, i.e.
+  //   // only chemotactic extensions contribute to energy change
+  //   if (!( par.extensiononly && sxyp==0)) {
+  //     int DDH=(int)(par.chemotaxis*(sat(PDEfield->Sigma(0,x,y))-sat(PDEfield->Sigma(0,xp,yp))));
+    
+  //     DH-=DDH;
+  //   }
+  // }
+  
+  // if (tsteps > par.end_program)
+  //   lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
+
+  // const double lambda_r=(*cell)[sxy].get_lambda_2();
+
 }
 
 

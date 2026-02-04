@@ -1367,6 +1367,68 @@ private:
     return sheet_type;
   }
 
+  /* active matter methods */
+  inline void set_npol(double polx, double poly)
+  {
+    npolx = polx;
+    npoly = poly;
+  }
+
+  // called every time step to determine the direction of cell motion over last N steps.
+  inline void update_velocity()
+  {
+    // calculate velocity here
+
+    double N; // number of MCS steps for velocity
+
+    double com_xx = sum_xx / area;
+    double com_yy = sum_yy / area;
+
+    double vv_x = com_xx - prev_com_xx;
+    double vv_y = com_yy - prev_com_yy;
+
+    // need function 
+    avg_vxx -= velocity_histories_x.back() / N;
+    avg_vyy -= velocity_histories_y.back() / N;
+    avg_vxx += vv_x / N;
+    avg_vyy += vv_y / N;
+
+    velocity_histories_x.push_front(vv_x);
+    velocity_histories_x.pop_back();
+
+    velocity_histories_y.push_front(vv_y);
+    velocity_histories_y.pop_back();
+
+    prev_com_xx = com_xx;
+    prev_com_yy = com_yy;
+  }
+
+  inline double cell_velx()
+  {
+    return avg_vxx;
+  }
+  inline double cell_vely()
+  {
+    return avg_vyy;
+  }
+
+  inline double ActiveDotProduct_added(int x, int y)
+  {
+    double dirx = (sum_x+x)/double(area+1) - sum_x/double(area);
+    double diry = (sum_y+y)/double(area+1) - sum_y/double(area);
+
+    double dot_product = (dirx * avg_vxx + diry * avg_vyy);
+    return dot_product; 
+  }
+
+  inline double ActiveDotProduct_removed(int x, int y)
+  {
+    double dirx = (sum_x-x)/double(area-1) - sum_x/double(area);
+    double diry = (sum_y-y)/double(area-1) - sum_y/double(area);
+
+    double dot_product = (dirx * avg_vxx + diry * avg_vyy);
+    return dot_product; 
+  }  
 
 
 
@@ -1550,6 +1612,17 @@ protected:
   // and center of mass
   // are locally adjusted, so axes are easily
   // and quickly calculated!
+
+
+  // active motion terms
+  double npolx;
+  double npoly;
+  deque<double> velocity_histories_x;
+  deque<double> velocity_histories_y;
+  double prev_com_xx = 0;
+  double prev_com_yy = 0;
+  double avg_vxx=0;
+  double avg_vyy=0;
   
   // N.B: N is area!
   double shape_index;
