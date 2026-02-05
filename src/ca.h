@@ -257,6 +257,8 @@ public:
 
   vector<vector<int>> CellNeighbours(vector<int> cell_list); 
 
+  void update_cell_velocities_MCS();
+
   void CellExposure();
 
   vector<vector<bool>> ReturnGridBad();

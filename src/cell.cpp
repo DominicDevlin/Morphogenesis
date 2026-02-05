@@ -138,6 +138,12 @@ void Cell::CellBirth(Cell &mother_cell) {
     diffs[i]=mother_cell.diffs[i];
   }
 
+  velocity_histories_x = mother_cell.velocity_histories_x;
+  velocity_histories_y = mother_cell.velocity_histories_y;
+  prev_com_x = mother_cell.prev_com_x;
+  prev_com_y = mother_cell.prev_com_y;
+  avg_vx= mother_cell.avg_vx;
+  avg_vy= mother_cell.avg_vy;
 
   c_type=mother_cell.c_type;
   
@@ -201,6 +207,12 @@ void Cell::ConstructorBody(int settau) {
   n_copies=0;
 
   chem = new double[par.n_chem];
+
+  if (par.active_motion)
+  {
+    velocity_histories_x.assign(par.persistence_time, 0.);
+    velocity_histories_y.assign(par.persistence_time, 0.);
+  }
 
 }
 

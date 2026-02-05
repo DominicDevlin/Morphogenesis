@@ -304,6 +304,11 @@ class Parameter {
 
   double gamma_circle;
 
+  //active terms
+  bool active_motion;
+  double motility_strength;
+  int persistence_time;
+
   bool melting_adhesion;  
   int tip_max;
   int tip_min;

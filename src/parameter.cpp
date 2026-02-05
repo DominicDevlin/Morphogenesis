@@ -57,7 +57,7 @@
     umap = false;
 
     // record momenta for all cells etc
-    velocities = true;
+    velocities = false;
     record_directions = false;
 
     // record cell sizes
@@ -110,7 +110,7 @@
   
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
     
-    periodic_boundaries = true;
+    periodic_boundaries = false;
     // keep this at 2= moore neighbourhood. 2 used in simulations. 
     neighbours = 2;
     // high value ensures cells are never broken apart by copy attempts.
@@ -148,14 +148,14 @@
 
     // basic jamming parameters
     epithelial_colour = 5;
-    MakeEpithelia=true;
+    MakeEpithelia=false;
     epiJ=3;
     epiJelse=J_med;
     epiM=1;
     J_L = 4;
-    gamma_circle=4.25;
+    gamma_circle=3.25;
 
-    J_med = gamma_LM + J_L/2;
+    J_med = gamma_circle + J_L/2;
     J_med2 = J_med;
     epiJelse = gamma_circle + J_L / 2 + epiJ / 2;
 
@@ -249,6 +249,13 @@
 
     record_transitions = false;
   
+
+
+    //active term params
+    active_motion = true;
+    motility_strength = 5.0;
+    persistence_time = 200.;
+
     // GRN params
     n_TF = 0; 
     n_diffusers = 1; // morphogens

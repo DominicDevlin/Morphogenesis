@@ -355,6 +355,8 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
           DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
         else
           DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
+
+        // cout << "adhesion: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) << endl;
       }
       else
       {
@@ -362,6 +364,8 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
           DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
         else
           DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
+        
+        
       }
       // debugging. 
       // cout << "COPYING: " << (*cell)[sxyp].getTau() << (*cell)[sxy].getTau() << std::endl;
@@ -389,22 +393,24 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
 			       - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
 
   /* Active motion term */
-  double tmp_action = 1;
-  if (tmp_action > 0)
+  if (par.active_motion)
   {
-    double strength = 1.;
     if ( sxyp == MEDIUM)
     {
-      DH += strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+      
+      DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+      // cout << "active: " << par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y) << endl;
     }
     else if (sxy == MEDIUM)
     {
-      DH += strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
+      DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
     }
     else
     {
-      DH += strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
-      DH += strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+      // cout << "dot product with cell: " << (*cell)[sxy].ActiveDotProduct_removed(x,y);
+      DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
+      DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+      
     }
   }
 
@@ -569,6 +575,19 @@ void CellularPotts::ConvertSpin(int x,int y,int xp,int yp)
   sigma[x][y] = sigma[xp][yp];
 
 
+}
+
+void CellularPotts::update_cell_velocities_MCS()
+{
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      c->update_velocity();
+    }
+  }
 }
 
 void CellularPotts::MeasureSinglePerimeter(int targetsigma)
@@ -1857,8 +1876,7 @@ void CellularPotts::MeasureCellSizes(void) {
   // Clean areas of all cells, including medium
 
   for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) {
-    c->SetTargetArea(0);
-    c->area = 0;
+    c->CleanMoments();
   }
   
   // calculate the area of the cells
@@ -3287,6 +3305,7 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turn
       }
     }
   }
+  MeasureCellSizes();
 
   cout << "Total cells killed: " << deadcells << endl;
 }
@@ -10403,35 +10422,24 @@ bool CellularPotts::CheckShape()
 
 void CellularPotts::SetCellCenters()
 {
-  map<int, double> xvals{};
-  map <int, double> yvals{};
 
-  // get center of mass for all cells. Probably faster than searching through the vector every time! Turn this into function
   if (!par.periodic_boundaries)
   {
-    for (int x=1;x<sizex;++x)
-      for (int y=1;y<sizey;++y)
-      {
-        if (sigma[x][y] > 0)
-        {
-          xvals[sigma[x][y]] += x;
-          yvals[sigma[x][y]] += y;
-        }
-      }
-    int count=1;
     vector<Cell>::iterator c;
     for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
       if (c->AliveP())
       {
-        xvals[count] = xvals[count] / double(c->Area());
-        yvals[count] = yvals[count] / double(c->Area());
+        c->set_xcen();
+        c->set_ycen();
       }
-      ++count;
     }
   }
   else
   {
+    map<int, double> xvals{};
+    map <int, double> yvals{};
+
     map<int, double> xvals_px{};
 
     map<int, double> yvals_py{};
@@ -10575,22 +10583,46 @@ void CellularPotts::SetCellCenters()
       }
       ++count;
     }
+    // give each cell its x and y coords
+    map<int, double>::iterator iter;
+    for (iter = xvals.begin(); iter != xvals.end(); iter++)
+    {
+      (*cell)[iter->first].set_xcen(iter->second);
+      // cout << "xvals: " << iter->first << " : " << iter->second << endl;
+    }
+    for (iter = yvals.begin(); iter != yvals.end(); iter++)
+    {
+      (*cell)[iter->first].set_ycen(iter->second);
+      // cout << "yvals: " << iter->first << " : " << iter->second << endl;
+    }    
   }
 
-  // give each cell its x and y coords
-  map<int, double>::iterator iter;
-  for (iter = xvals.begin(); iter != xvals.end(); iter++)
-  {
-    (*cell)[iter->first].set_xcen(iter->second);
-    // cout << "xvals: " << iter->first << " : " << iter->second << endl;
-  }
-  for (iter = yvals.begin(); iter != yvals.end(); iter++)
-  {
-    (*cell)[iter->first].set_ycen(iter->second);
-    // cout << "yvals: " << iter->first << " : " << iter->second << endl;
-  }
 
 
+  /*old code for no periodics*/ 
+  // if (!par.periodic_boundaries)
+  // {
+  //   for (int x=1;x<sizex;++x)
+  //     for (int y=1;y<sizey;++y)
+  //     {
+  //       if (sigma[x][y] > 0)
+  //       {
+  //         xvals[sigma[x][y]] += x;
+  //         yvals[sigma[x][y]] += y;
+  //       }
+  //     }
+  //   int count=1;
+  //   vector<Cell>::iterator c;
+  //   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  //   {
+  //     if (c->AliveP())
+  //     {
+  //       xvals[count] = xvals[count] / double(c->Area());
+  //       yvals[count] = yvals[count] / double(c->Area());
+  //     }
+  //     ++count;
+  //   }
+  // }
 
 
 }

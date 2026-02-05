@@ -89,6 +89,14 @@ public:
     sum_xy=src.sum_xy;
     owner=src.owner;
 
+    velocity_histories_x = src.velocity_histories_x;
+    velocity_histories_y = src.velocity_histories_y;
+    prev_com_x = src.prev_com_x;
+    prev_com_y = src.prev_com_y;
+    avg_vx= src.avg_vx;
+    avg_vy= src.avg_vy;
+
+
     fitness=src.fitness;
     genes=src.genes;
     diff_genes=src.diff_genes;
@@ -191,6 +199,13 @@ public:
     sum_xx=src.sum_xx;
     sum_yy=src.sum_yy;
     sum_xy=src.sum_xy;
+
+    velocity_histories_x = src.velocity_histories_x;
+    velocity_histories_y = src.velocity_histories_y;
+    prev_com_x = src.prev_com_x;
+    prev_com_y = src.prev_com_y;
+    avg_vx= src.avg_vx;
+    avg_vy= src.avg_vy;
     
     length=src.length;
     target_length=src.target_length;
@@ -914,6 +929,18 @@ private:
     return shrinker;
   }
 
+
+  inline void set_xcen()
+  {
+    xcen = double(sum_x) / area;
+  }
+
+  inline void set_ycen()
+  {
+    ycen = double(sum_y) / area;
+  }
+
+
   inline void set_xcen(double x)
   {
     xcen = x;
@@ -938,7 +965,10 @@ private:
   {
     xcens.push_back(xcen);
     ycens.push_back(ycen);
+    cout << xcen << '\t' << ycen << '\t' << double(sum_x) / area << '\t' << double(sum_y) / area << endl;
+
   }
+
 
   inline vector<double>& get_xcens()
   {
@@ -1368,56 +1398,61 @@ private:
   }
 
   /* active matter methods */
-  inline void set_npol(double polx, double poly)
-  {
-    npolx = polx;
-    npoly = poly;
-  }
 
   // called every time step to determine the direction of cell motion over last N steps.
   inline void update_velocity()
   {
     // calculate velocity here
 
-    double N; // number of MCS steps for velocity
 
-    double com_xx = sum_xx / area;
-    double com_yy = sum_yy / area;
 
-    double vv_x = com_xx - prev_com_xx;
-    double vv_y = com_yy - prev_com_yy;
+    double com_x = double(sum_x) / double(area);
+    double com_y = double(sum_y) / double(area);
+
+    if (prev_com_x < 0.0001)
+    {
+      prev_com_x = com_x;
+      prev_com_y = com_y;
+    }
+
+    double v_x = com_x - prev_com_x;
+    double v_y = com_y - prev_com_y;
+
+    
 
     // need function 
-    avg_vxx -= velocity_histories_x.back() / N;
-    avg_vyy -= velocity_histories_y.back() / N;
-    avg_vxx += vv_x / N;
-    avg_vyy += vv_y / N;
+    avg_vx -= velocity_histories_x.back() / par.persistence_time;
+    avg_vy -= velocity_histories_y.back() / par.persistence_time;
+    avg_vx += v_x / par.persistence_time;
+    avg_vy += v_y / par.persistence_time;
 
-    velocity_histories_x.push_front(vv_x);
+    // cout << "velocity debugging: " << avg_vx << '\t' << avg_vy << endl;
+
+    velocity_histories_x.push_front(v_x);
     velocity_histories_x.pop_back();
 
-    velocity_histories_y.push_front(vv_y);
+    velocity_histories_y.push_front(v_y);
     velocity_histories_y.pop_back();
 
-    prev_com_xx = com_xx;
-    prev_com_yy = com_yy;
+    prev_com_x = com_x;
+    prev_com_y = com_y;
   }
 
   inline double cell_velx()
   {
-    return avg_vxx;
+    return avg_vx;
   }
   inline double cell_vely()
   {
-    return avg_vyy;
+    return avg_vy;
   }
 
   inline double ActiveDotProduct_added(int x, int y)
   {
-    double dirx = (sum_x+x)/double(area+1) - sum_x/double(area);
-    double diry = (sum_y+y)/double(area+1) - sum_y/double(area);
+    double dirx = double(sum_x+x)/double(area+1) - double(sum_x)/double(area);
+    double diry = double(sum_y+y)/double(area+1) - double(sum_y)/double(area);
 
-    double dot_product = (dirx * avg_vxx + diry * avg_vyy);
+    double dot_product = area * (dirx * avg_vx + diry * avg_vy);
     return dot_product; 
   }
 
@@ -1426,7 +1461,7 @@ private:
     double dirx = (sum_x-x)/double(area-1) - sum_x/double(area);
     double diry = (sum_y-y)/double(area-1) - sum_y/double(area);
 
-    double dot_product = (dirx * avg_vxx + diry * avg_vyy);
+    double dot_product = area * (dirx * avg_vx + diry * avg_vy);
     return dot_product; 
   }  
 
@@ -1615,14 +1650,12 @@ protected:
 
 
   // active motion terms
-  double npolx;
-  double npoly;
   deque<double> velocity_histories_x;
   deque<double> velocity_histories_y;
-  double prev_com_xx = 0;
-  double prev_com_yy = 0;
-  double avg_vxx=0;
-  double avg_vyy=0;
+  double prev_com_x = 0;
+  double prev_com_y = 0;
+  double avg_vx=0;
+  double avg_vy=0;
   
   // N.B: N is area!
   double shape_index;
