@@ -90,8 +90,8 @@
     // THIS IS IMPORTANT ONE!!!! { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 350;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 250;
+    sizex = 450;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 450;
     mcs = 70001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -253,8 +253,18 @@
 
     //active term params
     active_motion = true;
-    motility_strength = 5.0;
-    persistence_time = 200.;
+    motility_strength = 3.0;
+    persistence_time = 500.;
+    if (active_motion)
+    {
+      H_perim = false;
+      ptarget_perimeter = 110;
+      J_L = 2;
+      lambda2 = 0;
+      lambda_perimeter_phase = 0;
+      J_med = 2;
+      J_med2 = J_med;
+    }
 
     // GRN params
     n_TF = 0; 

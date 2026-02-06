@@ -363,7 +363,8 @@ public:
   {
     if (phase_state)
     {
-      return length;
+      return 2* sqrt(area/M_PI);
+      // return length;
     }
     else
       return target_length;// sqrt(area)*par.target_length;

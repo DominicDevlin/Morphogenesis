@@ -372,11 +372,6 @@ TIMESTEP {
     }    
     dish->CPM->ColourCells(true);
     dish->CPM->AmoebaeMove(t);
-    if (par.active_motion)
-    {
-      dish->CPM->update_cell_velocities_MCS();
-    }
-
 
     if (t % par.cell_addition_rate == 0 && t > 200 && par.add_cells)
     {

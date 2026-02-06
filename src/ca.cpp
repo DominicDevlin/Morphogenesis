@@ -666,6 +666,14 @@ void CellularPotts::MeasureCellPerimeters()
     }
   }
 
+  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      c->SetTargetPerimeter(par.ptarget_perimeter);
+    }
+  }  
+
   // for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
   // {
   //   if (c->AliveP())
