@@ -200,7 +200,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=200;
-    dewet_cell_depth=3;
+    dewet_cell_depth=12;
     conserved_dewet_distance = 150;
     // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
@@ -253,16 +253,16 @@
 
     //active term params
     active_motion = true;
-    motility_strength = 3.0;
-    persistence_time = 500.;
+    motility_strength = 6.0;
+    persistence_time = 200.;
     if (active_motion)
     {
-      H_perim = false;
-      ptarget_perimeter = 110;
-      J_L = 2;
+      H_perim = true;
+      ptarget_perimeter = 115;
+      J_L = 0;
       lambda2 = 0;
-      lambda_perimeter_phase = 0;
-      J_med = 2;
+      lambda_perimeter_phase = 1;
+      J_med = 0;
       J_med2 = J_med;
     }
 
