@@ -83,7 +83,7 @@ INIT
       int xtoshift = par.sizex/2 - par.dewet_length/2;
       int ytoshift = par.sizey/2 - par.L2/2;
       // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
-      CPM->Voronoi(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
+      CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
     }
     else
     {
@@ -154,6 +154,7 @@ TIMESTEP {
       dish->CPM->SetAreas(par.cell_areas);
       dish->CPM->MeasureCellPerimeters();
       dish->CPM->WetAllCells();
+      cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
 
     }
 

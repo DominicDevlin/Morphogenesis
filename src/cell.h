@@ -531,6 +531,23 @@ private:
     // sum_x, sum_y, sum_xx, sum_xy and sum_yy are adjusted
     // Eventually this function may be used to carry
     // out all necessary adminstration at once
+
+    if (par.periodic_boundaries)
+    {
+
+      double Lx = par.sizex - 2;
+      double Ly = par.sizey - 2;
+
+      double com_x = sum_x / (double)area;
+      double com_y = sum_y / (double)area;
+
+      double dx = (double)x - com_x;
+      double dy = (double)y - com_y;
+
+      // Find the "unfolded" coordinate relative to current COM
+      x -= (int)(Lx * round(dx / Lx));
+      y -= (int)(Ly * round(dy / Ly));
+    }
     sum_x+=x;
     sum_y+=y;
     sum_xx+=x*x;
@@ -557,6 +574,24 @@ private:
     // sum_x, sum_y, sum_xx, sum_xy and sum_yy are adjusted
     // Eventually this function may be used to carry
     // out all necessary adminstration at once
+
+    if (par.periodic_boundaries)
+    {
+
+      double Lx = par.sizex - 2;
+      double Ly = par.sizey - 2;
+
+      double com_x = sum_x / (double)area;
+      double com_y = sum_y / (double)area;
+
+      double dx = (double)x - com_x;
+      double dy = (double)y - com_y;
+
+      // Find the "unfolded" coordinate relative to current COM
+      x -= (int)(Lx * round(dx / Lx));
+      y -= (int)(Ly * round(dy / Ly));
+    }
+
     sum_x-=x;
     sum_y-=y;
     sum_xx-=x*x;
@@ -1410,17 +1445,33 @@ private:
     double com_x = double(sum_x) / double(area);
     double com_y = double(sum_y) / double(area);
 
-    if (prev_com_x < 0.0001)
+    // if (prev_com_x < 0.0001)
+    // {
+    //   prev_com_x = com_x;
+    //   prev_com_y = com_y;
+    // }
+    if (!velocity_initialised)
     {
       prev_com_x = com_x;
       prev_com_y = com_y;
+      velocity_initialised = true;
+      // Initialize histories with 0 so the cell starts neutral
+      return; 
     }
+
 
     double v_x = com_x - prev_com_x;
     double v_y = com_y - prev_com_y;
 
-    
-
+    // double Lx = par.sizex -2;
+    // double Ly = par.sizey -2;
+    // if (par.periodic_boundaries)
+    // {
+    //     if (v_x >  Lx / 2.0) v_x -= Lx;
+    //     if (v_x < -Lx / 2.0) v_x += Lx;
+    //     if (v_y >  Ly / 2.0) v_y -= Ly;
+    //     if (v_y < -Ly / 2.0) v_y += Ly;
+    // }
     // need function 
     avg_vx -= velocity_histories_x.back() / par.persistence_time;
     avg_vy -= velocity_histories_y.back() / par.persistence_time;
@@ -1428,7 +1479,7 @@ private:
     avg_vy += v_y / par.persistence_time;
 
     // cout << "velocity debugging: " << avg_vx << '\t' << avg_vy << endl;
-
+    
     velocity_histories_x.push_front(v_x);
     velocity_histories_x.pop_back();
 
@@ -1450,20 +1501,86 @@ private:
 
   inline double ActiveDotProduct_added(int x, int y)
   {
-    double dirx = double(sum_x+x)/double(area+1) - double(sum_x)/double(area);
-    double diry = double(sum_y+y)/double(area+1) - double(sum_y)/double(area);
+    double Lx = par.sizex - 2;
+    double Ly = par.sizey - 2;
 
-    double dot_product = area * (dirx * avg_vx + diry * avg_vy);
-    return dot_product; 
+    double com_x = (double)sum_x / area;
+    double com_y = (double)sum_y / area;
+
+    double dx = (double)x - com_x;
+    double dy = (double)y - com_y;
+
+    if (par.periodic_boundaries) 
+    {
+        dx -= Lx * round(dx / Lx);
+        dy -= Ly * round(dy / Ly);
+
+        // if (dx >  Lx / 2.0) dx -= Lx;
+        // if (dx < -Lx / 2.0) dx += Lx;
+        // if (dy >  Ly / 2.0) dy -= Ly;
+        // if (dy < -Ly / 2.0) dy += Ly;
+    }
+
+    // Displacement of COM: dCOM = (x - COM_old) / (Area + 1)
+    double shift_x = dx / (double)(area + 1);
+    double shift_y = dy / (double)(area + 1);
+
+    // Energy contribution: area * (dCOM . Velocity)
+    return (double)area * (shift_x * avg_vx + shift_y * avg_vy);
+
+
+    // double dirx = double(sum_x+x)/double(area+1) - double(sum_x)/double(area);
+    // double diry = double(sum_y+y)/double(area+1) - double(sum_y)/double(area);
+
+    // double dot_product = area * (dirx * avg_vx + diry * avg_vy);
+    // return dot_product; 
   }
 
   inline double ActiveDotProduct_removed(int x, int y)
   {
-    double dirx = (sum_x-x)/double(area-1) - sum_x/double(area);
-    double diry = (sum_y-y)/double(area-1) - sum_y/double(area);
+    double Lx = par.sizex - 2;
+    double Ly = par.sizey - 2;
 
-    double dot_product = area * (dirx * avg_vx + diry * avg_vy);
-    return dot_product; 
+    double com_x = (double)sum_x / area;
+    double com_y = (double)sum_y / area;
+
+    // Vector from COM to the pixel being removed
+    double dx = (double)x - com_x;
+    double dy = (double)y - com_y;
+
+    if (par.periodic_boundaries) 
+    {
+        dx -= Lx * round(dx / Lx);
+        dy -= Ly * round(dy / Ly);
+        // if (dx >  Lx / 2.0) dx -= Lx;
+        // if (dx < -Lx / 2.0) dx += Lx;
+        // if (dy >  Ly / 2.0) dy -= Ly;
+        // if (dy < -Ly / 2.0) dy += Ly;
+    }
+
+    // cout << dx << endl;
+    if (abs(dx) > 20)
+      cout << x << '\t' << y << '\t' << com_x << '\t' << com_y << '\t' << dx << endl;
+
+    // Displacement of COM: dCOM = (COM_old - x) / (Area - 1)
+    // Note: Removing a pixel moves the COM in the opposite direction
+    double shift_x = -dx / (double)(area - 1);
+    double shift_y = -dy / (double)(area - 1);
+
+    double toreturn = (double)area * (shift_x * avg_vx + shift_y * avg_vy);
+    // if (abs(toreturn) > 1)
+    // {
+    //   cout << shift_x << '\t' << avg_vx << '\t' << shift_y << '\t' << avg_vy << '\t' << toreturn << endl;
+    // }
+      // cout << toreturn << endl;
+    // cout << (double)area * (shift_x * avg_vx + shift_y * avg_vy) << endl;
+    return (double)area * (shift_x * avg_vx + shift_y * avg_vy);
+
+    // double dirx = (sum_x-x)/double(area-1) - sum_x/double(area);
+    // double diry = (sum_y-y)/double(area-1) - sum_y/double(area);
+
+    // double dot_product = area * (dirx * avg_vx + diry * avg_vy);
+    // return dot_product; 
   }  
 
 
@@ -1657,6 +1774,7 @@ protected:
   double prev_com_y = 0;
   double avg_vx=0;
   double avg_vy=0;
+  bool velocity_initialised=false;
   
   // N.B: N is area!
   double shape_index;

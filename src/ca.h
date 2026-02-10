@@ -367,6 +367,8 @@ public:
   //specify rectangular area of voronoi tesselation
   void Voronoi(int xlen, int ylen, int shift=0, int xshift=0, bool turnonphase=false);
 
+  void VoronoiSeparated(int xlen, int ylen, int shift, int xshift, bool turnonphase=false);
+
   void ToppingVoronoi();
 
   int ReturnHeight();

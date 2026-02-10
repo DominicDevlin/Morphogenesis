@@ -834,21 +834,6 @@ int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //! Monte Carlo Step. Returns summed energy change
 int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
 {
@@ -3194,6 +3179,147 @@ void CellularPotts::Voronoi()
       }
     }
   }
+}
+
+
+
+void CellularPotts::VoronoiSeparated(int xlen, int ylen, int shift, int xshift, bool turnonphase)
+{
+  // 1. Calculate the base dimensions from the target area
+  double A = double(par.cell_areas);
+  
+  // This 'base_distance' represents the radius required for the target Area A 
+  // in a packed configuration. We will use this to limit the drawn cell size.
+  double base_distance = sqrt((A)/(2*sqrt(3)));
+
+  // 2. Define a Spacing Factor to spread the points out.
+  // A factor of 1.25 means the centers are 25% further apart than in the dense packing.
+  // This creates the "separation" or gaps between cells.
+  double spread_factor = 1.25; 
+  double spacing_distance = base_distance * spread_factor;
+
+  // 3. Adjust spacing to fit the grid perfectly (Leftover logic applied to spacing)
+  // We apply the fitting logic to 'spacing_distance' because that determines the lattice.
+  double leftover = fmod(xlen-2, spacing_distance);
+  int dividor = int(floor(double(xlen-2)/spacing_distance));
+  spacing_distance += leftover/dividor;
+
+  // 4. Generate centers using the LARGER spacing_distance (Fewer cells, spread out)
+  int ncells = HexaCounter(xlen-2,ylen-2, spacing_distance);
+  FractureSheet(ncells);
+
+  // Clear grid
+  for (int x = 1; x < sizex-1; ++x) 
+  {
+    for (int y = 1; y < sizey-1; ++y) 
+    {
+      sigma[x][y]=0;
+    }
+  }
+
+  int periodic_length_x = xlen - 2;
+  int periodic_length_y = ylen - 2;
+
+  // Get centers based on the spread out spacing
+  vector<VPoint> centers = HexaCenters(periodic_length_x, periodic_length_y, spacing_distance);
+  
+  // Shift centers to the correct ROI
+  for (auto& center : centers) 
+  {
+    center.x += sizex - xlen - xshift;
+    center.y += sizey - ylen - shift;
+  }
+
+  // 5. Draw the cells, but LIMIT the radius to 'base_distance'
+  // This ensures the cells are roughly the size of 'par.cell_areas', 
+  // but because the centers are spread out, there will be empty space (Medium 0) between them.
+  
+  // We use a slight multiplier (e.g., 1.1) on base_distance for the drawing limit 
+  // to allow them to be slightly organic/hexagonal but definitely not touching 
+  // neighbors calculated at 1.25x distance.
+  double radius_limit = base_distance * 1.1; 
+
+  for (int x = 1 + sizex - xlen - xshift; x < sizex - xshift - 1; ++x) {
+      for (int y = 1 + sizey - ylen - shift; y < sizey - shift - 1; ++y) 
+      {
+        double minDistance = std::numeric_limits<double>::max();
+        int closestCenter = -1;
+        
+        // Find the closest center
+        for (const auto& center : centers) 
+        {
+          double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
+          if (dist < minDistance) {
+              minDistance = dist;
+              closestCenter = center.id;
+          }
+        }
+          
+        // KEY CHANGE: Only assign if within the radius limit.
+        // Since centers are spaced by `spacing_distance` (1.25x) and we cut off at 
+        // `radius_limit` (~1.0x), gaps are guaranteed.
+        if (minDistance < radius_limit) {
+            sigma[x][y] = closestCenter;
+        }
+      }
+  }
+
+  // Standard cleanup and initialization logic from original function
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      c->area = 0;
+    }
+  }
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        (*cell)[sigma[x][y]].area +=1;
+      }
+    }   
+  
+  int deadcells{};
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
+      }
+      else
+      {
+        c->SetTargetArea(c->area);
+      }
+    }
+  }
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
+      }
+      else
+      {
+        c->SetTargetArea(c->area);
+        double guess_perim = par.ptarget_perimeter * sqrt(c->area);
+        c->SetTargetPerimeter(guess_perim);
+        c->makeAlive();
+      }
+    }
+  }
+  MeasureCellSizes();
+
+  cout << "Total cells killed: " << deadcells << endl;
 }
 
 
