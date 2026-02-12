@@ -90,8 +90,8 @@
     // THIS IS IMPORTANT ONE!!!! { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 450;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 450;
+    sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 250;
     mcs = 2000001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -148,12 +148,12 @@
 
     // basic jamming parameters
     epithelial_colour = 5;
-    MakeEpithelia=false;
-    epiJ=3;
+    MakeEpithelia=true;
+    epiJ=2;
     epiJelse=J_med;
-    epiM=1;
-    J_L = 4;
-    gamma_circle=3.25;
+    epiM=2;
+    J_L = 7;
+    gamma_circle=4.25;
 
     J_med = gamma_circle + J_L/2;
     J_med2 = J_med;
@@ -200,7 +200,7 @@
     sheet_depth=95;
     sheet_shift=10;
     dewet_length=200;
-    dewet_cell_depth=48;
+    dewet_cell_depth=1;
     conserved_dewet_distance = 150;
     // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
@@ -208,7 +208,6 @@
     double tmp_length = L2 + (sqrt(pow(L2,2) + pow(M_PI * conserved_dewet_distance,2) )) / M_PI;
     dewet_length=round(tmp_length);
 
-    dewet_length = 420;
 
     theoretical_diameter = 2 * sqrt((dewet_length * L2)/M_PI);
 
@@ -254,11 +253,17 @@
 
 
     //active term params
-    active_motion = true;
+    active_motion = false;
     motility_strength = 12.0;
     persistence_time = 50.;
     if (active_motion)
     {
+      sizex = 450;
+      sizey = 450;
+      dewet_length=420;
+      dewet_cell_depth=48;
+
+      conserved_dewet_distance = 150;      
       H_perim = true;
       ptarget_perimeter = 110;
       J_L = 0;
