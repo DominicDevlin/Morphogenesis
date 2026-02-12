@@ -255,7 +255,7 @@
 
     //active term params
     active_motion = true;
-    motility_strength = 20.2;
+    motility_strength = 12.0;
     persistence_time = 50.;
     if (active_motion)
     {
@@ -263,7 +263,7 @@
       ptarget_perimeter = 110;
       J_L = 0;
       lambda2 = 0;
-      lambda_perimeter_phase = 1;
+      lambda_perimeter_phase = 2;
       J_med = 0;
       J_med2 = J_med;
     }
