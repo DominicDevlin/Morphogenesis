@@ -186,6 +186,12 @@ TIMESTEP {
       }
     }
 
+    if (t==1000)
+    {
+      par.medium_area_constraint=true;
+      dish->CPM->SetMediumArea();
+    }
+
     if (t%1==0)
     {
       double hh = dish->CPM->SumEnergy();

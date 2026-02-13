@@ -379,6 +379,8 @@ public:
 
   double SumEnergy();
 
+  void SetMediumArea();
+
   vector<vector<double>> ReturnMSD();
 
   vector<double> ReturnDriftCorrectedMSD();

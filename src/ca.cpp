@@ -277,6 +277,23 @@ double sat(double x) {
   //return x;
 
 }
+
+void CellularPotts::SetMediumArea()
+{
+  int totmed=0;
+  for (int x = 1; x < sizex-1; ++x)
+  {
+    for (int y = 1; y < sizey-1; ++y)
+    {
+      if (!sigma[x][y])
+      {
+        ++totmed;
+      }
+    }
+  }
+  cell->at(0).SetTargetArea(totmed);
+  cell->at(0).SetAreaToTarget();
+}
   
 double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE *PDEfield)       
 {
@@ -379,18 +396,30 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
   double lambda = (*cell)[sxy].get_lambda();
     
   //cerr << "[" << lambda << "]";
-  if ( sxyp == MEDIUM ) {
-    DH += (int)(lambda *  (1. - 2. *   
-			       (double) ( (*cell)[sxy].Area() - (*cell)[sxy].TargetArea()) ));
-  }
-  else if ( sxy == MEDIUM ) {
-    DH += (int)((lambda * (1. + 2. *  
-			       (double) ( (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()) )));
+  if (par.medium_area_constraint)
+  {
+      DH += (int)((lambda * (2.+  2.  * (double) 
+              (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
+              - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
+      
+      // cout << (*cell)[sxy].Area() << '\t' << (*cell)[sxy].TargetArea() << endl;
   }
   else
-    DH += (int)((lambda * (2.+  2.  * (double) 
-			       (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
-			       - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
+  {
+    if ( sxyp == MEDIUM ) {
+      DH += (int)(lambda *  (1. - 2. *   
+              (double) ( (*cell)[sxy].Area() - (*cell)[sxy].TargetArea()) ));
+    }
+    else if ( sxy == MEDIUM ) {
+      DH += (int)((lambda * (1. + 2. *  
+              (double) ( (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()) )));
+    }
+    else
+      DH += (int)((lambda * (2.+  2.  * (double) 
+              (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
+              - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
+  }
+
 
   /* Active motion term */
   // if (par.active_motion)
@@ -549,28 +578,52 @@ bool CellularPotts::Probability(int DH)
 void CellularPotts::ConvertSpin(int x,int y,int xp,int yp)
 {
   int tmpcell;
-  if ( (tmpcell=sigma[x][y]) ) 
-  { // if tmpcell is not MEDIUM
+  if (par.medium_area_constraint)
+  {
+    tmpcell=sigma[x][y];
     (*cell)[tmpcell].DecrementArea();
     (*cell)[tmpcell].RemoveSiteFromMoments(x,y);
-
-      
-        
     if (!(*cell)[tmpcell].Area()) 
     {
       (*cell)[tmpcell].Apoptose();
       // cerr << "Cell " << tmpcell << " apoptosed\n";
     }
-  }
-  
-  if ( (tmpcell=sigma[xp][yp]) ) 
-  {// if tmpcell is not MEDIUM
+    tmpcell=sigma[xp][yp];
     (*cell)[tmpcell].IncrementArea();
     (*cell)[tmpcell].AddSiteToMoments(x,y);
-      
-    
+
+
+    sigma[x][y] = sigma[xp][yp];
+
   }
-  sigma[x][y] = sigma[xp][yp];
+  else
+  {
+    if ( (tmpcell=sigma[x][y]) ) 
+    { // if tmpcell is not MEDIUM
+      (*cell)[tmpcell].DecrementArea();
+      (*cell)[tmpcell].RemoveSiteFromMoments(x,y);
+
+        
+          
+      if (!(*cell)[tmpcell].Area()) 
+      {
+        (*cell)[tmpcell].Apoptose();
+        // cerr << "Cell " << tmpcell << " apoptosed\n";
+      }
+    }
+    
+    if ( (tmpcell=sigma[xp][yp]) ) 
+    {// if tmpcell is not MEDIUM
+      (*cell)[tmpcell].IncrementArea();
+      (*cell)[tmpcell].AddSiteToMoments(x,y);
+        
+      
+    }
+
+    
+    sigma[x][y] = sigma[xp][yp];
+  }
+
 
 
 }
@@ -684,24 +737,52 @@ void CellularPotts::MeasureCellPerimeters()
 }
 
 
-void CellularPotts::ConvertSpinPerim(int x, int y, int xp, int yp) {
+void CellularPotts::ConvertSpinPerim(int x, int y, int xp, int yp) 
+{
   int tmpcell;
-  if ((tmpcell = sigma[x][y])) { // if tmpcell is not MEDIUM
+
+  if (par.medium_area_constraint)
+  {
+    tmpcell=sigma[x][y];
     (*cell)[tmpcell].DecrementArea();
-    (*cell)[tmpcell].RemoveSiteFromMoments(x, y);
+    (*cell)[tmpcell].RemoveSiteFromMoments(x,y);
     (*cell)[tmpcell].SetPerimeter(
         GetNewPerimeterIfXYWereRemoved(tmpcell, x, y));
-    if (!(*cell)[tmpcell].Area()) {
+    if (!(*cell)[tmpcell].Area()) 
+    {
       (*cell)[tmpcell].Apoptose();
+      // cerr << "Cell " << tmpcell << " apoptosed\n";
     }
+    tmpcell=sigma[xp][yp];
+    (*cell)[tmpcell].IncrementArea();
+    (*cell)[tmpcell].AddSiteToMoments(x,y);
+    (*cell)[tmpcell].SetPerimeter(GetNewPerimeterIfXYWereAdded(tmpcell, x, y));
+
+
+    sigma[x][y] = sigma[xp][yp];
+
+  }
+  else
+    {
+    if ((tmpcell = sigma[x][y])) { // if tmpcell is not MEDIUM
+      (*cell)[tmpcell].DecrementArea();
+      (*cell)[tmpcell].RemoveSiteFromMoments(x, y);
+      (*cell)[tmpcell].SetPerimeter(
+          GetNewPerimeterIfXYWereRemoved(tmpcell, x, y));
+      if (!(*cell)[tmpcell].Area()) {
+        (*cell)[tmpcell].Apoptose();
+      }
+    }
+
+    if ((tmpcell = sigma[xp][yp])) { // if tmpcell is not MEDIUM
+      (*cell)[tmpcell].IncrementArea();
+      (*cell)[tmpcell].AddSiteToMoments(x, y);
+      (*cell)[tmpcell].SetPerimeter(GetNewPerimeterIfXYWereAdded(tmpcell, x, y));
+    }
+    sigma[x][y] = sigma[xp][yp];
   }
 
-  if ((tmpcell = sigma[xp][yp])) { // if tmpcell is not MEDIUM
-    (*cell)[tmpcell].IncrementArea();
-    (*cell)[tmpcell].AddSiteToMoments(x, y);
-    (*cell)[tmpcell].SetPerimeter(GetNewPerimeterIfXYWereAdded(tmpcell, x, y));
-  }
-  sigma[x][y] = sigma[xp][yp];
+
 }
 
 
@@ -1869,7 +1950,7 @@ double CellularPotts::SumEnergy()
       int perim = c->Perimeter();
       int tperim = c->TargetPerimeter();
 
-      cout << ca << '\t' << ta << '\t' << perim << '\t' << tperim << endl;
+      // cout << ca << '\t' << ta << '\t' << perim << '\t' << tperim << endl;
 
       int area_energy = par.lambda * pow((ca - ta),2);
       int perim_energy = par.lambda_perimeter * pow((perim - tperim),2);

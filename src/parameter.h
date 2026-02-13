@@ -294,6 +294,8 @@ class Parameter {
   double J_mutate_probability;
   int penalty;
 
+  bool medium_area_constraint;
+
   bool measure_time_order_params;
   int measure_interval;
 

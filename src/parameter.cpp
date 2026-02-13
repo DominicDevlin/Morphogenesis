@@ -93,13 +93,13 @@
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 250;
     mcs = 2000001;
-    T = 3;
+    T = 12;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
     lambda = 0.5;
     lambda2 = 0; 
     div_threshold = 100;
-    cell_areas = 1600;
+    cell_areas = 100;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
     lambda_perimeter=0.0;
     lambda_perimeter_phase=0.0;
@@ -112,7 +112,7 @@
     
     periodic_boundaries = true;
     // keep this at 2= moore neighbourhood. 2 used in simulations. 
-    neighbours = 1;
+    neighbours = 2;
     // high value ensures cells are never broken apart by copy attempts.
     conn_diss = 2000;
 
@@ -261,7 +261,8 @@
       sizex = 450;
       sizey = 450;
       dewet_length=120;
-      dewet_cell_depth=4;
+      dewet_cell_depth=48;
+      cell_areas = 100;
 
       L2 = sqrt((sqrt(3.)/2) * cell_areas ) * dewet_cell_depth;
       // double tmp_length = L2 + (sqrt(pow(L2,2) + pow(M_PI * conserved_dewet_distance,2) )) / M_PI;
@@ -269,7 +270,7 @@
 
       // conserved_dewet_distance = 150;      
       H_perim = true;
-      ptarget_perimeter = 190;
+      ptarget_perimeter = 110;
       J_L = 0;
       lambda2 = 0;
       lambda_perimeter_phase = 2;
@@ -277,6 +278,7 @@
       J_med2 = J_med;
       tmpcounter=0;
       tmpcountertotal=0;
+      medium_area_constraint = false;
     }
 
     // GRN params
