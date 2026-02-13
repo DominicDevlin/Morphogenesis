@@ -186,6 +186,17 @@ TIMESTEP {
       }
     }
 
+    if (t%1==0)
+    {
+      double hh = dish->CPM->SumEnergy();
+      ofstream outfile;
+      string oname = par.data_file + "/counter.dat";
+      outfile.open(oname, ios::app);  // Append mode
+      outfile << double(par.tmpcounter) / double(par.tmpcountertotal) << endl;
+
+
+    }
+
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {

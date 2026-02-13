@@ -1559,8 +1559,8 @@ private:
     }
 
     // cout << dx << endl;
-    if (abs(dx) > 20)
-      cout << x << '\t' << y << '\t' << com_x << '\t' << com_y << '\t' << dx << endl;
+    // if (abs(dx) > 20)
+    //   cout << x << '\t' << y << '\t' << com_x << '\t' << com_y << '\t' << dx << endl;
 
     // Displacement of COM: dCOM = (COM_old - x) / (Area - 1)
     // Note: Removing a pixel moves the COM in the opposite direction

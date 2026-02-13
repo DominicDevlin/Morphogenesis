@@ -275,7 +275,8 @@ class Parameter {
 
 
   bool do_voronoi;
-
+  int tmpcounter;
+  int tmpcountertotal;
   double J_L;
   double J_S;
   double J_SL;

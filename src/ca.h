@@ -377,6 +377,8 @@ public:
 
   void MeanSquareDisplacement();
 
+  double SumEnergy();
+
   vector<vector<double>> ReturnMSD();
 
   vector<double> ReturnDriftCorrectedMSD();

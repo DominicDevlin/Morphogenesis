@@ -324,55 +324,55 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
     { // border 
       DH += (sxyp==0?0:par.border_energy)-(sxy==0?0:par.border_energy);
     } 
-    else 
-    {
-      // UP TO HERE!
-      // DH += (*cell)[sxyp].CalculateJfromKeyLock((*cell)[neighsite].get_locks_bool(), (*cell)[neighsite].get_keys_bool()) 
-      // - 
-      if (par.sheet)
-      {
-        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
-        // This is going to be an anisotropic adhesion function that adds an adhesion energy along one axis
-        // if (x > xcen + 4 || x < xcen - 4)
-        // {
-        //   DH -= par.lambda3;
-        // }
-        // if (xp > xcenp + 4 || xp < xcenp - 4)
-        // {
-        //   DH += par.lambda3;
-        // }
-      }
-      else if (par.melting_adhesion)
-      {
-        if (tsteps < par.end_program)
-          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
-        else
-          DH += (*cell)[sxyp].Melt((*cell)[neighsite], y) - (*cell)[sxy].Melt((*cell)[neighsite], y);
-      }
-      else if (par.phase_evolution)
-      {
-        if (tsteps < par.end_program)
-          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
-        else
-          DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
+    // else 
+    // {
+    //   // UP TO HERE!
+    //   // DH += (*cell)[sxyp].CalculateJfromKeyLock((*cell)[neighsite].get_locks_bool(), (*cell)[neighsite].get_keys_bool()) 
+    //   // - 
+    //   if (par.sheet)
+    //   {
+    //     DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
+    //     // This is going to be an anisotropic adhesion function that adds an adhesion energy along one axis
+    //     // if (x > xcen + 4 || x < xcen - 4)
+    //     // {
+    //     //   DH -= par.lambda3;
+    //     // }
+    //     // if (xp > xcenp + 4 || xp < xcenp - 4)
+    //     // {
+    //     //   DH += par.lambda3;
+    //     // }
+    //   }
+    //   else if (par.melting_adhesion)
+    //   {
+    //     if (tsteps < par.end_program)
+    //       DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+    //     else
+    //       DH += (*cell)[sxyp].Melt((*cell)[neighsite], y) - (*cell)[sxy].Melt((*cell)[neighsite], y);
+    //   }
+    //   else if (par.phase_evolution)
+    //   {
+    //     if (tsteps < par.end_program)
+    //       DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+    //     else
+    //       DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
 
-        // cout << "adhesion: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) << endl;
-      }
-      else
-      {
-        if (tsteps < par.end_program)
-          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
-        else
-          DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
+    //     // cout << "adhesion: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) << endl;
+    //   }
+    //   else
+    //   {
+    //     if (tsteps < par.end_program)
+    //       DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+    //     else
+    //       DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
         
         
-      }
-      // debugging. 
-      // cout << "COPYING: " << (*cell)[sxyp].getTau() << (*cell)[sxy].getTau() << std::endl;
-      // cout << "sxyp is type: " << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) 
-      // << ". sxy is type:" << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxy].EnergyDifference((*cell)[neighsite]) << std::endl;
+    //   }
+    //   // debugging. 
+    //   // cout << "COPYING: " << (*cell)[sxyp].getTau() << (*cell)[sxy].getTau() << std::endl;
+    //   // cout << "sxyp is type: " << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) 
+    //   // << ". sxy is type:" << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxy].EnergyDifference((*cell)[neighsite]) << std::endl;
       
-    }
+    // }
   }
   
   // lambda is determined by chemical 0
@@ -393,26 +393,26 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
 			       - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
 
   /* Active motion term */
-  if (par.active_motion)
-  {
-    if ( sxyp == MEDIUM)
-    {
+  // if (par.active_motion)
+  // {
+  //   if ( sxyp == MEDIUM)
+  //   {
       
-      DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
-      // cout << "active: " << par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y) << endl;
-    }
-    else if (sxy == MEDIUM)
-    {
-      DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
-    }
-    else
-    {
-      // cout << "dot product with cell: " << (*cell)[sxy].ActiveDotProduct_removed(x,y);
-      DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
-      DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+  //     DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+  //     // cout << "active: " << par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y) << endl;
+  //   }
+  //   else if (sxy == MEDIUM)
+  //   {
+  //     DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
+  //   }
+  //   else
+  //   {
+  //     // cout << "dot product with cell: " << (*cell)[sxy].ActiveDotProduct_removed(x,y);
+  //     DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
+  //     DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
       
-    }
-  }
+  //   }
+  // }
 
   
   /* Length constraint */
@@ -439,7 +439,6 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
             (*cell)[sxy].TargetLength()) )) );
     }
   }
-
   
   if (par.H_perim) 
   {
@@ -509,7 +508,6 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
     DH += DH_perimeter;
   }
   
-
   return DH;
   // double Pconst=1;
   // /* Perimeter constraint */
@@ -919,9 +917,10 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
           is_med_attempt = true;
           ++medp_count;
         }
-          
+        ++par.tmpcountertotal;
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
+          ++par.tmpcounter;
           if (par.H_perim)
             ConvertSpinPerim( x,y,xp,yp );
           else
@@ -1856,6 +1855,30 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
   }
   if (par.phase_evolution)
     Init_Optimizer();
+}
+
+double CellularPotts::SumEnergy()
+{
+  double sumH=0;
+  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
+  {
+    if (c->AliveP()) 
+    {
+      int ca = c->Area();
+      int ta = c->TargetArea();
+      int perim = c->Perimeter();
+      int tperim = c->TargetPerimeter();
+
+      cout << ca << '\t' << ta << '\t' << perim << '\t' << tperim << endl;
+
+      int area_energy = par.lambda * pow((ca - ta),2);
+      int perim_energy = par.lambda_perimeter * pow((perim - tperim),2);
+
+      sumH += area_energy;
+      sumH += perim_energy;
+    } 
+  }
+  return sumH;
 }
 
 

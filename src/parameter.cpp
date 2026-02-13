@@ -99,7 +99,7 @@
     lambda = 0.5;
     lambda2 = 0; 
     div_threshold = 100;
-    cell_areas = 100;
+    cell_areas = 1600;
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
     lambda_perimeter=0.0;
     lambda_perimeter_phase=0.0;
@@ -112,7 +112,7 @@
     
     periodic_boundaries = true;
     // keep this at 2= moore neighbourhood. 2 used in simulations. 
-    neighbours = 2;
+    neighbours = 1;
     // high value ensures cells are never broken apart by copy attempts.
     conn_diss = 2000;
 
@@ -199,8 +199,8 @@
     init_wetting=1000;
     sheet_depth=95;
     sheet_shift=10;
-    dewet_length=200;
-    dewet_cell_depth=1;
+    dewet_length=150;
+    dewet_cell_depth=10;
     conserved_dewet_distance = 150;
     // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
@@ -253,24 +253,30 @@
 
 
     //active term params
-    active_motion = false;
-    motility_strength = 12.0;
+    active_motion = true;
+    motility_strength = 0.0;
     persistence_time = 50.;
     if (active_motion)
     {
       sizex = 450;
       sizey = 450;
-      dewet_length=420;
-      dewet_cell_depth=48;
+      dewet_length=120;
+      dewet_cell_depth=4;
 
-      conserved_dewet_distance = 150;      
+      L2 = sqrt((sqrt(3.)/2) * cell_areas ) * dewet_cell_depth;
+      // double tmp_length = L2 + (sqrt(pow(L2,2) + pow(M_PI * conserved_dewet_distance,2) )) / M_PI;
+      // dewet_length=round(tmp_length);
+
+      // conserved_dewet_distance = 150;      
       H_perim = true;
-      ptarget_perimeter = 110;
+      ptarget_perimeter = 190;
       J_L = 0;
       lambda2 = 0;
       lambda_perimeter_phase = 2;
       J_med = 0;
       J_med2 = J_med;
+      tmpcounter=0;
+      tmpcountertotal=0;
     }
 
     // GRN params
