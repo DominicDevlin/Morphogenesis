@@ -93,7 +93,7 @@
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 250;
     mcs = 2000001;
-    T = 12;
+    T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
     lambda = 0.5;
@@ -269,16 +269,16 @@
       // dewet_length=round(tmp_length);
 
       // conserved_dewet_distance = 150;      
-      H_perim = true;
+      H_perim = false;
       ptarget_perimeter = 110;
-      J_L = 0;
+      J_L = 2;
       lambda2 = 0;
       lambda_perimeter_phase = 2;
-      J_med = 0;
+      J_med = 1;
       J_med2 = J_med;
       tmpcounter=0;
       tmpcountertotal=0;
-      medium_area_constraint = false;
+      medium_area_constraint = true;
     }
 
     // GRN params
