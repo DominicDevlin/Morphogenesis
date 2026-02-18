@@ -96,10 +96,20 @@ using namespace std;
 void CellularPotts::BaseInitialisation(vector<Cell> *cells) {
   CopyProb(par.T);
   cell=cells;
-  if (par.neighbours>=1 && par.neighbours<=4)
-    n_nb=nbh_level[par.neighbours];
+  if (par.copy_neighbourhood>=1 && par.copy_neighbourhood<=4)
+    n_nb=nbh_level[par.copy_neighbourhood];
   else 
     throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4]).";
+
+  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=4)
+    n_nb_adh=nbh_level[par.adhesion_neighbourhood];
+  else 
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
+
+  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=4)
+    n_nb_perim=nbh_level[par.perimeter_neighbourhood];
+  else 
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
   
 }
 
@@ -134,8 +144,18 @@ CellularPotts::CellularPotts(vector<Cell> *cells,
     sigma[sizex-1][y]=-1;
   }
   
-  if (par.neighbours>=1 && par.neighbours<=4)
-    n_nb=nbh_level[par.neighbours];
+  if (par.copy_neighbourhood>=1 && par.copy_neighbourhood<=4)
+    n_nb=nbh_level[par.copy_neighbourhood];
+  else 
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
+
+  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=4)
+    n_nb_adh=nbh_level[par.adhesion_neighbourhood];
+  else 
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
+
+  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=4)
+    n_nb_perim=nbh_level[par.perimeter_neighbourhood];
   else 
     throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
 }
@@ -162,8 +182,18 @@ CellularPotts::CellularPotts(void) {
     sigma[0][y]=-1;
     sigma[sizex-1][y]=-1;
   }
-  if (par.neighbours>=1 && par.neighbours<=4)
-    n_nb=nbh_level[par.neighbours];
+  if (par.copy_neighbourhood>=1 && par.copy_neighbourhood<=4)
+    n_nb=nbh_level[par.copy_neighbourhood];
+  else 
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
+
+  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=4)
+    n_nb_adh=nbh_level[par.adhesion_neighbourhood];
+  else 
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
+
+  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=4)
+    n_nb_perim=nbh_level[par.perimeter_neighbourhood];
   else 
     throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
 }
@@ -308,7 +338,7 @@ double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE 
 
     
   /* DH due to cell adhesion */
-  for (i=1;i<=n_nb;i++) 
+  for (i=1;i<=n_nb_adh;i++) 
   {
     int xp2,yp2;
     xp2=x+nx[i]; yp2=y+ny[i];
@@ -650,7 +680,7 @@ void CellularPotts::MeasureSinglePerimeter(int targetsigma)
     for (int y = 1; y < sizey - 1; y++) 
     {
       if (sigma[x][y] == targetsigma) {
-        for (int i = 1; i <= n_nb; i++) {
+        for (int i = 1; i <= n_nb_perim; i++) {
           int xp2, yp2;
           xp2 = x + nx[i];
           yp2 = y + ny[i];
@@ -692,7 +722,7 @@ void CellularPotts::MeasureCellPerimeters()
   {
     for (int y = 1; y < sizey - 1; y++) {
       if (sigma[x][y] > 0) {
-        for (int i = 1; i <= n_nb; i++) {
+        for (int i = 1; i <= n_nb_perim; i++) {
           int xp2, yp2;
           xp2 = x + nx[i];
           yp2 = y + ny[i];
@@ -851,7 +881,7 @@ int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
  This means that the sxyp neighbours of (x,y) will not be borders anymore,so
  they can be subtracted from the perimeter of sxyp.
 */
-  for (int i = 1; i <= n_nb; i++) {
+  for (int i = 1; i <= n_nb_perim; i++) {
 
     int xp2, yp2;
 
@@ -886,7 +916,7 @@ int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y) {
   int perim = (*cell)[sxy].Perimeter();
   /* the cell with sigma sxy loses xy
    */
-  for (int i = 1; i <= n_nb; i++) {
+  for (int i = 1; i <= n_nb_perim; i++) {
 
     int xp2, yp2;
     xp2 = x + nx[i];
@@ -925,6 +955,10 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     return 0;
 
   loop=(sizex-2)*(sizey-2);
+
+  int present_states[n_nb];
+  int exemplar_neighbour_indices[n_nb];
+  int distinct_count=0;
  
   for (int i=0;i<loop;i++) 
   {  
@@ -934,40 +968,78 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     int y = xy/(sizex-2)+1; 
     
     // take a random neighbour
-    int xyp=(int)(n_nb*RANDOM(s_val)+1);
-    int xp = nx[xyp]+x;
-    int yp = ny[xyp]+y;
+    // int xyp=(int)(n_nb*RANDOM(s_val)+1);
+    // int xp = nx[xyp]+x;
+    // int yp = ny[xyp]+y;
     
     int k=sigma[x][y];
 
 
+    distinct_count=0;
+
+
+  for (int j = 1; j <= n_nb; j++) 
+  {
+      int tx = nx[j] + x;
+      int ty = ny[j] + y;
+      int neighbor_val = -1;
+
+      if (par.periodic_boundaries) 
+      {
+          if (tx <= 0) tx = sizex - 2 + tx;
+          if (ty <= 0) ty = sizey - 2 + ty;
+          if (tx >= sizex - 1) tx = tx - sizex + 2;
+          if (ty >= sizey - 1) ty = ty - sizey + 2;
+          
+          neighbor_val = sigma[tx][ty];
+      } 
+      else 
+      {
+          if (tx <= 0 || ty <= 0 || tx >= sizex - 1 || ty >= sizey - 1)
+              neighbor_val = -1; // Boundary value
+          else
+              neighbor_val = sigma[tx][ty];
+      }
+
+      // Check if this state is already in our list
+      bool seen = false;
+      for (int u = 0; u < distinct_count; u++) {
+          if (present_states[u] == neighbor_val) {
+              seen = true;
+              break;
+          }
+      }
+
+      // If new unique state, add it
+      if (!seen && distinct_count < 32) {
+          present_states[distinct_count] = neighbor_val;
+          exemplar_neighbour_indices[distinct_count] = j;
+          distinct_count++;
+      }
+    }
+
+    // 3. Randomly select a TARGET STATE from the unique list
+    if (distinct_count == 0) continue; // Should not happen unless isolated
     
-    int kp;
+    int rand_idx = (int)(distinct_count * RANDOM(s_val));
+    int kp = present_states[rand_idx];
+    
+    // Recover coordinates (xp, yp) of the neighbor that had this state.
+    // This is necessary because DeltaH/ConvertSpin likely rely on coordinates.
+    // We use the 'exemplar' neighbor we found during the scan.
+    int chosen_nb_idx = exemplar_neighbour_indices[rand_idx];
+    int xp = nx[chosen_nb_idx] + x;
+    int yp = ny[chosen_nb_idx] + y;
+
+    // Recalculate boundary coords for xp, yp exactly as before for use in DeltaH
     if (par.periodic_boundaries) 
     {
-      
-      // since we are asynchronic, we cannot just copy the borders once 
-      // every MCS
-      if (xp<=0)
-	      xp=sizex-2+xp;
-      if (yp<=0)
-	      yp=sizey-2+yp;
-      if (xp>=sizex-1)
-	      xp=xp-sizex+2;
-      if (yp>=sizey-1)
-	      yp=yp-sizey+2;
-      
-      kp=sigma[xp][yp];
-      
-      
-    } 
-    else 
-    {
-      if (xp<=0 || yp<=0 || xp>=sizex-1 || yp>=sizey-1)
-	      kp=-1;
-      else
-	      kp=sigma[xp][yp];
+      if (xp<=0) xp=sizex-2+xp;
+      if (yp<=0) yp=sizey-2+yp;
+      if (xp>=sizex-1) xp=xp-sizex+2;
+      if (yp>=sizey-1) yp=yp-sizey+2;
     }
+
 
 
     bool check1 = IsLocallyConnected(x, y, k);
@@ -5586,7 +5658,7 @@ void CellularPotts::PhaseShapeIndex(int time, bool measure_proportion)
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=par.neighbours; // (using n_nb because 2)
+  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
 
@@ -5606,7 +5678,7 @@ void CellularPotts::PhaseShapeIndex(int time, bool measure_proportion)
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb;i++) 
+        for (int i=1;i<=n_nb_perim;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -11577,7 +11649,7 @@ void CellularPotts::adjustPerimeters()
       if(sigma[x][y] != celln )
           printf("\nproblem, we have a cell site that thinks it's not in the cell: (%d, %d)", x, y);
 
-      for (int i=1;i<=n_nb;i++) 
+      for (int i=1;i<=n_nb_perim;i++) 
       {
         int xp2,yp2;
         xp2=x+nx[i]; yp2=y+ny[i];
@@ -11624,7 +11696,7 @@ void CellularPotts::adjustPerimeters()
 map<int, double> CellularPotts::TruePerimetersMap()
 {
   //  See Magno et al (2015) BMC biophysics for correction factor.
-  int neigh_level=2; // (using n_nb because 2)
+  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
   map<int, double> toreturn;
@@ -11643,7 +11715,7 @@ map<int, double> CellularPotts::TruePerimetersMap()
         int y=it->second;
 
 
-        for (int i=1;i<=n_nb;i++) 
+        for (int i=1;i<=n_nb_perim;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -11694,7 +11766,7 @@ map<int, double> CellularPotts::TruePerimetersMap()
 vector<double> CellularPotts::TruePerimeters()
 {
   //  See Magno et al (2015) BMC biophysics for correction factor.
-  int neigh_level=2; // (using n_nb because 2)
+  int neigh_level=par.copy_neighbourhood;; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
   vector<double> toreturn;
@@ -11713,7 +11785,7 @@ vector<double> CellularPotts::TruePerimeters()
         int y=it->second;
 
 
-        for (int i=1;i<=n_nb;i++) 
+        for (int i=1;i<=n_nb_perim;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -11871,7 +11943,7 @@ void CellularPotts::ShapeIndex()
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=par.neighbours; // (using n_nb because 2)
+  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
 
@@ -11888,7 +11960,7 @@ void CellularPotts::ShapeIndex()
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb;i++) 
+        for (int i=1;i<=n_nb_perim;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -11940,7 +12012,7 @@ void CellularPotts::MeasureShapeIndex()
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=par.neighbours; // (using n_nb because 2)
+  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
 
@@ -11961,7 +12033,7 @@ void CellularPotts::MeasureShapeIndex()
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb;i++) 
+        for (int i=1;i<=n_nb_perim;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -12246,7 +12318,7 @@ void CellularPotts::ShapeOrder(int time)
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=2; // (using n_nb because 2)
+  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
   double correction=3.;
 
 
@@ -12263,7 +12335,7 @@ void CellularPotts::ShapeOrder(int time)
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb;i++) 
+        for (int i=1;i<=n_nb_perim;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -12349,7 +12421,7 @@ void CellularPotts::ShapeIndexByState()
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb;i++) 
+        for (int i=1;i<=n_nb_perim;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -12508,7 +12580,6 @@ int CellularPotts::EmptySpace()
 vector<double> CellularPotts::TrueAdhesion()
 {
   //  See Magno et al (2015) BMC biophysics for correction factor.
-  int neigh_level=2; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
   vector<double> toreturn;
@@ -12527,7 +12598,7 @@ vector<double> CellularPotts::TrueAdhesion()
         int y=it->second;
 
 
-        for (int i=1;i<=n_nb;i++) 
+        for (int i=1;i<=n_nb_adh;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -12589,7 +12660,6 @@ vector<double> CellularPotts::TrueAdhesion()
 void CellularPotts::AdhesionByState()
 {
 
-  int neigh_level=2; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
 
@@ -12608,7 +12678,7 @@ void CellularPotts::AdhesionByState()
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb;i++) 
+        for (int i=1;i<=n_nb_adh;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];

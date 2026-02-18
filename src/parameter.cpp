@@ -103,6 +103,7 @@
     // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
     lambda_perimeter=0.0;
     lambda_perimeter_phase=0.0;
+    // NEIGHBOURHOOD MULTIPLIER DEPENDS ON NUMBER OF NEIGHBOURS (SEE MAGNO 2015)
     neighbour_multiplier=3;
     ptarget_perimeter=3.7*neighbour_multiplier;//*M_PI * sqrt(cell_areas/M_PI)*neighbour_multiplier;
     // must be false. turned true automatically.
@@ -111,9 +112,14 @@
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
     
     periodic_boundaries = true;
-    // keep this at 2= moore neighbourhood. 2 used in old simulations.
-    // NOTE - FOR DETAILED BALANCE WE NEED NEIGHBOURHOOD = 1 (see Durand 2016)
-    neighbours = 1;
+    // copy neighbourhood 2 used in old simulations.
+    // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
+    // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
+    adhesion_neighbourhood=2;
+    perimeter_neighbourhood=adhesion_neighbourhood;
+    copy_neighbourhood=1;
+
+
     // high value ensures cells are never broken apart by copy attempts.
     conn_diss = 1000000;
 
@@ -255,27 +261,27 @@
 
     //active term params
     active_motion = true;
-    motility_strength = 0.0;
+    motility_strength = 2.0;
     persistence_time = 50.;
     if (active_motion)
     {
       sizex = 450;
       sizey = 450;
-      dewet_length=120;
-      dewet_cell_depth=20;
-      cell_areas = 600;
+      dewet_length=400;
+      dewet_cell_depth=44;
+      cell_areas = 100;
 
       L2 = sqrt((sqrt(3.)/2) * cell_areas ) * dewet_cell_depth;
       // double tmp_length = L2 + (sqrt(pow(L2,2) + pow(M_PI * conserved_dewet_distance,2) )) / M_PI;
       // dewet_length=round(tmp_length);
 
       // conserved_dewet_distance = 150;      
-      H_perim = true;
-      ptarget_perimeter = 120;
-      J_L = -1;
+      H_perim = false;
+      ptarget_perimeter = 100;
+      J_L = 4;
       lambda2 = 0;
       lambda_perimeter_phase = 0.2;
-      J_med = 0;
+      J_med = 2;
       J_med2 = J_med;
       tmpcounter=0;
       tmpcountertotal=0;
@@ -766,7 +772,7 @@
     os << " extensiononly = " << sbool(extensiononly) << endl;
     os << " chemotaxis = " << chemotaxis << endl;
     os << " border_energy = " << border_energy << endl;
-    os << " neighbours = " << neighbours << endl;
+    os << " neighbours = " << copy_neighbourhood << endl;
     os << " periodic_boundaries = " << sbool(periodic_boundaries) << endl;
     os << " n_chem = " << n_chem << endl;
     os << " diff_coeff = "<< diff_coeff[0] << endl;

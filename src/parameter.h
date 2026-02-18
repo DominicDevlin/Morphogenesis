@@ -49,7 +49,9 @@ class Parameter {
   bool extensiononly;
   int chemotaxis;
   int border_energy;
-  int neighbours;
+  int adhesion_neighbourhood;
+  int perimeter_neighbourhood;
+  int copy_neighbourhood;
   bool periodic_boundaries;
   int n_chem;
   double * diff_coeff; //DIFFUSER CORRECTION NEEDED

@@ -888,6 +888,8 @@ private:
   int zygote_area;
   int thetime;
   int n_nb;
+  int n_nb_adh;
+  int n_nb_perim;
 
   int stack[8]; // stack to count number of different surrounding cells, CHANGE TO MEMBER FUNCTION
 
