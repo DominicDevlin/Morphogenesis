@@ -93,7 +93,7 @@
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 250;
     mcs = 2000001;
-    T = 100;
+    T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
     lambda = 0.5;
@@ -111,10 +111,11 @@
     // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
     
     periodic_boundaries = true;
-    // keep this at 2= moore neighbourhood. 2 used in simulations. 
-    neighbours = 2;
+    // keep this at 2= moore neighbourhood. 2 used in old simulations.
+    // NOTE - FOR DETAILED BALANCE WE NEED NEIGHBOURHOOD = 1 (see Durand 2016)
+    neighbours = 1;
     // high value ensures cells are never broken apart by copy attempts.
-    conn_diss = 2000;
+    conn_diss = 1000000;
 
 /* adhesion params */
 
@@ -261,8 +262,8 @@
       sizex = 450;
       sizey = 450;
       dewet_length=120;
-      dewet_cell_depth=48;
-      cell_areas = 100;
+      dewet_cell_depth=20;
+      cell_areas = 600;
 
       L2 = sqrt((sqrt(3.)/2) * cell_areas ) * dewet_cell_depth;
       // double tmp_length = L2 + (sqrt(pow(L2,2) + pow(M_PI * conserved_dewet_distance,2) )) / M_PI;
@@ -270,10 +271,10 @@
 
       // conserved_dewet_distance = 150;      
       H_perim = true;
-      ptarget_perimeter = 110;
-      J_L = 0;
+      ptarget_perimeter = 120;
+      J_L = -1;
       lambda2 = 0;
-      lambda_perimeter_phase = 2;
+      lambda_perimeter_phase = 0.2;
       J_med = 0;
       J_med2 = J_med;
       tmpcounter=0;

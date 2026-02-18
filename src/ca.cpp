@@ -939,6 +939,8 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     int yp = ny[xyp]+y;
     
     int k=sigma[x][y];
+
+
     
     int kp;
     if (par.periodic_boundaries) 
@@ -967,14 +969,16 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
 	      kp=sigma[xp][yp];
     }
 
+
+    bool check1 = IsLocallyConnected(x, y, k);
+    bool check2 = IsLocallyConnected(x, y, kp);
+
     // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
     // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
 
-
-
     // test for border state (relevant only if we do not use 
     // periodic boundaries)
-    if (kp!=-1) 
+    if (kp!=-1 && check1 == true && check2 == true) 
     {  
       // Don't even think of copying the special border state into you!
     
@@ -984,21 +988,21 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
         /* Try to copy if sites do not belong to the same cell */
         // connectivity dissipation:
         int H_diss=0;
-        if (!ConnectivityPreservedP(x,y)) 
-          H_diss=par.conn_diss;
+        // if (!ConnectivityPreservedP(x,y)) 
+        //   H_diss=par.conn_diss;
         
         double D_H=DeltaH(x,y,xp,yp, tsteps, PDEfield);
         
         // dH_tally += D_H;
         // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
         //   cout << D_H << endl;
-        bool is_med_attempt = false;
-        if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
-        {
-          is_med_attempt = true;
-          ++medp_count;
-        }
-        ++par.tmpcountertotal;
+        // bool is_med_attempt = false;
+        // if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
+        // {
+        //   is_med_attempt = true;
+        //   ++medp_count;
+        // }       
+        // ++par.tmpcountertotal;
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
           ++par.tmpcounter;
@@ -1007,10 +1011,10 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
           else
           {
             ConvertSpin( x,y,xp,yp );
-            if (is_med_attempt)
-            {
-              ++medp_success;
-            }
+          //   if (is_med_attempt)
+          //   {
+          //     ++medp_success;
+          //   }
           }
             
         }
@@ -1044,6 +1048,144 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
   return SumDH;
   
 }
+
+//! Check if the set of neighbors with value 'check_val' forms a single connected component.
+//! This ensures that removing a pixel (Candidate) doesn't split a cell, 
+//! and adding a pixel (Target) doesn't create a handle/hole.
+
+bool CellularPotts::IsLocallyConnected(int x, int y, int check_val) 
+{
+  
+  if (check_val == 0) {
+    return true;
+  }
+
+  // Neighbor offsets for the 8-neighbor cycle (with overlap for i and i+1)
+  const int cyc_nnx[10] = {-1, -1, 0, 1, 1, 1, 0, -1, -1, -1 };
+  const int cyc_nny[10] = {0, -1,-1,-1, 0, 1, 1,  1,  0, -1 };
+
+  int n_borders = 0;
+
+  for (int i = 1; i <= 8; i++) {
+    
+    // Calculate raw coordinates for the current neighbor (i) 
+    // and the next neighbor in the cycle (i+1)
+    int nx1 = x + cyc_nnx[i];
+    int ny1 = y + cyc_nny[i];
+    
+    int nx2 = x + cyc_nnx[i+1];
+    int ny2 = y + cyc_nny[i+1];
+
+    // Apply Periodic Boundaries if enabled
+    // Logic adapted strictly from GetNewPerimeterIfXYWereRemoved
+    if (par.periodic_boundaries) {
+      
+      // Wrap current neighbor (nx1, ny1)
+      if (nx1 <= 0) nx1 = sizex - 2 + nx1;
+      if (ny1 <= 0) ny1 = sizey - 2 + ny1;
+      if (nx1 >= sizex - 1) nx1 = nx1 - sizex + 2;
+      if (ny1 >= sizey - 1) ny1 = ny1 - sizey + 2;
+
+      // Wrap next neighbor (nx2, ny2)
+      if (nx2 <= 0) nx2 = sizex - 2 + nx2;
+      if (ny2 <= 0) ny2 = sizey - 2 + ny2;
+      if (nx2 >= sizex - 1) nx2 = nx2 - sizex + 2;
+      if (ny2 >= sizey - 1) ny2 = ny2 - sizey + 2;
+    }
+
+    int s_nb = sigma[nx1][ny1];
+    int s_next_nb = sigma[nx2][ny2];
+    
+    if ((s_nb == check_val || s_next_nb == check_val) && (s_nb != s_next_nb)) 
+    {
+      // check whether s_nb is adjacent to non-identical site, count it
+      n_borders++;
+    }
+  }
+
+  // Connectivity check: In a locally connected grid on a square lattice, 
+  // there should be no more than 2 transitions entering/leaving the cell region.
+  if (n_borders > 2) 
+  {
+    return false;
+  }
+  else 
+  {
+    return true;
+  }
+}
+
+
+// Predicate returns true when connectivity is locally preserved
+// if the value of the central site would be changed
+bool CellularPotts::ConnectivityPreservedP(int x, int y) {
+  
+  // Use local nx and ny in a cyclic order (starts at upper left corner)
+  // first site is repeated, for easier looping
+  const int cyc_nx[10] = {-1, -1, 0, 1, 1, 1, 0, -1, -1, -1 };
+  const int cyc_ny[10] = {0, -1,-1,-1, 0, 1, 1,  1,  0, -1 };
+  
+  int sxy=sigma[x][y]; // the central site
+  if (sxy==0) return true;
+
+  int n_borders=0; // to count the amount of sites in state sxy bordering a site !=sxy
+
+  int stackp=-1;
+  bool one_of_neighbors_medium=false;
+  
+  for (int i=1;i<=8;i++) {
+    
+    int s_nb=sigma[x+cyc_nx[i]][y+cyc_ny[i]];
+    int s_next_nb=sigma[x+cyc_nx[i+1]][y+cyc_ny[i+1]];
+    
+    if ((s_nb==sxy || s_next_nb==sxy) && (s_nb!=s_next_nb)) {
+      
+      // check whether s_nb is adjacent to non-identical site,
+      // count it
+      n_borders++;
+    }
+    int j;
+    bool on_stack_p=false;
+    
+    // we need the next heuristic to prevent stalling at
+    // cell-cell borders
+    // do not enforce constraint at two cell interface(no medium)
+    if (s_nb) 
+    {
+      for (j=stackp;j>=0;j--) 
+      {
+        if (s_nb==stack[j]) 
+        {
+          on_stack_p=true;
+          break;
+        }
+      }
+      if (!on_stack_p) 
+      {
+	      if (stackp>6) 
+        {
+	        cerr << "Stack overflow, stackp=" << stackp << "\n";
+	      }
+	      stack[++stackp]=s_nb;
+      }
+    }
+    else 
+    {
+      one_of_neighbors_medium=true;
+    }
+  }
+  
+  // number of different neighbours is stackp+1;
+  if (n_borders>2 && ( (stackp+1)>2 || one_of_neighbors_medium) ) 
+  {
+    return false;
+  }
+  else 
+    return true;
+
+}
+
+
 
 /** A simple method to plot all sigma's in window
     without the black lines */
@@ -3853,74 +3995,6 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int o
   return cellnum;
 }
   
-
-// Predicate returns true when connectivity is locally preserved
-// if the value of the central site would be changed
-bool CellularPotts::ConnectivityPreservedP(int x, int y) {
-  
-  // Use local nx and ny in a cyclic order (starts at upper left corner)
-  // first site is repeated, for easier looping
-  const int cyc_nx[10] = {-1, -1, 0, 1, 1, 1, 0, -1, -1, -1 };
-  const int cyc_ny[10] = {0, -1,-1,-1, 0, 1, 1,  1,  0, -1 };
-  
-  int sxy=sigma[x][y]; // the central site
-  if (sxy==0) return true;
-
-  int n_borders=0; // to count the amount of sites in state sxy bordering a site !=sxy
-
-  int stackp=-1;
-  bool one_of_neighbors_medium=false;
-  
-  for (int i=1;i<=8;i++) {
-    
-    int s_nb=sigma[x+cyc_nx[i]][y+cyc_ny[i]];
-    int s_next_nb=sigma[x+cyc_nx[i+1]][y+cyc_ny[i+1]];
-    
-    if ((s_nb==sxy || s_next_nb==sxy) && (s_nb!=s_next_nb)) {
-      
-      // check whether s_nb is adjacent to non-identical site,
-      // count it
-      n_borders++;
-    }
-    int j;
-    bool on_stack_p=false;
-    
-    // we need the next heuristic to prevent stalling at
-    // cell-cell borders
-    // do not enforce constraint at two cell interface(no medium)
-    if (s_nb) 
-    {
-      for (j=stackp;j>=0;j--) 
-      {
-        if (s_nb==stack[j]) 
-        {
-          on_stack_p=true;
-          break;
-        }
-      }
-      if (!on_stack_p) 
-      {
-	      if (stackp>6) 
-        {
-	        cerr << "Stack overflow, stackp=" << stackp << "\n";
-	      }
-	      stack[++stackp]=s_nb;
-      }
-    }
-    else 
-    {
-      one_of_neighbors_medium=true;
-    }
-  }
-  
-  // number of different neighbours is stackp+1;
-  if (n_borders>2 && ( (stackp+1)>2 || one_of_neighbors_medium) ) {
-    return false;
-  }
-  else 
-    return true;
-
-}
 
 
 double CellularPotts::CellDensity(void) const {

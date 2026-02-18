@@ -381,6 +381,9 @@ public:
 
   void SetMediumArea();
 
+  bool IsLocallyConnected(int x, int y, int check_val);
+
+
   vector<vector<double>> ReturnMSD();
 
   vector<double> ReturnDriftCorrectedMSD();
