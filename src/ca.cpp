@@ -967,19 +967,11 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     int x = xy%(sizex-2)+1;
     int y = xy/(sizex-2)+1; 
     
-    // take a random neighbour
-    // int xyp=(int)(n_nb*RANDOM(s_val)+1);
-    // int xp = nx[xyp]+x;
-    // int yp = ny[xyp]+y;
-    
     int k=sigma[x][y];
-
-
     distinct_count=0;
 
-
-  for (int j = 1; j <= n_nb; j++) 
-  {
+    for (int j = 1; j <= n_nb; j++) 
+    {
       int tx = nx[j] + x;
       int ty = ny[j] + y;
       int neighbor_val = -1;
@@ -1040,8 +1032,6 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
       if (yp>=sizey-1) yp=yp-sizey+2;
     }
 
-
-
     bool check1 = IsLocallyConnected(x, y, k);
     bool check2 = IsLocallyConnected(x, y, kp);
 
@@ -1065,16 +1055,6 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
         
         double D_H=DeltaH(x,y,xp,yp, tsteps, PDEfield);
         
-        // dH_tally += D_H;
-        // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
-        //   cout << D_H << endl;
-        // bool is_med_attempt = false;
-        // if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
-        // {
-        //   is_med_attempt = true;
-        //   ++medp_count;
-        // }       
-        // ++par.tmpcountertotal;
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
           ++par.tmpcounter;
@@ -1089,6 +1069,108 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
           //   }
           }
             
+        }
+      }
+    } 
+  }
+  return SumDH;
+  
+}
+
+
+int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
+{
+  int loop,p;
+  //int updated=0;
+  thetime++;
+  int SumDH=0;
+  
+  if (frozen) 
+    return 0;
+
+  loop=(sizex-2)*(sizey-2);
+ 
+  for (int i=0;i<loop;i++) 
+  {  
+    // take a random site
+    int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
+    int x = xy%(sizex-2)+1;
+    int y = xy/(sizex-2)+1; 
+    
+    // take a random neighbour
+    int xyp=(int)(n_nb*RANDOM(s_val)+1);
+    int xp = nx[xyp]+x;
+    int yp = ny[xyp]+y;
+    
+    int k=sigma[x][y];
+    
+    int kp;
+    if (par.periodic_boundaries) 
+    {
+      // since we are asynchronic, we cannot just copy the borders once 
+      // every MCS
+      if (xp<=0)
+	      xp=sizex-2+xp;
+      if (yp<=0)
+	      yp=sizey-2+yp;
+      if (xp>=sizex-1)
+	      xp=xp-sizex+2;
+      if (yp>=sizey-1)
+	      yp=yp-sizey+2;
+      
+      kp=sigma[xp][yp];
+      
+    } 
+    else 
+    {
+      if (xp<=0 || yp<=0 || xp>=sizex-1 || yp>=sizey-1)
+	      kp=-1;
+      else
+	      kp=sigma[xp][yp];
+    }
+    // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+    // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+
+    // test for border state (relevant only if we do not use 
+    // periodic boundaries)
+    if (kp!=-1) 
+    {  
+      // Don't even think of copying the special border state into you!
+    
+     
+      if ( k  != kp ) 
+      {
+        /* Try to copy if sites do not belong to the same cell */
+        // connectivity dissipation:
+        int H_diss=0;
+        if (!ConnectivityPreservedP(x,y)) 
+          H_diss=par.conn_diss;
+        
+        double D_H=DeltaH(x,y,xp,yp, tsteps, PDEfield);
+        
+        // dH_tally += D_H;
+        // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+        //   cout << D_H << endl;
+        bool is_med_attempt = false;
+        if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
+        {
+          is_med_attempt = true;
+          ++medp_count;
+        }
+        ++par.tmpcountertotal;
+        if ((p=CopyvProb(D_H,H_diss))>0) 
+        {
+          ++par.tmpcounter;
+          if (par.H_perim)
+            ConvertSpinPerim( x,y,xp,yp );
+          else
+          {
+            ConvertSpin( x,y,xp,yp );
+            if (is_med_attempt)
+            {
+              ++medp_success;
+            }
+          }  
         }
         //   if (par.recordcopies)
         //   {
@@ -1120,6 +1202,8 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
   return SumDH;
   
 }
+
+
 
 //! Check if the set of neighbors with value 'check_val' forms a single connected component.
 //! This ensures that removing a pixel (Candidate) doesn't split a cell, 

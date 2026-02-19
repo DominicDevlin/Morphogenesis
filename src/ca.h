@@ -693,7 +693,7 @@ public:
     /*! Implements the core CPM algorithm. Carries out one MCS.
       \return Total energy change during MCS.
     */
-    int AmoebaeMove(long tsteps, PDE *PDEfield=0);
+    int AmoebaeMoveLegacy(long tsteps, PDE *PDEfield=0);
   
     /*! \brief Read initial cell shape from XPM file.
       Reads the initial cell shape from an 
