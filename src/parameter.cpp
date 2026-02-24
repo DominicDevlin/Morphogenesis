@@ -261,14 +261,14 @@
 
     //active term params
     active_motion = true;
-    motility_strength = 25.;
+    motility_strength = 1.;
     persistence_time = 50.;
     if (active_motion)
     {
       sizex = 450;
       sizey = 450;
       dewet_length=450;
-      dewet_cell_depth=10; // 47 is max
+      dewet_cell_depth=47; // 47 is max
       cell_areas = 100;
 
       L2 = sqrt((sqrt(3.)/2) * cell_areas ) * dewet_cell_depth;
@@ -277,11 +277,11 @@
 
       // conserved_dewet_distance = 150;      
       H_perim = true;
-      ptarget_perimeter = 95;
-      J_L = 0;
+      ptarget_perimeter = 120;
+      J_L = -2;
       lambda2 = 0;
       lambda_perimeter_phase = 0.2;
-      J_med = 0;
+      J_med = 3;
       J_med2 = J_med;
       tmpcounter=0;
       tmpcountertotal=0;

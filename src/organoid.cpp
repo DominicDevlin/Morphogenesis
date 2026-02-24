@@ -83,7 +83,8 @@ INIT
       int xtoshift = par.sizex/2 - par.dewet_length/2;
       int ytoshift = par.sizey/2 - par.L2/2;
       // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
-      CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
+      // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
+      CPM->GenerateCellsByDensity(0.6);
     }
     else
     {
@@ -105,6 +106,8 @@ INIT
     CPM->start_network(par.start_matrix, par.start_polarity);
 
     CPM->Set_evoJ(par.J_SL);
+
+    par.end_program=0;
 
     par.print_fitness = true;
 
@@ -186,11 +189,11 @@ TIMESTEP {
       }
     }
 
-    if (t==1000)
-    {
-      par.medium_area_constraint=true;
-      dish->CPM->SetMediumArea();
-    }
+    // if (t==1000)
+    // {
+    //   par.medium_area_constraint=true;
+    //   dish->CPM->SetMediumArea();
+    // }
 
     if (t%1==0)
     {
@@ -201,6 +204,12 @@ TIMESTEP {
       outfile << double(par.tmpcounter) / double(par.tmpcountertotal) << endl;
 
 
+    }
+
+    if (t%100==0)
+    {
+      cout << "Mean cell Perimenter: " << dish->CPM->MeanCellPerimeter() << endl;
+      cout << "Mean cell Area: " << dish->CPM->MeanCellArea() << endl;
     }
 
     //printing every 1000 steps. Do other debugging things here as well. 

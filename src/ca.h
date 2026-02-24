@@ -381,7 +381,7 @@ public:
 
   void SetMediumArea();
 
-  bool IsLocallyConnected(int x, int y, int check_val);
+  bool IsLocallyConnected(int* nbs, int check_val);
 
 
   vector<vector<double>> ReturnMSD();
@@ -579,6 +579,7 @@ public:
 
   vector<vector<double>> find_shared_centres();
 
+  void GenerateCellsByDensity(double density);
 
 
   // inline double prop_success()
@@ -781,6 +782,8 @@ public:
   
   //! \brief Returns the mean area of the cells. 
   double MeanCellArea(void) const;
+
+  double MeanCellPerimeter(void) const;
   
   /*! \brief Returns the cell density.
 
@@ -826,10 +829,11 @@ public:
 
 private:
   void IndexShuffle(void);
-  double DeltaH(int x,int y, int xp, int yp, int tsteps, PDE *PDEfield=0);
+  double DeltaH(int x,int y, int sxyp, int tsteps, PDE *PDEfield=0);
   bool Probability(int DH);
-  void ConvertSpin(int x,int y,int xp,int yp);
-  void ConvertSpinPerim(int x, int y, int xp, int yp);
+  void ConvertSpin(int x,int y,int kp);
+  void ConvertSpinPerim(int x, int y, int kp);
+  void GetNeighborsSafe(int x, int y, int* nbs); 
   void SprayMedium(void);
   int CopyvProb(double DH,  double stiff);
   void FreezeAmoebae(void);
