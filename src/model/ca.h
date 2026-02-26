@@ -581,6 +581,9 @@ public:
 
   void GenerateCellsByDensity(double density);
 
+  /* SYNTHETIC MULTICELLULAR STRUCTURE METHODS */
+  void SyntheticNetwork();
+
 
   // inline double prop_success()
   // {

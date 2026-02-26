@@ -1584,6 +1584,57 @@ private:
   }  
 
 
+/* synthetic structure methods */
+
+
+void setsynNotch_bound(double new_value)
+{
+  synNotch_bound = new_value;
+}
+double& getsynNotch_bound()
+{
+  return synNotch_bound;
+}
+
+void setsynNotch_unbound(double new_value)
+{
+  synNotch_unbound = new_value;
+}
+double& getsynNotch_unbound()
+{
+  return synNotch_unbound;
+}
+
+void setsynNotch_intra(double new_value)
+{
+  synNotch_intra = new_value;
+}
+double& getsynNotch_intra()
+{
+  return synNotch_intra;
+}
+
+void setE_cadherin(double new_value)
+{
+  E_cadherin = new_value;
+}
+double& getE_cadherin()
+{
+  return E_cadherin;
+}
+
+void setCD19(bool new_value)
+{
+  CD19 = new_value;
+}
+bool& getCD19()
+{
+  return CD19;
+}
+
+
+
+
 
 
 private:
@@ -1671,6 +1722,14 @@ protected:
   double EnDif(Cell &cell2);
 
   double SheetDif(Cell &cell2, double &sJ=par.sheet_J, double &sheetmix=par.sheetmixJ);
+
+
+  /* parameters for synthetic structures */
+  double synNotch_bound;
+  double synNotch_unbound;
+  double synNotch_intra;
+  double E_cadherin;
+  bool CD19;
 
 
 

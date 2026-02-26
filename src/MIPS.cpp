@@ -63,20 +63,43 @@ INIT
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
 
-
-    CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
+    if (par.make_sheet)
+    {
+      CPM->ConstructSheet(par.sheetx,par.sheety);
+      par.divisions = 6;
+    }
+    else
+      CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
 
 
     CPM->ConstructInitCells(*this);
     if (par.velocities)
       par.output_sizes = true;
 
-    par.highT=false;
-    // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
-    // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
-    CPM->GenerateCellsByDensity(0.6);
+    // par.divisions = 6;
+    if (par.do_voronoi)
+    {
+      par.highT=false;
+      int xtoshift = par.sizex/2 - par.dewet_length/2;
+      int ytoshift = par.sizey/2 - par.L2/2;
+      // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
+      // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
+      CPM->GenerateCellsByDensity(0.6);
+    }
+    else
+    {
+      for (int i=0;i<par.divisions;i++) 
+      {
+        CPM->DivideCells();
+      }
+    }
     
-
+    // If we have only one big cell and divide it a few times
+    // we start with a nice initial clump of cells. 
+    // 
+    // The behavior can be changed in the parameter file using 
+    // parameters n_init_cells, size_init_cells and divisions
+    
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
 
@@ -166,8 +189,11 @@ TIMESTEP {
       }
     }
 
-    // std::cout << "Press Enter to continue..."; // Nice to have a prompt
-    // std::cin.get();                            // The actual pause
+    // if (t==1000)
+    // {
+    //   par.medium_area_constraint=true;
+    //   dish->CPM->SetMediumArea();
+    // }
 
     if (t%1==0)
     {

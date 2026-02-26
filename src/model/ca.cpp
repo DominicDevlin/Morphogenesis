@@ -3486,8 +3486,7 @@ void CellularPotts::GenerateCellsByDensity(double density)
   // 8. Draw the Voronoi domains, strictly bounded to achieve `par.cell_areas` size.
   // Formula for circle radius: R = sqrt(A / pi). 
   // We apply a slight 5% buffer to account for discrete pixelation artifacts cutting areas short.
-  const double PI = 3.14159265358979323846;
-  double radius_limit = std::sqrt(target_area / PI) * 1.05; 
+  double radius_limit = std::sqrt(target_area / M_PI) * 1.05; 
 
   for (int x = 1; x < sizex - 1; ++x) {
       for (int y = 1; y < sizey - 1; ++y) {
@@ -6666,6 +6665,64 @@ void CellularPotts::add_noise()
     }
   }
 
+}
+
+
+double synNotch_bound_derivative(double c, double L)
+{
+  return par.production_rate_synNotch - (par.decay_synNotch_bound*c) - par.decay_synNotch_intra * c;
+}
+
+double synNotch_bound_rk4(double dt, double c, double L)
+{
+  double k1 = synNotch_bound_derivative(c, L);
+  double k2 = synNotch_bound_derivative(c + dt * k1/2.0, L);
+  double k3 = synNotch_bound_derivative(c + dt*k2/2.0, L);
+  double k4 = synNotch_bound_derivative(c + dt*k3, L);
+  return c * (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + 2.0*k4);
+}
+
+double synNotch_unbound_derivative(double c, double cB, double L)
+{
+  return par.binding_rate_CD19_synNotch * L * cB - par.decay_synNotch_unbound * c;
+}
+
+double synNotch_bound_rk4(double dt, double c, double cB, double L)
+{
+  double k1 = synNotch_unbound_derivative(c, cB, L);
+  double k2 = synNotch_unbound_derivative(c + dt * k1/2.0, cB, L);
+  double k3 = synNotch_unbound_derivative(c + dt*k2/2.0, cB, L);
+  double k4 = synNotch_unbound_derivative(c + dt*k3, cB, L);
+  return c * (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + 2.0*k4);
+}
+
+double synNotch_intra_rk4(double dt, double c, double L)
+{
+  return 
+}
+
+
+
+
+void CellularPotts::SyntheticNetwork()
+{
+  vector<Cell>::iterator c;
+
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      double& CD19_bound = c->getsynNotch_bound();
+      double& CD19_unbound = c->getsynNotch_unbound();
+      double& CD19_intra = c->getsynNotch_unbound();
+      double& E_cadherin = c->getE_cadherin();
+
+      
+
+
+
+    }
+  }
 }
 
 
@@ -16481,590 +16538,3 @@ int** CellularPotts::ReturnGrid()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ALL OF IS DEPRACATED
-
-
-double CellularPotts::AngleCurvature()
-{
-  // find perimeter cells
-  // find center of mass for perimeter of cells
-  // if we assume cells are equally spaced around the border
-  // calculate change in angle from one center of mass to the next around the circle.
-
-  vector<int> pcells = LinkPerimeter();
-  if (pcells.size() < 5)
-  {
-    cout << "Angle curvature incorrectly called." << endl;
-    return 0.;
-  }
-
-  // Check which cells are too exposed (we exclude these from angle calculations. )
-  CellExposure();
-
-
-  // MUST CALL CELL MASS TO ENSURE CELLS HAVE CORRECT CENTER OF MASS VARIABLES ( this is called in link perimeter or derivatives )
-
-  // storage
-  vector<double> angles;
-  vector<double> arc_lengths;
-
-  // how far around the unit circle we hav gone
-  double sumtheta = 0;
-
-  //total perimeter (we don't want a hyper-accurate perimeter because prone to fluctuations.)
-  double perimeter = 0;
-
-  for (unsigned int i=0; i<pcells.size()-2;i++)
-  {
-
-    // Only calculate angle if both cells are approporiately positioned.
-    if (!(*cell)[pcells.at(i+2)].exposed && !(*cell)[pcells.at(i)].exposed)
-    {
-
-      double dx = (*cell)[pcells.at(i+2)].xcen - (*cell)[pcells.at(i)].xcen;
-      double dy = (*cell)[pcells.at(i+2)].ycen - (*cell)[pcells.at(i)].ycen;
-
-      // add arc lengths and to perimeter
-      double length = sqrt(pow(dx, 2) + pow(dy, 2));
-      arc_lengths.push_back(length);
-      perimeter += length;
-
-      // formula is: angle = how far around the unit circle - how far went round in previous theta
-      double angle{};
-
-      if (dx > 0 && dy > 0)
-      {
-        angle = abs(atan(dx/dy));
-      }
-      else if (dx > 0)
-      {
-        angle = M_PI_2 + abs(atan(dy/dx));
-      }
-      else if (dy < 0)
-      {
-        angle = M_PI + abs(atan(dx/dy));
-      }
-      else
-      {
-        angle = M_PI + M_PI_2 + abs(atan(dy/dx));      
-      }
-      // cout << "UNIT CIRCLE: " << angle << endl;
-
-      double chg = angle - sumtheta;
-      if (chg > M_PI)
-      {
-        chg = -2. * M_PI + angle - sumtheta;
-      }
-      else if (chg < -M_PI)
-      {
-        chg = 2. * M_PI + angle - sumtheta;
-      }
-      angles.push_back(chg);
-      sumtheta = angle;
-    }
-    else
-    {
-      angles.push_back(100.);
-    }
-
-  }
-
-  // unfortunately need to remove first and redo last to go around the unit circle correctly. 
-  angles.erase(angles.begin());
-
-  if (!(*cell)[pcells.at(2)].exposed && !(*cell)[pcells.at(0)].exposed)
-  {
-    double dx = (*cell)[pcells.at(2)].xcen - (*cell)[pcells.at(0)].xcen;
-    double dy = (*cell)[pcells.at(2)].ycen - (*cell)[pcells.at(0)].ycen;
-    double length = sqrt(pow(dx, 2) + pow(dy, 2));
-    double angle{};
-
-    if (dx > 0 && dy > 0)
-    {
-      angle = abs(atan(dx/dy));
-    }
-    else if (dx > 0)
-    {
-      angle = M_PI_2 + abs(atan(dy/dx));
-    }
-    else if (dy < 0)
-    {
-      angle = M_PI + abs(atan(dx/dy));
-    }
-    else
-    {
-      angle = M_PI + M_PI_2 + abs(atan(dy/dx));      
-    }
-    double chg = angle - sumtheta;
-    if (chg > M_PI)
-    {
-      chg = -2. * M_PI + angle - sumtheta;
-    }
-    else if (chg < -M_PI)
-    {
-      chg = 2. * M_PI + angle - sumtheta;
-    }
-    angles.insert(angles.begin(), chg);
-    sumtheta = angle;
-  }
-  else
-  {
-    angles.insert(angles.begin(), 100.);
-  }
-
-
-
-
-  /// Now we compute first and second derivative with respect to arc lengths. Compute first and then second 
-  vector<double> firstd{};
-
-  double curve=0;
-
-  for (unsigned int i=0; i < arc_lengths.size()-1;++i)
-  {
-    if (angles[i+1] > 90 || angles[i] > 90)
-    {
-      // exposed cell detected
-      // cout << "skipped a cell.  " << angles[i+1] << "  " << angles[i] << endl;
-      firstd.push_back(100.);
-      continue;
-    }
-    else
-    {
-      double dydx = (angles[i+1] - angles[i]) / (arc_lengths[i] + arc_lengths[i+1]);
-      firstd.push_back(dydx);
-      // cout << "Angle: " << angles[i+1] << "  " << angles[i] << endl;
-    }
-  }
-  
-  int skip{};
-  int noskip{};
-
-  vector<double> secondd;
-  for (unsigned int i=0; i < firstd.size()-1;++i)
-  {
-    if (firstd[i+1] > 90 || firstd[i] > 90)
-    {
-      // exposed cell detected
-      ++skip;
-      continue;
-    }
-    else
-    {
-      double dydx = (firstd[i+1] - firstd[i]) / (arc_lengths[i] + arc_lengths[i+1] + arc_lengths[i+2]);
-      secondd.push_back(dydx);
-      curve += abs(dydx);
-      ++noskip;
-    }
-  }
-  curve = curve / firstd.size();
-  double scalar = perimeter * curve;
-  // cout << "Shape value: " << scalar << endl;
-
-  // cout << "Skipped: " << skip << "   Not skipped: " << noskip << endl;
-
-
-  // curve = curve / static_cast<double>(secondd.size());
-
-  // 
-
-
-  // for (double i : angles)
-  // {
-  //   cout << "Angle: " << i << endl;
-  // }
-
-  // cout << endl << "NOW DERIVATIVES!" << endl;
-  // for (double i : secondd)
-  // {
-  //   cout << "second d: " << i << endl;
-  // }
-  
-  return scalar;
-
-}
-
-
-
-vector<vector<bool>> CellularPotts::ReturnGridBad()
-{
-  vector<vector<bool>> grid;
-  grid.resize(sizex); 
-  for (vector<bool>& i : grid)
-  {
-    i.resize(sizey);
-  }
-
-  for (int x=0;x<sizex;++x)
-    for (int y=0;y<sizey;++y)
-    {
-      if (sigma[x][y] > 0)
-        grid[x][y] = true;
-      else
-        grid[x][y] = false;
-    }
-  return grid;
-}
-
-
-
-double CellularPotts::VecDoubleDeriv(vector<double> &vex)
-{
-  // calculate first derivative
-  vector<double> firstder{};
-
-  for (unsigned int i=0;i<vex.size()-1;++i)
-  {
-    firstder.push_back(vex[i+1]-vex[i]);
-  }
-
-  double sum=0;
-  // calculate second derivative and sum absolute values
-  for (unsigned int i=0;i<firstder.size()-1;++i)
-  {
-    sum += abs(firstder[i+1]-firstder[i]);
-    cout << "double dir: " << abs(firstder[i+1]-firstder[i]) << endl;
-  }
-
-  return sum;
-}
-
-
-
-// Shape stuff is not working AND IS LEAKING!! 
-// void CellularPotts::InitShape(int n)
-// {
-//   Shape = new int**[n];
-//   for (int l=0;l<n;l++)
-//   {
-//     Shape[l] = new int*[sizex];
-//     for (int i=0;i<sizex;i++)
-//     {
-//       Shape[l][i] = new int[sizey];
-//     }
-//   }
-//   for (int l=0;l<n;l++)
-//     for (int x=0;x<sizex;x++)
-//       for (int y=0;y<sizey;y++)
-//         Shape[l][x][y] = 0;
-
-
-
-
-//   // Shape = (int ***)malloc(n*sizeof(int **));
-
-//   // if (Shape == NULL)
-//   //   cerr << "MEMORY FUCKERY\n";
-  
-  
-//   // Shape[0]=(int **)malloc(n*sizex*sizeof(int *));
-//   // if (Shape[0]==NULL)  
-//   //     cerr << "MEMORY FUCKERY\n";
-  
-//   // for (int i=1;i<n;i++) 
-//   //   Shape[i]=Shape[i-1]+sizex;
-  
-//   // Shape[0][0]=(int *)malloc(n*sizex*sizey*sizeof(int));
-//   // if (Shape[0][0]==NULL)  
-//   //   cerr << "MEMORY FUCKERY\n";
-
-//   // for (int i=1;i<n*sizex;i++) 
-//   //   Shape[0][i]=Shape[0][i-1]+sizey;
-
-  
-//   // for (int i=0;i<n*sizex*sizey;i++) 
-//   //   Shape[0][0][i]=0;
-// }
-
-
-// void CellularPotts::AddNewShape()
-// {
-//   bool con = CheckAllConnected();
-//   if (con && ShapeMaintained)
-//   {
-//     for (int x=0;x<sizex;++x)
-//       for (int y=0;y<sizey;++y)
-//       {
-//         if (sigma[x][y] > 0)
-//           Shape[scount][x][y] = 1;
-//         else
-//           Shape[scount][x][y] = 0;
-//       }
-//   }
-//   else 
-//   {
-//     ShapeMaintained = false;
-//   }
-//   ++scount;
-// }
-
-
-// double CellularPotts::ChangeInShape()
-// {
-//   double count=0;
-
-//   bool filled[sizex][sizey];
-
-//   for (int n=1;n<scount;++n)
-//   {
-//     for (int x=0;x<sizex;++x)
-//       for (int y=0;y<sizey;++y)
-//       {
-//         if (Shape[n][x][y] != Shape[n-1][x][y])
-//         {
-//           if (filled[x][y])
-//             count += 0.2;
-//           else
-//           {
-//             count += 1;
-//             filled[x][y] = true;
-//           } 
-//         }
-//       }
-//    }
-//   return count; 
-// }
-
-
-
-
-double getcurve(vector<int> &vec)
-{
-  int samples = vec.size()-2;
-  int* fd = new int[samples];
-  for (int i=0;i<samples;++i)
-  {
-    fd[i] = (vec[i+2] - vec[i+1]) - (vec[i+1] - vec[i]);
-  }
-
-  // get absolute value of curvature
-  double var=0;
-  for (int i=0;i<samples;++i)
-  {
-    var += abs(fd[i]);
-  }
-  var = var / (double)samples;
-
-  delete[] fd;
-
-  return var;
-
-}
-
-
-
-double CellularPotts::Curvature()
-{
-  vector<int> miny;
-  vector<int> maxy;
-  vector<int> maxx;
-  vector<int> minx;
-
-  for (int x=0;x<sizex;)
-  {
-    int max=0;
-    int min=1000;
-    bool if_sig = false;
-    
-    for (int y=0;y<sizey;++y)
-    {
-      if (sigma[x][y] > 0)
-      {
-        if_sig = true;
-        if (y > max)
-          max = y;
-
-        if (y < min)
-          min = y;
-      }        
-    }
-    if (if_sig)
-    {
-      miny.push_back(min);
-      maxy.push_back(max); 
-    }
-    x += 5; // needs to be greater than 1 so that we can get a good look at global curvature and not random fluctuations. 
-  }
-  // iterate opposite direction
-  for (int y=0;y<sizey;)
-  {
-    int max=0;
-    int min=1000;
-    bool if_sig = false;
-    
-    for (int x=0;x<sizex;++x)
-    {
-      if (sigma[x][y] > 0)
-      {
-        if_sig = true;
-        if (x > max)
-          max = x;
-
-        if (x < min)
-          min = x;
-      }        
-    }
-    if (if_sig)
-    {
-      minx.push_back(min);
-      maxx.push_back(max); 
-    }
-    y += 5;
-  }
-
-
-  double curvature = 0;
-  curvature += getcurve(minx);
-  curvature += getcurve(miny);
-  curvature += getcurve(maxx);
-  curvature += getcurve(maxy);
-
-  return curvature;
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// void CellularPotts::morphogenWave() // FUNCTION IS SCREWED UP BECAUSE OF CENTER ATM
-// {
-// // get organism center, assumming it is an approximate circle at time of calling morphogen wave:
-
-//   double center[] = {0., 0., 0.,};
-//   get_center(center);
-
-//   for (int i=0;i<sizex-1;++i)
-//     for (int j=0;j<sizey-1;++j)
-//     {
-//       //find vector to value (function is symmetric so only need absolute value)
-
-//       if (sigma[i][j] > 0)
-//       {
-//         int lx = i - center[0];
-//         int ly = j - center[1];
-//         double vec_length = sqrt(pow(lx, 2) + pow(ly,2));
-//         // cout << vec_length << endl;
-
-//         // We are doing a gaussian distribution for the morphogen gradient (e^(-(x)^2)).
-//         double val = pow((-vec_length / center[2]), 2);
-//         double amount = exp(-val);
-//         // cout << amount << endl;
-
-//         (*cell)[sigma[i][j]].add_morphogen(amount);
-//       } 
-//     }
-  
-//   vector<Cell>::iterator c;
-//   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
-//     if (c->AliveP())
-//     {
-//       c->calc_morphogen();
-//     }
-// }
-
-// void CellularPotts::decay_morph(double& morph)
-// {
-//   morph = morph * par.morphdecay;
-// }
-
-
-
-int CellularPotts::CountSomaticCells(void) 
-{
-  int amount=0;
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(),c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP() && c->checkforcycles(1) == false) 
-    {
-      vector<double> &genes = c->get_genes();
-      int count=0;
-      int i = par.n_diffusers + par.n_MF;
-      int k = i + par.n_stem;
-      while (i < k)
-      {
-        if (genes[i] > 0.5)
-          ++count;
-        ++i;
-      }
-      if (count == par.n_stem)
-        amount++;
-    }
-    // Old way of counting somatic cells. 
-    // {
-    //   vector<bool> &set = c->get_set();
-    //   int count=0;
-    //   for (int i=0;i<par.n_lockandkey + par.n_length_genes;i++)
-    //   {
-    //     if (set[i])
-    //       ++count;
-    //   }
-    //   if (count > par.max_on)
-    //     amount++;
-
-    // }
-  }
-  return amount;
-}
-
-void CellularPotts::som_fitness()
-{
-  som_cell_list.push_back(CountSomaticCells());
-}

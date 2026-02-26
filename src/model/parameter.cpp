@@ -278,10 +278,10 @@
       // conserved_dewet_distance = 150;      
       H_perim = true;
       ptarget_perimeter = 120;
-      J_L = -2;
+      J_L = 0;
       lambda2 = 0;
       lambda_perimeter_phase = 0.2;
-      J_med = 3;
+      J_med = 0;
       J_med2 = J_med;
       tmpcounter=0;
       tmpcountertotal=0;
@@ -501,6 +501,23 @@
     // noise amount
     noise_dose=0.1;
     noise_start = 6500;
+
+
+/* synthetic params */
+    decay_synNotch_bound;
+    decay_synNotch_unbound;
+    decay_synNotch_intra;
+    decay_E_cadherin_unbound;
+    decay_E_cadherin_bound;
+
+    production_rate_synNotch;
+    binding_rate_CD19_synNotch;
+
+    E_cadherin_production_rate;
+    E_cadherin_saturation_constant;
+    E_caderin_coefficient;
+
+    synthetic_dt;    
 
 
 
