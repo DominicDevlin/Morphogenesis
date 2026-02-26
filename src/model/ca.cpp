@@ -6698,7 +6698,7 @@ double synNotch_bound_rk4(double dt, double c, double cB, double L)
 
 double synNotch_intra_rk4(double dt, double c, double L)
 {
-  return 
+  return par.binding_rate_CD19_synNotch * L
 }
 
 
