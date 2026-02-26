@@ -7,6 +7,7 @@ QT += gui
 CONFIG -= debug
 CONFIG -= app_bundle
 OBJECTS_DIR = model
+QMAKE_DISTCLEAN += -r data_film org-data
 
 
 contains( GRAPHICS, qt ) {
