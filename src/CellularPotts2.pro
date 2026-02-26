@@ -6,6 +6,7 @@ QT += widgets
 QT += gui
 CONFIG -= debug
 CONFIG -= app_bundle
+OBJECTS_DIR = model
 
 
 contains( GRAPHICS, qt ) {
@@ -18,45 +19,45 @@ MAINFILE = $$join(TARGET, " ", , ".cpp" )
 message( $$MAINFILE )
 message( $$TARGET )
 # Input
-HEADERS += ca.h \
-	   hull.h \
-           cell.h \
-           conrec.h \
-           dish.h \
-           graph.h \
-           info.h \
-           misc.h \
-           output.h \
-           parameter.h \
-           parse.h \
-           pde.h \
-           random.h \
-           sqr.h \
-           sticky.h \
-	   crash.h \
-	   warning.h \ 
-	   storage.h \
-	   fft.h \
-      connections.h
+HEADERS += model/ca.h \
+	   model/hull.h \
+           model/cell.h \
+           model/conrec.h \
+           model/dish.h \
+           model/graph.h \
+           model/info.h \
+           model/misc.h \
+           model/output.h \
+           model/parameter.h \
+           model/parse.h \
+           model/pde.h \
+           model/random.h \
+           model/sqr.h \
+           model/sticky.h \
+	   model/crash.h \
+	   model/warning.h \ 
+	   model/storage.h \
+	   model/fft.h \
+      model/connections.h
 
         
-SOURCES += ca.cpp \
-	   hull.cpp \
-           cell.cpp \
-           conrec.cpp \
-           dish.cpp \
-           info.cpp \
-           misc.cpp \
-           output.cpp \
-           parameter.cpp \
-           parse.cpp \
-           pde.cpp \
-           random.cpp \
-           crash.cpp \
-           warning.cpp \
-           storage.cpp \
-	   fft.cpp \	
-           connections.cpp
+SOURCES += model/ca.cpp \
+	   model/hull.cpp \
+           model/cell.cpp \
+           model/conrec.cpp \
+           model/dish.cpp \
+           model/info.cpp \
+           model/misc.cpp \
+           model/output.cpp \
+           model/parameter.cpp \
+           model/parse.cpp \
+           model/pde.cpp \
+           model/random.cpp \
+           model/crash.cpp \
+           model/warning.cpp \
+           model/storage.cpp \
+	   model/fft.cpp \	
+           model/connections.cpp
 
 SOURCES += $$MAINFILE
        
@@ -71,8 +72,8 @@ LIBS += -fopenmp
 
 contains( GRAPHICS, qt ) {
    message( "Building Qt executable" )
-   SOURCES += qtgraph.cpp
-   HEADERS += qtgraph.h
+   SOURCES += model/qtgraph.cpp
+   HEADERS += model/qtgraph.h
    QMAKE_CXXFLAGS_RELEASE += -DQTGRAPHICS
    QMAKE_CXXFLAGS_DEBUG += -DQTGRAPHICS 
 #   QT += qt3support
@@ -88,8 +89,8 @@ contains( GRAPHICS, qt ) {
 
 contains( GRAPHICS, qt3 ) {
    message( "Building Qt executable" )
-   SOURCES += qt3graph.cpp
-   HEADERS += qt3graph.h
+   SOURCES += model/qt3graph.cpp
+   HEADERS += model/qt3graph.h
    QMAKE_CXXFLAGS_RELEASE += -DQTGRAPHICS
    QMAKE_CXXFLAGS_DEBUG += -DQTGRAPHICS 
    unix {
@@ -106,8 +107,8 @@ contains( GRAPHICS, x11 ) {
      error("X11 graphics only available on Unix systems.")
    }
    message("Building X11 executable")
-   SOURCES += x11graph.cpp
-   HEADERS += x11graph.h
+   SOURCES += model/x11graph.cpp
+   HEADERS += model/x11graph.h
    QMAKE_CXXFLAGS_RELEASE += -DX11GRAPHICS
    QMAKE_CXXFLAGS_DEBUG += -DX11GRAPHICS 
    unix {
