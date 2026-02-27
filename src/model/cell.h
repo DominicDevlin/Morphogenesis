@@ -1632,6 +1632,34 @@ bool& getCD19()
   return CD19;
 }
 
+double& getOpposingCD19()
+{
+  return opposing_CD19;
+}
+
+double& getOpposing_E_cadherin()
+{
+  return opposing_E_cadherin;
+}
+
+void AddtoSurfaces(bool bcd19, double bE_cad)
+{
+  opposing_CD19+=bcd19;
+  opposing_E_cadherin+=bE_cad;
+}
+
+void AverageSurfaceBindings()
+{
+  opposing_CD19 = opposing_CD19 / perimeter;
+  opposing_E_cadherin = opposing_E_cadherin / perimeter;
+}
+
+void ResetSurfaceBindings()
+{
+  opposing_CD19=0;
+  opposing_E_cadherin=0;
+}
+
 
 
 
@@ -1723,6 +1751,8 @@ protected:
 
   double SheetDif(Cell &cell2, double &sJ=par.sheet_J, double &sheetmix=par.sheetmixJ);
 
+  double SyntheticEnergy(Cell &cell2);
+
 
   /* parameters for synthetic structures */
   double synNotch_bound;
@@ -1730,6 +1760,8 @@ protected:
   double synNotch_intra;
   double E_cadherin;
   bool CD19;
+  double opposing_CD19;
+  double opposing_E_cadherin;
 
 
 

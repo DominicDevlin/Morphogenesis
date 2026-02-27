@@ -265,8 +265,8 @@
     persistence_time = 50.;
     if (active_motion)
     {
-      sizex = 450;
-      sizey = 450;
+      sizex = 100;
+      sizey = 100;
       dewet_length=450;
       dewet_cell_depth=47; // 47 is max
       cell_areas = 100;
@@ -504,20 +504,28 @@
 
 
 /* synthetic params */
-    decay_synNotch_bound;
-    decay_synNotch_unbound;
-    decay_synNotch_intra;
-    decay_E_cadherin_unbound;
-    decay_E_cadherin_bound;
+    make_synthetic = false;
 
-    production_rate_synNotch;
-    binding_rate_CD19_synNotch;
+    production_rate_synNotch=1.0;
+    decay_synNotch_bound=1.0;
 
-    E_cadherin_production_rate;
-    E_cadherin_saturation_constant;
-    E_caderin_coefficient;
+    binding_rate_CD19_synNotch = 1.0;
+    decay_synNotch_unbound=0.5;
+    decay_synNotch_intra=0.5;
 
-    synthetic_dt;    
+
+    E_cadherin_production_rate=0.0563;
+    E_cadherin_saturation_constant = 0.5;
+    E_cadherin_coefficient=3.0;
+    decay_E_cadherin_unbound=0.05;
+    decay_E_cadherin_bound=0.15;
+
+    synthetic_dt=0.1;    
+
+    synthetic_Jm=1;
+    synthetic_Jcell_baseline = -1;
+
+    proportion_starting_CD19 = 0.5;
 
 
 

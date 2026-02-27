@@ -92,21 +92,28 @@ class Parameter {
   int ptarget_perimeter;
   bool H_perim;
 
-/* synthetic params*/
-double decay_synNotch_bound;
-double decay_synNotch_unbound;
-double decay_synNotch_intra;
-double decay_E_cadherin_unbound;
-double decay_E_cadherin_bound;
+  /* synthetic params*/
+  bool make_synthetic;
+  double decay_synNotch_bound;
+  double decay_synNotch_unbound;
+  double decay_synNotch_intra;
+  double decay_E_cadherin_unbound;
+  double decay_E_cadherin_bound;
 
-double production_rate_synNotch;
-double binding_rate_CD19_synNotch;
+  double production_rate_synNotch;
+  double binding_rate_CD19_synNotch;
 
-double E_cadherin_production_rate;
-double E_cadherin_saturation_constant;
-double E_caderin_coefficient;
+  double E_cadherin_production_rate;
+  double E_cadherin_saturation_constant;
+  double E_cadherin_coefficient;
 
-double synthetic_dt;
+  double synthetic_dt;
+
+  double synthetic_Jm;
+  double synthetic_Jcell_baseline;
+  double Jcell_scaling;
+
+  double proportion_starting_CD19;
 
 
   bool convert_cells;

@@ -584,6 +584,14 @@ public:
   /* SYNTHETIC MULTICELLULAR STRUCTURE METHODS */
   void SyntheticNetwork();
 
+  void StartSyntheticNetwork();
+
+  // this is going to be quite costly and iterate over the whole grid so we should be 
+  // efficien and try and double things up.
+  void SurfaceBindings();
+
+  void OutputSyntheticNetwork(int thetime);
+
 
   // inline double prop_success()
   // {

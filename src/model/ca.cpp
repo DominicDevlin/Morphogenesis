@@ -378,15 +378,6 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
       if (par.sheet)
       {
         DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
-        // This is going to be an anisotropic adhesion function that adds an adhesion energy along one axis
-        // if (x > xcen + 4 || x < xcen - 4)
-        // {
-        //   DH -= par.lambda3;
-        // }
-        // if (xp > xcenp + 4 || xp < xcenp - 4)
-        // {
-        //   DH += par.lambda3;
-        // }
       }
       else if (par.melting_adhesion)
       {
@@ -403,6 +394,10 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
           DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
 
         // cout << "adhesion: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) << endl;
+      }
+      else if (par.make_synthetic)
+      {
+        DH += (*cell)[sxyp].SyntheticEnergy((*cell)[neighsite]) - (*cell)[sxy].SyntheticEnergy((*cell)[neighsite]);
       }
       else
       {
@@ -6670,16 +6665,17 @@ void CellularPotts::add_noise()
 
 double synNotch_bound_derivative(double c, double L)
 {
-  return par.production_rate_synNotch - (par.decay_synNotch_bound*c) - par.decay_synNotch_intra * c;
+  return par.production_rate_synNotch - (par.decay_synNotch_bound*c) - par.binding_rate_CD19_synNotch * L * c;
 }
 
 double synNotch_bound_rk4(double dt, double c, double L)
 {
+  // the CD19 ligand is incorporated in L
   double k1 = synNotch_bound_derivative(c, L);
   double k2 = synNotch_bound_derivative(c + dt * k1/2.0, L);
   double k3 = synNotch_bound_derivative(c + dt*k2/2.0, L);
   double k4 = synNotch_bound_derivative(c + dt*k3, L);
-  return c * (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + 2.0*k4);
+  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
 double synNotch_unbound_derivative(double c, double cB, double L)
@@ -6687,24 +6683,99 @@ double synNotch_unbound_derivative(double c, double cB, double L)
   return par.binding_rate_CD19_synNotch * L * cB - par.decay_synNotch_unbound * c;
 }
 
-double synNotch_bound_rk4(double dt, double c, double cB, double L)
+double synNotch_unbound_rk4(double dt, double c, double cB, double L)
 {
   double k1 = synNotch_unbound_derivative(c, cB, L);
   double k2 = synNotch_unbound_derivative(c + dt * k1/2.0, cB, L);
   double k3 = synNotch_unbound_derivative(c + dt*k2/2.0, cB, L);
   double k4 = synNotch_unbound_derivative(c + dt*k3, cB, L);
-  return c * (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + 2.0*k4);
+  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
-double synNotch_intra_rk4(double dt, double c, double L)
+double synNotch_intra_derivative(double c, double cB, double L)
 {
-  return par.binding_rate_CD19_synNotch * L
+  return par.binding_rate_CD19_synNotch * L  * cB - par.decay_synNotch_intra * c;
 }
 
 
+double synNotch_intra_rk4(double dt, double c, double cB, double L)
+{
+  double k1 = synNotch_intra_derivative(c, cB, L);
+  double k2 = synNotch_intra_derivative(c + dt * k1/2.0, cB, L);
+  double k3 = synNotch_intra_derivative(c + dt*k2/2.0, cB, L);
+  double k4 = synNotch_intra_derivative(c + dt*k3, cB, L);
+  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
+}
 
 
-void CellularPotts::SyntheticNetwork()
+double E_cadherin_derivative(double c, double I, double X)
+{
+  // X is the proportion shared surface with cells also expressing E_cadherin (have to normalise to so that peak concentration = 1)
+  return par.E_cadherin_production_rate * (pow(I, par.E_cadherin_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.E_cadherin_coefficient) + pow(I, par.E_cadherin_coefficient)))
+  - par.decay_E_cadherin_bound * c * X - par.decay_E_cadherin_unbound * c * (1-X);
+}
+
+
+double E_cadherin_rk4(double dt, double c, double I, double X)
+{
+  double k1 = E_cadherin_derivative(c, I, X);
+  double k2 = E_cadherin_derivative(c + dt * k1/2.0, I, X);
+  double k3 = E_cadherin_derivative(c + dt*k2/2.0, I, X);
+  double k4 = E_cadherin_derivative(c + dt*k3, I, X);
+  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
+}
+
+
+void CellularPotts::SurfaceBindings()
+{
+  // reset values
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->ResetSurfaceBindings();
+    }
+  }
+
+  for (int x = 1; x < sizex - 1; x++) 
+  {
+    for (int y = 1; y < sizey - 1; y++) 
+    {
+      if (sigma[x][y] > 0) 
+      {
+        int current_cell = sigma[x][y];
+        for (int i = 1; i <= n_nb_adh; i++) 
+        {
+          int xp2, yp2;
+          xp2 = x + nx[i];
+          yp2 = y + ny[i];
+          if (par.periodic_boundaries) 
+          {
+            if (xp2 <= 0)
+              xp2 = sizex - 2 + xp2;
+            if (yp2 <= 0)
+              yp2 = sizey - 2 + yp2;
+            if (xp2 >= sizex - 1)
+              xp2 = xp2 - sizex + 2;
+            if (yp2 >= sizey - 1)
+              yp2 = yp2 - sizey + 2;
+          }
+          // did we find a border?
+          if (sigma[xp2][yp2] != sigma[x][y]) 
+          {
+            bool oppCD19 = (*cell)[sigma[x][y]].getCD19();
+            double oppEcad = (*cell)[sigma[x][y]].getE_cadherin();
+            (*cell)[current_cell].AddtoSurfaces(oppCD19, oppEcad);
+
+          }
+        }
+      }
+    }
+  }
+}
+
+void CellularPotts::StartSyntheticNetwork()
 {
   vector<Cell>::iterator c;
 
@@ -6712,14 +6783,78 @@ void CellularPotts::SyntheticNetwork()
   {
     if (c->AliveP())
     {
-      double& CD19_bound = c->getsynNotch_bound();
-      double& CD19_unbound = c->getsynNotch_unbound();
-      double& CD19_intra = c->getsynNotch_unbound();
+      double init_synNotch_bound = 1.0;
+      double init_synNotch_unbound = 0.0;
+      double init_synNotch_intra = 0.0;
+      double init_E_cadherin = 0.0;
+
+      // randomly make cell CD19 or not (move to different method eventually)
+      double rand = RANDOM(s_val);
+      if (rand < par.proportion_starting_CD19)
+      {
+        c->setCD19(true);
+      }
+      else 
+      {
+        c->setCD19(false);
+      }
+    }
+  }  
+}
+
+void CellularPotts::OutputSyntheticNetwork(int thetime)
+{
+  vector<Cell>::iterator c;
+
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {  
+      ofstream outfile;
+      string out = data_file + "/cell-" + to_string(c->Sigma()) + ".dat";
+      outfile.open(out, ios::app);
+      outfile << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << endl;
+      outfile.close();
+    }
+  }
+
+
+}
+
+
+
+void CellularPotts::SyntheticNetwork()
+{
+
+  // WE MUST TO SURFACE BINDINGS FIRST!
+  SurfaceBindings();
+
+  vector<Cell>::iterator c;
+
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      double dt = par.dt;
+      // averaging after surface bindings
+      c->AverageSurfaceBindings();
+    
+      double& synNotch_bound = c->getsynNotch_bound();
+      double& synNotch_unbound = c->getsynNotch_unbound();
+      double& synNotch_intra = c->getsynNotch_intra();
       double& E_cadherin = c->getE_cadherin();
 
+      // get surface values
+      double opposite_Ecad = c->getOpposing_E_cadherin();
+      double opposite_CD19 = c->getOpposingCD19(); 
       
+      // update gene regulatory network.
+      synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19);
+      synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
+      synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
+      E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad);      
 
-
+      
 
     }
   }

@@ -64,6 +64,9 @@ INIT
     // Define initial distribution of cells
 
 
+    par.make_synthetic=true;
+    par.phase_evolution = false;
+
     CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
 
 
@@ -135,7 +138,14 @@ TIMESTEP {
       dish->CPM->MeasureCellPerimeters();
       dish->CPM->WetAllCells();
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
+      dish->CPM->StartSyntheticNetwork();
 
+    }
+
+    if (t % 40 == 0)
+    {
+      dish->CPM->SyntheticNetwork();
+      dish->CPM->OutputSyntheticNetwork(t);
     }
 
     // bool GRN = true;

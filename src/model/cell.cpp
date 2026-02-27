@@ -283,6 +283,23 @@ double Cell::SheetDif(Cell &cell2, double &sJ, double &sheetmixJ)
 
 }
 
+
+double Cell::SyntheticEnergy(Cell &cell2)
+{
+  if (sigma==cell2.sigma)
+    return 0;
+  else if (sigma == 0)
+    return par.synthetic_Jm;
+  else if (cell2.sigma==0)
+    return par.synthetic_Jm;
+  else
+  {
+    return par.synthetic_Jcell_baseline - par.Jcell_scaling * E_cadherin * cell2.getE_cadherin();
+  }
+}
+
+
+
 double Cell::Melt(Cell &cell2, int x)
 {
   if (sigma==cell2.sigma)
