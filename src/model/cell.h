@@ -1644,14 +1644,17 @@ double& getOpposing_E_cadherin()
 
 void AddtoSurfaces(bool bcd19, double bE_cad)
 {
-  opposing_CD19+=bcd19;
-  opposing_E_cadherin+=bE_cad;
+  opposing_CD19=opposing_CD19 + bcd19;
+  opposing_E_cadherin = opposing_E_cadherin + bE_cad;
+  // cout << "ADDING:" << opposing_CD19 << '\t' << opposing_E_cadherin << endl;
 }
 
 void AverageSurfaceBindings()
 {
-  opposing_CD19 = opposing_CD19 / perimeter;
-  opposing_E_cadherin = opposing_E_cadherin / perimeter;
+  // cout << opposing_CD19 << '\t' << perimeter << endl;
+  opposing_CD19 = opposing_CD19 / double(perimeter);
+  opposing_E_cadherin = opposing_E_cadherin / double(perimeter);
+  
 }
 
 void ResetSurfaceBindings()

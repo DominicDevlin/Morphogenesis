@@ -77,7 +77,7 @@ INIT
     par.highT=false;
     // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
     // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
-    CPM->GenerateCellsByDensity(0.6);
+    CPM->GenerateCellsByDensity(0.8, 80);
     
 
     // Assign a random type to each of the cells
@@ -136,13 +136,12 @@ TIMESTEP {
       dish->CPM->CopyProb(par.T);
       dish->CPM->SetAreas(par.cell_areas);
       dish->CPM->MeasureCellPerimeters();
-      dish->CPM->WetAllCells();
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
       dish->CPM->StartSyntheticNetwork();
 
     }
 
-    if (t % 40 == 0)
+    if (t % 320 == 0)
     {
       dish->CPM->SyntheticNetwork();
       dish->CPM->OutputSyntheticNetwork(t);
@@ -157,7 +156,7 @@ TIMESTEP {
       dish->CPM->RecordMasses();
     }
   
-    dish->CPM->ColourCells(true);
+    // dish->CPM->ColourCells(true);
     dish->CPM->AmoebaeMove(t);
     if (par.active_motion)
     {
@@ -275,7 +274,6 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 #endif
     Parameter();
-    par.phase_evolution = true;
     // Read parameters
     bool read = false;
     if (read)

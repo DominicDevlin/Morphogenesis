@@ -579,7 +579,7 @@ public:
 
   vector<vector<double>> find_shared_centres();
 
-  void GenerateCellsByDensity(double density);
+  void GenerateCellsByDensity(double density, double R);
 
   /* SYNTHETIC MULTICELLULAR STRUCTURE METHODS */
   void SyntheticNetwork();

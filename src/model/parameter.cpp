@@ -261,8 +261,8 @@
 
     //active term params
     active_motion = true;
-    motility_strength = 1.;
-    persistence_time = 50.;
+    motility_strength = 2.;
+    persistence_time = 100.;
     if (active_motion)
     {
       sizex = 100;
@@ -517,15 +517,23 @@
     E_cadherin_production_rate=0.0563;
     E_cadherin_saturation_constant = 0.5;
     E_cadherin_coefficient=3.0;
-    decay_E_cadherin_unbound=0.05;
-    decay_E_cadherin_bound=0.15;
+    decay_E_cadherin_unbound=0.01;
+    decay_E_cadherin_bound=0.01;
 
     synthetic_dt=0.1;    
 
-    synthetic_Jm=1;
-    synthetic_Jcell_baseline = -1;
+    synthetic_Jm=0.7;
+    synthetic_Jcell_baseline = 0;
+    Jcell_scaling=2;
 
     proportion_starting_CD19 = 0.5;
+
+    H_perim = true;
+    ptarget_perimeter = 125;
+    lambda_perimeter = 0.2;
+
+    sizex = 300;
+    sizey = 300;
 
 
 

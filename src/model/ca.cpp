@@ -3390,30 +3390,26 @@ double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey)
 }
 
 
-void CellularPotts::GenerateCellsByDensity(double density)
+// Added 'double R' to the function parameters
+void CellularPotts::GenerateCellsByDensity(double density, double R)
 {
   // 1. Define the usable active grid space
   int W = sizex - 2;
   int H = sizey - 2;
   
-  double total_grid_area = static_cast<double>(W * H);
   double target_area = static_cast<double>(par.cell_areas);
   
   // Guard against invalid parameters
-  if (target_area <= 0 || density <= 0.0) return;
+  if (target_area <= 0 || density <= 0.0 || R <= 0.0) return;
   
-  // 2. Calculate the exact number of cells needed for the requested density
-  int target_ncells = static_cast<int>(std::round((density * total_grid_area) / target_area));
-  if (target_ncells <= 0) {
-      std::cout << "Density too low to generate any cells." << std::endl;
-      return;
-  }
-
-  // 3. Determine lattice parameters to evenly spread these cells across the whole grid
+  // 2. Calculate lattice spacing directly from density and target area.
+  // This ensures the density inside the radius is exactly what was requested.
+  double area_per_center = target_area / density;
+  
   // Hexagonal area per center = 2 * sqrt(3) * r^2
-  double area_per_center = total_grid_area / static_cast<double>(target_ncells);
   double r = std::sqrt(area_per_center / (2.0 * std::sqrt(3.0)));
 
+  // 3. Determine lattice parameters to cover the grid
   int num_cols = static_cast<int>(std::round(W / (2.0 * r)));  
   int num_rows = static_cast<int>(std::round(H / (std::sqrt(3.0) * r)));
   if (num_cols <= 0) num_cols = 1;
@@ -3436,7 +3432,11 @@ void CellularPotts::GenerateCellsByDensity(double density)
   double offset_x = (W - max_x) / 2.0 + 1.0; 
   double offset_y = (H - max_y) / 2.0 + 1.0;
 
-  // 5. Generate the centers
+  // Find the exact mathematical center of the grid
+  double grid_center_x = sizex / 2.0;
+  double grid_center_y = sizey / 2.0;
+
+  // 5. Generate the centers, filtering by distance to grid center <= R
   struct VPoint { double x, y; int id; };
   std::vector<VPoint> centers;
 
@@ -3446,12 +3446,24 @@ void CellularPotts::GenerateCellsByDensity(double density)
       double cy = row * std::sqrt(3.0) * r;
       if (row % 2 == 1) cx += r;
       
-      centers.push_back({cx + offset_x, cy + offset_y, -1});
+      double final_cx = cx + offset_x;
+      double final_cy = cy + offset_y;
+      
+      // Calculate distance from grid center. 
+      // Re-using your euclideanDistance function ensures periodic boundaries are respected if applicable.
+      double dist = euclideanDistance(final_cx, final_cy, grid_center_x, grid_center_y, sizex, sizey);
+      
+      if (dist <= R) {
+          centers.push_back({final_cx, final_cy, -1});
+      }
     }
   }
 
   int final_ncells = centers.size();
-  if (final_ncells == 0) return;
+  if (final_ncells == 0) {
+      std::cout << "Density/Radius too low to generate any cells inside R." << std::endl;
+      return;
+  }
 
   // 6. Split sheet to prepare sufficient cell instances
   FractureSheet(final_ncells);
@@ -3491,7 +3503,6 @@ void CellularPotts::GenerateCellsByDensity(double density)
         for (const auto& center : centers) {
           if (center.id == -1) continue;
           
-          // Re-using your periodic bounds euclideanDistance implementation
           double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
           if (dist < minDistance) {
               minDistance = dist;
@@ -3537,7 +3548,8 @@ void CellularPotts::GenerateCellsByDensity(double density)
   }
   MeasureCellSizes();
 
-  std::cout << "Grid generated | Density: " << density 
+  std::cout << "Grid generated | Radius: " << R 
+            << " | Density: " << density 
             << " | Cells populated: " << (final_ncells - deadcells)
             << " | Cells killed (0 area): " << deadcells << std::endl;
 }
@@ -6764,8 +6776,9 @@ void CellularPotts::SurfaceBindings()
           // did we find a border?
           if (sigma[xp2][yp2] != sigma[x][y]) 
           {
-            bool oppCD19 = (*cell)[sigma[x][y]].getCD19();
-            double oppEcad = (*cell)[sigma[x][y]].getE_cadherin();
+            bool oppCD19 = (*cell)[sigma[xp2][yp2]].getCD19();
+            double oppEcad = (*cell)[sigma[xp2][yp2]].getE_cadherin();
+            // cout << oppCD19 << '\t' << oppEcad << endl;
             (*cell)[current_cell].AddtoSurfaces(oppCD19, oppEcad);
 
           }
@@ -6813,7 +6826,7 @@ void CellularPotts::OutputSyntheticNetwork(int thetime)
       ofstream outfile;
       string out = data_file + "/cell-" + to_string(c->Sigma()) + ".dat";
       outfile.open(out, ios::app);
-      outfile << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << endl;
+      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << endl;
       outfile.close();
     }
   }
@@ -6826,7 +6839,7 @@ void CellularPotts::OutputSyntheticNetwork(int thetime)
 void CellularPotts::SyntheticNetwork()
 {
 
-  // WE MUST TO SURFACE BINDINGS FIRST!
+  // WE MUST DO SURFACE BINDINGS FIRST!
   SurfaceBindings();
 
   vector<Cell>::iterator c;
@@ -6838,24 +6851,37 @@ void CellularPotts::SyntheticNetwork()
       double dt = par.dt;
       // averaging after surface bindings
       c->AverageSurfaceBindings();
-    
-      double& synNotch_bound = c->getsynNotch_bound();
-      double& synNotch_unbound = c->getsynNotch_unbound();
-      double& synNotch_intra = c->getsynNotch_intra();
-      double& E_cadherin = c->getE_cadherin();
 
-      // get surface values
-      double opposite_Ecad = c->getOpposing_E_cadherin();
-      double opposite_CD19 = c->getOpposingCD19(); 
-      
-      // update gene regulatory network.
-      synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19);
-      synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
-      synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
-      E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad);      
+      // cells either do or do not have the synethic network. So, we have to get
+      // its network type and then decide how to update. For now, we say CD19.
+      bool& CD19_cell = c->getCD19();
 
-      
+      if (!CD19_cell)
+      {
+        double& synNotch_bound = c->getsynNotch_bound();
+        double& synNotch_unbound = c->getsynNotch_unbound();
+        double& synNotch_intra = c->getsynNotch_intra();
+        double& E_cadherin = c->getE_cadherin();
 
+        // get surface values
+        double opposite_Ecad = c->getOpposing_E_cadherin();
+        double opposite_CD19 = c->getOpposingCD19(); 
+        cout << "Opposite CD19: " << opposite_CD19 << endl;
+        cout << "Opposite ECAD: " << opposite_Ecad << endl;
+        
+        // update gene regulatory network.
+        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19);
+        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
+        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
+        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad);  
+
+        // for colour output
+        int cellcolour = round(E_cadherin * 100) + 2;
+        if (cellcolour > 102)
+          cellcolour = 102;
+        cout << cellcolour << endl;
+        c->set_ctype(cellcolour);
+      }
     }
   }
 }
