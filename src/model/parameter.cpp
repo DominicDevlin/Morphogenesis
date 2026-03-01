@@ -261,7 +261,7 @@
 
     //active term params
     active_motion = true;
-    motility_strength = 2.;
+    motility_strength = 1.5;
     persistence_time = 100.;
     if (active_motion)
     {
@@ -517,8 +517,8 @@
     E_cadherin_production_rate=0.0563;
     E_cadherin_saturation_constant = 0.5;
     E_cadherin_coefficient=3.0;
-    decay_E_cadherin_unbound=0.01;
-    decay_E_cadherin_bound=0.01;
+    decay_E_cadherin_unbound=0.012;
+    decay_E_cadherin_bound=0.003;
 
     synthetic_dt=0.1;    
 
@@ -531,6 +531,8 @@
     H_perim = true;
     ptarget_perimeter = 125;
     lambda_perimeter = 0.2;
+
+    motility_strength = 1.6;
 
     sizex = 300;
     sizey = 300;
