@@ -1623,6 +1623,17 @@ double& getE_cadherin()
   return E_cadherin;
 }
 
+void setRandomBindingProteins(double new_value)
+{
+  random_binding_proteins = new_value;
+}
+double& getRandomBindingProteins()
+{
+  return random_binding_proteins;
+}
+
+
+
 void setCD19(bool new_value)
 {
   CD19 = new_value;
@@ -1765,6 +1776,7 @@ protected:
   bool CD19;
   double opposing_CD19;
   double opposing_E_cadherin;
+  double random_binding_proteins;
 
 
 

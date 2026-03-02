@@ -189,11 +189,11 @@ TIMESTEP {
 
     }
 
-    if (t%100==0)
-    {
-      cout << "Mean cell Perimenter: " << dish->CPM->MeanCellPerimeter() << endl;
-      cout << "Mean cell Area: " << dish->CPM->MeanCellArea() << endl;
-    }
+    // if (t%100==0)
+    // {
+    //   cout << "Mean cell Perimenter: " << dish->CPM->MeanCellPerimeter() << endl;
+    //   cout << "Mean cell Area: " << dish->CPM->MeanCellArea() << endl;
+    // }
 
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)

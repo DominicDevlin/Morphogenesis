@@ -6737,6 +6737,21 @@ double E_cadherin_rk4(double dt, double c, double I, double X)
   return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
+double random_binding_derivative(double c, double X)
+{
+  return par.random_binding_protein_production
+  - par.decay_random_binding_protein_bound * c * X - par.decay_random_binding_protein_unbound * c * (1-X);
+}
+
+double random_binding_rk4(double dt, double c, double X)
+{
+  double k1 = random_binding_derivative(c, X);
+  double k2 = random_binding_derivative(c + dt * k1/2.0, X);
+  double k3 = random_binding_derivative(c + dt*k2/2.0, X);
+  double k4 = random_binding_derivative(c + dt*k3, X);
+  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
+}
+
 
 void CellularPotts::SurfaceBindings()
 {
@@ -6800,6 +6815,13 @@ void CellularPotts::StartSyntheticNetwork()
       double init_synNotch_unbound = 0.0;
       double init_synNotch_intra = 0.0;
       double init_E_cadherin = 0.0;
+      double init_random_binding_proteins = 0.1;
+
+      c->setsynNotch_bound(init_synNotch_bound);
+      c->setsynNotch_unbound(init_synNotch_unbound);
+      c->setsynNotch_intra(init_synNotch_intra);
+      c->setE_cadherin(init_E_cadherin);
+      c->setRandomBindingProteins(init_random_binding_proteins);
 
       // randomly make cell CD19 or not (move to different method eventually)
       double rand = RANDOM(s_val);
@@ -6826,7 +6848,7 @@ void CellularPotts::OutputSyntheticNetwork(int thetime)
       ofstream outfile;
       string out = data_file + "/cell-" + to_string(c->Sigma()) + ".dat";
       outfile.open(out, ios::app);
-      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << endl;
+      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << c->getRandomBindingProteins() << endl;
       outfile.close();
     }
   }
@@ -6855,33 +6877,40 @@ void CellularPotts::SyntheticNetwork()
       // cells either do or do not have the synethic network. So, we have to get
       // its network type and then decide how to update. For now, we say CD19.
       bool& CD19_cell = c->getCD19();
+      bool has_gene = !CD19_cell;
+
+
+      double& synNotch_bound = c->getsynNotch_bound();
+      double& synNotch_unbound = c->getsynNotch_unbound();
+      double& synNotch_intra = c->getsynNotch_intra();
+      double& E_cadherin = c->getE_cadherin();
+
+      double opposite_Ecad = c->getOpposing_E_cadherin() / 5;
+      double& random_binding_proteins = c->getRandomBindingProteins();
+      random_binding_proteins = random_binding_rk4(dt, random_binding_proteins, opposite_Ecad);
 
       if (!CD19_cell)
       {
-        double& synNotch_bound = c->getsynNotch_bound();
-        double& synNotch_unbound = c->getsynNotch_unbound();
-        double& synNotch_intra = c->getsynNotch_intra();
-        double& E_cadherin = c->getE_cadherin();
-
         // get surface values
-        double opposite_Ecad = c->getOpposing_E_cadherin();
-        double opposite_CD19 = c->getOpposingCD19(); 
-        cout << "Opposite CD19: " << opposite_CD19 << endl;
-        cout << "Opposite ECAD: " << opposite_Ecad << endl;
+        double opposite_CD19 = c->getOpposingCD19();
         
         // update gene regulatory network.
         synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19);
         synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
         synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
-        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad);  
 
-        // for colour output
-        int cellcolour = round(E_cadherin * 100) + 2;
-        if (cellcolour > 102)
-          cellcolour = 102;
-        cout << cellcolour << endl;
-        c->set_ctype(cellcolour);
+        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad); 
       }
+
+
+ 
+      // for colour output
+      int cellcolour = round(E_cadherin * 100) + 2 + round(random_binding_proteins * 100);
+      if (cellcolour > 102)
+        cellcolour = 102;
+      c->set_ctype(cellcolour);
+
+
     }
   }
 }

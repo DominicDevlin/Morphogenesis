@@ -113,6 +113,11 @@ class Parameter {
   double synthetic_Jcell_baseline;
   double Jcell_scaling;
 
+  double random_binding_protein_production;
+  double decay_random_binding_protein_bound;
+  double decay_random_binding_protein_unbound;
+
+
   double proportion_starting_CD19;
 
 

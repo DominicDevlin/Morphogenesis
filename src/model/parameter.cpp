@@ -514,17 +514,21 @@
     decay_synNotch_intra=0.5;
 
 
-    E_cadherin_production_rate=0.0563;
+    E_cadherin_production_rate=0.05;
     E_cadherin_saturation_constant = 0.5;
     E_cadherin_coefficient=3.0;
     decay_E_cadherin_unbound=0.012;
     decay_E_cadherin_bound=0.003;
 
+    random_binding_protein_production=0.015;
+    decay_random_binding_protein_bound=0.003;
+    decay_random_binding_protein_unbound=0.12;
+
     synthetic_dt=0.1;    
 
-    synthetic_Jm=0.7;
+    synthetic_Jm=0.5;
     synthetic_Jcell_baseline = 0;
-    Jcell_scaling=2;
+    Jcell_scaling=7;
 
     proportion_starting_CD19 = 0.5;
 
