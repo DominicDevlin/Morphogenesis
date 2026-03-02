@@ -592,6 +592,9 @@ public:
 
   void OutputSyntheticNetwork(int thetime);
 
+  void SyntheticGrowth();
+
+
 
   // inline double prop_success()
   // {

@@ -6915,7 +6915,21 @@ void CellularPotts::SyntheticNetwork()
   }
 }
 
+void CellularPotts::SyntheticGrowth()
+{
+  vector<Cell>::iterator c;
+  for (())
+}
 
+
+
+
+
+
+
+
+
+/* network for cell differentiation/morphogenesis model */
 void CellularPotts::update_network(int tsteps)
 {
   vector<Cell>::iterator c;
