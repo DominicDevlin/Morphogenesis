@@ -1674,7 +1674,15 @@ void ResetSurfaceBindings()
   opposing_E_cadherin=0;
 }
 
+void setTouchingMed(bool is)
+{
+  touching_med = is;
+}
 
+bool& getTouchingMed()
+{
+  return touching_med;
+}
 
 
 
@@ -1777,6 +1785,8 @@ protected:
   double opposing_CD19;
   double opposing_E_cadherin;
   double random_binding_proteins;
+  
+  bool touching_med;
 
 
 

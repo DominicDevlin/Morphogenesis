@@ -540,6 +540,7 @@
 
     sizex = 300;
     sizey = 300;
+    div_threshold = 150;
 
 
 

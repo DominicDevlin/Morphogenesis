@@ -6762,6 +6762,7 @@ void CellularPotts::SurfaceBindings()
     if (c->AliveP())
     {
       c->ResetSurfaceBindings();
+      c->setTouchingMed(false);
     }
   }
 
@@ -6795,7 +6796,10 @@ void CellularPotts::SurfaceBindings()
             double oppEcad = (*cell)[sigma[xp2][yp2]].getE_cadherin();
             // cout << oppCD19 << '\t' << oppEcad << endl;
             (*cell)[current_cell].AddtoSurfaces(oppCD19, oppEcad);
-
+            if (sigma[xp2][yp2]==0)
+            {
+              c->setTouchingMed(true);
+            }
           }
         }
       }
@@ -6917,13 +6921,49 @@ void CellularPotts::SyntheticNetwork()
 
 void CellularPotts::SyntheticGrowth()
 {
+
+  vector<bool> which_cells(cell->size());
+  int cell_division=0;
+  // Note this function MUST come after synthetic network,
+  // which sets the touching med variable
+
   vector<Cell>::iterator c;
-  for (())
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      double outside_growth_rate=10;
+      double inside_growth_rate=5;
+      
+      double rand = RANDOM(s_val);
+      bool istouching = c->getTouchingMed();
+
+      int targetarea=c->TargetArea();
+      int area=c->Area();
+
+      if (istouching)
+      {
+        int growth_rate = int(round(outside_growth_rate * rand));
+        c->SetTargetArea(targetarea + growth_rate);
+      }
+      else
+      {
+        int growth_rate = int(round(inside_growth_rate * rand));
+        c->SetTargetArea(targetarea + growth_rate);
+      }
+      if (area>par.div_threshold) 
+      {
+        
+        which_cells[c->Sigma()]=true;
+        cell_division++;
+      }
+    }
+  }
+  if (cell_division) 
+  {
+    DivideCells(which_cells);
+  }
 }
-
-
-
-
 
 
 
