@@ -84,7 +84,7 @@ INIT
       int ytoshift = par.sizey/2 - par.L2/2;
       // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
       // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
-      CPM->GenerateCellsByDensity(0.6);
+      CPM->GenerateCellsByDensity(0.6, 300);
     }
     else
     {
@@ -292,6 +292,29 @@ int main(int argc, char *argv[]) {
 #endif
     Parameter();
     par.phase_evolution = true;
+
+    //active term params
+    par.active_motion = true;
+    par.motility_strength = 1.5;
+    par.persistence_time = 100.;
+    if (par.active_motion)
+    {
+      par.dewet_length=450;
+      par.dewet_cell_depth=47; // 47 is max
+      par.cell_areas = 100;
+      par.L2 = sqrt((sqrt(3.)/2) * par.cell_areas ) * par.dewet_cell_depth;   
+      par.H_perim = true;
+      par.ptarget_perimeter = 120;
+      par.J_L = 0;
+      par.lambda2 = 0;
+      par.lambda_perimeter_phase = 0.2;
+      par.J_med = 0;
+      par.J_med2 = par.J_med;
+      par.tmpcounter=0;
+      par.tmpcountertotal=0;
+      par.medium_area_constraint = false;
+    }
+
     // Read parameters
     bool read = false;
     if (read)

@@ -117,6 +117,9 @@ class Parameter {
   double decay_random_binding_protein_bound;
   double decay_random_binding_protein_unbound;
 
+  bool gut_villus;
+  bool jamming;
+
 
   double proportion_starting_CD19;
 
