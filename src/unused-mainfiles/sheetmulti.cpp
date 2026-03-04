@@ -174,7 +174,7 @@ void process_population()
     dishes[i].CPM->set_num(i + 1);
     // does init block above.
     dishes[i].Init();
-    dishes[i].CPM->SetAreas(par.cell_areas);
+    dishes[i].CPM->SetAreas(par.cell_target_area);
 
 
     if (par.sheetmix)

@@ -383,7 +383,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     dishes[i].Init();
     dishes[i].CPM->start_network(network_list.at(i));
     dishes[i].CPM->Set_evoJ(par.J_SL);
-    dishes[i].CPM->SetAreas(par.cell_areas);
+    dishes[i].CPM->SetAreas(par.cell_target_area);
 
     bool stayed_together=true;
 
@@ -694,8 +694,8 @@ int main(int argc, char *argv[])
   par.sheet_shift=10;
   par.dewet_cell_depth=3;
   par.sheet_depth=95;
-  par.sheet_depth+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
-  par.sizey+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+  par.sheet_depth+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
+  par.sizey+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
   
   // 1240 is mass * 15.5 cells, 100 is the baseline length
   double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;

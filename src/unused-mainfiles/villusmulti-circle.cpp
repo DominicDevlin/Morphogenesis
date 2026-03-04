@@ -137,7 +137,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     dishes[i].Init();
     dishes[i].PDEfield->SetSecretion(par.secr_rate);
     dishes[i].CPM->Set_evoJ(par.J_SL);
-    dishes[i].CPM->SetAreas(par.cell_areas);
+    dishes[i].CPM->SetAreas(par.cell_target_area);
     dishes[i].CPM->start_network(network_list[i]);
 
     bool stayed_together=true;

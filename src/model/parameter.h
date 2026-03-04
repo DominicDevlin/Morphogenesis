@@ -39,7 +39,7 @@ class Parameter {
   void Read(const char *filename);
   void Write(ostream &os) const;
   double T;
-  int target_area;
+  int init_area;
   int target_length;
   double lambda;
   double lambda2;
@@ -91,6 +91,9 @@ class Parameter {
   double neighbour_multiplier;
   int ptarget_perimeter;
   bool H_perim;
+
+  double bulk_modulus;
+  double elastic_modulus;
 
   /* synthetic params*/
   bool make_synthetic;
@@ -168,7 +171,7 @@ class Parameter {
   double lT;
 
   bool eden_growth;
-  int cell_areas;
+  int cell_target_area;
   int cell_addition_rate;
   bool add_cells;
   int cell_lengths;

@@ -317,7 +317,7 @@ TIMESTEP {
         if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
         {
           dish->CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
-          dish->CPM->SetAreas(par.cell_areas);
+          dish->CPM->SetAreas(par.cell_target_area);
           if (par.lambda2 > 0)
           {
             dish->CPM->SetLengths(par.cell_lengths);

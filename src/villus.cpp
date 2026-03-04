@@ -276,7 +276,7 @@ TIMESTEP {
       dish->Init();
       dish->CPM->CopyProb(par.T);
 
-      dish->CPM->SetAreas(par.cell_areas);
+      dish->CPM->SetAreas(par.cell_target_area);
       
     }
 

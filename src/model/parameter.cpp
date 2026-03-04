@@ -90,21 +90,20 @@
     sizex = 250;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 250;
     mcs = 2000001;
-    T = 3;
-    // currently multiplied by sqrt of area to get actual target length
-    target_length = 2 / sqrt(M_PI);
-    lambda = 0.5;
-    lambda2 = 0; 
+    // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
+    T = 1;
+    // NOTE: lambda must be divided by A_0 to maintain constant force
+    bulk_modulus = 13;
+    cell_target_area = 100;
+    lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 100;
-    cell_areas = 100;
-    // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
-    lambda_perimeter=0.0;
-    lambda_perimeter_phase=0.0;
-    // NEIGHBOURHOOD MULTIPLIER DEPENDS ON NUMBER OF NEIGHBOURS (SEE MAGNO 2015)
-    neighbour_multiplier=3;
-    ptarget_perimeter=3.7*neighbour_multiplier;//*M_PI * sqrt(cell_areas/M_PI)*neighbour_multiplier;
-    // must be false. turned true automatically.
-    H_perim=false;
+    
+
+    H_perim = true;
+    elastic_modulus = 25;
+    ptarget_perimeter = 125;
+    // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
+    lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
       
     periodic_boundaries = true;
     // copy neighbourhood 2 used in old simulations.
@@ -130,37 +129,30 @@
     decay_synNotch_intra=0.5;
 
 
-    E_cadherin_production_rate=0.05;
+    E_cadherin_production_rate=0.033;
     E_cadherin_saturation_constant = 0.5;
     E_cadherin_coefficient=3.0;
-    decay_E_cadherin_unbound=0.012;
+    decay_E_cadherin_unbound=0.01;
     decay_E_cadherin_bound=0.003;
 
-    random_binding_protein_production=0.015;
+    random_binding_protein_production=0.02;
     decay_random_binding_protein_bound=0.003;
     decay_random_binding_protein_unbound=0.12;
 
     synthetic_dt=0.1;    
 
-    synthetic_Jm=0.5;
+    synthetic_Jm=0.17;
     synthetic_Jcell_baseline = 0;
-    Jcell_scaling=7;
+    Jcell_scaling=2.5;
 
     proportion_starting_CD19 = 0.5;
 
-    H_perim = true;
-    ptarget_perimeter = 125;
-    lambda_perimeter = 0.2;
 
-    motility_strength = 1.6;
-
-    sizex = 300;
-    sizey = 300;
     div_threshold = 150;
 
-    active_motion = false;
-    motility_strength = 1.5;
-    persistence_time = 100.;
+    active_motion = true;
+    motility_strength = 0.9;
+    persistence_time = 200.;
 
 
 
@@ -201,7 +193,7 @@
       gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
       Vs_max = 0.398977; // 1;
       Vd_max = 0; // 1; 
-      addition_distance = sqrt(cell_areas / M_PI);
+      addition_distance = sqrt(cell_target_area / M_PI);
 
 
   /*iterators */
@@ -295,7 +287,7 @@
       conserved_dewet_distance = 150;
       // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
-      L2 = sqrt((sqrt(3.)/2) * cell_areas ) * dewet_cell_depth;
+      L2 = sqrt((sqrt(3.)/2) * cell_target_area ) * dewet_cell_depth;
       double tmp_length = L2 + (sqrt(pow(L2,2) + pow(M_PI * conserved_dewet_distance,2) )) / M_PI;
       dewet_length=round(tmp_length);
 
@@ -444,7 +436,7 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    target_area = 10240;
+    init_area = 10240;
     size_init_cells = 80; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     eden_growth=false;
     n_init_cells = 1;
@@ -681,7 +673,7 @@
 
 
     // T = fgetpar(fp, "T", 50., true);
-    // target_area = igetpar(fp, "target_area", 100, true);
+    // init_area = igetpar(fp, "init_area", 100, true);
     // target_length = igetpar(fp, "target_length", 60, true);
     // lambda = fgetpar(fp, "lambda", 50, true);
     // lambda2 = fgetpar(fp, "lambda2", 5.0, true);
@@ -731,7 +723,7 @@
     setlocale(LC_NUMERIC, "C");
 
     os << " T = " << T << endl;
-    os << " target_area = " << target_area << endl;
+    os << " init_area = " << init_area << endl;
     os << " target_length = " << target_length << endl;
     os << " lambda = " << lambda << endl;
     os << " lambda2 = " << lambda2 << endl;

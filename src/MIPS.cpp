@@ -154,7 +154,7 @@ TIMESTEP {
       cout << "calling init" << endl;
       dish->Init();
       dish->CPM->CopyProb(par.T);
-      dish->CPM->SetAreas(par.cell_areas);
+      dish->CPM->SetAreas(par.cell_target_area);
       dish->CPM->MeasureCellPerimeters();
       dish->CPM->WetAllCells();
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
@@ -301,8 +301,8 @@ int main(int argc, char *argv[]) {
     {
       par.dewet_length=450;
       par.dewet_cell_depth=47; // 47 is max
-      par.cell_areas = 100;
-      par.L2 = sqrt((sqrt(3.)/2) * par.cell_areas ) * par.dewet_cell_depth;   
+      par.cell_target_area = 100;
+      par.L2 = sqrt((sqrt(3.)/2) * par.cell_target_area ) * par.dewet_cell_depth;   
       par.H_perim = true;
       par.ptarget_perimeter = 120;
       par.J_L = 0;

@@ -392,7 +392,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     dishes[i].Init();
     dishes[i].CPM->start_network(network_list.at(i));
     dishes[i].CPM->Set_evoJ(par.J_SL);
-    dishes[i].CPM->SetAreas(par.cell_areas);
+    dishes[i].CPM->SetAreas(par.cell_target_area);
 
     dishes[i].CPM->WetAllCells();
     // equilibriate cells with high T
@@ -679,7 +679,7 @@ int main(int argc, char *argv[])
   par.conserved_dewet_distance = 150;
   // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
 
-  par.L2 = sqrt((sqrt(3.)/2) * par.cell_areas ) * par.dewet_cell_depth;
+  par.L2 = sqrt((sqrt(3.)/2) * par.cell_target_area ) * par.dewet_cell_depth;
   double tmp_length = par.L2 + (sqrt(pow(par.L2,2) + pow(M_PI * par.conserved_dewet_distance,2) )) / M_PI;
   par.dewet_length=round(tmp_length);
   par.theoretical_diameter = 2 * sqrt((par.dewet_length * par.L2)/M_PI);

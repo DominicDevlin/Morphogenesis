@@ -163,7 +163,16 @@ public:
       chem[ch]=src.chem[ch];
 
     epithelial = src.epithelial;
-    
+
+    synNotch_bound = src.synNotch_bound;
+    synNotch_unbound = src.synNotch_unbound;
+    synNotch_intra = src.synNotch_intra;
+    E_cadherin = src.E_cadherin;
+    CD19 = src.CD19;
+    opposing_CD19 = src.opposing_CD19;
+    opposing_E_cadherin = src.opposing_E_cadherin;
+    random_binding_proteins = src.random_binding_proteins;
+    touching_med = src.touching_med;
     
   }
   
@@ -264,6 +273,16 @@ public:
 
     epithelial = src.epithelial;
 
+
+    synNotch_bound = src.synNotch_bound;
+    synNotch_unbound = src.synNotch_unbound;
+    synNotch_intra = src.synNotch_intra;
+    E_cadherin = src.E_cadherin;
+    CD19 = src.CD19;
+    opposing_CD19 = src.opposing_CD19;
+    opposing_E_cadherin = src.opposing_E_cadherin;
+    random_binding_proteins = src.random_binding_proteins;
+    touching_med = src.touching_med;
 
     diffs = new double[par.n_diffusers];
 
@@ -1684,6 +1703,26 @@ bool& getTouchingMed()
   return touching_med;
 }
 
+void setPerimConstraint(double is)
+{
+  cell_perim_constraint = is;
+}
+
+double& getPerimConstraint()
+{
+  return cell_perim_constraint;
+}
+
+
+void setAreaConstraint(double is)
+{
+  cell_area_constraint = is;
+}
+
+double& getAreaConstraint()
+{
+  return cell_area_constraint;
+}
 
 
 
@@ -1777,17 +1816,19 @@ protected:
 
 
   /* parameters for synthetic structures */
-  double synNotch_bound;
-  double synNotch_unbound;
-  double synNotch_intra;
-  double E_cadherin;
-  bool CD19;
-  double opposing_CD19;
-  double opposing_E_cadherin;
-  double random_binding_proteins;
+  double synNotch_bound{};
+  double synNotch_unbound{};
+  double synNotch_intra{};
+  double E_cadherin{};
+  bool CD19{};
+  double opposing_CD19{};
+  double opposing_E_cadherin{};
+  double random_binding_proteins{};
   
-  bool touching_med;
+  bool touching_med{};
 
+  double cell_perim_constraint;
+  double cell_area_constraint;
 
 
   // static int maxsigma; // the last cell identity number given out, Dom removed

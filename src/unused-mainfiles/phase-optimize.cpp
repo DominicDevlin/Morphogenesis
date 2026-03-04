@@ -299,7 +299,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         if (t % par.div_freq == 0 && t <= par.div_end)
         {
           dishes[i].CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
-          dishes[i].CPM->SetAreas(par.cell_areas);
+          dishes[i].CPM->SetAreas(par.cell_target_area);
         }
 
         

@@ -518,7 +518,7 @@ public:
   void MeasureSinglePerimeter(int targetsigma);
 
 
-  void SetPerims(int tpeirm);
+  void SetPerims(int tperim);
 
   void WetTopCells(int width, int depth);
 

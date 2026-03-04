@@ -278,7 +278,7 @@ TIMESTEP {
       dish->Init();
       dish->CPM->CopyProb(par.T);
 
-      dish->CPM->SetAreas(par.cell_areas);
+      dish->CPM->SetAreas(par.cell_target_area);
       
     }
 
@@ -674,8 +674,8 @@ int main(int argc, char *argv[]) {
 #endif
     Parameter();
     par.phase_evolution = true;    
-    par.sheet_depth+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
-    par.sizey+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+    par.sheet_depth+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
+    par.sizey+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
     // Read parameters
     bool read = false;
     if (read)

@@ -133,6 +133,17 @@ void Cell::CellBirth(Cell &mother_cell) {
 
   epithelial = mother_cell.epithelial;
 
+  synNotch_bound = mother_cell.synNotch_bound;
+  synNotch_unbound = mother_cell.synNotch_unbound;
+  synNotch_intra = mother_cell.synNotch_intra;
+  E_cadherin = mother_cell.E_cadherin;
+  CD19 = mother_cell.CD19;
+  opposing_CD19 = mother_cell.opposing_CD19;
+  opposing_E_cadherin = mother_cell.opposing_E_cadherin;
+  random_binding_proteins = mother_cell.random_binding_proteins;
+  touching_med = mother_cell.touching_med;
+
+
   for (int i=0;i<par.n_diffusers;i++)
   {
     diffs[i]=mother_cell.diffs[i];

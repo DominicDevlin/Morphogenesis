@@ -498,65 +498,34 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
     double DH_perimeter = 0;
     if (sxyp == MEDIUM) 
     {
-      bool cphase = (*cell)[sxy].GetPhase();
-      if (cphase)
-        DH_perimeter -=
-            par.lambda_perimeter_phase *
-            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                  (*cell)[sxy].TargetPerimeter()));
-      else
-        DH_perimeter -=
-            par.lambda_perimeter *
-            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                  (*cell)[sxy].TargetPerimeter()));      
+      DH_perimeter -=
+          par.lambda_perimeter *
+          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+          DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                (*cell)[sxy].TargetPerimeter()));      
     } 
     else if (sxy == MEDIUM) 
     {
-      bool cphase = (*cell)[sxyp].GetPhase();
-      if (cphase)
-        DH_perimeter -=
-            par.lambda_perimeter_phase *
-            (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                  (*cell)[sxyp].TargetPerimeter()));
-      else
-        DH_perimeter -=
-            par.lambda_perimeter *
-            (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                  (*cell)[sxyp].TargetPerimeter()));      
+
+      DH_perimeter -=
+          par.lambda_perimeter *
+          (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+          DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                (*cell)[sxyp].TargetPerimeter()));      
     }
     // they're both cells
     else 
     {
-      bool cphase = (*cell)[sxy].GetPhase();
-      bool cphasep = (*cell)[sxyp].GetPhase();
-      if (cphasep)
-        DH_perimeter -=
-            par.lambda_perimeter_phase *
-            ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-              DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                  (*cell)[sxyp].TargetPerimeter())));
-      else
-        DH_perimeter -=
-            par.lambda_perimeter *
-            ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-              DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                  (*cell)[sxyp].TargetPerimeter())));
-      if (cphase)
-        DH_perimeter -=
-            par.lambda_perimeter_phase *
-            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-              DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                  (*cell)[sxy].TargetPerimeter()));
-      else
-        DH_perimeter -=
-            par.lambda_perimeter *
-            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-              DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                  (*cell)[sxy].TargetPerimeter()));      
+      DH_perimeter -=
+          par.lambda_perimeter *
+          ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                (*cell)[sxyp].TargetPerimeter())));
+      DH_perimeter -=
+          par.lambda_perimeter *
+          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                (*cell)[sxy].TargetPerimeter()));      
     }
     DH += DH_perimeter;
   }
@@ -2253,8 +2222,8 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
   // set all cell areas to the mean area
   {
     for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) {
-      if (par.target_area) {
-	c->SetTargetArea(par.target_area);
+      if (par.init_area) {
+	c->SetTargetArea(par.init_area);
       } else	 {
 	c->SetTargetArea(mean_area);
       }
@@ -2314,13 +2283,6 @@ void CellularPotts::MeasureCellSizes(void) {
     }
   }
   
-  // set the actual area to the target area
-  {
-  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) {
-    c->SetAreaToTarget();
-
-  }
-  }
 }
 
 void CellularPotts::MeasureCellSize(Cell &c) {
@@ -2644,7 +2606,7 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
     queue<pair<int, int>> q; // Queue for BFS
     q.push({x, y});
 
-    int cell_size = par.cell_areas;
+    int cell_size = par.cell_target_area;
     int cell_sigma=cell->back().Sigma();
     // cout << "cp sigma is: " << cp_sigma << endl;
     // cout << "sigma is: " << cell_sigma << endl;
@@ -3397,7 +3359,7 @@ void CellularPotts::GenerateCellsByDensity(double density, double R)
   int W = sizex - 2;
   int H = sizey - 2;
   
-  double target_area = static_cast<double>(par.cell_areas);
+  double target_area = static_cast<double>(par.cell_target_area);
   
   // Guard against invalid parameters
   if (target_area <= 0 || density <= 0.0 || R <= 0.0) return;
@@ -3490,7 +3452,7 @@ void CellularPotts::GenerateCellsByDensity(double density, double R)
     }
   }
 
-  // 8. Draw the Voronoi domains, strictly bounded to achieve `par.cell_areas` size.
+  // 8. Draw the Voronoi domains, strictly bounded to achieve `par.cell_target_area` size.
   // Formula for circle radius: R = sqrt(A / pi). 
   // We apply a slight 5% buffer to account for discrete pixelation artifacts cutting areas short.
   double radius_limit = std::sqrt(target_area / M_PI) * 1.05; 
@@ -3540,8 +3502,6 @@ void CellularPotts::GenerateCellsByDensity(double density, double R)
         ++deadcells;
       } else {
         c->SetTargetArea(c->area);
-        double guess_perim = par.ptarget_perimeter * std::sqrt(c->area);
-        c->SetTargetPerimeter(guess_perim);
         c->makeAlive();
       }
     }
@@ -3699,7 +3659,7 @@ void CellularPotts::Voronoi()
   // double total = sizex*sizey;
   // int ncells = round(total / 75.);
   // cout << ncells << endl;
-  double A = double(par.cell_areas);
+  double A = double(par.cell_target_area);
   double distance = sqrt((A)/(2*sqrt(3)));
   double leftover = fmod(sizex-2, distance);
   int dividor = int(floor(double(sizex-2)/distance));
@@ -3783,7 +3743,7 @@ void CellularPotts::Voronoi()
 void CellularPotts::VoronoiSeparated(int xlen, int ylen, int shift, int xshift, bool turnonphase)
 {
   // 1. Calculate the base dimensions from the target area
-  double A = double(par.cell_areas);
+  double A = double(par.cell_target_area);
   
   // This 'base_distance' represents the radius required for the target Area A 
   // in a packed configuration. We will use this to limit the drawn cell size.
@@ -3828,7 +3788,7 @@ void CellularPotts::VoronoiSeparated(int xlen, int ylen, int shift, int xshift, 
   }
 
   // 5. Draw the cells, but LIMIT the radius to 'base_distance'
-  // This ensures the cells are roughly the size of 'par.cell_areas', 
+  // This ensures the cells are roughly the size of 'par.cell_target_area', 
   // but because the centers are spread out, there will be empty space (Medium 0) between them.
   
   // We use a slight multiplier (e.g., 1.1) on base_distance for the drawing limit 
@@ -3908,8 +3868,6 @@ void CellularPotts::VoronoiSeparated(int xlen, int ylen, int shift, int xshift, 
       else
       {
         c->SetTargetArea(c->area);
-        double guess_perim = par.ptarget_perimeter * sqrt(c->area);
-        c->SetTargetPerimeter(guess_perim);
         c->makeAlive();
       }
     }
@@ -3927,7 +3885,7 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turn
   // double total = sizex*sizey;
   // int ncells = round(total / 75.);
   // cout << ncells << endl;
-  double A = double(par.cell_areas);
+  double A = double(par.cell_target_area);
   double distance = sqrt((A)/(2*sqrt(3)));
   double leftover = fmod(xlen-2, distance);
   int dividor = int(floor(double(xlen-2)/distance));
@@ -4013,24 +3971,6 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turn
       else
       {
         c->SetTargetArea(c->area);
-        // cout << c->area << endl;
-      }
-    }
-  }
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      if (!c->area)
-      {
-        c->Apoptose();
-        ++deadcells;
-      }
-      else
-      {
-        c->SetTargetArea(c->area);
-        double guess_perim = par.ptarget_perimeter * sqrt(c->area);// 2*M_PI * sqrt(c->area/M_PI)*par.neighbour_multiplier;
-        c->SetTargetPerimeter(guess_perim);
         c->makeAlive();
         // cout << c->area << endl;
       }
@@ -4146,8 +4086,8 @@ void CellularPotts::ToppingVoronoi()
       if (c->AliveP() && c->Sigma() >= newsigma)
       {
         c->TransformPhase(true);
-        c->SetTargetArea(par.cell_areas);
-        if (c->Area() < par.cell_areas)
+        c->SetTargetArea(par.cell_target_area);
+        if (c->Area() < par.cell_target_area)
         {
           reached_min = true;
           break;
@@ -4158,7 +4098,7 @@ void CellularPotts::ToppingVoronoi()
     {
       if (c->AliveP() && c->Sigma() >= newsigma)
       {
-        c->SetTargetArea(par.cell_areas);
+        c->SetTargetArea(par.cell_target_area);
         if (c->Area() == 0)
         {
           c->Apoptose();
@@ -4318,7 +4258,7 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int o
   }}}
   else
   {
-    double radius = sqrt(par.target_area / M_PI);
+    double radius = sqrt(par.init_area / M_PI);
 
     // Iterate over the grid and fill the points within the circle
     for (int i = 0; i < sizex; ++i) {
@@ -4440,7 +4380,7 @@ void CellularPotts::GrowAndDivideCells(int growth_rate) {
      
       c->SetTargetArea(c->TargetArea()+growth_rate);
     
-      if (c->Area()>par.target_area) {
+      if (c->Area()>par.init_area) {
 	which_cells[c->Sigma()]=true;
       } else {
 	which_cells[c->Sigma()]=false;
@@ -5572,7 +5512,7 @@ void CellularPotts::WetAbove(int width, int depth)
   vector<int> mark_for_deletion{};
 
   // we use 2.5 * circle (circle being a cell) as max depth.
-  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
   for (int x = 1; x < sizex; ++x) 
   {
     int cells_encountered;
@@ -5647,7 +5587,7 @@ void CellularPotts::WetAbove(int width, int depth)
 void CellularPotts::WetTopCells(int width, int depth)
 {
   // we use 2.5 * circle (circle being a cell) as max depth.
-  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
   for (int x = width; x < sizex-width; ++x) 
   {
     int cells_encountered;
@@ -5841,8 +5781,8 @@ void CellularPotts::AddEpithelialLayer()
   int current_layer_cell_count = 1; // We started with 1 giant cell
   int target_layer_cell_count = 0;
   
-  if (par.cell_areas > 0) {
-      target_layer_cell_count = total_filled_pixels / par.cell_areas;
+  if (par.cell_target_area > 0) {
+      target_layer_cell_count = total_filled_pixels / par.cell_target_area;
   }
   
   // Safety: at least 1 cell
@@ -5912,7 +5852,7 @@ void CellularPotts::AddEpithelialLayer()
     Cell* c = &((*cell)[i]);
     if (c->AliveP() && c->Sigma() >= newsigma)
     {
-      c->SetTargetArea(par.cell_areas);
+      c->SetTargetArea(par.cell_target_area);
       c->SetEpithelial(true);
       c->TransformPhase(true);
     }
@@ -6963,6 +6903,21 @@ void CellularPotts::SyntheticGrowth()
   {
     DivideCells(which_cells);
   }
+
+  // adjust constraints!
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      double area_constraint = par.bulk_modulus / c->TargetArea();
+      c->setAreaConstraint(area_constraint);
+      int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
+      c->SetTargetPerimeter(target_perim);
+      double perim_constraint = par.elastic_modulus / target_perim;
+      c->setPerimConstraint(perim_constraint);
+      cout << target_perim << '\t' << area_constraint << '\t' << perim_constraint << endl;
+    }
+  }
 }
 
 
@@ -7840,8 +7795,8 @@ void CellularPotts::SetPerims(int tperim)
   vector<Cell>::iterator i;
   for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
   {
-    i->SetTargetPerimeter(round(double(tperim)*sqrt(double(par.cell_areas))));
-    cout << round(double(tperim)*sqrt(double(par.cell_areas))) << endl;
+    i->SetTargetPerimeter(par.ptarget_perimeter);
+    i->setPerimConstraint(par.lambda_perimeter);
   }
 }
 
