@@ -168,6 +168,9 @@ void Cell::CellBirth(Cell &mother_cell) {
 
   grad[0]=mother_cell.grad[0];
   grad[1]=mother_cell.grad[1];
+
+  centerx = mother_cell.centerx;
+  centery=mother_cell.centery;
   
 }
 
@@ -224,6 +227,8 @@ void Cell::ConstructorBody(int settau) {
     velocity_histories_x.assign(par.persistence_time, 0.);
     velocity_histories_y.assign(par.persistence_time, 0.);
   }
+  centerx = double(par.sizex)/2 - 1;
+  centery = double(par.sizey)/2 - 1;
 
 }
 
@@ -305,7 +310,8 @@ double Cell::SyntheticEnergy(Cell &cell2)
     return par.synthetic_Jm;
   else
   {
-    return par.synthetic_Jcell_baseline - par.Jcell_scaling * (E_cadherin+random_binding_proteins) * (cell2.getE_cadherin()+cell2.getRandomBindingProteins());
+    return par.synthetic_Jcell_baseline - par.Jcadherin_scaling * (E_cadherin * cell2.getE_cadherin())
+     - par.Jrandom_scaling * ((E_cadherin*cell2.getRandomBindingProteins()) + (random_binding_proteins*cell2.getE_cadherin()));
   }
 }
 

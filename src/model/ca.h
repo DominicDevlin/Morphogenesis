@@ -855,7 +855,6 @@ private:
   void MeasureCellSize(Cell &c);
   
   bool ConnectivityPreservedP(int x, int y);
-
   
 
 

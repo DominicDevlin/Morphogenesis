@@ -101,11 +101,11 @@
 
     H_perim = true;
     elastic_modulus = 25;
-    ptarget_perimeter = 125;
+    ptarget_perimeter = 120;
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
       
-    periodic_boundaries = true;
+    periodic_boundaries = false;
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
     // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
@@ -134,16 +134,23 @@
     E_cadherin_coefficient=3.0;
     decay_E_cadherin_unbound=0.01;
     decay_E_cadherin_bound=0.003;
+    cadherin_perim_max_multiple=0.2;
 
-    random_binding_protein_production=0.02;
+    // this concentration is too high, needs to come down i think (and get scaling right)
+    random_binding_protein_production=0.033;
     decay_random_binding_protein_bound=0.003;
-    decay_random_binding_protein_unbound=0.12;
+    decay_random_binding_protein_unbound=0.01;
 
     synthetic_dt=0.1;    
 
-    synthetic_Jm=0.17;
-    synthetic_Jcell_baseline = 0;
-    Jcell_scaling=2.5;
+    synthetic_Jm=0.2;
+    synthetic_Jcell_baseline = 0.4;
+    Jcadherin_scaling=0.6;
+    Jrandom_scaling=0.2;
+    // IMPORTANT NOTE!!
+    // CORTICAL TENSION SHOULD GO DOWN FOR ALL CELLS!!! AS THEY BIND MORE TO OTHER CELLS
+    // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
+    // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
 
     proportion_starting_CD19 = 0.5;
 
@@ -151,9 +158,11 @@
     div_threshold = 150;
 
     active_motion = true;
-    motility_strength = 0.9;
+    motility_strength = 0.1;
     persistence_time = 200.;
 
+    add_gravity=true;
+    lambda_gravity=0.002;
 
 
 

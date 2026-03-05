@@ -77,7 +77,7 @@ INIT
     par.highT=false;
     // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
     // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
-    CPM->GenerateCellsByDensity(0.8, 80);
+    CPM->GenerateCellsByDensity(0.5, 100);
     
 
     // Assign a random type to each of the cells

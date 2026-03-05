@@ -114,7 +114,8 @@ class Parameter {
 
   double synthetic_Jm;
   double synthetic_Jcell_baseline;
-  double Jcell_scaling;
+  double Jcadherin_scaling;
+  double Jrandom_scaling;
 
   double random_binding_protein_production;
   double decay_random_binding_protein_bound;
@@ -230,6 +231,10 @@ class Parameter {
   int adult_begins;
 
   bool insert_randoms;
+
+  bool add_gravity;
+  double lambda_gravity;
+  double cadherin_perim_max_multiple;
 
 
   int n_diffusers;

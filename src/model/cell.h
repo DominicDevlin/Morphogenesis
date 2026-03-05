@@ -173,6 +173,9 @@ public:
     opposing_E_cadherin = src.opposing_E_cadherin;
     random_binding_proteins = src.random_binding_proteins;
     touching_med = src.touching_med;
+
+    centerx = src.centerx;
+    centery = src.centery;
     
   }
   
@@ -297,6 +300,9 @@ public:
       chem[ch]=src.chem[ch];
     
     return *this;
+
+    centerx = src.centerx;
+    centery = src.centery;
 
   }
 
@@ -1523,12 +1529,14 @@ private:
     double Lx = par.sizex - 2;
     double Ly = par.sizey - 2;
 
-    double com_x = (double)sum_x / area;
-    double com_y = (double)sum_y / area;
+    com_x = (double)sum_x / area;
+    com_y = (double)sum_y / area;
 
     double dx = (double)x - com_x;
     double dy = (double)y - com_y;
 
+
+    
     if (par.periodic_boundaries) 
     {
         dx -= Lx * round(dx / Lx);
@@ -1541,11 +1549,11 @@ private:
     }
 
     // Displacement of COM: dCOM = (x - COM_old) / (Area + 1)
-    double shift_x = dx / (double)(area + 1);
-    double shift_y = dy / (double)(area + 1);
+    com_shiftx = dx / (double)(area + 1);
+    com_shifty = dy / (double)(area + 1);
 
     // Energy contribution: area * (dCOM . Velocity)
-    return (double)area * (shift_x * avg_vx + shift_y * avg_vy);
+    return (double)area * (com_shiftx * avg_vx + com_shifty * avg_vy);
 
 
     // double dirx = double(sum_x+x)/double(area+1) - double(sum_x)/double(area);
@@ -1560,8 +1568,8 @@ private:
     double Lx = par.sizex - 2;
     double Ly = par.sizey - 2;
 
-    double com_x = (double)sum_x / area;
-    double com_y = (double)sum_y / area;
+    com_x = (double)sum_x / area;
+    com_y = (double)sum_y / area;
 
     // Vector from COM to the pixel being removed
     double dx = (double)x - com_x;
@@ -1583,24 +1591,30 @@ private:
 
     // Displacement of COM: dCOM = (COM_old - x) / (Area - 1)
     // Note: Removing a pixel moves the COM in the opposite direction
-    double shift_x = -dx / (double)(area - 1);
-    double shift_y = -dy / (double)(area - 1);
-
-    double toreturn = (double)area * (shift_x * avg_vx + shift_y * avg_vy);
+    com_shiftx = -dx / (double)(area - 1);
+    com_shifty = -dy / (double)(area - 1);
     // if (abs(toreturn) > 1)
     // {
     //   cout << shift_x << '\t' << avg_vx << '\t' << shift_y << '\t' << avg_vy << '\t' << toreturn << endl;
     // }
       // cout << toreturn << endl;
     // cout << (double)area * (shift_x * avg_vx + shift_y * avg_vy) << endl;
-    return (double)area * (shift_x * avg_vx + shift_y * avg_vy);
+    return (double)area * (com_shiftx * avg_vx + com_shifty * avg_vy);
+}  
 
-    // double dirx = (sum_x-x)/double(area-1) - sum_x/double(area);
-    // double diry = (sum_y-y)/double(area-1) - sum_y/double(area);
-
-    // double dot_product = area * (dirx * avg_vx + diry * avg_vy);
-    // return dot_product; 
-  }  
+  double Gravity()
+  {
+    double newcom_x = com_x + com_shiftx;
+    double newcom_y = com_y + com_shifty;
+    double delta_x = com_x - centerx;
+    double delta_y = com_y - centery;
+    double delta_xnew = newcom_x - centerx;
+    double delta_ynew = newcom_y - centery;
+    // cout << centerx << '\t' << newcom_x << '\t' << com_x << endl;
+    double old_energy = par.lambda_gravity * (delta_x * delta_x + delta_y * delta_y);
+    double new_energy = par.lambda_gravity * (delta_xnew * delta_xnew + delta_ynew * delta_ynew);
+    return new_energy - old_energy;
+  }
 
 
 /* synthetic structure methods */
@@ -1723,8 +1737,6 @@ double& getAreaConstraint()
 {
   return cell_area_constraint;
 }
-
-
 
 private:
 //! Increments the cell's actual area by 1 unit.
@@ -1904,6 +1916,16 @@ protected:
   
   int area;
   int target_area;
+
+  /* for energy calculations shift in c.o.m*/
+  double com_x;
+  double com_y;
+  double com_shiftx;
+  double com_shifty;
+  double centerx;
+  double centery;
+
+  double lambda_perim;
 
   
 

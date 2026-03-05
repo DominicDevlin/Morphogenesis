@@ -453,17 +453,25 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
       
       DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
       // cout << "active: " << par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y) << endl;
+      if (par.add_gravity)
+        DH += (*cell)[sxy].Gravity();
     }
     else if (sxy == MEDIUM)
     {
       DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
+      if (par.add_gravity)
+        DH += (*cell)[sxyp].Gravity();
     }
     else
     {
       // cout << "dot product with cell: " << (*cell)[sxy].ActiveDotProduct_removed(x,y);
       DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
       DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
-      
+      if (par.add_gravity)
+      {
+        DH += (*cell)[sxy].Gravity();
+        DH += (*cell)[sxyp].Gravity();
+      }
     }
   }
 
@@ -498,8 +506,9 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
     double DH_perimeter = 0;
     if (sxyp == MEDIUM) 
     {
+
       DH_perimeter -=
-          par.lambda_perimeter *
+          (*cell)[sxy].getPerimConstraint() *
           (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
           DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
                 (*cell)[sxy].TargetPerimeter()));      
@@ -508,7 +517,7 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
     {
 
       DH_perimeter -=
-          par.lambda_perimeter *
+          (*cell)[sxyp].getPerimConstraint() *
           (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
           DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
                 (*cell)[sxyp].TargetPerimeter()));      
@@ -517,12 +526,12 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
     else 
     {
       DH_perimeter -=
-          par.lambda_perimeter *
+          (*cell)[sxyp].getPerimConstraint() *
           ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
             DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
                 (*cell)[sxyp].TargetPerimeter())));
       DH_perimeter -=
-          par.lambda_perimeter *
+          (*cell)[sxy].getPerimConstraint() *
           (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
             DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
                 (*cell)[sxy].TargetPerimeter()));      
@@ -6849,7 +6858,7 @@ void CellularPotts::SyntheticNetwork()
 
  
       // for colour output
-      int cellcolour = round(E_cadherin * 100) + 2 + round(random_binding_proteins * 100);
+      int cellcolour = round(E_cadherin * 100) + 2;
       if (cellcolour > 102)
         cellcolour = 102;
       c->set_ctype(cellcolour);
@@ -6912,13 +6921,16 @@ void CellularPotts::SyntheticGrowth()
       double area_constraint = par.bulk_modulus / c->TargetArea();
       c->setAreaConstraint(area_constraint);
       int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
+      target_perim+= target_perim*par.cadherin_perim_max_multiple*c->getE_cadherin();
       c->SetTargetPerimeter(target_perim);
-      double perim_constraint = par.elastic_modulus / target_perim;
+      double perim_constraint = (par.elastic_modulus / target_perim) ;
       c->setPerimConstraint(perim_constraint);
       cout << target_perim << '\t' << area_constraint << '\t' << perim_constraint << endl;
     }
   }
 }
+  
+
 
 
 
