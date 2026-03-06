@@ -6768,7 +6768,7 @@ void CellularPotts::StartSyntheticNetwork()
       double init_synNotch_unbound = 0.0;
       double init_synNotch_intra = 0.0;
       double init_E_cadherin = 0.0;
-      double init_random_binding_proteins = 0.1;
+      double init_random_binding_proteins = 0.5;
 
       c->setsynNotch_bound(init_synNotch_bound);
       c->setsynNotch_unbound(init_synNotch_unbound);
@@ -6838,7 +6838,7 @@ void CellularPotts::SyntheticNetwork()
       double& synNotch_intra = c->getsynNotch_intra();
       double& E_cadherin = c->getE_cadherin();
 
-      double opposite_Ecad = c->getOpposing_E_cadherin() / 5;
+      double opposite_Ecad = c->getOpposing_E_cadherin();
       double& random_binding_proteins = c->getRandomBindingProteins();
       random_binding_proteins = random_binding_rk4(dt, random_binding_proteins, opposite_Ecad);
 
@@ -6854,15 +6854,18 @@ void CellularPotts::SyntheticNetwork()
 
         E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad); 
       }
-
-
  
       // for colour output
       int cellcolour = round(E_cadherin * 100) + 2;
       if (cellcolour > 102)
         cellcolour = 102;
       c->set_ctype(cellcolour);
-
+      
+      int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
+      target_perim+= round(target_perim*par.cadherin_perim_max_multiple*(c->getE_cadherin()+c->getRandomBindingProteins()));
+      c->SetTargetPerimeter(target_perim);
+      double perim_constraint = (par.elastic_modulus / target_perim) ;
+      c->setPerimConstraint(perim_constraint);
 
     }
   }

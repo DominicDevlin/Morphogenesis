@@ -77,7 +77,7 @@ INIT
     par.highT=false;
     // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
     // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
-    CPM->GenerateCellsByDensity(0.5, 100);
+    CPM->GenerateCellsByDensity(0.3, 110);
     
 
     // Assign a random type to each of the cells
@@ -147,10 +147,10 @@ TIMESTEP {
       dish->CPM->SyntheticNetwork();
       dish->CPM->OutputSyntheticNetwork(t);
     }
-    if (t % 3200==0 && t > 0)
-    {
-      dish->CPM->SyntheticGrowth();
-    }
+    // if (t % 3200==0 && t > 0)
+    // {
+    //   dish->CPM->SyntheticGrowth();
+    // }
 
     // bool GRN = true;
 
