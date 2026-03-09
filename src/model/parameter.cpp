@@ -121,19 +121,23 @@
 
 /* synthetic params */
     make_synthetic = true;
-    production_rate_synNotch=1.0;
-    decay_synNotch_bound=1.0;
+    production_rate_synNotch=0.01;
+    decay_synNotch_bound=0.01;
 
-    binding_rate_CD19_synNotch = 5.0;
-    decay_synNotch_unbound=0.5;
-    decay_synNotch_intra=0.5;
+    binding_rate_CD19_synNotch = 3.0;
+    decay_synNotch_unbound=0.1;
+    decay_synNotch_intra=0.1;
+
+    GFP_production_rate=0.5;
+    decay_GFP=0.005;
+    lo_cadherin_production_rate=0.04;
 
 
-    E_cadherin_production_rate=0.01;
-    E_cadherin_saturation_constant = 0.25;
-    E_cadherin_coefficient=3.0;
-    decay_E_cadherin_unbound=0.01;
-    decay_E_cadherin_bound=0.001;
+    E_cadherin_production_rate=0.07;
+    E_cadherin_saturation_constant=0.25;
+    hill_coefficient=3.0;
+    decay_E_cadherin_unbound=0.015;
+    decay_E_cadherin_bound=0.01;
     cadherin_perim_max_multiple=0.3;
 
     // this concentration is too high, needs to come down i think (and get scaling right)
@@ -141,7 +145,7 @@
     decay_random_binding_protein_bound=0.001;
     decay_random_binding_protein_unbound=0.01;
 
-    synthetic_dt=0.1;
+    synthetic_dt=0.3;
 
     synthetic_Jm=0.4;
     synthetic_Jcell_baseline = 0.4;
@@ -152,13 +156,13 @@
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
 
-    proportion_starting_CD19 = 0.3;
+    proportion_starting_CD19 = 0.4;
 
 
     div_threshold = 150;
 
     active_motion = true;
-    motility_strength = 0.5;
+    motility_strength = 0.7;
     persistence_time = 200.;
 
     add_gravity=true;

@@ -173,6 +173,10 @@ public:
     opposing_E_cadherin = src.opposing_E_cadherin;
     random_binding_proteins = src.random_binding_proteins;
     touching_med = src.touching_med;
+    mCherry=src.mCherry;
+    GFP=src.GFP;
+    opposing_GFP=src.opposing_GFP;
+
 
     centerx = src.centerx;
     centery = src.centery;
@@ -286,6 +290,9 @@ public:
     opposing_E_cadherin = src.opposing_E_cadherin;
     random_binding_proteins = src.random_binding_proteins;
     touching_med = src.touching_med;
+    mCherry=src.mCherry;
+    GFP=src.GFP;
+    opposing_GFP=src.opposing_GFP;
 
     diffs = new double[par.n_diffusers];
 
@@ -1665,6 +1672,29 @@ double& getRandomBindingProteins()
   return random_binding_proteins;
 }
 
+void setmCherry(double new_value)
+{
+  mCherry = new_value;
+}
+double& getmCherry()
+{
+  return mCherry;
+}
+void setGFP(double new_value)
+{
+  GFP = new_value;
+}
+double& getGFP()
+{
+  return GFP;
+}
+
+double& getOppositeGFP()
+{
+  return opposing_GFP;
+}
+
+
 
 
 void setCD19(bool new_value)
@@ -1686,10 +1716,24 @@ double& getOpposing_E_cadherin()
   return opposing_E_cadherin;
 }
 
-void AddtoSurfaces(bool bcd19, double bE_cad)
+void ResetSurfaceBindings()
+{
+  opposing_CD19=0;
+  opposing_E_cadherin=0;
+  opposing_GFP=0;
+}
+
+void AddtoSurfaces(bool bcd19, double bE_cad, double bGFP)
 {
   opposing_CD19=opposing_CD19 + bcd19;
-  opposing_E_cadherin = opposing_E_cadherin + bE_cad;
+  if (bE_cad > 1)
+    opposing_E_cadherin = opposing_E_cadherin + 1.;
+  else
+    opposing_E_cadherin = opposing_E_cadherin + bE_cad;
+  if (bGFP > 1)
+    opposing_GFP = opposing_GFP + 1.;
+  else
+    opposing_GFP = opposing_GFP + bGFP;
   // cout << "ADDING:" << opposing_CD19 << '\t' << opposing_E_cadherin << endl;
 }
 
@@ -1698,14 +1742,11 @@ void AverageSurfaceBindings()
   // cout << opposing_CD19 << '\t' << perimeter << endl;
   opposing_CD19 = opposing_CD19 / double(perimeter);
   opposing_E_cadherin = opposing_E_cadherin / double(perimeter);
+  opposing_GFP = opposing_GFP / double(perimeter);
   
 }
 
-void ResetSurfaceBindings()
-{
-  opposing_CD19=0;
-  opposing_E_cadherin=0;
-}
+
 
 void setTouchingMed(bool is)
 {
@@ -1836,6 +1877,9 @@ protected:
   double opposing_CD19{};
   double opposing_E_cadherin{};
   double random_binding_proteins{};
+  double GFP{};
+  double mCherry{};
+  double opposing_GFP{};
   
   bool touching_med{};
 

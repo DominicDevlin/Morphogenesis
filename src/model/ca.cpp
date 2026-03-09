@@ -6669,20 +6669,20 @@ double synNotch_intra_rk4(double dt, double c, double cB, double L)
 }
 
 
-double E_cadherin_derivative(double c, double I, double X)
+double E_cadherin_derivative(double c, double I, double X, double prate)
 {
   // X is the proportion shared surface with cells also expressing E_cadherin (have to normalise to so that peak concentration = 1)
-  return par.E_cadherin_production_rate * (pow(I, par.E_cadherin_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.E_cadherin_coefficient) + pow(I, par.E_cadherin_coefficient)))
+  return prate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient)))
   - par.decay_E_cadherin_bound * c * X - par.decay_E_cadherin_unbound * c * (1-X);
 }
 
 
-double E_cadherin_rk4(double dt, double c, double I, double X)
+double E_cadherin_rk4(double dt, double c, double I, double X, double prate)
 {
-  double k1 = E_cadherin_derivative(c, I, X);
-  double k2 = E_cadherin_derivative(c + dt * k1/2.0, I, X);
-  double k3 = E_cadherin_derivative(c + dt*k2/2.0, I, X);
-  double k4 = E_cadherin_derivative(c + dt*k3, I, X);
+  double k1 = E_cadherin_derivative(c, I, X, prate);
+  double k2 = E_cadherin_derivative(c + dt * k1/2.0, I, X, prate);
+  double k3 = E_cadherin_derivative(c + dt*k2/2.0, I, X, prate);
+  double k4 = E_cadherin_derivative(c + dt*k3, I, X, prate);
   return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
@@ -6698,6 +6698,20 @@ double random_binding_rk4(double dt, double c, double X)
   double k2 = random_binding_derivative(c + dt * k1/2.0, X);
   double k3 = random_binding_derivative(c + dt*k2/2.0, X);
   double k4 = random_binding_derivative(c + dt*k3, X);
+  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
+}
+
+double GFP_derivative(double c, double I)
+{
+  return par.GFP_production_rate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient))) - par.decay_GFP * c;
+}
+
+double GFP_rk4(double dt, double c, double I)
+{
+  double k1 = GFP_derivative(c, I);
+  double k2 = GFP_derivative(c + dt * k1/2.0, I);
+  double k3 = GFP_derivative(c + dt*k2/2.0, I);
+  double k4 = GFP_derivative(c + dt*k3, I);
   return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
@@ -6743,11 +6757,12 @@ void CellularPotts::SurfaceBindings()
           {
             bool oppCD19 = (*cell)[sigma[xp2][yp2]].getCD19();
             double oppEcad = (*cell)[sigma[xp2][yp2]].getE_cadherin();
+            double oppGFP = (*cell)[sigma[xp2][yp2]].getGFP();
             // cout << oppCD19 << '\t' << oppEcad << endl;
-            (*cell)[current_cell].AddtoSurfaces(oppCD19, oppEcad);
+            (*cell)[current_cell].AddtoSurfaces(oppCD19, oppEcad, oppGFP);
             if (sigma[xp2][yp2]==0)
             {
-              c->setTouchingMed(true);
+              (*cell)[current_cell].setTouchingMed(true);
             }
           }
         }
@@ -6768,12 +6783,16 @@ void CellularPotts::StartSyntheticNetwork()
       double init_synNotch_unbound = 0.0;
       double init_synNotch_intra = 0.0;
       double init_E_cadherin = 0.0;
+      double init_GFP = 0.0;
+      double init_mCherry = 0.0;
       double init_random_binding_proteins = 0.5;
 
       c->setsynNotch_bound(init_synNotch_bound);
       c->setsynNotch_unbound(init_synNotch_unbound);
       c->setsynNotch_intra(init_synNotch_intra);
       c->setE_cadherin(init_E_cadherin);
+      c->setGFP(init_GFP);
+      c->setmCherry(init_mCherry);
       c->setRandomBindingProteins(init_random_binding_proteins);
 
       // randomly make cell CD19 or not (move to different method eventually)
@@ -6801,7 +6820,7 @@ void CellularPotts::OutputSyntheticNetwork(int thetime)
       ofstream outfile;
       string out = data_file + "/cell-" + to_string(c->Sigma()) + ".dat";
       outfile.open(out, ios::app);
-      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << c->getRandomBindingProteins() << endl;
+      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << c->getRandomBindingProteins() << '\t' << c->getmCherry() << endl;
       outfile.close();
     }
   }
@@ -6823,7 +6842,7 @@ void CellularPotts::SyntheticNetwork()
   {
     if (c->AliveP())
     {
-      double dt = par.dt;
+      double dt = par.synthetic_dt;
       // averaging after surface bindings
       c->AverageSurfaceBindings();
 
@@ -6837,8 +6856,12 @@ void CellularPotts::SyntheticNetwork()
       double& synNotch_unbound = c->getsynNotch_unbound();
       double& synNotch_intra = c->getsynNotch_intra();
       double& E_cadherin = c->getE_cadherin();
+      double& GFP = c->getGFP();
+      double &mCherry = c->getmCherry();
 
       double opposite_Ecad = c->getOpposing_E_cadherin();
+
+      /* all cells have random binding proteins*/
       double& random_binding_proteins = c->getRandomBindingProteins();
       random_binding_proteins = random_binding_rk4(dt, random_binding_proteins, opposite_Ecad);
 
@@ -6852,15 +6875,44 @@ void CellularPotts::SyntheticNetwork()
         synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
         synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
 
-        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad); 
+        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate); 
+
+        GFP = GFP_rk4(dt, GFP, synNotch_intra);
+      }
+      else
+      {
+        /* cell b stuff here*/
+        double opposite_GFP = c->getOppositeGFP();
+        if (opposite_GFP > 0.5)
+          cout << opposite_GFP << endl;
+        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_GFP);
+        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_GFP);
+        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_GFP );
+
+        // E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.lo_cadherin_production_rate);
+        mCherry = GFP_derivative(mCherry, synNotch_intra);
       }
  
       // for colour output
-      int cellcolour = round(E_cadherin * 100) + 2;
-      if (cellcolour > 102)
-        cellcolour = 102;
+      int rounded_cad = round(E_cadherin * 100);
+      if (rounded_cad > 100)
+        rounded_cad = 100;
+
+      int rounded_cherry = round(mCherry * 100);
+      if (rounded_cherry > 100)
+        rounded_cherry = 100;
+
+      int cellcolour{};
+      if (mCherry < 1)
+      {
+        cellcolour = rounded_cad + 2;
+      }
+      else
+      {
+        cellcolour = rounded_cherry + 103;
+      }
       c->set_ctype(cellcolour);
-      
+
       int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
       target_perim+= round(target_perim*par.cadherin_perim_max_multiple*(c->getE_cadherin()+c->getRandomBindingProteins()));
       c->SetTargetPerimeter(target_perim);
@@ -6884,8 +6936,8 @@ void CellularPotts::SyntheticGrowth()
   {
     if (c->AliveP())
     {
-      double outside_growth_rate=10;
-      double inside_growth_rate=5;
+      double outside_growth_rate=2;
+      double inside_growth_rate=1;
       
       double rand = RANDOM(s_val);
       bool istouching = c->getTouchingMed();
@@ -6924,11 +6976,12 @@ void CellularPotts::SyntheticGrowth()
       double area_constraint = par.bulk_modulus / c->TargetArea();
       c->setAreaConstraint(area_constraint);
       int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
-      target_perim+= target_perim*par.cadherin_perim_max_multiple*c->getE_cadherin();
+      target_perim+= round(target_perim*par.cadherin_perim_max_multiple*(c->getE_cadherin()+c->getRandomBindingProteins()));
       c->SetTargetPerimeter(target_perim);
       double perim_constraint = (par.elastic_modulus / target_perim) ;
       c->setPerimConstraint(perim_constraint);
-      cout << target_perim << '\t' << area_constraint << '\t' << perim_constraint << endl;
+      // cout << target_perim << '\t' << area_constraint << '\t' << perim_constraint << endl;
+
     }
   }
 }

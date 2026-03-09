@@ -142,6 +142,10 @@ void Cell::CellBirth(Cell &mother_cell) {
   opposing_E_cadherin = mother_cell.opposing_E_cadherin;
   random_binding_proteins = mother_cell.random_binding_proteins;
   touching_med = mother_cell.touching_med;
+  mCherry=mother_cell.mCherry;
+  GFP=mother_cell.GFP;
+  opposing_GFP=mother_cell.opposing_GFP;
+
 
 
   for (int i=0;i<par.n_diffusers;i++)

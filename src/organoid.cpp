@@ -147,10 +147,10 @@ TIMESTEP {
       dish->CPM->SyntheticNetwork();
       dish->CPM->OutputSyntheticNetwork(t);
     }
-    // if (t % 3200==0 && t > 0)
-    // {
-    //   dish->CPM->SyntheticGrowth();
-    // }
+    if (t % 1000==0 && t > 0)
+    {
+      dish->CPM->SyntheticGrowth();
+    }
 
     // bool GRN = true;
 

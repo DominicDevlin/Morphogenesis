@@ -108,7 +108,11 @@ class Parameter {
 
   double E_cadherin_production_rate;
   double E_cadherin_saturation_constant;
-  double E_cadherin_coefficient;
+  double hill_coefficient;
+
+  double GFP_production_rate;
+  double decay_GFP;
+  double lo_cadherin_production_rate;
 
   double synthetic_dt;
 
