@@ -100,8 +100,8 @@
     
 
     H_perim = true;
-    elastic_modulus = 25;
-    ptarget_perimeter = 100;
+    elastic_modulus = 2;
+    ptarget_perimeter = 780;
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
       
@@ -109,7 +109,7 @@
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
     // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
-    adhesion_neighbourhood=2;
+    adhesion_neighbourhood=6;
     perimeter_neighbourhood=adhesion_neighbourhood;
     copy_neighbourhood=1;
 
@@ -121,24 +121,28 @@
 
 /* synthetic params */
     make_synthetic = true;
-    production_rate_synNotch=0.01;
-    decay_synNotch_bound=0.01;
+    synthetic_update_step=160;
 
-    binding_rate_CD19_synNotch = 3.0;
-    decay_synNotch_unbound=0.1;
-    decay_synNotch_intra=0.1;
+    production_rate_synNotch=0.02;
+    decay_synNotch_bound=0.02;
 
-    GFP_production_rate=0.5;
-    decay_GFP=0.005;
-    lo_cadherin_production_rate=0.04;
+    binding_rate_CD19_synNotch = 0.5;
+    decay_synNotch_unbound=0.02;
+    decay_synNotch_intra=0.04;
+
+    GFP_production_rate=0.01;
+    decay_GFP=0.002;
+    lo_cadherin_production_rate=0.01;
 
 
-    E_cadherin_production_rate=0.07;
+    E_cadherin_production_rate=0.04;
     E_cadherin_saturation_constant=0.25;
     hill_coefficient=3.0;
-    decay_E_cadherin_unbound=0.015;
-    decay_E_cadherin_bound=0.01;
-    cadherin_perim_max_multiple=0.3;
+    decay_E_cadherin_unbound=0.01;
+    decay_E_cadherin_bound=0.005;
+    c_max = 1.5;
+
+    cadherin_perim_max_multiple=-0.12;
 
     // this concentration is too high, needs to come down i think (and get scaling right)
     random_binding_protein_production=0.003;
@@ -147,22 +151,23 @@
 
     synthetic_dt=0.3;
 
-    synthetic_Jm=0.4;
+    synthetic_Jm=0.3;
     synthetic_Jcell_baseline = 0.4;
-    Jcadherin_scaling=0.6;
-    Jrandom_scaling=0.2;
+    Jcadherin_scaling=0.4;
+    Jrandom_scaling=0.1;
+    Jmed_scaling=0.4;
     // IMPORTANT NOTE!!
     // CORTICAL TENSION SHOULD GO DOWN FOR ALL CELLS!!! AS THEY BIND MORE TO OTHER CELLS
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
 
-    proportion_starting_CD19 = 0.4;
+    proportion_starting_CD19 = 0.55;
 
 
     div_threshold = 150;
 
     active_motion = true;
-    motility_strength = 0.7;
+    motility_strength = 0.4;
     persistence_time = 200.;
 
     add_gravity=true;

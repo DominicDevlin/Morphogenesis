@@ -900,8 +900,8 @@ protected:
 
 private:
   bool frozen;
-  static const int nx[25], ny[25];
-  static const int nbh_level[5];
+  static const int nx[37], ny[37];
+  static const int nbh_level[8];
   static int shuffleindex[9];
   std::vector<Cell> *cell;
   int zygote_area;

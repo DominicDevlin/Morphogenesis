@@ -176,6 +176,8 @@ public:
     mCherry=src.mCherry;
     GFP=src.GFP;
     opposing_GFP=src.opposing_GFP;
+    P_cadherin=src.P_cadherin;
+    N_cadherin=src.N_cadherin;
 
 
     centerx = src.centerx;
@@ -293,6 +295,8 @@ public:
     mCherry=src.mCherry;
     GFP=src.GFP;
     opposing_GFP=src.opposing_GFP;
+    P_cadherin=src.P_cadherin;
+    N_cadherin=src.N_cadherin;
 
     diffs = new double[par.n_diffusers];
 
@@ -1694,7 +1698,24 @@ double& getOppositeGFP()
   return opposing_GFP;
 }
 
+double& getN_cadherin()
+{
+  return N_cadherin;
+}
 
+void setN_cadherin(double new_value)
+{
+  N_cadherin = new_value;
+}
+double& getP_cadherin()
+{
+  return P_cadherin;
+}
+
+void setP_cadherin(double new_value)
+{
+  P_cadherin = new_value;
+}
 
 
 void setCD19(bool new_value)
@@ -1873,6 +1894,8 @@ protected:
   double synNotch_unbound{};
   double synNotch_intra{};
   double E_cadherin{};
+  double N_cadherin{};
+  double P_cadherin{};  
   bool CD19{};
   double opposing_CD19{};
   double opposing_E_cadherin{};

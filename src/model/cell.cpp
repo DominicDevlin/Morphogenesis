@@ -145,6 +145,8 @@ void Cell::CellBirth(Cell &mother_cell) {
   mCherry=mother_cell.mCherry;
   GFP=mother_cell.GFP;
   opposing_GFP=mother_cell.opposing_GFP;
+  P_cadherin=mother_cell.P_cadherin;
+  N_cadherin=mother_cell.N_cadherin;
 
 
 
@@ -309,9 +311,9 @@ double Cell::SyntheticEnergy(Cell &cell2)
   if (sigma==cell2.sigma)
     return 0;
   else if (sigma == 0)
-    return par.synthetic_Jm;
+    return par.synthetic_Jm + par.Jmed_scaling * cell2.getE_cadherin();
   else if (cell2.sigma==0)
-    return par.synthetic_Jm;
+    return par.synthetic_Jm + par.Jmed_scaling * E_cadherin;
   else
   {
     return par.synthetic_Jcell_baseline - par.Jcadherin_scaling * (E_cadherin * cell2.getE_cadherin())

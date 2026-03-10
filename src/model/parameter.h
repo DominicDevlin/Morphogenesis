@@ -109,17 +109,20 @@ class Parameter {
   double E_cadherin_production_rate;
   double E_cadherin_saturation_constant;
   double hill_coefficient;
+  double c_max;
 
   double GFP_production_rate;
   double decay_GFP;
   double lo_cadherin_production_rate;
 
+  int synthetic_update_step;
   double synthetic_dt;
 
   double synthetic_Jm;
   double synthetic_Jcell_baseline;
   double Jcadherin_scaling;
   double Jrandom_scaling;
+  double Jmed_scaling;
 
   double random_binding_protein_production;
   double decay_random_binding_protein_bound;

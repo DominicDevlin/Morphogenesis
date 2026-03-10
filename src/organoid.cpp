@@ -142,12 +142,12 @@ TIMESTEP {
 
     }
 
-    if (t % 320 == 0)
+    if (t % par.synthetic_update_step == 0)
     {
       dish->CPM->SyntheticNetwork();
       dish->CPM->OutputSyntheticNetwork(t);
     }
-    if (t % 1000==0 && t > 0)
+    if (t % 5000==0 && t > 0)
     {
       dish->CPM->SyntheticGrowth();
     }

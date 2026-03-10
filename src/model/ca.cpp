@@ -81,10 +81,31 @@ using namespace std;
 double copyprob[BOLTZMANN]; 
 
 
-const int CellularPotts::nx[25] = {0, 0, 1, 0,-1, 1, 1,-1,-1, 0, 2, 0, -2, 1, 2, 2, 1,-1,-2,-2,-1, 0, 2, 0,-2 };
-const int CellularPotts::ny[25] = {0,-1, 0, 1, 0,-1, 1, 1,-1,-2, 0, 2,  0,-2,-1, 1, 2, 2, 1,-1,-2,-2, 0, 2, 0 };
+// X coordinates for neighbors (0 to 36)
+const int CellularPotts::nx[37] = {
+    0,                      // Self (r^2 = 0)
+    0, 1, 0,-1,             // Level 1: r^2 = 1  (4 cells)
+    1, 1,-1,-1,             // Level 2: r^2 = 2  (4 cells)
+    0, 2, 0,-2,             // Level 3: r^2 = 4  (4 cells)
+    1, 2, 2, 1,-1,-2,-2,-1, // Level 4: r^2 = 5  (8 cells)
+    2, 2,-2,-2,             // Level 5: r^2 = 8  (4 cells)
+    0, 3, 0,-3,             // Level 6: r^2 = 9  (4 cells)
+    1, 3, 3, 1,-1,-3,-3,-1  // Level 7: r^2 = 10 (8 cells)
+};
 
-const int CellularPotts::nbh_level[5] = { 0, 4, 8, 20, 24 };
+// Y coordinates for neighbors (0 to 36)
+const int CellularPotts::ny[37] = {
+    0,                      // Self
+   -1, 0, 1, 0,             // Level 1
+   -1, 1, 1,-1,             // Level 2
+   -2, 0, 2, 0,             // Level 3
+   -2,-1, 1, 2, 2, 1,-1,-2, // Level 4
+   -2, 2, 2,-2,             // Level 5 
+   -3, 0, 3, 0,             // Level 6
+   -3,-1, 1, 3, 3, 1,-1,-3  // Level 7
+};
+
+const int CellularPotts::nbh_level[8] = { 0, 4, 8, 12, 20, 24, 28, 36 };
 int CellularPotts::shuffleindex[9]={0,1,2,3,4,5,6,7,8};
 
 extern Parameter par;
@@ -101,15 +122,15 @@ void CellularPotts::BaseInitialisation(vector<Cell> *cells) {
   else 
     throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4]).";
 
-  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=4)
+  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=7)
     n_nb_adh=nbh_level[par.adhesion_neighbourhood];
   else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-7])";
 
-  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=4)
+  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=7)
     n_nb_perim=nbh_level[par.perimeter_neighbourhood];
   else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-7])";
   
 }
 
@@ -149,15 +170,15 @@ CellularPotts::CellularPotts(vector<Cell> *cells,
   else 
     throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
 
-  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=4)
+  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=7)
     n_nb_adh=nbh_level[par.adhesion_neighbourhood];
   else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-7])";
 
-  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=4)
+  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=7)
     n_nb_perim=nbh_level[par.perimeter_neighbourhood];
   else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
+    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-7])";
 }
 
 CellularPotts::CellularPotts(void) {
@@ -6672,7 +6693,7 @@ double synNotch_intra_rk4(double dt, double c, double cB, double L)
 double E_cadherin_derivative(double c, double I, double X, double prate)
 {
   // X is the proportion shared surface with cells also expressing E_cadherin (have to normalise to so that peak concentration = 1)
-  return prate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient)))
+  return prate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient))) * (1. - c/par.c_max)
   - par.decay_E_cadherin_bound * c * X - par.decay_E_cadherin_unbound * c * (1-X);
 }
 
@@ -6703,7 +6724,7 @@ double random_binding_rk4(double dt, double c, double X)
 
 double GFP_derivative(double c, double I)
 {
-  return par.GFP_production_rate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient))) - par.decay_GFP * c;
+  return par.GFP_production_rate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient))) * (1. - c/par.c_max) - par.decay_GFP * c;
 }
 
 double GFP_rk4(double dt, double c, double I)
@@ -6783,6 +6804,8 @@ void CellularPotts::StartSyntheticNetwork()
       double init_synNotch_unbound = 0.0;
       double init_synNotch_intra = 0.0;
       double init_E_cadherin = 0.0;
+      double init_P_cadherin = 0.0;
+      double init_N_cadherin = 0.0;
       double init_GFP = 0.0;
       double init_mCherry = 0.0;
       double init_random_binding_proteins = 0.5;
@@ -6791,6 +6814,8 @@ void CellularPotts::StartSyntheticNetwork()
       c->setsynNotch_unbound(init_synNotch_unbound);
       c->setsynNotch_intra(init_synNotch_intra);
       c->setE_cadherin(init_E_cadherin);
+      c->setP_cadherin(init_P_cadherin);
+      c->setN_cadherin(init_N_cadherin);
       c->setGFP(init_GFP);
       c->setmCherry(init_mCherry);
       c->setRandomBindingProteins(init_random_binding_proteins);
@@ -6820,7 +6845,7 @@ void CellularPotts::OutputSyntheticNetwork(int thetime)
       ofstream outfile;
       string out = data_file + "/cell-" + to_string(c->Sigma()) + ".dat";
       outfile.open(out, ios::app);
-      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << c->getRandomBindingProteins() << '\t' << c->getmCherry() << endl;
+      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << c->getRandomBindingProteins() << '\t' << '\t' << c->getGFP() << '\t' << c->getmCherry() << endl;
       outfile.close();
     }
   }
@@ -6883,14 +6908,15 @@ void CellularPotts::SyntheticNetwork()
       {
         /* cell b stuff here*/
         double opposite_GFP = c->getOppositeGFP();
-        if (opposite_GFP > 0.5)
-          cout << opposite_GFP << endl;
+        // if (opposite_GFP > 0.5)
+        //   cout << opposite_GFP << endl;
         synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_GFP);
         synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_GFP);
         synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_GFP );
 
-        // E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.lo_cadherin_production_rate);
-        mCherry = GFP_derivative(mCherry, synNotch_intra);
+        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.lo_cadherin_production_rate);
+        mCherry = GFP_rk4(dt, mCherry, synNotch_intra);
+        // cout << synNotch_intra << '\t' << mCherry << endl;
       }
  
       // for colour output
@@ -6903,13 +6929,13 @@ void CellularPotts::SyntheticNetwork()
         rounded_cherry = 100;
 
       int cellcolour{};
-      if (mCherry < 1)
+      if (rounded_cherry < 1)
       {
         cellcolour = rounded_cad + 2;
       }
       else
       {
-        cellcolour = rounded_cherry + 103;
+        cellcolour = rounded_cherry + 102;
       }
       c->set_ctype(cellcolour);
 
@@ -6936,8 +6962,8 @@ void CellularPotts::SyntheticGrowth()
   {
     if (c->AliveP())
     {
-      double outside_growth_rate=2;
-      double inside_growth_rate=1;
+      double outside_growth_rate=10;
+      double inside_growth_rate=5;
       
       double rand = RANDOM(s_val);
       bool istouching = c->getTouchingMed();
