@@ -178,6 +178,8 @@ public:
     opposing_GFP=src.opposing_GFP;
     P_cadherin=src.P_cadherin;
     N_cadherin=src.N_cadherin;
+    opposing_P_cadherin=src.opposing_P_cadherin;
+    opposing_N_cadherin=src.opposing_N_cadherin;
 
 
     centerx = src.centerx;
@@ -297,6 +299,8 @@ public:
     opposing_GFP=src.opposing_GFP;
     P_cadherin=src.P_cadherin;
     N_cadherin=src.N_cadherin;
+    opposing_P_cadherin=src.opposing_P_cadherin;
+    opposing_N_cadherin=src.opposing_N_cadherin;
 
     diffs = new double[par.n_diffusers];
 
@@ -1717,6 +1721,26 @@ void setP_cadherin(double new_value)
   P_cadherin = new_value;
 }
 
+double& getOpposingN_cadherin()
+{
+  return opposing_N_cadherin;
+}
+
+void setOpposingN_cadherin(double new_value)
+{
+  opposing_N_cadherin = new_value;
+}
+double& getOpposingP_cadherin()
+{
+  return opposing_N_cadherin;
+}
+
+void setOpposingP_cadherin(double new_value)
+{
+  opposing_P_cadherin = new_value;
+}
+
+
 
 void setCD19(bool new_value)
 {
@@ -1744,7 +1768,7 @@ void ResetSurfaceBindings()
   opposing_GFP=0;
 }
 
-void AddtoSurfaces(bool bcd19, double bE_cad, double bGFP)
+void AddtoSurfaces(bool bcd19, double bE_cad, double bGFP, double bP_cad, double bN_cad)
 {
   opposing_CD19=opposing_CD19 + bcd19;
   if (bE_cad > 1)
@@ -1755,6 +1779,16 @@ void AddtoSurfaces(bool bcd19, double bE_cad, double bGFP)
     opposing_GFP = opposing_GFP + 1.;
   else
     opposing_GFP = opposing_GFP + bGFP;
+
+  if (bP_cad > 1)
+    opposing_P_cadherin = opposing_P_cadherin + 1.;
+  else
+    opposing_P_cadherin = opposing_P_cadherin + bP_cad;
+  
+    if (bN_cad)
+      opposing_N_cadherin = opposing_N_cadherin + 1.;
+    else
+      opposing_N_cadherin = opposing_N_cadherin + bN_cad;
   // cout << "ADDING:" << opposing_CD19 << '\t' << opposing_E_cadherin << endl;
 }
 
@@ -1763,6 +1797,8 @@ void AverageSurfaceBindings()
   // cout << opposing_CD19 << '\t' << perimeter << endl;
   opposing_CD19 = opposing_CD19 / double(perimeter);
   opposing_E_cadherin = opposing_E_cadherin / double(perimeter);
+  opposing_N_cadherin = opposing_N_cadherin / double(perimeter);
+  opposing_N_cadherin = opposing_N_cadherin / double(perimeter);
   opposing_GFP = opposing_GFP / double(perimeter);
   
 }
@@ -1903,6 +1939,8 @@ protected:
   double GFP{};
   double mCherry{};
   double opposing_GFP{};
+  double opposing_N_cadherin{};
+  double opposing_P_cadherin{};
   
   bool touching_med{};
 

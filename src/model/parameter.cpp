@@ -142,7 +142,7 @@
     decay_E_cadherin_bound=0.005;
     c_max = 1.5;
 
-    cadherin_perim_max_multiple=-0.12;
+    cadherin_perim_max_multiple=-0.08;
 
     // this concentration is too high, needs to come down i think (and get scaling right)
     random_binding_protein_production=0.003;
@@ -151,17 +151,17 @@
 
     synthetic_dt=0.3;
 
-    synthetic_Jm=0.3;
+    synthetic_Jm=0.25;
     synthetic_Jcell_baseline = 0.4;
     Jcadherin_scaling=0.4;
-    Jrandom_scaling=0.1;
+    Jrandom_scaling=0.4;
     Jmed_scaling=0.4;
     // IMPORTANT NOTE!!
     // CORTICAL TENSION SHOULD GO DOWN FOR ALL CELLS!!! AS THEY BIND MORE TO OTHER CELLS
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
 
-    proportion_starting_CD19 = 0.55;
+    proportion_starting_CD19 =0.55;// 0.55;
 
 
     div_threshold = 150;

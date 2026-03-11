@@ -6779,8 +6779,10 @@ void CellularPotts::SurfaceBindings()
             bool oppCD19 = (*cell)[sigma[xp2][yp2]].getCD19();
             double oppEcad = (*cell)[sigma[xp2][yp2]].getE_cadherin();
             double oppGFP = (*cell)[sigma[xp2][yp2]].getGFP();
+            double oppNcad = (*cell)[sigma[xp2][yp2]].getN_cadherin();
+            double oppPcad = (*cell)[sigma[xp2][yp2]].getP_cadherin();
             // cout << oppCD19 << '\t' << oppEcad << endl;
-            (*cell)[current_cell].AddtoSurfaces(oppCD19, oppEcad, oppGFP);
+            (*cell)[current_cell].AddtoSurfaces(oppCD19, oppEcad, oppGFP, oppPcad, oppNcad);
             if (sigma[xp2][yp2]==0)
             {
               (*cell)[current_cell].setTouchingMed(true);
@@ -6882,9 +6884,13 @@ void CellularPotts::SyntheticNetwork()
       double& synNotch_intra = c->getsynNotch_intra();
       double& E_cadherin = c->getE_cadherin();
       double& GFP = c->getGFP();
-      double &mCherry = c->getmCherry();
+      double& mCherry = c->getmCherry();
+      double& N_cadherin = c->getN_cadherin();
+      double& P_cadherin = c->getP_cadherin();
 
       double opposite_Ecad = c->getOpposing_E_cadherin();
+      double opposite_Pcad = c->getOpposingP_cadherin();
+      double opposite_Ncad = c->getOpposingN_cadherin();
 
       /* all cells have random binding proteins*/
       double& random_binding_proteins = c->getRandomBindingProteins();
@@ -6901,6 +6907,7 @@ void CellularPotts::SyntheticNetwork()
         synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
 
         E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate); 
+        // N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
 
         GFP = GFP_rk4(dt, GFP, synNotch_intra);
       }
@@ -6915,23 +6922,24 @@ void CellularPotts::SyntheticNetwork()
         synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_GFP );
 
         E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.lo_cadherin_production_rate);
+        // P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);
         mCherry = GFP_rk4(dt, mCherry, synNotch_intra);
         // cout << synNotch_intra << '\t' << mCherry << endl;
       }
  
       // for colour output
-      int rounded_cad = round(E_cadherin * 100);
-      if (rounded_cad > 100)
-        rounded_cad = 100;
+      int rounded_GFP = round(GFP * 200);
+      if (rounded_GFP > 100)
+        rounded_GFP = 100;
 
-      int rounded_cherry = round(mCherry * 100);
+      int rounded_cherry = round(mCherry * 200);
       if (rounded_cherry > 100)
         rounded_cherry = 100;
 
       int cellcolour{};
       if (rounded_cherry < 1)
       {
-        cellcolour = rounded_cad + 2;
+        cellcolour = rounded_GFP + 2;
       }
       else
       {
