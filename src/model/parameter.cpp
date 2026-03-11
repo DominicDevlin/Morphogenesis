@@ -178,7 +178,7 @@
 /* adhesion params */
     phase_evolution=false;
     // Gut Villus project;
-    gut_villus=true;
+    gut_villus=false;
     if (gut_villus)
     {
       // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
@@ -246,7 +246,7 @@
     }
 
 
-    jamming=false;
+    jamming=true;
     if (jamming)
     {
       sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
