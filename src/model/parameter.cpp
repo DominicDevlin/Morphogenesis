@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=9280881909033329193;//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -101,7 +101,7 @@
 
     H_perim = true;
     elastic_modulus = 2;
-    ptarget_perimeter = 780;
+    ptarget_perimeter = 750;
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
       
@@ -142,7 +142,9 @@
     decay_E_cadherin_bound=0.005;
     c_max = 1.5;
 
-    cadherin_perim_max_multiple=-0.08;
+    Ecadherin_tension_multiple=-0.08;
+    Ncadherin_tension_multiple=0.;
+    Pcadherin_tension_multiple=-0.04;
 
     // this concentration is too high, needs to come down i think (and get scaling right)
     random_binding_protein_production=0.003;
@@ -153,15 +155,18 @@
 
     synthetic_Jm=0.25;
     synthetic_Jcell_baseline = 0.4;
-    Jcadherin_scaling=0.4;
-    Jrandom_scaling=0.4;
+    JEcadherin_scaling=0.4;
+    JPcadherin_scaling=0.3;
+    JNcadherin_scaling=0.3;
+    Jrandom_scaling=0.2;
     Jmed_scaling=0.4;
+    init_random_binding=1.;
     // IMPORTANT NOTE!!
     // CORTICAL TENSION SHOULD GO DOWN FOR ALL CELLS!!! AS THEY BIND MORE TO OTHER CELLS
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
 
-    proportion_starting_CD19 =0.55;// 0.55;
+    proportion_starting_CD19 =0.58;// 0.55;
 
 
     div_threshold = 150;
@@ -174,11 +179,35 @@
     lambda_gravity=0.001;
 
 
+    // for debugging
+    thetime=0;
+
 
 /* adhesion params */
     phase_evolution=false;
     // Gut Villus project;
     gut_villus=false;
+
+  /*small genome params*/
+    n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
+    n_locks = n_lockandkey / 2; // must be half lockandkey. 
+    n_mediums = 2;
+    med_table = new int[n_mediums]; // J values for cell with medium
+    med_table[0] = 10;
+    med_table[1] = 2;
+    minJ = 4; // min J if all cell-cell are paired
+    maxJ = 20; // max J if all cell-cell are not paired
+    minM = 6; // min J with medium if all proteins are on
+
+
+    // GRN params
+    n_TF = 0; 
+    n_length_genes = 0;
+    n_MF = 2;
+
+    n_diffusers = 1; // morphogens
+    secr_rate = new double[n_diffusers];
+    diff_coeff = new double[n_diffusers];
     if (gut_villus)
     {
       // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
@@ -197,8 +226,6 @@
       J_med2=J_med;//0.5*J_S+0.5;
       add_cells = false;
       cell_addition_rate=509; 
-      secr_rate = new double[n_diffusers];
-      diff_coeff = new double[n_diffusers];
       secr_rate[0] = 0.006; //126251;// 2.039e12*pow((J_L+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
       diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 
       linear_increase=true;
@@ -246,7 +273,7 @@
     }
 
 
-    jamming=true;
+    jamming=false;
     if (jamming)
     {
       sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
@@ -394,26 +421,6 @@
 
 
     }
- 
-
-  /*small genome params*/
-    n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
-    n_locks = n_lockandkey / 2; // must be half lockandkey. 
-    n_mediums = 2;
-    med_table = new int[n_mediums]; // J values for cell with medium
-    med_table[0] = 10;
-    med_table[1] = 2;
-    minJ = 4; // min J if all cell-cell are paired
-    maxJ = 20; // max J if all cell-cell are not paired
-    minM = 6; // min J with medium if all proteins are on
-
-
-    // GRN params
-    n_TF = 0; 
-    n_length_genes = 0;
-    n_MF = 2;
-
-    n_diffusers = 1; // morphogens
 
 
 

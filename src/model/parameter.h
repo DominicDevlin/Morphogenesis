@@ -120,10 +120,13 @@ class Parameter {
 
   double synthetic_Jm;
   double synthetic_Jcell_baseline;
-  double Jcadherin_scaling;
+  double JEcadherin_scaling;
+  double JPcadherin_scaling;
+  double JNcadherin_scaling;
   double Jrandom_scaling;
   double Jmed_scaling;
 
+  double init_random_binding;
   double random_binding_protein_production;
   double decay_random_binding_protein_bound;
   double decay_random_binding_protein_unbound;
@@ -241,8 +244,11 @@ class Parameter {
 
   bool add_gravity;
   double lambda_gravity;
-  double cadherin_perim_max_multiple;
+  double Ecadherin_tension_multiple;
+  double Pcadherin_tension_multiple;
+  double Ncadherin_tension_multiple;
 
+  int thetime;
 
   int n_diffusers;
   int n_locks;

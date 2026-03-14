@@ -142,7 +142,7 @@ TIMESTEP {
 
     }
 
-    if (t % par.synthetic_update_step == 0)
+    if (t % par.synthetic_update_step == 0 && t > 0)
     {
       dish->CPM->SyntheticNetwork();
       dish->CPM->OutputSyntheticNetwork(t);
@@ -151,6 +151,8 @@ TIMESTEP {
     {
       dish->CPM->SyntheticGrowth();
     }
+    
+    
 
     // bool GRN = true;
 
@@ -182,17 +184,6 @@ TIMESTEP {
 
     // std::cout << "Press Enter to continue..."; // Nice to have a prompt
     // std::cin.get();                            // The actual pause
-
-    if (t%1==0)
-    {
-      double hh = dish->CPM->SumEnergy();
-      ofstream outfile;
-      string oname = par.data_file + "/counter.dat";
-      outfile.open(oname, ios::app);  // Append mode
-      outfile << double(par.tmpcounter) / double(par.tmpcountertotal) << endl;
-
-
-    }
 
     // if (t%100==0)
     // {

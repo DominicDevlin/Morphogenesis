@@ -594,6 +594,8 @@ public:
 
   void SyntheticGrowth();
 
+  void UpdateSyntheticCellConstraints();
+
 
 
   // inline double prop_success()

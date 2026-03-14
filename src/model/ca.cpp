@@ -678,6 +678,10 @@ void CellularPotts::MeasureCellPerimeters()
             if (yp2 >= sizey - 1)
               yp2 = yp2 - sizey + 2;
           }
+          else if (xp2 >= sizex-1 || xp2 < 1 || yp2 >= sizey-1 || yp2 < 1)
+          {
+            continue;
+          }
           // did we find a border?
           if (sigma[xp2][yp2] != sigma[x][y]) {
             // add to the perimeter of the cell
@@ -817,7 +821,11 @@ int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
    if (par.neighbours>=1 && par.neighbours<=4)
      n_nb=nbh_level[par.neighbours];
   */
+  if (par.thetime==616)
+    cout << "here! " << endl;
   int perim = (*cell)[sxyp].Perimeter();
+  if (par.thetime==616)
+    cout << "here! " << perim << endl;
 
   /* the cell with sigma sxyp wants to extend by adding lattice site (x, y).
  This means that the sxyp neighbours of (x,y) will not be borders anymore,so
@@ -830,6 +838,7 @@ int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
     xp2 = x + nx[i];
     yp2 = y + ny[i];
 
+
     if (par.periodic_boundaries) {
 
       if (xp2 <= 0)
@@ -841,6 +850,11 @@ int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
       if (yp2 >= sizey - 1)
         yp2 = yp2 - sizey + 2;
     }
+    else if (xp2 >= sizex-1 || xp2 < 1 || yp2 >= sizey-1 || yp2 < 1)
+    {
+      continue;
+    }
+
     if (sigma[xp2][yp2] == sxyp) {
       perim--;
     } else {
@@ -873,6 +887,10 @@ int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y) {
         xp2 = xp2 - sizex + 2;
       if (yp2 >= sizey - 1)
         yp2 = yp2 - sizey + 2;
+    }
+    else if (xp2 >= sizex-1 || xp2 < 1 || yp2 >= sizey-1 || yp2 < 1)
+    {
+      continue;
     }
     if (sigma[xp2][yp2] == sxy) {
       perim++;
@@ -935,6 +953,8 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
  
   for (int i=0;i<loop;i++) 
   {  
+    if (par.thetime==616)
+      cout << "here!!!!" << endl;
     // take a random site
     int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
     int x = xy%(sizex-2)+1;
@@ -1072,9 +1092,12 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
         int H_diss=0;
         // if (!ConnectivityPreservedP(x,y)) 
         //   H_diss=par.conn_diss;
-        
+        if (par.thetime==616)
+          cout << x << '\t' << y << '\t' << sigma[x][y] << endl;
         double D_H=DeltaH(x,y,kp, tsteps, PDEfield);
-        
+
+        if (par.thetime==616)
+          cout << x << '\t' << y << '\t' << sigma[x][y] << endl;
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
           ++par.tmpcounter;
@@ -6810,7 +6833,7 @@ void CellularPotts::StartSyntheticNetwork()
       double init_N_cadherin = 0.0;
       double init_GFP = 0.0;
       double init_mCherry = 0.0;
-      double init_random_binding_proteins = 0.5;
+      double init_random_binding_proteins = par.init_random_binding;
 
       c->setsynNotch_bound(init_synNotch_bound);
       c->setsynNotch_unbound(init_synNotch_unbound);
@@ -6847,12 +6870,32 @@ void CellularPotts::OutputSyntheticNetwork(int thetime)
       ofstream outfile;
       string out = data_file + "/cell-" + to_string(c->Sigma()) + ".dat";
       outfile.open(out, ios::app);
-      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << c->getRandomBindingProteins() << '\t' << '\t' << c->getGFP() << '\t' << c->getmCherry() << endl;
+      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << '\t' << '\t' << c->getGFP() << '\t' << c->getmCherry() << endl;
       outfile.close();
     }
   }
 
 
+}
+
+void CellularPotts::UpdateSyntheticCellConstraints()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      double area_constraint = par.bulk_modulus / double(c->TargetArea());
+      c->setAreaConstraint(area_constraint);
+      int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
+      target_perim+= round(target_perim*(par.Ecadherin_tension_multiple*c->getE_cadherin() + par.Ncadherin_tension_multiple*c->getN_cadherin() + par.Pcadherin_tension_multiple*c->getP_cadherin() ));
+      c->SetTargetPerimeter(target_perim);
+      double perim_constraint = (par.elastic_modulus / double(target_perim));
+      c->setPerimConstraint(perim_constraint);
+      // cout << target_perim << '\t' << area_constraint << '\t' << perim_constraint << endl;
+
+    }
+  }
 }
 
 
@@ -6893,8 +6936,8 @@ void CellularPotts::SyntheticNetwork()
       double opposite_Ncad = c->getOpposingN_cadherin();
 
       /* all cells have random binding proteins*/
-      double& random_binding_proteins = c->getRandomBindingProteins();
-      random_binding_proteins = random_binding_rk4(dt, random_binding_proteins, opposite_Ecad);
+      // double& random_binding_proteins = c->getRandomBindingProteins();
+      // random_binding_proteins = random_binding_rk4(dt, random_binding_proteins, opposite_Ecad);
 
       if (!CD19_cell)
       {
@@ -6932,7 +6975,7 @@ void CellularPotts::SyntheticNetwork()
       if (rounded_GFP > 100)
         rounded_GFP = 100;
 
-      int rounded_cherry = round(mCherry * 200);
+      int rounded_cherry = round(mCherry * 250);
       if (rounded_cherry > 100)
         rounded_cherry = 100;
 
@@ -6946,15 +6989,9 @@ void CellularPotts::SyntheticNetwork()
         cellcolour = rounded_cherry + 102;
       }
       c->set_ctype(cellcolour);
-
-      int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
-      target_perim+= round(target_perim*par.cadherin_perim_max_multiple*(c->getE_cadherin()+c->getRandomBindingProteins()));
-      c->SetTargetPerimeter(target_perim);
-      double perim_constraint = (par.elastic_modulus / target_perim) ;
-      c->setPerimConstraint(perim_constraint);
-
     }
   }
+  UpdateSyntheticCellConstraints();
 }
 
 void CellularPotts::SyntheticGrowth()
@@ -7003,21 +7040,7 @@ void CellularPotts::SyntheticGrowth()
   }
 
   // adjust constraints!
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      double area_constraint = par.bulk_modulus / c->TargetArea();
-      c->setAreaConstraint(area_constraint);
-      int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
-      target_perim+= round(target_perim*par.cadherin_perim_max_multiple*(c->getE_cadherin()+c->getRandomBindingProteins()));
-      c->SetTargetPerimeter(target_perim);
-      double perim_constraint = (par.elastic_modulus / target_perim) ;
-      c->setPerimConstraint(perim_constraint);
-      // cout << target_perim << '\t' << area_constraint << '\t' << perim_constraint << endl;
-
-    }
-  }
+  UpdateSyntheticCellConstraints();
 }
   
 

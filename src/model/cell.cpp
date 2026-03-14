@@ -317,10 +317,10 @@ double Cell::SyntheticEnergy(Cell &cell2)
   else
   {
     return par.synthetic_Jcell_baseline 
-     - par.Jcadherin_scaling * (E_cadherin * cell2.getE_cadherin())
+     - par.JEcadherin_scaling * (E_cadherin * cell2.getE_cadherin())
      - par.Jrandom_scaling * ((E_cadherin*cell2.getRandomBindingProteins()) + (random_binding_proteins*cell2.getE_cadherin()))
-     - par.Jcadherin_scaling * (P_cadherin * cell2.getP_cadherin()) 
-     - par.Jcadherin_scaling * (N_cadherin * cell2.getN_cadherin())
+     - par.JPcadherin_scaling * (P_cadherin * cell2.getP_cadherin()) 
+     - par.JNcadherin_scaling * (N_cadherin * cell2.getN_cadherin())
      - par.Jrandom_scaling * (N_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getN_cadherin())
      - par.Jrandom_scaling * (P_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getP_cadherin());
   }
