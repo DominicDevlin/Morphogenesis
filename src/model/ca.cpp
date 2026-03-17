@@ -358,12 +358,14 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
 
     
   /* DH due to cell adhesion */
+  double Jen=0;
   for (i=1;i<=n_nb_adh;i++) 
   {
     int xp2,yp2;
     xp2=x+nx[i]; yp2=y+ny[i];
     if (par.periodic_boundaries) 
     {
+      
       // since we are asynchronic, we cannot just copy the borders once 
       // every MCS
       
@@ -389,43 +391,44 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
     
     if (neighsite==-1) 
     { // border 
-      DH += (sxyp==0?0:par.border_energy)-(sxy==0?0:par.border_energy);
+      Jen += (sxyp==0?0:par.border_energy)-(sxy==0?0:par.border_energy);
     } 
     else 
     {
+
       // UP TO HERE!
       // DH += (*cell)[sxyp].CalculateJfromKeyLock((*cell)[neighsite].get_locks_bool(), (*cell)[neighsite].get_keys_bool()) 
       // - 
       if (par.sheet)
       {
-        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
+        Jen += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
       }
       else if (par.melting_adhesion)
       {
         if (tsteps < par.end_program)
-          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+          Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
         else
-          DH += (*cell)[sxyp].Melt((*cell)[neighsite], y) - (*cell)[sxy].Melt((*cell)[neighsite], y);
+          Jen += (*cell)[sxyp].Melt((*cell)[neighsite], y) - (*cell)[sxy].Melt((*cell)[neighsite], y);
       }
       else if (par.phase_evolution)
       {
         if (tsteps < par.end_program)
-          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+          Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
         else
-          DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
+          Jen += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
 
         // cout << "adhesion: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) << endl;
       }
       else if (par.make_synthetic)
       {
-        DH += (*cell)[sxyp].SyntheticEnergy((*cell)[neighsite]) - (*cell)[sxy].SyntheticEnergy((*cell)[neighsite]);
+        Jen += (*cell)[sxyp].SyntheticEnergy((*cell)[neighsite]) - (*cell)[sxy].SyntheticEnergy((*cell)[neighsite]);
       }
       else
       {
         if (tsteps < par.end_program)
-          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+          Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
         else
-          DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
+          Jen += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
         
         
       }
@@ -433,9 +436,10 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
       // cout << "COPYING: " << (*cell)[sxyp].getTau() << (*cell)[sxy].getTau() << std::endl;
       // cout << "sxyp is type: " << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) 
       // << ". sxy is type:" << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxy].EnergyDifference((*cell)[neighsite]) << std::endl;
-      
     }
   }
+  DH += Jen;// / (par.neigh_multiplier);
+
   
   // lambda is determined by chemical 0
   double lambda = (*cell)[sxy].get_lambda();
@@ -499,28 +503,28 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
   
   /* Length constraint */
   // sp is expanding cell, s is retracting cell  
-  if (par.lambda2>0)
-  {
-    double lambda2=par.lambda2; 
-    if ( sxyp == MEDIUM ) {
-      DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-            - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-              (*cell)[sxy].TargetLength()) ));
+  // if (par.lambda2>0)
+  // {
+  //   double lambda2=par.lambda2; 
+  //   if ( sxyp == MEDIUM ) {
+  //     DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+  //           - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+  //             (*cell)[sxy].TargetLength()) ));
       
-    }
-    else if ( sxy == MEDIUM ) {
-      DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-        -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
+  //   }
+  //   else if ( sxy == MEDIUM ) {
+  //     DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+  //       -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
       
-    }
-    else {
-      DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-          -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
-          ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-            - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-            (*cell)[sxy].TargetLength()) )) );
-    }
-  }
+  //   }
+  //   else {
+  //     DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+  //         -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
+  //         ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+  //           - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+  //           (*cell)[sxy].TargetLength()) )) );
+  //   }
+  // }
   
   if (par.H_perim) 
   {
@@ -1092,12 +1096,9 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
         int H_diss=0;
         // if (!ConnectivityPreservedP(x,y)) 
         //   H_diss=par.conn_diss;
-        if (par.thetime==616)
-          cout << x << '\t' << y << '\t' << sigma[x][y] << endl;
+
         double D_H=DeltaH(x,y,kp, tsteps, PDEfield);
 
-        if (par.thetime==616)
-          cout << x << '\t' << y << '\t' << sigma[x][y] << endl;
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
           ++par.tmpcounter;
@@ -6785,6 +6786,9 @@ void CellularPotts::SurfaceBindings()
           int xp2, yp2;
           xp2 = x + nx[i];
           yp2 = y + ny[i];
+          if (xp2 > sizex-1 || xp2 < 1 || yp2 > sizey-1 || yp2 < 1)
+            continue;
+            
           if (par.periodic_boundaries) 
           {
             if (xp2 <= 0)

@@ -311,18 +311,19 @@ double Cell::SyntheticEnergy(Cell &cell2)
   if (sigma==cell2.sigma)
     return 0;
   else if (sigma == 0)
-    return par.synthetic_Jm + par.Jmed_scaling * cell2.getE_cadherin();
+    return ((par.synthetic_Jm + par.Jmed_scaling * cell2.getE_cadherin())) / par.neigh_multiplier;
   else if (cell2.sigma==0)
-    return par.synthetic_Jm + par.Jmed_scaling * E_cadherin;
+    return (par.synthetic_Jm + par.Jmed_scaling * E_cadherin) / par.neigh_multiplier;
   else
   {
-    return par.synthetic_Jcell_baseline 
+    return (par.synthetic_Jcell_baseline 
      - par.JEcadherin_scaling * (E_cadherin * cell2.getE_cadherin())
      - par.Jrandom_scaling * ((E_cadherin*cell2.getRandomBindingProteins()) + (random_binding_proteins*cell2.getE_cadherin()))
      - par.JPcadherin_scaling * (P_cadherin * cell2.getP_cadherin()) 
      - par.JNcadherin_scaling * (N_cadherin * cell2.getN_cadherin())
      - par.Jrandom_scaling * (N_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getN_cadherin())
-     - par.Jrandom_scaling * (P_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getP_cadherin());
+     - par.Jrandom_scaling * (P_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getP_cadherin())
+    ) * 2 / par.neigh_multiplier;
   }
 }
 
@@ -439,11 +440,11 @@ double Cell::EnergyDifference(Cell &cell2)
   if (sigma==cell2.sigma) 
     return 0;
   else if (sigma==0)
-    return CalculateJfromMed(cell2.get_medp_bool()); // (cell2.get_medp_bool()); && (cell2.get_keys_bool());
+    return CalculateJfromMed(cell2.get_medp_bool()) / par.neigh_multiplier; // (cell2.get_medp_bool()); && (cell2.get_keys_bool());
   else if (cell2.sigma == 0)
-    return CalculateJwithMed();
+    return CalculateJwithMed() / par.neigh_multiplier;
   else
-    return CalculateJfromKeyLock(cell2.get_keys_bool(), cell2.get_locks_bool());
+    return CalculateJfromKeyLock(cell2.get_keys_bool(), cell2.get_locks_bool()) * 2 / par.neigh_multiplier;
 
 
   // return J[tau][cell2.tau];

@@ -51,6 +51,8 @@ class Parameter {
   int border_energy;
   int adhesion_neighbourhood;
   int perimeter_neighbourhood;
+  vector<int> neigh_multipliers;
+  double neigh_multiplier;
   int copy_neighbourhood;
   bool periodic_boundaries;
   int n_chem;

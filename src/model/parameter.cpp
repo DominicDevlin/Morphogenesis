@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=9280881909033329193;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=0;//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -93,25 +93,30 @@
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
-    bulk_modulus = 13;
-    cell_target_area = 100;
-    lambda = bulk_modulus / cell_target_area;// 130;
-    div_threshold = 100;
-    
 
-    H_perim = true;
-    elastic_modulus = 2;
-    ptarget_perimeter = 750;
-    // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
-    lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
-      
     periodic_boundaries = false;
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
     // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
-    adhesion_neighbourhood=6;
+    adhesion_neighbourhood=5;
     perimeter_neighbourhood=adhesion_neighbourhood;
     copy_neighbourhood=1;
+    neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
+    neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
+
+    bulk_modulus = 13;
+    cell_target_area = 100;
+    lambda = bulk_modulus / cell_target_area;// 130;
+    div_threshold = 100;
+
+    H_perim = true;
+    elastic_modulus = 2;
+    ptarget_perimeter = 41;
+    ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
+    // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
+    lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
+      
+
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
@@ -153,13 +158,15 @@
 
     synthetic_dt=0.3;
 
-    synthetic_Jm=0.25;
-    synthetic_Jcell_baseline = 0.4;
-    JEcadherin_scaling=0.4;
-    JPcadherin_scaling=0.3;
-    JNcadherin_scaling=0.3;
-    Jrandom_scaling=0.2;
-    Jmed_scaling=0.4;
+    synthetic_Jm=6.5;
+    Jmed_scaling=10.4;
+
+    synthetic_Jcell_baseline = 5.2;
+    JEcadherin_scaling=5.2;
+    JPcadherin_scaling=3.9;
+    JNcadherin_scaling=3.9;
+    Jrandom_scaling=2.6;
+    
     init_random_binding=1.;
     // IMPORTANT NOTE!!
     // CORTICAL TENSION SHOULD GO DOWN FOR ALL CELLS!!! AS THEY BIND MORE TO OTHER CELLS
@@ -175,6 +182,7 @@
     motility_strength = 0.4;
     persistence_time = 200.;
 
+    // note - currently active motion must be on for gravity.
     add_gravity=true;
     lambda_gravity=0.001;
 
