@@ -153,6 +153,9 @@ class PDE {
 
   void increase_secretion(int t);
 
+  void SyntheticSecretion(CellularPotts *cpm);
+  void SyntheticDiffusion(int repeat);
+
   
   /*! \brief Carry out $n$ diffusion steps for all PDE planes.
     

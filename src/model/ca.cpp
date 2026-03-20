@@ -7046,6 +7046,30 @@ void CellularPotts::SyntheticGrowth()
   // adjust constraints!
   UpdateSyntheticCellConstraints();
 }
+
+
+void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
+{
+  int curr_cells = cell->size();
+  // Iterate over the grid and fill the points within the circle
+  for (int i = 0; i < sizex; ++i) {
+      for (int j = 0; j < sizey; ++j) {
+          // Calculate the distance from the center (x, y)
+          double distance = sqrt(pow(i - centerx, 2) + pow(j - centery, 2));
+
+          // If the distance is less than or equal to the radius, mark the cell as part of the circle
+          if (distance <= radius) 
+          {
+              sigma[i][j] = curr_cells;  // Mark cell inside the circle
+          } else 
+          {
+              sigma[i][j] = 0;  // Mark cell outside the circle
+          }
+      }
+  }
+  // now we need to divide the cell until we have the right amount
+
+}
   
 
 

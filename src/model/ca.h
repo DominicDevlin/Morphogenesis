@@ -596,6 +596,8 @@ public:
 
   void UpdateSyntheticCellConstraints();
 
+  void MakeSpheroid(int centerx, int centery, int radius);
+
 
 
   // inline double prop_success()

@@ -217,6 +217,84 @@ bool PDE::CheckSecreting(int l)
 
 
 
+void PDE::SyntheticSecretion(CellularPotts *cpm)
+{
+  double dt=par.dt;
+    for (int n = 0;n<par.n_diffusers;++n)
+    {
+      for (int x=0;x<sizex;x++)
+        for (int y=0;y<sizey;y++) 
+        {
+          // inside cells with diffuser on (secrete + decay)
+          if (cpm->Sigma(x,y) > 0) 
+          {
+            
+            double conc = cpm->diffuser_check(n,x,y);
+            sigma[n][x][y]+= ( isecr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
+          } 
+          else 
+          {
+          // cells without diffuser on (only decay). 
+            sigma[n][x][y]-= par.decay_rate[n]*dt*sigma[n][x][y];
+          }
+        }
+    }
+}
+
+// public
+void PDE::SyntheticDiffusion(int repeat) 
+{
+  
+  // Just diffuse everywhere (cells are transparent), using finite difference
+  // (We're ignoring the problem of how to cope with moving cell
+  // boundaries right now)
+  
+  const double dt=par.dt;
+  const double dx2= par.dx*par.dx;
+
+  for (int r=0;r<repeat;r++) 
+  {
+    //NoFluxBoundaries();
+    if (par.periodic_boundaries) 
+    {
+      PeriodicBoundaries();
+    } 
+    else 
+    {
+      AbsorbingBoundaries();
+      //NoFluxBoundaries();
+    }
+    
+    for (int l=0;l<par.n_diffusers;l++) 
+    {
+      for (int x=1;x<sizex-1;x++)
+	      for (int y=1;y<sizey-1;y++) 
+        {
+	  
+          double sum=0.;
+          sum+=sigma[l][x+1][y];
+          sum+=sigma[l][x-1][y];
+          sum+=sigma[l][x][y+1];
+          sum+=sigma[l][x][y-1];
+            
+          sum-=4*sigma[l][x][y];
+          alt_sigma[l][x][y]=sigma[l][x][y]+sum*dt*par.diff_coeff[l]/dx2;
+
+	    }
+    }
+    double ***tmp;
+    tmp=sigma;
+    sigma=alt_sigma;
+    alt_sigma=tmp;
+  
+    thetime+=dt;
+  }
+
+}
+
+
+
+
 void PDE::Secrete(CellularPotts *cpm) 
 {
   const double dt=par.dt;

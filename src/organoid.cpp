@@ -77,6 +77,8 @@ INIT
     par.highT=false;
     // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
     // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
+
+    // Note - this function will need to have a center of mass somewhere.
     CPM->GenerateCellsByDensity(0.3, 110);
     
 
@@ -150,6 +152,18 @@ TIMESTEP {
     if (t % 5000==0 && t > 0)
     {
       dish->CPM->SyntheticGrowth();
+    }
+
+
+    // morphogen stuff.
+    for (int r=0;r<par.pde_its;r++) 
+    {
+      if (!par.hold_morph_constant)
+      {
+        dish->PDEfield->Secrete(dish->CPM);
+        dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+      }
+
     }
     
     
