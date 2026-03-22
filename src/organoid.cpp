@@ -79,8 +79,8 @@ INIT
     // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
 
     // Note - this function will need to have a center of mass somewhere.
-    CPM->GenerateCellsByDensity(0.3, 110);
-    
+    // CPM->GenerateCellsByDensity(0.3, 110);
+    CPM->MakeSpheroid(100,100,40);
 
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
@@ -156,15 +156,15 @@ TIMESTEP {
 
 
     // morphogen stuff.
-    for (int r=0;r<par.pde_its;r++) 
-    {
-      if (!par.hold_morph_constant)
-      {
-        dish->PDEfield->Secrete(dish->CPM);
-        dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
-      }
+    // for (int r=0;r<par.pde_its;r++) 
+    // {
+    //   if (!par.hold_morph_constant)
+    //   {
+    //     dish->PDEfield->Secrete(dish->CPM);
+    //     dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
+    //   }
 
-    }
+    // }
     
     
 
@@ -288,6 +288,7 @@ int main(int argc, char *argv[]) {
     bool read = false;
     if (read)
       par.Read(argv[1]);
+    par.periodic_boundaries=false;
     // Seed(par.rseed);
     
     //QMainWindow mainwindow w;

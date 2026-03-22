@@ -213,7 +213,7 @@
     n_length_genes = 0;
     n_MF = 2;
 
-    n_diffusers = 1; // morphogens
+    n_diffusers = 1; // morphogens (cant be less than one)
     secr_rate = new double[n_diffusers];
     diff_coeff = new double[n_diffusers];
     if (gut_villus)

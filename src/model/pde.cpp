@@ -219,6 +219,8 @@ bool PDE::CheckSecreting(int l)
 
 void PDE::SyntheticSecretion(CellularPotts *cpm)
 {
+  
+  // IM GOING TO NEED TO ADD IN SPATIALLY CORRELATED NOISE IF I WANT NOSIE
   double dt=par.dt;
     for (int n = 0;n<par.n_diffusers;++n)
     {
@@ -241,7 +243,6 @@ void PDE::SyntheticSecretion(CellularPotts *cpm)
     }
 }
 
-// public
 void PDE::SyntheticDiffusion(int repeat) 
 {
   
@@ -249,6 +250,7 @@ void PDE::SyntheticDiffusion(int repeat)
   // (We're ignoring the problem of how to cope with moving cell
   // boundaries right now)
   
+
   const double dt=par.dt;
   const double dx2= par.dx*par.dx;
 

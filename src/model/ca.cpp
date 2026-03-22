@@ -3671,6 +3671,54 @@ vector<VPoint> HexaCenters(int m, int n, double r)
     return centers;
 }
 
+
+vector<VPoint> HexaCircleCenters(double circle_radius, double dist, int centerx, int centery)
+{
+    vector<VPoint> centers;
+    
+    // Calculate the max rows and columns needed to cover the circle's radius
+    int max_row = static_cast<int>(std::floor(circle_radius / (sqrt(3) * dist)));
+    int max_col = static_cast<int>(std::floor(circle_radius / (2 * dist))) + 1;
+    
+    int center_count = 1;
+    double radius_squared = circle_radius * circle_radius;
+
+    // Generate centers from -max to +max (centered at 0,0)
+    for (int row = -max_row; row <= max_row; ++row) 
+    {
+        for (int col = -max_col; col <= max_col; ++col) 
+        {
+            double x = col * 2 * dist;
+            double y = row * sqrt(3) * dist;
+            
+            // Stagger odd rows
+            // (Using != 0 ensures negative odd rows are handled correctly in C++)
+            if (row % 2 != 0) {
+                x += dist;  // Shift odd rows horizontally by dist
+            }
+            
+            // Ensure the center is within the circular bounds
+            if ((x * x + y * y) <= radius_squared) {
+                
+                // Keep your original padding of + 2 + (dist/2)
+                double final_x = x + 2 + (dist / 2);
+                double final_y = y + 2 + (dist / 2);
+                
+                // uncomment the two lines below to shift the whole circle into the positive quadrant:
+                final_x += centerx;
+                final_y += centery;
+
+                centers.push_back({final_x, final_y, center_count});
+                center_count++;
+            }
+        }
+    }
+    
+    // cout << "CENTRE COUNT IS: " << center_count - 1 << endl;
+    return centers;
+}
+
+
 int HexaCounter(int m, int n, double r)
 {
   // int num_rows = static_cast<int>(std::floor(m / (sqrt(3) * r)));
@@ -3702,6 +3750,42 @@ int HexaCounter(int m, int n, double r)
     }
     return center_count;
 }
+
+int CircleHexaCounter(double circle_radius, double dist)
+{
+  // Calculate how many rows/cols we need to check in the positive/negative directions.
+  // We add 1 to the columns just to provide a safe buffer for the odd-row shift.
+  int max_row = static_cast<int>(std::floor(circle_radius / (sqrt(3) * dist)));
+  int max_col = static_cast<int>(std::floor(circle_radius / (2 * dist))) + 1;
+
+  int center_count = 0;
+  double radius_squared = circle_radius * circle_radius;
+
+  // Generate centers from -max to +max to cover the whole circle centered at (0,0)
+  for (int row = -max_row; row <= max_row; ++row) 
+  {
+    for (int col = -max_col; col <= max_col; ++col) 
+    {
+      double x = col * 2 * dist;
+      double y = row * sqrt(3) * dist;
+      
+      // Stagger odd rows. 
+      // NOTE: We use != 0 instead of == 1 because C++ modulo on negative numbers yields negative results.
+      if (row % 2 != 0) 
+      {
+          x += dist;  // Shift odd rows horizontally by r
+      }
+      
+      // Ensure the center is within the circle using x^2 + y^2 <= R^2
+      // (Using squared values avoids a costly std::sqrt() call)
+      if ((x * x + y * y) <= radius_squared) {
+          center_count++;
+      }
+    }
+  }
+  return center_count;
+}
+
 
 
 
@@ -7050,24 +7134,97 @@ void CellularPotts::SyntheticGrowth()
 
 void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
 {
-  int curr_cells = cell->size();
-  // Iterate over the grid and fill the points within the circle
-  for (int i = 0; i < sizex; ++i) {
-      for (int j = 0; j < sizey; ++j) {
-          // Calculate the distance from the center (x, y)
-          double distance = sqrt(pow(i - centerx, 2) + pow(j - centery, 2));
 
-          // If the distance is less than or equal to the radius, mark the cell as part of the circle
-          if (distance <= radius) 
-          {
-              sigma[i][j] = curr_cells;  // Mark cell inside the circle
-          } else 
-          {
-              sigma[i][j] = 0;  // Mark cell outside the circle
+  if (radius > centerx/2 || radius > centery/2)
+    cerr << "ERROR: SPHEROID RADIUS TOO LARGE!";
+  // double total = sizex*sizey;
+  // int ncells = round(total / 75.);
+  // cout << ncells << endl;
+  double A = double(par.cell_target_area);
+  double distance = sqrt((A)/(2*sqrt(3)));
+  double leftover = fmod(sizex-2, distance);
+  int dividor = int(floor(double(sizex-2)/distance));
+  // cout << "LEFTOVERS: " << leftover << '\t' << dividor << endl;
+  distance += leftover/dividor;
+  cout << "distance between cells is: " << distance << endl;
+
+
+  int ncells = CircleHexaCounter(radius, distance);
+  FractureSheet(ncells);
+
+
+  vector<VPoint> centers = HexaCircleCenters(radius, distance, centerx, centery);
+
+
+  for (int x = 1; x < sizex-1; ++x) {
+      for (int y = 1; y < sizey-1; ++y) 
+      {
+        double minDistance = std::numeric_limits<double>::max();
+        int closestCenter = -1;
+        
+        // Find the closest center to (i, j)
+        for (const auto& center : centers) 
+        {
+          double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
+          if (dist < minDistance) {
+              minDistance = dist;
+              closestCenter = center.id;
           }
+        }
+        int xdist = abs(x - centerx);
+        int ydist = abs(y - centery);
+        // Assign the closest center id to the grid cell if its inside the circle
+        if ((xdist * xdist + ydist*ydist) < radius*radius)
+        {
+          sigma[x][y] = closestCenter;
+        }
+        else if (minDistance < distance / 2)
+        {
+          sigma[x][y] = closestCenter;
+
+        }
+        else
+          sigma[x][y]=0;
       }
   }
-  // now we need to divide the cell until we have the right amount
+
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      c->area = 0;
+    }
+  }
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        (*cell)[sigma[x][y]].area +=1;
+      }
+    }   
+  
+  // 10. Single unified cleanup and target initialization loop
+  int deadcells = 0;
+  for (auto c = cell->begin(); c != cell->end(); ++c) {
+    if (c == cell->begin()) continue;
+    if (c->AliveP()) {
+      if (c->area == 0) {
+        c->Apoptose();
+        ++deadcells;
+      } else {
+        c->SetTargetArea(c->area);
+        c->makeAlive();
+      }
+    }
+  }
+  MeasureCellSizes();
+
+  std::cout << "Grid generated | Radius: " << radius 
+            << " | Cells populated: " << (ncells - deadcells)
+            << " | Cells killed (0 area): " << deadcells << std::endl;
 
 }
   
