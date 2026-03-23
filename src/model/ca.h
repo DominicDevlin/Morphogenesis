@@ -579,12 +579,12 @@ public:
 
   vector<vector<double>> find_shared_centres();
 
-  void GenerateCellsByDensity(double density, double R);
+  void PopulateSparseCells(double density, double R, int shiftx, int shifty);
 
   /* SYNTHETIC MULTICELLULAR STRUCTURE METHODS */
   void SyntheticNetwork();
 
-  void StartSyntheticNetwork();
+  void StartSyntheticNetwork(Cell &newcell);
 
   // this is going to be quite costly and iterate over the whole grid so we should be 
   // efficien and try and double things up.
@@ -597,6 +597,8 @@ public:
   void UpdateSyntheticCellConstraints();
 
   void MakeSpheroid(int centerx, int centery, int radius);
+
+  void ClearGrid();
 
 
 

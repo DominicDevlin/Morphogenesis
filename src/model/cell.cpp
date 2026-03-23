@@ -147,7 +147,7 @@ void Cell::CellBirth(Cell &mother_cell) {
   opposing_GFP=mother_cell.opposing_GFP;
   P_cadherin=mother_cell.P_cadherin;
   N_cadherin=mother_cell.N_cadherin;
-
+  spheroid_cell=mother_cell.spheroid_cell;
 
 
   for (int i=0;i<par.n_diffusers;i++)

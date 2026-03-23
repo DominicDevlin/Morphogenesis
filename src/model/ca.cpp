@@ -3406,8 +3406,20 @@ double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey)
 }
 
 
+
+void CellularPotts::ClearGrid()
+{
+  for (int x = 1; x < sizex - 1; ++x) 
+  {
+    for (int y = 1; y < sizey - 1; ++y) 
+    {
+      sigma[x][y] = 0;
+    }
+  }
+}
+
 // Added 'double R' to the function parameters
-void CellularPotts::GenerateCellsByDensity(double density, double R)
+void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, int shifty)
 {
   // 1. Define the usable active grid space
   int W = sizex - 2;
@@ -3445,12 +3457,12 @@ void CellularPotts::GenerateCellsByDensity(double density, double R)
   }
 
   // Offset ensures perfectly symmetric empty padding near the walls
-  double offset_x = (W - max_x) / 2.0 + 1.0; 
-  double offset_y = (H - max_y) / 2.0 + 1.0;
+  double offset_x = (W - max_x) / 2.0 + 1.0 + shiftx; 
+  double offset_y = (H - max_y) / 2.0 + 1.0 + shifty;
 
   // Find the exact mathematical center of the grid
-  double grid_center_x = sizex / 2.0;
-  double grid_center_y = sizey / 2.0;
+  double grid_center_x = sizex / 2.0 + shiftx;
+  double grid_center_y = sizey / 2.0 + shifty;
 
   // 5. Generate the centers, filtering by distance to grid center <= R
   struct VPoint { double x, y; int id; };
@@ -3472,6 +3484,8 @@ void CellularPotts::GenerateCellsByDensity(double density, double R)
       if (dist <= R) {
           centers.push_back({final_cx, final_cy, -1});
       }
+      if (final_cx < 5 || final_cx > sizex-5 || final_cy < 5 || final_cy > sizey-5)
+        cerr << "warning: some centers are outside of domain\n";
     }
   }
 
@@ -3500,11 +3514,14 @@ void CellularPotts::GenerateCellsByDensity(double density, double R)
   }
 
   // 7. Clear grid
-  for (int x = 1; x < sizex - 1; ++x) {
-    for (int y = 1; y < sizey - 1; ++y) {
+  for (int x = 1; x < sizex - 1; ++x) 
+  {
+    for (int y = 1; y < sizey - 1; ++y) 
+    {
       sigma[x][y] = 0;
     }
   }
+
 
   // 8. Draw the Voronoi domains, strictly bounded to achieve `par.cell_target_area` size.
   // Formula for circle radius: R = sqrt(A / pi). 
@@ -3554,9 +3571,11 @@ void CellularPotts::GenerateCellsByDensity(double density, double R)
       if (c->area == 0) {
         c->Apoptose();
         ++deadcells;
-      } else {
+      } else 
+      {
         c->SetTargetArea(c->area);
         c->makeAlive();
+        StartSyntheticNetwork(*c);
       }
     }
   }
@@ -6905,13 +6924,19 @@ void CellularPotts::SurfaceBindings()
   }
 }
 
-void CellularPotts::StartSyntheticNetwork()
+void CellularPotts::StartSyntheticNetwork(Cell &newcell)
 {
-  vector<Cell>::iterator c;
 
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  if (newcell.AliveP())
   {
-    if (c->AliveP())
+    if (newcell.isSpheroid())
+    {
+      double init_P_cadherin=1.0;
+      double init_random_binding_proteins = par.init_random_binding;
+      newcell.setP_cadherin(init_P_cadherin);
+      newcell.setRandomBindingProteins(init_random_binding_proteins);
+    }
+    else
     {
       double init_synNotch_bound = 1.0;
       double init_synNotch_unbound = 0.0;
@@ -6923,28 +6948,29 @@ void CellularPotts::StartSyntheticNetwork()
       double init_mCherry = 0.0;
       double init_random_binding_proteins = par.init_random_binding;
 
-      c->setsynNotch_bound(init_synNotch_bound);
-      c->setsynNotch_unbound(init_synNotch_unbound);
-      c->setsynNotch_intra(init_synNotch_intra);
-      c->setE_cadherin(init_E_cadherin);
-      c->setP_cadherin(init_P_cadherin);
-      c->setN_cadherin(init_N_cadherin);
-      c->setGFP(init_GFP);
-      c->setmCherry(init_mCherry);
-      c->setRandomBindingProteins(init_random_binding_proteins);
+      newcell.setsynNotch_bound(init_synNotch_bound);
+      newcell.setsynNotch_unbound(init_synNotch_unbound);
+      newcell.setsynNotch_intra(init_synNotch_intra);
+      newcell.setE_cadherin(init_E_cadherin);
+      newcell.setP_cadherin(init_P_cadherin);
+      newcell.setN_cadherin(init_N_cadherin);
+      newcell.setGFP(init_GFP);
+      newcell.setmCherry(init_mCherry);
+      newcell.setRandomBindingProteins(init_random_binding_proteins);
 
       // randomly make cell CD19 or not (move to different method eventually)
       double rand = RANDOM(s_val);
       if (rand < par.proportion_starting_CD19)
       {
-        c->setCD19(true);
+        newcell.setCD19(true);
       }
       else 
       {
-        c->setCD19(false);
+        newcell.setCD19(false);
       }
     }
-  }  
+
+  } 
 }
 
 void CellularPotts::OutputSyntheticNetwork(int thetime)
@@ -7007,7 +7033,7 @@ void CellularPotts::SyntheticNetwork()
       // cells either do or do not have the synethic network. So, we have to get
       // its network type and then decide how to update. For now, we say CD19.
       bool& CD19_cell = c->getCD19();
-      bool has_gene = !CD19_cell;
+      bool& spheroid_cell = c->isSpheroid();
 
 
       double& synNotch_bound = c->getsynNotch_bound();
@@ -7027,7 +7053,7 @@ void CellularPotts::SyntheticNetwork()
       // double& random_binding_proteins = c->getRandomBindingProteins();
       // random_binding_proteins = random_binding_rk4(dt, random_binding_proteins, opposite_Ecad);
 
-      if (!CD19_cell)
+      if (!CD19_cell && !spheroid_cell)
       {
         // get surface values
         double opposite_CD19 = c->getOpposingCD19();
@@ -7041,6 +7067,12 @@ void CellularPotts::SyntheticNetwork()
         // N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
 
         GFP = GFP_rk4(dt, GFP, synNotch_intra);
+      }
+      else if (spheroid_cell)
+      {
+        // Need to constitutively express P_cadherin...
+        // for now we will just assume that P_cadherin = 1.
+        // For now, do nothing. Might change this to P_cadherin ODE.
       }
       else
       {
@@ -7077,6 +7109,11 @@ void CellularPotts::SyntheticNetwork()
         cellcolour = rounded_cherry + 102;
       }
       c->set_ctype(cellcolour);
+      
+      // if (c->isSpheroid())
+      // {
+      //   c->set_ctype(203);
+      // }
     }
   }
   UpdateSyntheticCellConstraints();
@@ -7146,7 +7183,7 @@ void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
   int dividor = int(floor(double(sizex-2)/distance));
   // cout << "LEFTOVERS: " << leftover << '\t' << dividor << endl;
   distance += leftover/dividor;
-  cout << "distance between cells is: " << distance << endl;
+  // cout << "distance between cells is: " << distance << endl;
 
 
   int ncells = CircleHexaCounter(radius, distance);
@@ -7211,12 +7248,16 @@ void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
   for (auto c = cell->begin(); c != cell->end(); ++c) {
     if (c == cell->begin()) continue;
     if (c->AliveP()) {
-      if (c->area == 0) {
+      if (c->area == 0) 
+      {
         c->Apoptose();
         ++deadcells;
-      } else {
+      } else 
+      {
         c->SetTargetArea(c->area);
         c->makeAlive();
+        c->setSpheroid(true);
+        StartSyntheticNetwork(*c);
       }
     }
   }

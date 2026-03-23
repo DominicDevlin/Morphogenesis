@@ -180,6 +180,7 @@ public:
     N_cadherin=src.N_cadherin;
     opposing_P_cadherin=src.opposing_P_cadherin;
     opposing_N_cadherin=src.opposing_N_cadherin;
+    spheroid_cell=src.spheroid_cell;
 
 
     centerx = src.centerx;
@@ -301,6 +302,8 @@ public:
     N_cadherin=src.N_cadherin;
     opposing_P_cadherin=src.opposing_P_cadherin;
     opposing_N_cadherin=src.opposing_N_cadherin;
+    spheroid_cell=src.spheroid_cell;
+
 
     diffs = new double[par.n_diffusers];
 
@@ -1803,6 +1806,16 @@ void AverageSurfaceBindings()
   
 }
 
+bool& isSpheroid()
+{
+  return spheroid_cell;
+}
+
+void setSpheroid(bool S)
+{
+  spheroid_cell = S;
+}
+
 
 
 void setTouchingMed(bool is)
@@ -1941,6 +1954,7 @@ protected:
   double opposing_GFP{};
   double opposing_N_cadherin{};
   double opposing_P_cadherin{};
+  bool spheroid_cell{};
   
   bool touching_med{};
 
