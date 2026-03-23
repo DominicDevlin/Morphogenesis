@@ -598,6 +598,8 @@ public:
 
   void MakeSpheroid(int centerx, int centery, int radius);
 
+  void DivideCellsNoGrid(vector<bool> which_cells);
+
   void ClearGrid();
 
 

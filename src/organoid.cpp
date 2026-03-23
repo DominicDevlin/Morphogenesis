@@ -80,10 +80,10 @@ INIT
 
     // Note - this function will need to have a center of mass somewhere.
     
-    // CPM->ClearGrid();
+    CPM->ClearGrid();
 
     CPM->PopulateSparseCells(0.3, 80, 30, 30);
-    // CPM->MakeSpheroid(100,100,40);
+    CPM->MakeSpheroid(100,100,40);
 
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();

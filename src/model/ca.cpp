@@ -2503,6 +2503,35 @@ void CellularPotts::ShowDirections(Graphics &g, const Dir *celldir) const
   
 }
 
+
+
+void CellularPotts::DivideCellsNoGrid(vector<bool> which_cells)
+{
+
+  int n_cells = which_cells.size();
+  for (int i=0; i<n_cells;++i)
+  {
+    if (which_cells[i]==true)
+    {
+      Cell *motherp=&((*cell)[i]);
+      Cell *daughterp;
+
+      // add daughter cell, copying states of mother
+      daughterp=new Cell(*(motherp->owner));
+      daughterp->CellBirth(*motherp);
+      cell->push_back(*daughterp);
+      // renew pointer to mother
+      motherp=&((*cell)[i]);
+      delete daughterp;
+      // array may be relocated after "push_back"
+      // renew daughter pointers
+      daughterp=&(cell->back());
+    }
+  }
+}
+
+
+
 void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 {
   // for the cell directions
@@ -2519,7 +2548,6 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
   if ( !(which_cells.size()==0 || which_cells.size()>=cell->size()) ) {
     throw "In CellularPotts::DivideCells, Too few elements in vector<int> which_cells.";
   }
-  vector<int> divided_cells{};
   
   /* division */
   {
@@ -3642,7 +3670,7 @@ void CellularPotts::FractureSheet(int n_cells)
       }
     }
     if (dividing)
-      DivideCells(which_cells);
+      DivideCellsNoGrid(which_cells);
     if (counter >= n_cells)
     {
       dividing=false;
@@ -3691,7 +3719,7 @@ vector<VPoint> HexaCenters(int m, int n, double r)
 }
 
 
-vector<VPoint> HexaCircleCenters(double circle_radius, double dist, int centerx, int centery)
+vector<VPoint> HexaCircleCenters(double circle_radius, double dist, int centerx, int centery, int starting_value)
 {
     vector<VPoint> centers;
     
@@ -3699,7 +3727,7 @@ vector<VPoint> HexaCircleCenters(double circle_radius, double dist, int centerx,
     int max_row = static_cast<int>(std::floor(circle_radius / (sqrt(3) * dist)));
     int max_col = static_cast<int>(std::floor(circle_radius / (2 * dist))) + 1;
     
-    int center_count = 1;
+    int center_count = starting_value;
     double radius_squared = circle_radius * circle_radius;
 
     // Generate centers from -max to +max (centered at 0,0)
@@ -7110,10 +7138,10 @@ void CellularPotts::SyntheticNetwork()
       }
       c->set_ctype(cellcolour);
       
-      // if (c->isSpheroid())
-      // {
-      //   c->set_ctype(203);
-      // }
+      if (c->isSpheroid())
+      {
+        c->set_ctype(203);
+      }
     }
   }
   UpdateSyntheticCellConstraints();
@@ -7172,6 +7200,8 @@ void CellularPotts::SyntheticGrowth()
 void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
 {
 
+  int current_cells = CountCells();
+
   if (radius > centerx/2 || radius > centery/2)
     cerr << "ERROR: SPHEROID RADIUS TOO LARGE!";
   // double total = sizex*sizey;
@@ -7190,7 +7220,7 @@ void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
   FractureSheet(ncells);
 
 
-  vector<VPoint> centers = HexaCircleCenters(radius, distance, centerx, centery);
+  vector<VPoint> centers = HexaCircleCenters(radius, distance, centerx, centery, current_cells);
 
 
   for (int x = 1; x < sizex-1; ++x) {
@@ -7220,8 +7250,6 @@ void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
           sigma[x][y] = closestCenter;
 
         }
-        else
-          sigma[x][y]=0;
       }
   }
 
@@ -7245,9 +7273,10 @@ void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
   
   // 10. Single unified cleanup and target initialization loop
   int deadcells = 0;
-  for (auto c = cell->begin(); c != cell->end(); ++c) {
+  for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) {
     if (c == cell->begin()) continue;
-    if (c->AliveP()) {
+    if (c->AliveP()) 
+    {
       if (c->area == 0) 
       {
         c->Apoptose();
