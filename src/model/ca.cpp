@@ -6962,6 +6962,27 @@ void CellularPotts::StartSyntheticNetwork()
   {
     if (c->AliveP())
     {
+
+      double init_synNotch_bound = 1.0;
+      double init_synNotch_unbound = 0.0;
+      double init_synNotch_intra = 0.0;
+      double init_E_cadherin = 0.0;
+      double init_P_cadherin = 0.0;
+      double init_N_cadherin = 0.0;
+      double init_GFP = 0.0;
+      double init_mCherry = 0.0;
+      double init_random_binding_proteins = par.init_random_binding;
+
+      c->setsynNotch_bound(init_synNotch_bound);
+      c->setsynNotch_unbound(init_synNotch_unbound);
+      c->setsynNotch_intra(init_synNotch_intra);
+      c->setE_cadherin(init_E_cadherin);
+      c->setP_cadherin(init_P_cadherin);
+      c->setN_cadherin(init_N_cadherin);
+      c->setGFP(init_GFP);
+      c->setmCherry(init_mCherry);
+      c->setRandomBindingProteins(init_random_binding_proteins);
+
       if (c->isSpheroid())
       {
         double init_P_cadherin=1.0;
@@ -6974,43 +6995,34 @@ void CellularPotts::StartSyntheticNetwork()
 
         c->SetConstitutives(par.spheroid_const);
         c->SetGFP_induced(par.spheroid_GFP_induced);
-        c->SetMcherry_induced(par.spheroid_mche)
+        c->SetMcherry_induced(par.spheroid_mCherry_induced);
+        c->SetCD19_induced(par.spheroid_CD19_induced);
+
 
       }
       else
       {
-        double init_synNotch_bound = 1.0;
-        double init_synNotch_unbound = 0.0;
-        double init_synNotch_intra = 0.0;
-        double init_E_cadherin = 0.0;
-        double init_P_cadherin = 0.0;
-        double init_N_cadherin = 0.0;
-        double init_GFP = 0.0;
-        double init_mCherry = 0.0;
-        double init_random_binding_proteins = par.init_random_binding;
-
-        c->setsynNotch_bound(init_synNotch_bound);
-        c->setsynNotch_unbound(init_synNotch_unbound);
-        c->setsynNotch_intra(init_synNotch_intra);
-        c->setE_cadherin(init_E_cadherin);
-        c->setP_cadherin(init_P_cadherin);
-        c->setN_cadherin(init_N_cadherin);
-        c->setGFP(init_GFP);
-        c->setmCherry(init_mCherry);
-        c->setRandomBindingProteins(init_random_binding_proteins);
-
         vector<double> init_diffusers{0.0};
         c->set_diffusers(init_diffusers);
-
         // randomly make cell CD19 or not (move to different method eventually)
         double rand = RANDOM(s_val);
         if (rand < par.proportion_starting_CD19)
         {
           c->setCD19(true);
+          // assuming c1
+          c->SetConstitutives(par.c2_const);
+          c->SetGFP_induced(par.c2_GFP_induced);
+          c->SetMcherry_induced(par.c2_mCherry_induced);
+          c->SetCD19_induced(par.c2_CD19_induced);
         }
         else 
         {
           c->setCD19(false);
+          // assuming c2
+          c->SetConstitutives(par.c1_const);
+          c->SetGFP_induced(par.c1_GFP_induced);
+          c->SetMcherry_induced(par.c1_mCherry_induced);
+          c->SetCD19_induced(par.c1_CD19_induced);
         }
       }
 
@@ -7147,9 +7159,73 @@ void CellularPotts::SyntheticNetwork()
       double opposite_Pcad = c->getOpposingP_cadherin();
       double opposite_Ncad = c->getOpposingN_cadherin();
 
+      double opposite_CD19 = c->getOpposingCD19();
+      double opposite_GFP = c->getOppositeGFP();
+
       /* all cells have random binding proteins*/
       // double& random_binding_proteins = c->getRandomBindingProteins();
       // random_binding_proteins = random_binding_rk4(dt, random_binding_proteins, opposite_Ecad);
+      vector<bool> constitutives = c->GetConstitutives();
+      vector<bool> GFP_induced = c->GetGFP_induced();
+      vector<bool> mCherry_induced = c->GetMcherry_induced();
+      vector<bool> CD19_induced = c->GetCD19_induced();
+
+      if (constitutives[0]==true)
+      {
+        E_cadherin=1.;
+      }
+      if (constitutives[1]==true)
+      {
+        E_cadherin=0.5;
+      }
+      if (constitutives[2]==true)
+      {
+        P_cadherin==1.;
+      }
+      if (constitutives[3]==true)
+      {
+        N_cadherin=1.;
+      }
+      if (constitutives[4]==true)
+      {
+        CD19_cell=true;
+      }
+      if (constitutives[5]==true)
+      {
+        GFP=1.;
+      }
+      if (constitutives[6]==true)
+      {
+        mCherry=1.;
+      }
+
+      bool receptsGFP = std::find(GFP_induced.begin(), GFP_induced.end(), true) != GFP_induced.end();
+
+      bool receptsCD19 = std::find(CD19_induced.begin(), CD19_induced.end(), true) != CD19_induced.end();
+      
+      if (receptsGFP)
+      {
+        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_GFP);
+        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_GFP);
+        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_GFP );
+
+        if (GFP_induced[0]==true)
+        {
+          E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate);
+        }
+        if (GFP_induced[2]==true)
+        {
+          P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);
+        }
+        if (GFP_induced[3]==true)
+        {
+          ... fill in only the ones you need
+        }
+
+        // P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);
+
+
+      }
 
 
       if (!CD19_cell && !spheroid_cell)
@@ -7157,18 +7233,17 @@ void CellularPotts::SyntheticNetwork()
         // get surface values
 
 
-        double opposite_CD19 = c->getOpposingCD19();
         
         // update gene regulatory network.
         synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19);
         synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
         synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
 
-        if (par.c1_const[0]==true)
-        {
-          E_cadherin=1.;
-        }
-        else if (par.c1_GFP_induced)
+        // if (par.c1_const[0]==true)
+        // {
+        //   E_cadherin=1.;
+        // }
+        // else if (par.c1_GFP_induced)
 
         E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate); 
         // N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
@@ -7184,7 +7259,6 @@ void CellularPotts::SyntheticNetwork()
       else
       {
         /* cell b stuff here*/
-        double opposite_GFP = c->getOppositeGFP();
         // if (opposite_GFP > 0.5)
         //   cout << opposite_GFP << endl;
         synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_GFP);
