@@ -222,28 +222,29 @@ void PDE::SyntheticSecretion(CellularPotts *cpm)
   
   // IM GOING TO NEED TO ADD IN SPATIALLY CORRELATED NOISE IF I WANT NOSIE
   double dt=par.dt;
-    for (int n = 0;n<par.n_diffusers;++n)
-    {
-      for (int x=0;x<sizex;x++)
-        for (int y=0;y<sizey;y++) 
+  for (int n = 0;n<par.n_diffusers;++n)
+  {
+    for (int x=0;x<sizex;x++)
+      for (int y=0;y<sizey;y++) 
+      {
+        // inside cells with diffuser on (secrete + decay)
+        if (cpm->Sigma(x,y) > 0) 
         {
-          // inside cells with diffuser on (secrete + decay)
-          if (cpm->Sigma(x,y) > 0) 
-          {
-            
-            double conc = cpm->diffuser_check(n,x,y);
-            sigma[n][x][y]+= ( isecr_rate[n]*dt*conc - par.decay_rate[n]*dt*sigma[n][x][y]);
-          } 
-          else 
-          {
-          // cells without diffuser on (only decay). 
-            sigma[n][x][y]-= par.decay_rate[n]*dt*sigma[n][x][y];
-          }
+          
+          double conc = cpm->diffuser_check(n,x,y);
+          sigma[n][x][y]+= ( isecr_rate[n]*dt*conc - par.decay_rate_cell[n]*dt*sigma[n][x][y]);
+          // cout << n << '\t' << x << '\t' << y << '\t' << sigma[n][x][y] << endl;
+        } 
+        else 
+        {
+        // cells without diffuser on (only decay). 
+          sigma[n][x][y]-= par.decay_rate[n]*dt*sigma[n][x][y];
         }
-    }
+      }
+  }
 }
 
-void PDE::SyntheticDiffusion(int repeat) 
+void PDE::SyntheticDiffusion(int repeat, CellularPotts *cpm) 
 {
   
   // Just diffuse everywhere (cells are transparent), using finite difference
@@ -280,7 +281,12 @@ void PDE::SyntheticDiffusion(int repeat)
           sum+=sigma[l][x][y-1];
             
           sum-=4*sigma[l][x][y];
-          alt_sigma[l][x][y]=sigma[l][x][y]+sum*dt*par.diff_coeff[l]/dx2;
+          if (cpm->Sigma(x, y) > 0)
+          {
+            alt_sigma[l][x][y]=sigma[l][x][y]+sum*dt*par.diff_coeff_cell[l]/dx2;
+          }
+          else
+            alt_sigma[l][x][y]=sigma[l][x][y]+sum*dt*par.diff_coeff[l]/dx2;
 
 	    }
     }

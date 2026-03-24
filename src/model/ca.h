@@ -584,6 +584,8 @@ public:
   /* SYNTHETIC MULTICELLULAR STRUCTURE METHODS */
   void SyntheticNetwork();
 
+  void StartSyntheticNetwork();
+
   void StartSyntheticNetwork(Cell &newcell);
 
   // this is going to be quite costly and iterate over the whole grid so we should be 

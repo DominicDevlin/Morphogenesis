@@ -388,7 +388,6 @@ TIMESTEP {
           dish->PDEfield->Secrete(dish->CPM);
           dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
         }
-
       }
     }
     

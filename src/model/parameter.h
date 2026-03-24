@@ -59,6 +59,29 @@ class Parameter {
   double * diff_coeff; //DIFFUSER CORRECTION NEEDED
   double * decay_rate;
   double * secr_rate;
+  double * diff_coeff_cell;
+  double * decay_rate_cell;
+
+
+  vector<bool> spheroid_const;
+  vector<bool> spheroid_GFP_induced;
+  vector<bool> spheroid_mCherry_induced;
+  vector<bool> spheroid_CD19_induced;
+  vector<bool> c1_const;
+  vector<bool> c2_const;
+  vector<bool> c1_GFP_induced;
+  vector<bool> c2_GFP_induced;
+  vector<bool> c1_mCherry_induced;
+  vector<bool> c2_mCherry_induced;
+  vector<bool> c1_CD19_induced;
+  vector<bool> c2_CD19_induced;
+
+  vector<bool> spheroid_signal_const_surface;
+  vector<bool> spheroid_signal_const_morph;
+  vector<bool> spheroid_signal_induced;
+  vector<bool> morph_or_surface;
+
+
   double saturation;
   double dt;
   double dx;

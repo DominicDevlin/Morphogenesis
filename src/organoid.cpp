@@ -76,21 +76,17 @@ INIT
 
     par.highT=false;
     // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
-    // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
 
     // Note - this function will need to have a center of mass somewhere.
     
     CPM->ClearGrid();
 
-    CPM->PopulateSparseCells(0.3, 80, 30, 30);
-    CPM->MakeSpheroid(100,100,40);
+    CPM->PopulateSparseCells(0.3, 100, 30, 30);
+    CPM->MakeSpheroid(70,70,40);
+
 
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
-
-    CPM->start_network(par.start_matrix, par.start_polarity);
-
-    CPM->Set_evoJ(par.J_SL);
 
     par.end_program=0;
 
@@ -143,8 +139,7 @@ TIMESTEP {
       dish->CPM->MeasureCellPerimeters();
       dish->CPM->SetPerims(par.ptarget_perimeter);
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
-      // dish->CPM->StartSyntheticNetwork();
-
+      dish->CPM->StartSyntheticNetwork();
     }
 
     if (t % par.synthetic_update_step == 0 && t > 0)
@@ -159,15 +154,16 @@ TIMESTEP {
 
 
     // morphogen stuff.
-    // for (int r=0;r<par.pde_its;r++) 
-    // {
-    //   if (!par.hold_morph_constant)
-    //   {
-    //     dish->PDEfield->Secrete(dish->CPM);
-    //     dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
-    //   }
+    for (int r=0;r<par.pde_its;r++) 
+    {
+      dish->PDEfield->SyntheticSecretion(dish->CPM);
+      dish->PDEfield->SyntheticDiffusion(1, dish->CPM); // might need to do more diffussion steps ? 
+    }
 
-    // }
+    if (t == 30000)
+    {
+      dish->PDEfield->PrintAxisConcentrations(true, 110);
+    }
     
     
 
@@ -236,8 +232,13 @@ TIMESTEP {
       //char title[400];
       //snprintf(title,399,"CellularPotts: %d MCS",i);
       //ChangeTitle(title);
+      if (par.contours && t > 1000)
+        dish->PDEfield->ContourPlot(this,0,5);
+
       EndScene();
       info->Menu();
+
+
      
     }
   

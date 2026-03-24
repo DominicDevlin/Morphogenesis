@@ -173,7 +173,28 @@
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
 
-    proportion_starting_CD19 =0.58;// 0.55;
+    proportion_starting_CD19 =0.58;
+
+    // Here we decide the genes of c1 and c2.
+    // first = E_cadherin high, second = E_cadherin low, third = P_cadherin, fourth = N_cadherin, 5 = CD19, 6=GFP, 7=mCherry
+    spheroid_const={0,0,1,0,0,1,0};
+    spheroid_GFP_induced={0,0,0,0,0,0,0};
+    spheroid_mCherry_induced={0,0,0,0,0,0,0};
+    spheroid_CD19_induced={0,0,0,0,0,0,0};
+
+    c1_const={0,0,0,0,0,0,0};
+    c2_const={0,0,0,0,0,0,0};
+    c1_GFP_induced={0,0,0,0,0,0,0};
+    c2_GFP_induced={0,0,0,0,0,0,0};
+    c1_mCherry_induced={0,0,0,0,0,0,0};
+    c2_mCherry_induced={0,0,0,0,0,0,0};
+    c1_CD19_induced={0,0,0,0,0,0,0};;
+    c2_CD19_induced={0,0,0,0,0,0,0};;
+
+    // we have cd19, GFP, and mcherry. This vector decides whether
+    // they are morphogens or not. 1=morph, 2=surface.
+    morph_or_surface={0,1,0};
+
 
 
     div_threshold = 150;
@@ -185,6 +206,26 @@
     // note - currently active motion must be on for gravity.
     add_gravity=true;
     lambda_gravity=0.001;
+
+    // morphogen stuff.
+    n_diffusers = 1; // morphogens (cant be less than one)
+    secr_rate = new double[n_diffusers];
+    diff_coeff = new double[n_diffusers];
+    diff_coeff_cell = new double [n_diffusers];
+    decay_rate = new double[n_diffusers];
+    decay_rate_cell = new double[n_diffusers];
+    subfield = 1.0;
+    relaxation = 0;
+    saturation = 0;
+    dt = 1.0;
+    dx = double(1)/double(250);// 1/((double)sizex);
+    pde_its = 1;
+    
+    diff_coeff[0] = 2e-6;
+    diff_coeff_cell[0]=1e-6;
+    decay_rate[0] = 0.03e-3;
+    decay_rate_cell[0]=0.4e-3;
+    secr_rate[0] = 1e-3;
 
 
     // for debugging
@@ -213,9 +254,6 @@
     n_length_genes = 0;
     n_MF = 2;
 
-    n_diffusers = 1; // morphogens (cant be less than one)
-    secr_rate = new double[n_diffusers];
-    diff_coeff = new double[n_diffusers];
     if (gut_villus)
     {
       // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
@@ -605,49 +643,7 @@
     n_chem = 0; // Dom not currently using, instead using n_diffusers
 
     
-    
-    decay_rate = new double[n_diffusers];
 
-    
-    subfield = 1.0;
-    relaxation = 0;
-
-    saturation = 0;
-    dt = 1.0;
-    dx = double(1)/double(250);// 1/((double)sizex);
-    pde_its = 1;
-
-    
-    diff_coeff[1] = 8e-7;
-
-    decay_rate[0] = 2e-3;
-    decay_rate[1] = 2e-3;
-    
-    
-    secr_rate[1] = 2.4e-3;
-
-    // depracated
-    reaction_rate = 5e-3; // small rate = 5e-3; // large rate = 1e-2
-
-    if (n_diffusers > 2)
-    {
-      
-      diff_coeff[2] = 8e-7; 
-      decay_rate[2] = 2.4e-3;
-      secr_rate[2] = 2.4e-3;
-      
-      // Morphogens with shorter range 
-      // diff_coeff[2] = 8e-7;
-      // decay_rate[2] = 5e-3;
-      // secr_rate[2] = 5.5e-3;
-
-      // Morphogens with longer range
-      // diff_coeff[2] = 4e-6;
-      // decay_rate[2] = 1e-3;
-      // secr_rate[2] = 1.5e-3;
-
-
-    }
     // enzymes that can break down the morphogen
     enzymes = false;
 

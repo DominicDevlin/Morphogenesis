@@ -3449,6 +3449,8 @@ void CellularPotts::ClearGrid()
 // Added 'double R' to the function parameters
 void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, int shifty)
 {
+
+  int current_cells = CountCells();
   // 1. Define the usable active grid space
   int W = sizex - 2;
   int H = sizey - 2;
@@ -3528,7 +3530,7 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
 
   // Map the new alive cell IDs to our spatial centers
   std::vector<int> valid_ids;
-  for (auto c = cell->begin(); c != cell->end(); ++c) {
+  for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) {
     if (c == cell->begin()) continue; // Skip medium/background index 0
     if (c->AliveP()) {
       valid_ids.push_back(c->Sigma());
@@ -3539,15 +3541,6 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
       if (i < valid_ids.size()) {
           centers[i].id = valid_ids[i];
       }
-  }
-
-  // 7. Clear grid
-  for (int x = 1; x < sizex - 1; ++x) 
-  {
-    for (int y = 1; y < sizey - 1; ++y) 
-    {
-      sigma[x][y] = 0;
-    }
   }
 
 
@@ -3579,31 +3572,38 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
 
   // 9. Re-evaluate actual populated cell areas
   for (auto c = cell->begin(); c != cell->end(); ++c) {
-    if (c == cell->begin()) continue;
-    if (c->AliveP()) c->area = 0;
+    if (c == cell->begin()) 
+      continue;
+    if (c->AliveP()) 
+      c->area = 0;
   }
 
   for (int x = 1; x < sizex - 1; ++x) {
     for (int y = 1; y < sizey - 1; ++y) {
-      if (sigma[x][y] > 0) {
+      if (sigma[x][y] > 0) 
+      {
         (*cell)[sigma[x][y]].area += 1;
+        (*cell)[sigma[x][y]].makeAlive();
       }
     }   
   }
   
   // 10. Single unified cleanup and target initialization loop
   int deadcells = 0;
-  for (auto c = cell->begin(); c != cell->end(); ++c) {
+  for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) 
+  {
     if (c == cell->begin()) continue;
-    if (c->AliveP()) {
-      if (c->area == 0) {
+    if (c->AliveP()) 
+    {
+      if (c->area == 0) 
+      {
         c->Apoptose();
         ++deadcells;
-      } else 
+      } 
+      else 
       {
         c->SetTargetArea(c->area);
-        c->makeAlive();
-        StartSyntheticNetwork(*c);
+        c->setSpheroid(false);
       }
     }
   }
@@ -6952,6 +6952,72 @@ void CellularPotts::SurfaceBindings()
   }
 }
 
+
+
+
+void CellularPotts::StartSyntheticNetwork()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      if (c->isSpheroid())
+      {
+        double init_P_cadherin=1.0;
+        double init_random_binding_proteins = par.init_random_binding;
+        c->setP_cadherin(init_P_cadherin);
+        c->setRandomBindingProteins(init_random_binding_proteins);
+
+        vector<double> init_diffusers{1.0};
+        c->set_diffusers(init_diffusers);
+
+        c->SetConstitutives(par.spheroid_const);
+        c->SetGFP_induced(par.spheroid_GFP_induced);
+        c->SetMcherry_induced(par.spheroid_mche)
+
+      }
+      else
+      {
+        double init_synNotch_bound = 1.0;
+        double init_synNotch_unbound = 0.0;
+        double init_synNotch_intra = 0.0;
+        double init_E_cadherin = 0.0;
+        double init_P_cadherin = 0.0;
+        double init_N_cadherin = 0.0;
+        double init_GFP = 0.0;
+        double init_mCherry = 0.0;
+        double init_random_binding_proteins = par.init_random_binding;
+
+        c->setsynNotch_bound(init_synNotch_bound);
+        c->setsynNotch_unbound(init_synNotch_unbound);
+        c->setsynNotch_intra(init_synNotch_intra);
+        c->setE_cadherin(init_E_cadherin);
+        c->setP_cadherin(init_P_cadherin);
+        c->setN_cadherin(init_N_cadherin);
+        c->setGFP(init_GFP);
+        c->setmCherry(init_mCherry);
+        c->setRandomBindingProteins(init_random_binding_proteins);
+
+        vector<double> init_diffusers{0.0};
+        c->set_diffusers(init_diffusers);
+
+        // randomly make cell CD19 or not (move to different method eventually)
+        double rand = RANDOM(s_val);
+        if (rand < par.proportion_starting_CD19)
+        {
+          c->setCD19(true);
+        }
+        else 
+        {
+          c->setCD19(false);
+        }
+      }
+
+    } 
+  }
+}
+
 void CellularPotts::StartSyntheticNetwork(Cell &newcell)
 {
 
@@ -6963,6 +7029,9 @@ void CellularPotts::StartSyntheticNetwork(Cell &newcell)
       double init_random_binding_proteins = par.init_random_binding;
       newcell.setP_cadherin(init_P_cadherin);
       newcell.setRandomBindingProteins(init_random_binding_proteins);
+
+      vector<double> init_diffusers{1.0};
+      newcell.set_diffusers(init_diffusers);
     }
     else
     {
@@ -6985,6 +7054,9 @@ void CellularPotts::StartSyntheticNetwork(Cell &newcell)
       newcell.setGFP(init_GFP);
       newcell.setmCherry(init_mCherry);
       newcell.setRandomBindingProteins(init_random_binding_proteins);
+
+      vector<double> init_diffusers{0.0};
+      newcell.set_diffusers(init_diffusers);
 
       // randomly make cell CD19 or not (move to different method eventually)
       double rand = RANDOM(s_val);
@@ -7062,8 +7134,6 @@ void CellularPotts::SyntheticNetwork()
       // its network type and then decide how to update. For now, we say CD19.
       bool& CD19_cell = c->getCD19();
       bool& spheroid_cell = c->isSpheroid();
-
-
       double& synNotch_bound = c->getsynNotch_bound();
       double& synNotch_unbound = c->getsynNotch_unbound();
       double& synNotch_intra = c->getsynNotch_intra();
@@ -7081,15 +7151,24 @@ void CellularPotts::SyntheticNetwork()
       // double& random_binding_proteins = c->getRandomBindingProteins();
       // random_binding_proteins = random_binding_rk4(dt, random_binding_proteins, opposite_Ecad);
 
+
       if (!CD19_cell && !spheroid_cell)
       {
         // get surface values
+
+
         double opposite_CD19 = c->getOpposingCD19();
         
         // update gene regulatory network.
         synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19);
         synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
         synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
+
+        if (par.c1_const[0]==true)
+        {
+          E_cadherin=1.;
+        }
+        else if (par.c1_GFP_induced)
 
         E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate); 
         // N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
@@ -7274,20 +7353,18 @@ void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
   // 10. Single unified cleanup and target initialization loop
   int deadcells = 0;
   for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) {
-    if (c == cell->begin()) continue;
-    if (c->AliveP()) 
+    if (c == cell->begin()) 
+      continue;
+    if (c->area == 0) 
     {
-      if (c->area == 0) 
-      {
-        c->Apoptose();
-        ++deadcells;
-      } else 
-      {
-        c->SetTargetArea(c->area);
-        c->makeAlive();
-        c->setSpheroid(true);
-        StartSyntheticNetwork(*c);
-      }
+      c->Apoptose();
+      ++deadcells;
+    } 
+    else 
+    {
+      c->SetTargetArea(c->area);
+      c->makeAlive();
+      c->setSpheroid(true);
     }
   }
   MeasureCellSizes();

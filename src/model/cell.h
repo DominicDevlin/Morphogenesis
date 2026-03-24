@@ -1816,6 +1816,41 @@ void setSpheroid(bool S)
   spheroid_cell = S;
 }
 
+vector<bool> GetConstitutives()
+{
+  return constitutives;
+}
+vector<bool>GetGFP_induced()
+{
+  return GFP_induced;
+}
+vector<bool>GetMcherry_induced()
+{
+  return mCherry_induced;
+}
+vector<bool>GetCD19_induced()
+{
+  return CD19_induced;
+}
+
+void SetConstitutives(vector<bool> incoming)
+{
+  constitutives=incoming;
+}
+void SetGFP_induced(vector<bool> incoming)
+{
+  GFP_induced=incoming;
+}
+void SetMcherry_induced(vector<bool> incoming)
+{
+  mCherry_induced=incoming;
+}
+void SetCD19_induced(vector<bool> incoming)
+{
+  CD19_induced=incoming;
+}
+
+
 
 
 void setTouchingMed(bool is)
@@ -1955,6 +1990,11 @@ protected:
   double opposing_N_cadherin{};
   double opposing_P_cadherin{};
   bool spheroid_cell{};
+
+  vector<bool>constitutives;
+  vector<bool>GFP_induced;
+  vector<bool>mCherry_induced;
+  vector<bool>CD19_induced;
   
   bool touching_med{};
 
@@ -1968,7 +2008,7 @@ protected:
   // I will make the gene network I vector for now.
   vector<double> genes; // should initialise to appropriate value
 
-  vector<double> diff_genes;
+  vector<double> diff_genes{};
 
 
   vector<double> locks{};
