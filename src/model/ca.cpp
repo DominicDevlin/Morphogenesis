@@ -7247,7 +7247,7 @@ void CellularPotts::SyntheticNetwork()
       if (rounded_GFP > 100)
         rounded_GFP = 100;
 
-      int rounded_cherry = round(mCherry * 250);
+      int rounded_cherry = round(mCherry * 200);
       if (rounded_cherry > 100)
         rounded_cherry = 100;
 

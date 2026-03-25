@@ -171,7 +171,7 @@ TIMESTEP {
       dish->CPM->SetPerims(par.ptarget_perimeter);
 
       dish->CPM->StartSyntheticNetwork(n_cells);
-      par.contours=true;
+      par.contours=false;
 
     }
 

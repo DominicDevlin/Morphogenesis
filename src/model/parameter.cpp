@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=0;//15120834811895428147//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -111,7 +111,7 @@
 
     H_perim = true;
     elastic_modulus = 2;
-    ptarget_perimeter = 41;
+    ptarget_perimeter = 42;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
@@ -158,17 +158,17 @@
 
     synthetic_dt=0.3;
 
-    synthetic_Jm=5.5;
+    synthetic_Jm=5.8;
 
     // not using atm
     Jmed_scaling=10.4;
 
     synthetic_Jcell_baseline = 5.2;
-    JEcadherin_scaling=5.2;
-    JPcadherin_scaling=2.6;
-    JNcadherin_scaling=2.6;
+    JEcadherin_scaling=2;//5.2;
+    JPcadherin_scaling=1.5;//2.6;
+    JNcadherin_scaling=1.5;//2.6;
 
-    Jrandom_scaling_E=1.6;
+    Jrandom_scaling_E=1.;
     Jrandom_scaling_N=0.5;
     Jrandom_scaling_P=0.5;
     
@@ -178,7 +178,7 @@
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
 
-    proportion_starting_CD19 =0.6;
+    proportion_starting_CD19 =0.47; // i used 0.68 for 3 layer and 0.47? for asymmetric
 
     // Here we decide the genes of c1 and c2.
     // first = E_cadherin high, second = E_cadherin low, third = P_cadherin, fourth = N_cadherin, 5 = CD19, 6=GFP, 7=mCherry
@@ -213,8 +213,8 @@
     // for spheroid stuff
     c1_const={0,0,0,0,0,0,0};
     c2_const={0,0,0,0,0,0,0};
-    c1_GFP_induced={1,0,0,0,0,0,1};
-    c2_GFP_induced={1,0,0,0,0,0,1};
+    c1_GFP_induced={0,0,0,0,0,0,1};
+    c2_GFP_induced={0,0,0,0,0,0,1};
     c1_mCherry_induced={0,0,0,0,0,0,0};
     c2_mCherry_induced={0,0,0,0,0,0,0};
     c1_CD19_induced={0,0,0,0,0,0,0};
@@ -249,7 +249,7 @@
     saturation = 0;
     dt = 1.0;
     dx = double(1)/double(250);// 1/((double)sizex);
-    pde_its = 1;
+    pde_its = 4;
     
     // GFP
     diff_coeff[0] = 2e-6;
