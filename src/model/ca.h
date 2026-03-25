@@ -584,7 +584,7 @@ public:
   /* SYNTHETIC MULTICELLULAR STRUCTURE METHODS */
   void SyntheticNetwork();
 
-  void StartSyntheticNetwork();
+  void StartSyntheticNetwork(int start_point=0);
 
   void StartSyntheticNetwork(Cell &newcell);
 

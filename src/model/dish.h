@@ -78,6 +78,8 @@ public:
 
   void AverageChemCell(void);
 
+  void SyntheticAverageChemCell(void);
+
   void IntroduceMorphogen(int num, int xloc, int yloc);
 
 

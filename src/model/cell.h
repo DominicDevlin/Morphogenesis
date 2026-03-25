@@ -182,6 +182,10 @@ public:
     opposing_N_cadherin=src.opposing_N_cadherin;
     spheroid_cell=src.spheroid_cell;
 
+    constitutives=src.constitutives;
+    GFP_induced=src.GFP_induced;
+    mCherry_induced=src.mCherry_induced;
+    CD19_induced=src.CD19_induced;
 
     centerx = src.centerx;
     centery = src.centery;
@@ -304,6 +308,10 @@ public:
     opposing_N_cadherin=src.opposing_N_cadherin;
     spheroid_cell=src.spheroid_cell;
 
+    constitutives=src.constitutives;
+    GFP_induced=src.GFP_induced;
+    mCherry_induced=src.mCherry_induced;
+    CD19_induced=src.CD19_induced;
 
     diffs = new double[par.n_diffusers];
 
@@ -931,6 +939,17 @@ private:
       genes[i] = diffs[i];
     }
   }
+
+  inline void average_chem_synthetic()
+  {
+    if (par.morph_or_surface[0]==true)
+      opposing_GFP = opposing_GFP / (double)(area);
+    if (par.morph_or_surface[1]==true)
+      opposing_mCherry = opposing_mCherry / (double)(area);
+    if (par.morph_or_surface[2]==true)
+      opposing_CD19 = opposing_CD19 / (double)(area);
+  }
+
 
   inline double chem_conc(int d)
   {
@@ -1622,6 +1641,7 @@ private:
 
   double Gravity()
   {
+    // x^2 gravity, we typically use coeffiecnt of..
     double newcom_x = com_x + com_shiftx;
     double newcom_y = com_y + com_shifty;
     double delta_x = com_x - centerx;
@@ -1632,6 +1652,27 @@ private:
     double old_energy = par.lambda_gravity * (delta_x * delta_x + delta_y * delta_y);
     double new_energy = par.lambda_gravity * (delta_xnew * delta_xnew + delta_ynew * delta_ynew);
     return new_energy - old_energy;
+
+    // x^4 gravity, coefficient of approx 0.00000008;
+      // 1. Calculate the squared distance from the center for the current position
+    // double delta_x = com_x - centerx;
+    // double delta_y = com_y - centery;
+    // double dist_sq_old = delta_x * delta_x + delta_y * delta_y;
+
+    // // 2. Calculate the squared distance for the proposed new position
+    // double newcom_x = com_x + com_shiftx;
+    // double newcom_y = com_y + com_shifty;
+    // double delta_xnew = newcom_x - centerx;
+    // double delta_ynew = newcom_y - centery;
+    // double dist_sq_new = delta_xnew * delta_xnew + delta_ynew * delta_ynew;
+    // // cout << centerx << '\t' << newcom_x << '\t' << com_x << endl;
+
+    // // 3. Compute quartic energy: E = lambda * (r^2)^2 = lambda * r^4
+    // // This creates a flat bottom and steep walls.
+    // double old_energy = par.lambda_gravity * (dist_sq_old * dist_sq_old);
+    // double new_energy = par.lambda_gravity * (dist_sq_new * dist_sq_new);
+
+    // return new_energy - old_energy;
   }
 
 
@@ -1766,43 +1807,57 @@ double& getOpposing_E_cadherin()
 
 void ResetSurfaceBindings()
 {
-  opposing_CD19=0;
+  if (!par.morph_or_surface[0])
+    opposing_GFP=0;
+  if (!par.morph_or_surface[2])
+    opposing_CD19=0;
   opposing_E_cadherin=0;
-  opposing_GFP=0;
+  
 }
 
 void AddtoSurfaces(bool bcd19, double bE_cad, double bGFP, double bP_cad, double bN_cad)
 {
-  opposing_CD19=opposing_CD19 + bcd19;
+  if (!par.morph_or_surface[0])
+  {
+    if (bGFP > 1)
+      opposing_GFP = opposing_GFP + 1.;
+    else
+      opposing_GFP = opposing_GFP + bGFP;
+  }
+  if (!par.morph_or_surface[2])
+  {
+    opposing_CD19=opposing_CD19 + bcd19;
+  }
+
   if (bE_cad > 1)
     opposing_E_cadherin = opposing_E_cadherin + 1.;
   else
     opposing_E_cadherin = opposing_E_cadherin + bE_cad;
-  if (bGFP > 1)
-    opposing_GFP = opposing_GFP + 1.;
-  else
-    opposing_GFP = opposing_GFP + bGFP;
 
   if (bP_cad > 1)
     opposing_P_cadherin = opposing_P_cadherin + 1.;
   else
     opposing_P_cadherin = opposing_P_cadherin + bP_cad;
   
-    if (bN_cad)
-      opposing_N_cadherin = opposing_N_cadherin + 1.;
-    else
-      opposing_N_cadherin = opposing_N_cadherin + bN_cad;
+  if (bN_cad)
+    opposing_N_cadherin = opposing_N_cadherin + 1.;
+  else
+    opposing_N_cadherin = opposing_N_cadherin + bN_cad;
   // cout << "ADDING:" << opposing_CD19 << '\t' << opposing_E_cadherin << endl;
 }
 
 void AverageSurfaceBindings()
 {
   // cout << opposing_CD19 << '\t' << perimeter << endl;
-  opposing_CD19 = opposing_CD19 / double(perimeter);
+  if (!par.morph_or_surface[0])
+    opposing_GFP = opposing_GFP / double(perimeter);
+  if (!par.morph_or_surface[2])
+    opposing_CD19 = opposing_CD19 / double(perimeter);
+
   opposing_E_cadherin = opposing_E_cadherin / double(perimeter);
   opposing_N_cadherin = opposing_N_cadherin / double(perimeter);
-  opposing_N_cadherin = opposing_N_cadherin / double(perimeter);
-  opposing_GFP = opposing_GFP / double(perimeter);
+  opposing_P_cadherin = opposing_P_cadherin / double(perimeter);
+  
   
 }
 
@@ -1983,6 +2038,8 @@ protected:
   double CD19{};
   double opposing_CD19{};
   double opposing_E_cadherin{};
+  double opposing_mCherry{};
+
   double random_binding_proteins{};
   double GFP{};
   double mCherry{};

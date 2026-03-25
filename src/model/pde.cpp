@@ -224,6 +224,11 @@ void PDE::SyntheticSecretion(CellularPotts *cpm)
   double dt=par.dt;
   for (int n = 0;n<par.n_diffusers;++n)
   {
+    // skip loop if only a surface receiver
+    if (par.morph_or_surface[n]==0)
+    {
+      continue;
+    }
     for (int x=0;x<sizex;x++)
       for (int y=0;y<sizey;y++) 
       {

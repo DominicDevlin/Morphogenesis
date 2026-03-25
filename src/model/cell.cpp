@@ -149,6 +149,10 @@ void Cell::CellBirth(Cell &mother_cell) {
   N_cadherin=mother_cell.N_cadherin;
   spheroid_cell=mother_cell.spheroid_cell;
 
+  constitutives=mother_cell.constitutives;
+  GFP_induced=mother_cell.GFP_induced;
+  mCherry_induced=mother_cell.mCherry_induced;
+  CD19_induced=mother_cell.CD19_induced;  
 
   for (int i=0;i<par.n_diffusers;i++)
   {
@@ -311,18 +315,18 @@ double Cell::SyntheticEnergy(Cell &cell2)
   if (sigma==cell2.sigma)
     return 0;
   else if (sigma == 0)
-    return ((par.synthetic_Jm + par.Jmed_scaling * cell2.getE_cadherin())) / par.neigh_multiplier;
+    return (par.synthetic_Jm)/par.neigh_multiplier;// + par.Jmed_scaling * cell2.getE_cadherin()) / par.neigh_multiplier;
   else if (cell2.sigma==0)
-    return (par.synthetic_Jm + par.Jmed_scaling * E_cadherin) / par.neigh_multiplier;
+    return (par.synthetic_Jm)/par.neigh_multiplier;// + par.Jmed_scaling * E_cadherin) / par.neigh_multiplier;
   else
   {
     return (par.synthetic_Jcell_baseline 
      - par.JEcadherin_scaling * (E_cadherin * cell2.getE_cadherin())
-     - par.Jrandom_scaling * ((E_cadherin*cell2.getRandomBindingProteins()) + (random_binding_proteins*cell2.getE_cadherin()))
+     - par.Jrandom_scaling_E * ((E_cadherin*cell2.getRandomBindingProteins()) + (random_binding_proteins*cell2.getE_cadherin()))
      - par.JPcadherin_scaling * (P_cadherin * cell2.getP_cadherin()) 
      - par.JNcadherin_scaling * (N_cadherin * cell2.getN_cadherin())
-     - par.Jrandom_scaling * (N_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getN_cadherin())
-     - par.Jrandom_scaling * (P_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getP_cadherin())
+     - par.Jrandom_scaling_N * (N_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getN_cadherin())
+     - par.Jrandom_scaling_P * (P_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getP_cadherin())
     ) * 2 / par.neigh_multiplier;
   }
 }

@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -148,7 +148,7 @@
     c_max = 1.5;
 
     Ecadherin_tension_multiple=-0.08;
-    Ncadherin_tension_multiple=0.;
+    Ncadherin_tension_multiple=-0.04;
     Pcadherin_tension_multiple=-0.04;
 
     // this concentration is too high, needs to come down i think (and get scaling right)
@@ -158,14 +158,19 @@
 
     synthetic_dt=0.3;
 
-    synthetic_Jm=6.5;
+    synthetic_Jm=5.5;
+
+    // not using atm
     Jmed_scaling=10.4;
 
     synthetic_Jcell_baseline = 5.2;
     JEcadherin_scaling=5.2;
-    JPcadherin_scaling=3.9;
-    JNcadherin_scaling=3.9;
-    Jrandom_scaling=2.6;
+    JPcadherin_scaling=2.6;
+    JNcadherin_scaling=2.6;
+
+    Jrandom_scaling_E=1.6;
+    Jrandom_scaling_N=0.5;
+    Jrandom_scaling_P=0.5;
     
     init_random_binding=1.;
     // IMPORTANT NOTE!!
@@ -173,29 +178,54 @@
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
 
-    proportion_starting_CD19 =0.58;
+    proportion_starting_CD19 =0.6;
 
     // Here we decide the genes of c1 and c2.
     // first = E_cadherin high, second = E_cadherin low, third = P_cadherin, fourth = N_cadherin, 5 = CD19, 6=GFP, 7=mCherry
-    spheroid_const={0,0,1,0,0,1,0};
+    spheroid_const={0,0,1,0,0,0,0};
     spheroid_GFP_induced={0,0,0,0,0,0,0};
     spheroid_mCherry_induced={0,0,0,0,0,0,0};
     spheroid_CD19_induced={0,0,0,0,0,0,0};
 
+    make_spheroid=true;
+    make_sparse_cells=true;
+
+    // three layered structure
+    // c1_const={0,0,0,0,0,0,0};
+    // c2_const={0,0,0,0,0,0,0};
+    // c1_GFP_induced={0,0,0,0,0,0,0};
+    // c2_GFP_induced={0,1,0,0,0,0,1};
+    // c1_mCherry_induced={0,0,0,0,0,0,0};
+    // c2_mCherry_induced={0,0,0,0,0,0,0};
+    // c1_CD19_induced={1,0,0,0,0,1,0};
+    // c2_CD19_induced={0,0,0,0,0,0,0};
+
+    // asymmetric
+    // c1_const={0,0,0,0,0,0,0};
+    // c2_const={0,0,0,0,0,0,0};
+    // c1_GFP_induced={0,0,0,0,0,0,0};
+    // c2_GFP_induced={0,0,1,0,0,0,1};
+    // c1_mCherry_induced={0,0,0,0,0,0,0};
+    // c2_mCherry_induced={0,0,0,0,0,0,0};
+    // c1_CD19_induced={0,0,0,1,0,1,0};
+    // c2_CD19_induced={0,0,0,0,0,0,0};
+
+    // for spheroid stuff
     c1_const={0,0,0,0,0,0,0};
     c2_const={0,0,0,0,0,0,0};
-    c1_GFP_induced={0,0,0,0,0,0,0};
-    c2_GFP_induced={0,0,0,0,0,0,0};
+    c1_GFP_induced={1,0,0,0,0,0,1};
+    c2_GFP_induced={1,0,0,0,0,0,1};
     c1_mCherry_induced={0,0,0,0,0,0,0};
     c2_mCherry_induced={0,0,0,0,0,0,0};
-    c1_CD19_induced={0,0,0,0,0,0,0};;
-    c2_CD19_induced={0,0,0,0,0,0,0};;
+    c1_CD19_induced={0,0,0,0,0,0,0};
+    c2_CD19_induced={0,0,0,0,0,0,0};
 
-    // we have cd19, GFP, and mcherry. This vector decides whether
+    // we have GFP, mcherry and cd19. This vector decides whether
     // they are morphogens or not. 1=morph, 2=surface.
-    morph_or_surface={0,1,0};
-
-
+    if (make_spheroid)
+      morph_or_surface={1,0,0};
+    else
+      morph_or_surface={0,0,0};
 
     div_threshold = 150;
 
@@ -208,7 +238,7 @@
     lambda_gravity=0.001;
 
     // morphogen stuff.
-    n_diffusers = 1; // morphogens (cant be less than one)
+    n_diffusers = 3; // morphogens (cant be less than one)
     secr_rate = new double[n_diffusers];
     diff_coeff = new double[n_diffusers];
     diff_coeff_cell = new double [n_diffusers];
@@ -221,12 +251,26 @@
     dx = double(1)/double(250);// 1/((double)sizex);
     pde_its = 1;
     
+    // GFP
     diff_coeff[0] = 2e-6;
-    diff_coeff_cell[0]=1e-6;
+    diff_coeff_cell[0]=1e-7;
     decay_rate[0] = 0.03e-3;
-    decay_rate_cell[0]=0.4e-3;
+    decay_rate_cell[0]=0.09e-3;
     secr_rate[0] = 1e-3;
 
+    //mCHERRY
+    diff_coeff[1] = 2e-6;
+    diff_coeff_cell[1]=1e-6;
+    decay_rate[1] = 0.03e-3;
+    decay_rate_cell[1]=0.4e-3;
+    secr_rate[1] = 1e-3;
+
+    //CD19 (probably not needed)
+    diff_coeff[2] = 4e-6;
+    diff_coeff_cell[2]=2e-6;
+    decay_rate[2] = 0.03e-3;
+    decay_rate_cell[2]=0.4e-3;
+    secr_rate[2] = 1e-3;
 
     // for debugging
     thetime=0;

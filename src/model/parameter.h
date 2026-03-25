@@ -81,6 +81,9 @@ class Parameter {
   vector<bool> spheroid_signal_induced;
   vector<bool> morph_or_surface;
 
+  bool make_spheroid;
+  bool make_sparse_cells;
+
 
   double saturation;
   double dt;
@@ -148,7 +151,9 @@ class Parameter {
   double JEcadherin_scaling;
   double JPcadherin_scaling;
   double JNcadherin_scaling;
-  double Jrandom_scaling;
+  double Jrandom_scaling_E;
+  double Jrandom_scaling_P;
+  double Jrandom_scaling_N;
   double Jmed_scaling;
 
   double init_random_binding;

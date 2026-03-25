@@ -270,8 +270,6 @@ void Dish::AverageChemCell() // d is number of diffusers (2?)
     if (c->AliveP())
     {
       c->average_chem();
-
-
       // if (c->chem_conc(0) > max_conc)
       //   max_conc = c->chem_conc(0);
       // if (c->chem_conc(1) > max_conc1)
@@ -286,6 +284,47 @@ void Dish::AverageChemCell() // d is number of diffusers (2?)
 
   // cout << "Max for diff 1: " << max_conc << ". Average: " << average_conc/(double)(tc) 
   // << ". Max for diff 2: " << max_conc1 << ". Average: " << average_conc1/(double)(tc) << endl;
+}
+
+
+void Dish::SyntheticAverageChemCell() // d is number of diffusers (2?)
+{
+  const int sizex = par.sizex;
+  const int sizey = par.sizey;
+
+  for (vector<Cell>::iterator c=cell.begin();c!=cell.end();c++) 
+  {
+    if (par.morph_or_surface[0]==true)
+      c->opposing_GFP = 0.;
+    if (par.morph_or_surface[1]==true)
+      c->opposing_mCherry = 0.;
+    if (par.morph_or_surface[2]==true)
+      c->opposing_CD19 = 0.;
+  }
+
+    for (int x=0; x<sizex; ++x)
+      for (int y=0; y<sizey; ++y)
+      {
+        int cn = CPM->Sigma(x,y);
+        if (cn > 0)
+        {
+          if (par.morph_or_surface[0]==true)
+            (cell)[cn].opposing_GFP += PDEfield->Sigma(0,x,y);
+          if (par.morph_or_surface[1]==true)
+            (cell)[cn].opposing_mCherry += PDEfield->Sigma(1,x,y);
+          if (par.morph_or_surface[2]==true)
+            (cell)[cn].opposing_CD19 += PDEfield->Sigma(2,x,y);
+
+
+        }
+      }
+  vector<Cell>::iterator c;
+  for ( (c=cell.begin(),c++); c!=cell.end(); c++) 
+    if (c->AliveP())
+    {
+      c->average_chem_synthetic();
+
+    }
 }
 
 

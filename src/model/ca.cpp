@@ -6955,10 +6955,9 @@ void CellularPotts::SurfaceBindings()
 
 
 
-void CellularPotts::StartSyntheticNetwork()
+void CellularPotts::StartSyntheticNetwork(int start_point)
 {
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  for (auto c=std::next(cell->begin(), start_point); c!=cell->end(); c++) 
   {
     if (c->AliveP())
     {
@@ -6992,6 +6991,7 @@ void CellularPotts::StartSyntheticNetwork()
 
         vector<double> init_diffusers{1.0};
         c->set_diffusers(init_diffusers);
+        cout << c->Sigma() << endl;
 
         c->SetConstitutives(par.spheroid_const);
         c->SetGFP_induced(par.spheroid_GFP_induced);
@@ -7159,8 +7159,9 @@ void CellularPotts::SyntheticNetwork()
       double opposite_Pcad = c->getOpposingP_cadherin();
       double opposite_Ncad = c->getOpposingN_cadherin();
 
-      double opposite_CD19 = c->getOpposingCD19();
-      double opposite_GFP = c->getOppositeGFP();
+    
+      double opposite_CD19=c->getOpposingCD19();
+      double opposite_GFP=c->getOppositeGFP();
 
       /* all cells have random binding proteins*/
       // double& random_binding_proteins = c->getRandomBindingProteins();
@@ -7208,67 +7209,37 @@ void CellularPotts::SyntheticNetwork()
         synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_GFP);
         synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_GFP);
         synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_GFP );
-
-        if (GFP_induced[0]==true)
-        {
-          E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate);
-        }
-        if (GFP_induced[2]==true)
-        {
-          P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);
-        }
-        if (GFP_induced[3]==true)
-        {
-          N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
-        }
-
-        // P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);
-
-
       }
-
-
-      if (!CD19_cell && !spheroid_cell)
+      else if (receptsCD19)
       {
-        // get surface values
-
-
-        
-        // update gene regulatory network.
         synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19);
         synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
         synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
+      }
 
-        // if (par.c1_const[0]==true)
-        // {
-        //   E_cadherin=1.;
-        // }
-        // else if (par.c1_GFP_induced)
-
-        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate); 
-        // N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
-
+      if (GFP_induced[0]==true || CD19_induced[0]==true)
+      {
+        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate);
+      }
+      if (GFP_induced[1]==true || CD19_induced[1]==true)
+      {
+        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.lo_cadherin_production_rate);
+      }
+      if (GFP_induced[2]==true || CD19_induced[2]==true)
+      {
+        P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);
+      }
+      if (GFP_induced[3]==true || CD19_induced[3]==true)
+      {
+        N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
+      }
+      if (GFP_induced[5]==true || CD19_induced[5]==true)
+      {
         GFP = GFP_rk4(dt, GFP, synNotch_intra);
       }
-      else if (spheroid_cell)
+      if (GFP_induced[6]==true || CD19_induced[6]==true)
       {
-        // Need to constitutively express P_cadherin...
-        // for now we will just assume that P_cadherin = 1.
-        // For now, do nothing. Might change this to P_cadherin ODE.
-      }
-      else
-      {
-        /* cell b stuff here*/
-        // if (opposite_GFP > 0.5)
-        //   cout << opposite_GFP << endl;
-        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_GFP);
-        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_GFP);
-        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_GFP );
-
-        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.lo_cadherin_production_rate);
-        // P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);
         mCherry = GFP_rk4(dt, mCherry, synNotch_intra);
-        // cout << synNotch_intra << '\t' << mCherry << endl;
       }
  
       // for colour output

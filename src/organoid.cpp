@@ -80,9 +80,16 @@ INIT
     // Note - this function will need to have a center of mass somewhere.
     
     CPM->ClearGrid();
+    if (par.make_sparse_cells)
+    {
+      if (par.make_spheroid)
+        CPM->PopulateSparseCells(0.8, 80, 0, 0);
+      else
+        CPM->PopulateSparseCells(0.3, 110, 0, 0);
 
-    CPM->PopulateSparseCells(0.3, 100, 30, 30);
-    CPM->MakeSpheroid(70,70,40);
+    }
+      
+  
 
 
     // Assign a random type to each of the cells
@@ -144,12 +151,28 @@ TIMESTEP {
 
     if (t % par.synthetic_update_step == 0 && t > 0)
     {
+      dish->SyntheticAverageChemCell();
       dish->CPM->SyntheticNetwork();
       dish->CPM->OutputSyntheticNetwork(t);
     }
     if (t % 5000==0 && t > 0)
     {
       dish->CPM->SyntheticGrowth();
+    }
+
+    if (t==3000 && par.make_spheroid)
+    {
+      int n_cells = dish->CPM->CountCells();
+      cout << "Number of cells: " << n_cells << endl; // 1200
+      if (par.make_spheroid)
+        dish->CPM->MakeSpheroid(40,40,40);
+      dish->CPM->SetAreas(par.cell_target_area);
+      dish->CPM->MeasureCellPerimeters();
+      dish->CPM->SetPerims(par.ptarget_perimeter);
+
+      dish->CPM->StartSyntheticNetwork(n_cells);
+      par.contours=true;
+
     }
 
 
@@ -160,7 +183,7 @@ TIMESTEP {
       dish->PDEfield->SyntheticDiffusion(1, dish->CPM); // might need to do more diffussion steps ? 
     }
 
-    if (t == 30000)
+    if (t == 6000)
     {
       dish->PDEfield->PrintAxisConcentrations(true, 110);
     }
