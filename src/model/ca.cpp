@@ -7008,7 +7008,7 @@ void CellularPotts::StartSyntheticNetwork()
         double rand = RANDOM(s_val);
         if (rand < par.proportion_starting_CD19)
         {
-          c->setCD19(true);
+          c->setCD19(1.);
           // assuming c1
           c->SetConstitutives(par.c2_const);
           c->SetGFP_induced(par.c2_GFP_induced);
@@ -7017,7 +7017,7 @@ void CellularPotts::StartSyntheticNetwork()
         }
         else 
         {
-          c->setCD19(false);
+          c->setCD19(0.);
           // assuming c2
           c->SetConstitutives(par.c1_const);
           c->SetGFP_induced(par.c1_GFP_induced);
@@ -7144,7 +7144,7 @@ void CellularPotts::SyntheticNetwork()
 
       // cells either do or do not have the synethic network. So, we have to get
       // its network type and then decide how to update. For now, we say CD19.
-      bool& CD19_cell = c->getCD19();
+      double& CD19 = c->getCD19();
       bool& spheroid_cell = c->isSpheroid();
       double& synNotch_bound = c->getsynNotch_bound();
       double& synNotch_unbound = c->getsynNotch_unbound();
@@ -7188,7 +7188,7 @@ void CellularPotts::SyntheticNetwork()
       }
       if (constitutives[4]==true)
       {
-        CD19_cell=true;
+        CD19=1.;
       }
       if (constitutives[5]==true)
       {
@@ -7219,7 +7219,7 @@ void CellularPotts::SyntheticNetwork()
         }
         if (GFP_induced[3]==true)
         {
-          ... fill in only the ones you need
+          N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
         }
 
         // P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);

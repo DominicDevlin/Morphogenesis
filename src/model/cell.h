@@ -1745,11 +1745,11 @@ void setOpposingP_cadherin(double new_value)
 
 
 
-void setCD19(bool new_value)
+void setCD19(double new_value)
 {
   CD19 = new_value;
 }
-bool& getCD19()
+double& getCD19()
 {
   return CD19;
 }
@@ -1980,7 +1980,7 @@ protected:
   double E_cadherin{};
   double N_cadherin{};
   double P_cadherin{};  
-  bool CD19{};
+  double CD19{};
   double opposing_CD19{};
   double opposing_E_cadherin{};
   double random_binding_proteins{};
