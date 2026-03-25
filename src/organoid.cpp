@@ -183,10 +183,10 @@ TIMESTEP {
       dish->PDEfield->SyntheticDiffusion(1, dish->CPM); // might need to do more diffussion steps ? 
     }
 
-    if (t == 6000)
-    {
-      dish->PDEfield->PrintAxisConcentrations(true, 110);
-    }
+    // if (t == 6000)
+    // {
+    //   dish->PDEfield->PrintAxisConcentrations(true, 110);
+    // }
     
     
 
