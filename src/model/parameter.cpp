@@ -158,7 +158,7 @@
 
     synthetic_dt=0.3;
 
-    synthetic_Jm=5.8;
+    synthetic_Jm=3.8;
 
     // not using atm
     Jmed_scaling=10.4;
@@ -168,7 +168,7 @@
     JPcadherin_scaling=1.5;//2.6;
     JNcadherin_scaling=1.5;//2.6;
 
-    Jrandom_scaling_E=1.;
+    Jrandom_scaling_E=0.;
     Jrandom_scaling_N=0.5;
     Jrandom_scaling_P=0.5;
     
@@ -191,14 +191,14 @@
     make_sparse_cells=true;
 
     // three layered structure
-    // c1_const={0,0,0,0,0,0,0};
-    // c2_const={0,0,0,0,0,0,0};
-    // c1_GFP_induced={0,0,0,0,0,0,0};
-    // c2_GFP_induced={0,1,0,0,0,0,1};
-    // c1_mCherry_induced={0,0,0,0,0,0,0};
-    // c2_mCherry_induced={0,0,0,0,0,0,0};
-    // c1_CD19_induced={1,0,0,0,0,1,0};
-    // c2_CD19_induced={0,0,0,0,0,0,0};
+    c1_const={0,0,0,0,0,0,0};
+    c2_const={0,0,0,0,0,0,0};
+    c1_GFP_induced={0,0,0,0,0,0,0};
+    c2_GFP_induced={0,0,0,0,0,0,0};
+    c1_mCherry_induced={0,0,0,0,0,0,0};
+    c2_mCherry_induced={0,0,0,0,0,0,0};
+    c1_CD19_induced={1,0,0,0,0,1,0};
+    c2_CD19_induced={0,0,0,0,0,0,0};
 
     // asymmetric
     // c1_const={0,0,0,0,0,0,0};
@@ -211,14 +211,14 @@
     // c2_CD19_induced={0,0,0,0,0,0,0};
 
     // for spheroid stuff
-    c1_const={0,0,0,0,0,0,0};
-    c2_const={0,0,0,0,0,0,0};
-    c1_GFP_induced={0,0,0,0,0,0,1};
-    c2_GFP_induced={0,0,0,0,0,0,1};
-    c1_mCherry_induced={0,0,0,0,0,0,0};
-    c2_mCherry_induced={0,0,0,0,0,0,0};
-    c1_CD19_induced={0,0,0,0,0,0,0};
-    c2_CD19_induced={0,0,0,0,0,0,0};
+    // c1_const={0,0,0,0,0,0,0};
+    // c2_const={0,0,0,0,0,0,0};
+    // c1_GFP_induced={0,0,0,0,0,0,1};
+    // c2_GFP_induced={0,0,0,0,0,0,1};
+    // c1_mCherry_induced={0,0,0,0,0,0,0};
+    // c2_mCherry_induced={0,0,0,0,0,0,0};
+    // c1_CD19_induced={0,0,0,0,0,0,0};
+    // c2_CD19_induced={0,0,0,0,0,0,0};
 
     // we have GFP, mcherry and cd19. This vector decides whether
     // they are morphogens or not. 1=morph, 2=surface.
