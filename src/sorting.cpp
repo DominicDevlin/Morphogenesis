@@ -603,7 +603,8 @@ TIMESTEP {
         if (par.n_diffusers > 2)
         {
           c3 = dish->PDEfield->CheckSecreting(2);
-          c4 = dish->PDEfield->CheckSecreting(3);
+          if (par.n_diffusers > 3)
+            c4 = dish->PDEfield->CheckSecreting(3);
         }
 
       }

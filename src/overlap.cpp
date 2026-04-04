@@ -180,17 +180,20 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         dishes[i].CPM->CellGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
-    
-
+      cout << t << endl;
       // calculate the diversity over last 20% of time steps. 
       if (t > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
       {
         // am now doing for curvature as well (taking mean)
+        cout << "got here" << endl;
         vector<double> breakdown = dishes[i].CPM->update_fitness();
+        cout << "int" << endl;
         org_fitness_breakdown[0] += breakdown[0];
         org_fitness_breakdown[1] += breakdown[1];
         org_fitness_breakdown[2] += breakdown[2];
         org_fitness_counter+=1;
+        cout << "finished" << endl;
+
       }
  
       // ensure all cells are connected for shape calculations. 

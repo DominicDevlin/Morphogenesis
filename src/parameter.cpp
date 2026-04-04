@@ -87,7 +87,7 @@
 
     init_diff_coeffs = { 2.0762e-07, 1.44414e-07, 1.06451e-07, 7.66767e-08, };
     // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-    start_matrix = { { 1, 0, 0, 1, 0, -1, 1, 1, 0, 0 }, { 2, 0, -2, 0, -1, 0, 0, 0, 0, 1 }, { 0, -1, 1, 0, 0, 0, 1, -2, 0, -1 }, { 0, 1, 0, 0, 0, 1, -1, -2, -1, 2 }, { 0, -1, 0, 0, 2, 0, 0, 1, -1, 0 }, { 1, 2, 0, 2, 0, -1, 1, 0, 0, 0 }, { 1, 1, -2, 1, -1, -2, 0, 0, 0, -1 }, { -2, 0, 0, 0, -1, 1, 0, 0, 0, 0 }, { 2, 0, 1, 0, 0, 0, 1, 0, 0, 0 }, { 0, 0, 0, 1, -2, 0, 0, 1, 0, 2 }, { 0, -1, 1, 1, 0, 0, 0, 0, -2, -1 }, { 0, 0, 0, 0, -1, 0, 0, 0, 2, 0 }, { 0, 1, 0, 0, 0, 0, 0, -1, 0, 1 }, { 1, 0, 1, 0, 1, 0, 0, 2, 1, 0 }, { 1, -1, 0, 2, 1, 0, 2, 1, 1, 1 }, { 0, 2, 1, 0, 1, 0, 0, 0, 2, 0 }, { 1, -1, -2, 1, -1, 0, 1, 0, 0, 2 }, { 0, -1, 1, 1, 0, -1, -1, 0, 1, 0 }, { 0, 0, 1, 0, 0, 0, -1, 1, -2, -2 }, { 2, 0, 0, 0, 0, 0, 1, 1, 0, -2 }, { 1, -1, 0, 1, 1, 0, 1, 1, 1, 0 }, { -2, -2, 0, 1, 0, 2, -1, 1, 1, 0 }, { 0, -1, -1, 0, 0, 0, 0, 0, 1, 0 }, { 0, -1, 0, 0, 0, 2, 0, 0, 0, 0 }, };
+    start_matrix = { { 0, 1, 1, 0, -2, 0, 1, 0, 1 }, { 0, 0, -1, 1, -1, 1, 0, 0, -1 }, { 0, 1, 0, 0, 0, 0, 1, 0, 0 }, { 1, 0, 0, 0, 0, 0, 1, -2, 0 }, { -1, 2, 0, 2, 1, 0, -1, 1, 0 }, { 0, 0, 1, 1, 0, -1, 2, -1, 0 }, { 1, 0, 1, 0, 2, 0, 0, 0, 1 }, { 0, 0, 1, 0, -1, -1, 2, 0, 0 }, { -2, 1, 0, -1, 0, 1, -1, 1, -1 }, { 0, -1, 0, 0, 1, 1, 1, 0, -2 }, { 1, 1, 0, 0, 0, 0, 1, -1, 2 }, { 0, 0, 1, 1, 0, 0, 0, -2, 0 }, { 1, -2, 0, 0, 0, 0, 0, 0, -1 }, { 0, 0, 0, 0, 0, 1, 0, 0, -1 }, { 0, 0, 0, -2, 0, -1, 0, -1, -1 }, { -1, 1, 0, 1, -1, 1, 1, 1, 0 }, { 0, -1, 2, 2, 0, -2, 0, 0, 2 }, { 0, 0, 0, 0, 0, 0, 1, 0, 0 }, { 1, 0, -2, 0, 0, 0, 0, -1, 1 }, { 0, -1, 0, 0, 0, 2, 0, 0, 1 }, { 0, 0, 0, 0, -1, 0, -1, 1, 0 }, { 0, -1, 2, 0, 2, -1, -1, 0, 2 }, { 0, 1, 0, -2, 0, 0, 0, 0, 1 }, { 0, 0, -1, 0, 0, 0, 0, 1, 0 }, { 0, 1, 0, 1, 0, 0, 0, 0, 1 }, { 0, 1, 0, 0, 0, 0, 0, 0, 1 }, { 0, 0, 0, 0, 0, 0, 0, 0, 1 }, };
 
 
 
@@ -302,26 +302,46 @@
     shrink_on = true;
 
 
-    // Number of morphogens, Does changes depending on sim
-    n_diffusers = 4;
+
 
     // enzymes that can break down the morphogen
     enzymes = false;
 
     // gene network parameters
+
+    // Number of morphogens, Does changes depending on sim
+    // n_diffusers = 4;
     
-    n_lockandkey = 8; // number of lock and keys (==), stored in separate vector for ease
-    n_locks = 4; // must be half lockandkey. locks = keys
+    // n_lockandkey = 8; // number of lock and keys (==), stored in separate vector for ease
+    // n_locks = 4; // must be half lockandkey. locks = keys
+    
+    // //adding new medium genes to release constraint on keys
+    // n_mediums = 3;
+    // 
+
+    // // number of transcription factors. The first two transcription factors must be ON for stem cell identity. 
+    // n_TF = 4; 
+    
+    // n_length_genes = 2;
+    // n_MF = 2;
+
+    // FOR BASIC SIMULATIONS
+    n_diffusers = 3;
+    
+    n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
+    n_locks = 5; // must be half lockandkey. locks = keys
     
     //adding new medium genes to release constraint on keys
-    n_mediums = 3;
-    med_table = new int[n_mediums]{9, 3, 1};
+    n_mediums = 5;
+    med_table = new int[n_mediums]{5,4,3,2,1};
 
     // number of transcription factors. The first two transcription factors must be ON for stem cell identity. 
     n_TF = 4; 
     
     n_length_genes = 2;
     n_MF = 2;
+     
+
 
     MF1_position = n_diffusers;
     MF2_position = n_diffusers+1;
