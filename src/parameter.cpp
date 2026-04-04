@@ -317,7 +317,6 @@
     n_mediums = 3;
     med_table = new int[n_mediums]{9, 3, 1};
 
-
     // number of transcription factors. The first two transcription factors must be ON for stem cell identity. 
     n_TF = 4; 
     
