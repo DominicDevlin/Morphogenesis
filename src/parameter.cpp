@@ -279,20 +279,21 @@
     shrink_on = true;
 
 
-    // Number of morphogens, Does changes depending on sim
-    n_diffusers = 3;
+
 
     // enzymes that can break down the morphogen
     enzymes = false;
 
     // gene network parameters
+
+    // Number of morphogens, Does changes depending on sim
+    n_diffusers = 3;
     
     n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
     n_locks = 5; // must be half lockandkey. locks = keys
     
     //adding new medium genes to release constraint on keys
     n_mediums = 5;
-
 
     // number of transcription factors. The first two transcription factors must be ON for stem cell identity. 
     n_TF = 4; 
