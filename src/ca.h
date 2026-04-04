@@ -136,7 +136,7 @@ public:
 
   // fitness methods. 
   void som_fitness(void);
-  void update_fitness(void);
+  vector<double> update_fitness(void);
   void TypeFitness(void);
 
   int TypeFitness2(void);

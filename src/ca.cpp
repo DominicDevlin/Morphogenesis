@@ -3646,9 +3646,9 @@ int CellularPotts::TypeFitness2()
 
 
 // return the fitness: combination of n cell types + hamming distance between them + number of cells. 
-void CellularPotts::update_fitness()
+vector<double> CellularPotts::update_fitness()
 {
- 
+  vector<double>components{};
   // shape fitness
   if (ShapeMaintained)
   {
@@ -3656,16 +3656,15 @@ void CellularPotts::update_fitness()
     double dev = NewDeviationFromCircle() * 2.5;
     double wspc = sqrt((WhiteSpace())) * 2;
     double asymmetry = 0;
-    if (par.asymmetry_selection)
-    {
-      asymmetry = TraverseFitness();
-    }
+    asymmetry = TraverseFitness();
+
 
     if (par.print_fitness)
     {
       cout << "Circle Deviation fitness contribution: " << dev << endl;
       cout << "Segment contribution to fitness: " <<  wspc << endl;
     }     
+    components = {dev, wspc, asymmetry};
 
 
     if (par.asymmetry_selection && par.asym_only)
@@ -3674,7 +3673,14 @@ void CellularPotts::update_fitness()
     }
     else
     {
-      asymmetry = asymmetry / 4.;
+      if(par.asymmetry_selection)
+      {
+        asymmetry = asymmetry / 4.;
+      }
+      else
+      {
+        asymmetry=0;
+      }
       shape_fitness_list.push_back(dev + wspc + asymmetry);
     }
   }
@@ -3683,6 +3689,7 @@ void CellularPotts::update_fitness()
     if (par.print_fitness)
       cout << "SHAPE NOT MAINTAINED IN ORG N " << org_num << endl;
   }
+  return components;
 
 }
 

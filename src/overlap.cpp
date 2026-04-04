@@ -90,6 +90,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     dishes[i].Init();
   }
 
+  vector<vector<double>> total_fitness_breakdown(par.n_orgs);
 
   // run organisms in parallel. 
   omp_set_num_threads(par.n_orgs);
@@ -97,6 +98,8 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   for (int i=0; i < par.n_orgs; ++i)  
   {
     int t;
+    vector<double> org_fitness_breakdown(0,3);
+    int org_fitness_counter{};
 
     dishes[i].CPM->start_network(network_list.at(i));
     dishes[i].PDEfield->SetParameters(org_diff_coeffs[i]);
@@ -183,7 +186,11 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (t > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
       {
         // am now doing for curvature as well (taking mean)
-        dishes[i].CPM->update_fitness();
+        vector<double> breakdown = dishes[i].CPM->update_fitness();
+        org_fitness_breakdown[0] += breakdown[0];
+        org_fitness_breakdown[1] += breakdown[1];
+        org_fitness_breakdown[2] += breakdown[2];
+        org_fitness_counter+=1;
       }
  
       // ensure all cells are connected for shape calculations. 
@@ -201,6 +208,17 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (t == par.mcs-1)
       {
         inter_org_fitness[i] = dishes[i].CPM->get_fitness();
+        if (org_fitness_counter > 0)
+        {
+          org_fitness_breakdown[0]/=org_fitness_counter;
+          org_fitness_breakdown[1]/=org_fitness_counter;
+          org_fitness_breakdown[2]/=org_fitness_counter;
+          total_fitness_breakdown[i] = org_fitness_breakdown;
+        }
+        else
+        {
+          total_fitness_breakdown[i] = {0,0,0};
+        }
       }        
 
       // if (t % 100 == 0 && t > 0)
@@ -389,7 +407,69 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     outfile.close();
   }
 
+  double part1{};
+  double part1_variance{};
+  double part2{};
+  double part2_variance{};
+  double part3{};
+  double part3_variance{};
 
+  // Helper variables to track the sum of squares 
+  double part1_sq{};
+  double part2_sq{};
+  double part3_sq{};
+  int correct_counter{};
+  for (int x = 0; x < par.n_orgs; ++x)
+  {
+      // Extract the 3 parts for the current organism to keep code clean
+      
+      double val1 = total_fitness_breakdown[x][0];
+      double val2 = total_fitness_breakdown[x][1];
+      double val3 = total_fitness_breakdown[x][2];
+      if (val1 < 0.1 || val2 < 0.1 || val3 < 0.1)
+        continue;
+      ++correct_counter;
+
+      // Accumulate the sum (used for calculating the average)
+      part1 += val1;
+      part2 += val2;
+      part3 += val3;
+
+      // Accumulate the sum of squares (used for calculating variance)
+      part1_sq += val1 * val1;
+      part2_sq += val2 * val2;
+      part3_sq += val3 * val3;
+  }
+  if (correct_counter > 0)
+  {
+    // 1. Calculate the final averages (Mean)
+    part1 /= correct_counter;
+    part2 /= correct_counter;
+    part3 /= correct_counter;
+
+    // 2. Calculate the Variances
+    // Formula: E[X^2] - (E[X])^2  -->  (Mean of Squares) - (Square of Mean)
+    part1_variance = (part1_sq / correct_counter) - (part1 * part1);
+    part2_variance = (part2_sq / correct_counter) - (part2 * part2);
+    part3_variance = (part3_sq / correct_counter) - (part3 * part3);
+
+    string breakdown_file = par.data_file + "/fitness_breakdown.txt";
+    outfile.open(breakdown_file, ios::app);
+
+    outfile << part1 << '\t' << part2 << '\t' << part3 << '\t' 
+    << part1_variance << '\t' << part2_variance << '\t' << part3_variance << '\t'<< endl;
+    outfile.close();
+  }
+  else
+  {
+    string breakdown_file = par.data_file + "/fitness_breakdown.txt";
+    outfile.open(breakdown_file, ios::app);
+
+    outfile << "recording failed " << endl;
+    outfile.close();
+  }
+
+ 
 
 
   delete[] dishes;
@@ -473,7 +553,7 @@ int main(int argc, char *argv[])
   par.file_genomes=true;
   
   Parameter();
-  par.n_orgs = par.overlap_orgs;
+  par.n_orgs = 4;// par.overlap_orgs;
   vector<vector<double>> total_diff_coeffs{};
   if (par.file_genomes)
   {

@@ -28,6 +28,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <math.h>
 #include <unordered_map>
 #include <utility>
+#include <cstdint>
 
 
 extern Parameter par;

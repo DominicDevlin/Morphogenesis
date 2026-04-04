@@ -96,7 +96,7 @@
 
 
     make_rectangle=false;
-    manual_morph_diffusion=true;
+    manual_morph_diffusion=false;
 
     // max_diff_coeff = 8e-6;
     // min_diff_coeff = 2e-7;

@@ -26,6 +26,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <cstdint>
 using namespace std;
 class Parameter {
   
