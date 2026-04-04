@@ -98,7 +98,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   for (int i=0; i < par.n_orgs; ++i)  
   {
     int t;
-    vector<double> org_fitness_breakdown(0,3);
+    vector<double> org_fitness_breakdown(3,0);
     int org_fitness_counter{};
 
     dishes[i].CPM->start_network(network_list.at(i));
@@ -112,6 +112,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     // run simulation for single organism for mcs montecarlo steps.
     for (t=0;t<par.mcs;t++) 
     {
+      cout << "here--" << t << endl;
 
       // manipulation
       if (t == 100)
@@ -186,11 +187,13 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
       if (t > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
       {
         // am now doing for curvature as well (taking mean)
+        cout << "here" << endl;
         vector<double> breakdown = dishes[i].CPM->update_fitness();
         org_fitness_breakdown[0] += breakdown[0];
         org_fitness_breakdown[1] += breakdown[1];
         org_fitness_breakdown[2] += breakdown[2];
         org_fitness_counter+=1;
+        cout << "here2" << endl;
       }
  
       // ensure all cells are connected for shape calculations. 
@@ -553,7 +556,7 @@ int main(int argc, char *argv[])
   par.file_genomes=true;
   
   Parameter();
-  par.n_orgs = 4;// par.overlap_orgs;
+  par.n_orgs = 1;// par.overlap_orgs;
   vector<vector<double>> total_diff_coeffs{};
   if (par.file_genomes)
   {
