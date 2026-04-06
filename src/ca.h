@@ -590,6 +590,12 @@ void FractureSheet(int n_cells);
   
   void CopyProb(double T);
 
+  inline void SetTemperature(double T)
+  {
+    internal_T=T;
+    CopyProb(internal_T);
+  }
+
 private:
   void IndexShuffle(void);
   int DeltaH(int x,int y, int xp, int yp, int tsteps, PDE *PDEfield=0);
@@ -646,6 +652,7 @@ private:
 
   int init_colours=-20;
 
+  double internal_T;
   int rows;
   int cols;
 

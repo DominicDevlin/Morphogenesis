@@ -98,16 +98,15 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
   for (int i=0; i < par.n_orgs; ++i)  
   {
     int t;
-    vector<double> org_fitness_breakdown(3,0);
+    vector<double> org_fitness_breakdown{0,0,0};
     int org_fitness_counter{};
 
     dishes[i].CPM->start_network(network_list.at(i));
     dishes[i].PDEfield->SetParameters(org_diff_coeffs[i]);
 
 
-    // make temperature lower for division section
-    dishes[i].CPM->CopyProb(par.eT);
-    par.T = par.eT;
+    // make temperature lower for programmed division section
+    dishes[i].CPM->SetTemperature(par.eT);
 
     // run simulation for single organism for mcs montecarlo steps.
     for (t=0;t<par.mcs;t++) 
@@ -130,8 +129,7 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
 
       if (t == par.end_program)
       {
-        dishes[i].CPM->CopyProb(par.lT); // normal temperature for normal development timing. 
-        par.T = par.lT;
+        dishes[i].CPM->SetTemperature(par.lT); // normal temperature for normal development timing. 
       } 
       // PROGRAMMED CELL DIVISION SECTION
       if (t < par.end_program)
@@ -180,19 +178,19 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
         dishes[i].CPM->CellGrowthAndDivision(t);
       }
       dishes[i].CPM->AmoebaeMove(t);
-      cout << t << endl;
       // calculate the diversity over last 20% of time steps. 
       if (t > par.mcs * par.fitness_begin && t % par.fitness_typerate == 0)
       {
         // am now doing for curvature as well (taking mean)
-        cout << "got here" << endl;
         vector<double> breakdown = dishes[i].CPM->update_fitness();
-        cout << "int" << endl;
-        org_fitness_breakdown[0] += breakdown[0];
-        org_fitness_breakdown[1] += breakdown[1];
-        org_fitness_breakdown[2] += breakdown[2];
-        org_fitness_counter+=1;
-        cout << "finished" << endl;
+        if (breakdown.size()==3)
+        {
+          org_fitness_breakdown[0] += breakdown[0];
+          org_fitness_breakdown[1] += breakdown[1];
+          org_fitness_breakdown[2] += breakdown[2];
+          org_fitness_counter+=1;
+        }
+
 
       }
  
@@ -410,58 +408,45 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
     outfile.close();
   }
 
-  double part1{};
-  double part1_variance{};
-  double part2{};
-  double part2_variance{};
-  double part3{};
-  double part3_variance{};
+  double m1[3] = {0, 0, 0}; // Means
+  double m2[3] = {0, 0, 0}; // Sum of squares of differences
+  int count = 0;
 
-  // Helper variables to track the sum of squares 
-  double part1_sq{};
-  double part2_sq{};
-  double part3_sq{};
-  int correct_counter{};
   for (int x = 0; x < par.n_orgs; ++x)
   {
-      // Extract the 3 parts for the current organism to keep code clean
-      
-      double val1 = total_fitness_breakdown[x][0];
-      double val2 = total_fitness_breakdown[x][1];
-      double val3 = total_fitness_breakdown[x][2];
-      if (val1 < 0.1 || val2 < 0.1 || val3 < 0.1)
-        continue;
-      ++correct_counter;
+    double vals[3] = {
+        total_fitness_breakdown[x][0],
+        total_fitness_breakdown[x][1],
+        total_fitness_breakdown[x][2]
+    };
+    // Filter
+    if (vals[0] < 0.1 || vals[1] < 0.1 || vals[2] < 0.1) 
+      continue;
 
-      // Accumulate the sum (used for calculating the average)
-      part1 += val1;
-      part2 += val2;
-      part3 += val3;
-
-      // Accumulate the sum of squares (used for calculating variance)
-      part1_sq += val1 * val1;
-      part2_sq += val2 * val2;
-      part3_sq += val3 * val3;
+    count++;
+    for (int i = 0; i < 3; ++i) 
+    {
+      double delta = vals[i] - m1[i];
+      m1[i] += delta / count;
+      double delta2 = vals[i] - m1[i];
+      m2[i] += delta * delta2;
+    }
   }
-  if (correct_counter > 0)
-  {
-    // 1. Calculate the final averages (Mean)
-    part1 /= correct_counter;
-    part2 /= correct_counter;
-    part3 /= correct_counter;
 
-    // 2. Calculate the Variances
-    // Formula: E[X^2] - (E[X])^2  -->  (Mean of Squares) - (Square of Mean)
-    part1_variance = (part1_sq / correct_counter) - (part1 * part1);
-    part2_variance = (part2_sq / correct_counter) - (part2 * part2);
-    part3_variance = (part3_sq / correct_counter) - (part3 * part3);
+  if (count > 1) 
+  { // Need at least 2 points for sample variance
+      string breakdown_file = par.data_file + "/fitness_breakdown.txt";
+      outfile.open(breakdown_file, ios::app);
 
-    string breakdown_file = par.data_file + "/fitness_breakdown.txt";
-    outfile.open(breakdown_file, ios::app);
-
-    outfile << part1 << '\t' << part2 << '\t' << part3 << '\t' 
-    << part1_variance << '\t' << part2_variance << '\t' << part3_variance << '\t'<< endl;
-    outfile.close();
+      for (int i = 0; i < 3; ++i) {
+          double variance = m2[i] / (count - 1); // Sample Variance (N-1)
+          double std_dev = sqrt(variance);
+          
+          // Output Mean and Std Dev (Std Dev is easier to read)
+          outfile << m1[i] << "\t" << std_dev << "\t";
+      }
+      outfile << endl;
+      outfile.close();
   }
   else
   {
@@ -556,11 +541,11 @@ int main(int argc, char *argv[])
   par.file_genomes=true;
   
   Parameter();
-  par.n_orgs = 1;// par.overlap_orgs;
+  par.n_orgs = 8;// par.overlap_orgs;
   vector<vector<double>> total_diff_coeffs{};
   if (par.file_genomes)
   {
-    ifstream file(par.data_file + "/genomes.txt");
+    ifstream file("genomes.txt");
     vector<vector<vector<int>>> genomes;
     string line;
     while (getline(file, line)) 

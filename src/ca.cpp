@@ -88,8 +88,10 @@ extern Parameter par;
 /** PRIVATE **/
 
 using namespace std;
-void CellularPotts::BaseInitialisation(vector<Cell> *cells) {
-  CopyProb(par.T);
+void CellularPotts::BaseInitialisation(vector<Cell> *cells) 
+{
+  internal_T=par.T;
+  CopyProb(internal_T);
   cell=cells;
   if (par.neighbours>=1 && par.neighbours<=4)
     n_nb=nbh_level[par.neighbours];
@@ -142,7 +144,8 @@ CellularPotts::CellularPotts(void) {
   thetime=0;
   zygote_area=0;
 
-  CopyProb(par.T);
+  internal_T=par.T;
+  CopyProb(internal_T);
 
   // fill borders with special border state
   for (int x=0;x<sizex;x++) {
@@ -413,7 +416,6 @@ void CellularPotts::ConvertSpin(int x,int y,int xp,int yp)
 
 }
 
-
 /** PUBLIC **/
 int CellularPotts::CopyvProb(int DH,  double stiff) {
 
@@ -425,7 +427,7 @@ int CellularPotts::CopyvProb(int DH,  double stiff) {
   
   // if DH becomes extremely large, calculate probability on-the-fly
   if (DH+s > BOLTZMANN-1)
-    dd=exp( -( (double)(DH+s)/par.T ));
+    dd=exp( -( (double)(DH+s)/internal_T ));
   else
     dd=copyprob[DH+s]; 
 
@@ -3665,6 +3667,8 @@ vector<double> CellularPotts::update_fitness()
       cout << "Segment contribution to fitness: " <<  wspc << endl;
     }     
     components = {dev, wspc, asymmetry};
+    if (dev==0)
+      cout << "WTF??" << endl;
 
 
     if (par.asymmetry_selection && par.asym_only)

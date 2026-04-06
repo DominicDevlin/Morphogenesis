@@ -166,15 +166,12 @@ TIMESTEP {
     { 
       cout << "calling init" << endl;
       dish->Init();
-      dish->CPM->CopyProb(par.eT);
-      par.T = par.eT;
+      dish->CPM->SetTemperature(par.eT);
       
     }
     if (t == par.end_program)
     {
-      dish->CPM->CopyProb(par.lT);
-      par.T = par.lT;      
-      // dish->CPM->SetCellTargetAreas();  
+      dish->CPM->SetTemperature(par.lT); 
       
     }
     
