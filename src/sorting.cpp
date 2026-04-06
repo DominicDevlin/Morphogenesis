@@ -206,7 +206,12 @@ TIMESTEP {
       {
         if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
         {
-          dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
+          if (par.initial_sim_set==true)
+          {
+            dish->CPM->Programmed_Division_OLD();
+          }
+          else
+            dish->CPM->Programmed_Division(); // need to get the number of divisions right. 
         }
       }
      

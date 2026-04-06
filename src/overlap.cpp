@@ -143,7 +143,10 @@ vector<double> process_population(vector<vector<vector<int>>>& network_list, vec
           //programmed divisions
           if (t % par.div_freq == 0 && t <= par.div_end)
           {
-            dishes[i].CPM->Programmed_Division(); // need to get the number of divisions right. 
+            if (par.initial_sim_set)
+              dishes[i].CPM->Programmed_Division_OLD();
+            else
+              dishes[i].CPM->Programmed_Division(); // need to get the number of divisions right. 
           }
         }
 

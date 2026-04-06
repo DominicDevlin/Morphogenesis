@@ -81,11 +81,15 @@ public:
   /// program first 1000 montecarlo steps
   void Programmed_Division(void);
 
+  void Programmed_Division_OLD(void);
+
   // get the approx middle of a cell
   vector<int> MiddleOfCell(int sig);
 
   // called by Programmed_Division() to set maternal factors
   void set_MF(vector<vector<int>> middles, int gene);
+
+  void set_MF_OLD(vector<vector<int>> middles, int gene);
 
   vector<bool> divide_vector(void);
 

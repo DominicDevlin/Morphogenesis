@@ -152,6 +152,7 @@ class Parameter {
 
   bool insert_randoms;
 
+  bool initial_sim_set;
 
   int n_diffusers;
   int n_locks;

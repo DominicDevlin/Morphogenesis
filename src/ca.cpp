@@ -2032,6 +2032,141 @@ vector<int> CellularPotts::MiddleOfCell(int sig)
 }
 
 
+void CellularPotts::set_MF_OLD(vector<vector<int>> middles, int gene)
+{
+  int xdif = middles.at(0).at(1) - middles.at(1).at(1);
+  int ydif = middles.at(0).at(2) - middles.at(1).at(2);
+  if (abs(xdif) > abs(ydif))
+  {
+    if (middles.at(0).at(1) > middles.at(1).at(1))
+    {
+      // furthest on right gets MF at 4 --> 1  
+      // genes expression defualt is at 0 so only have to modify one
+      std::vector<double>& g_list = cell->at(middles.at(0).at(0)).get_genes();
+      g_list.at(gene) = 1;
+      int val = g_list.at(2) * 4 + g_list.at(3)*3;
+      cell->at(middles.at(0).at(0)).set_ctype(val);
+    }
+    else
+    {
+      std::vector<double>& g_list = cell->at(middles.at(1).at(0)).get_genes();
+      g_list.at(gene) = 1;
+      int val = g_list.at(2) * 4 + g_list.at(3)*3;
+      cell->at(middles.at(1).at(0)).set_ctype(val);
+    }
+  }
+  else 
+  {
+    if (middles.at(0).at(2) > middles.at(1).at(2))
+    {
+      // furthest on bottom(maybe decreasing y from top??) gets MF at 4 --> 1  
+      std::vector<double>& g_list = cell->at(middles.at(0).at(0)).get_genes();
+      g_list.at(gene) = 1;
+      int val = g_list.at(2) * 4 + g_list.at(3)*3;
+      cell->at(middles.at(0).at(0)).set_ctype(val);
+    }
+    else
+    {
+      std::vector<double>& g_list = cell->at(middles.at(1).at(0)).get_genes();
+      g_list.at(gene) = 1;
+      int val = g_list.at(2) * 4 + g_list.at(3)*3;
+      cell->at(middles.at(1).at(0)).set_ctype(val);
+    }
+  }  
+}
+
+
+
+
+void CellularPotts::Programmed_Division_OLD(void)
+{
+  vector<bool> to_divide = divide_vector();
+  int n_cells = CountCells();
+  
+  // set first maternal factor
+  if (n_cells < 2)
+  {
+    // DivideCells(to_divide);
+
+    int id{};
+    vector<Cell>::const_iterator i;
+    for ( (i=cell->begin(),i++); i!=cell->end(); i++)
+    {
+      if (i->AliveP()) 
+      {
+        id = i->Sigma();
+      }
+    }
+    xyCellDivision(id, true);
+
+    vector<vector<int>> middles;
+
+    for ( (i=cell->begin(),i++); i!=cell->end(); i++)
+    {
+      if (i->AliveP()) 
+      {
+        middles.push_back(MiddleOfCell(i->Sigma()));
+      }
+    }
+    set_MF_OLD(middles, 2);  
+  }
+  // set second maternal factor  
+  else if (n_cells < 4)
+  {
+    // DivideCells(to_divide);  
+    
+    vector<int> id_list{};
+    vector<Cell>::iterator i; 
+    for ( (i=cell->begin(),i++); i!=cell->end(); i++)
+    {
+      if (i->AliveP()) 
+      {
+        id_list.push_back(i->Sigma());
+      }
+    }
+    for (int id : id_list)
+    {
+      xyCellDivision(id, false);
+    }    
+
+
+    // determine which cells have first maternal factor on, and which have first maternal factor off
+    vector<int> g4_on;
+    vector<int> g4_off;
+    
+    for ( (i=cell->begin(),i++); i!=cell->end(); i++)
+    {
+      if (i->AliveP()) 
+      {
+        std::vector<double>& g = i->get_genes();
+        if (g.at(2) > 0.5)
+          g4_on.push_back(i->Sigma());
+        else
+          g4_off.push_back(i->Sigma());
+      }
+    }
+
+    vector<vector<int>> middles1;
+    for (int j : g4_on)
+    {
+      middles1.push_back(MiddleOfCell(cell->at(j).Sigma()));
+    }
+    set_MF_OLD(middles1, 3);
+    
+    vector<vector<int>> middles2;
+    for (int j : g4_off)
+    {
+      middles2.push_back(MiddleOfCell(cell->at(j).Sigma()));
+    }
+    set_MF_OLD(middles2, 3);
+
+    
+  }
+  else 
+    DivideCells(to_divide);
+} 
+
+
 
 void CellularPotts::set_MF(vector<vector<int>> middles, int gene)
 {
