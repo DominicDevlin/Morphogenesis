@@ -28,8 +28,8 @@
   #include <cstdlib>
   #include <cerrno>
   #include <iostream>
-  #include "output.h"
-  #include "parse.h"
+  #include "../model/output.h"
+  #include "../model/parse.h"
   #include <cmath>
 
 

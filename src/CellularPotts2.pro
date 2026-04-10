@@ -16,7 +16,7 @@ contains( GRAPHICS, qt ) {
 
 TARGET = organoid
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
-PARAMFILE = $$join("parameter_", " ", , TARGET, " ", , ".cpp")
+PARAMFILE = parameter-files/parameter_$${TARGET}.cpp
 
 message( $$MAINFILE )
 message( $$TARGET )
@@ -51,7 +51,6 @@ SOURCES += model/ca.cpp \
            model/info.cpp \
            model/misc.cpp \
            model/output.cpp \
-           model/parameter.cpp \
            model/parse.cpp \
            model/pde.cpp \
            model/random.cpp \
