@@ -16,6 +16,7 @@ contains( GRAPHICS, qt ) {
 
 TARGET = organoid
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
+PARAMFILE = $$join("parameter_", " ", , TARGET, " ", , ".cpp")
 
 message( $$MAINFILE )
 message( $$TARGET )
@@ -61,6 +62,7 @@ SOURCES += model/ca.cpp \
            model/connections.cpp
 
 SOURCES += $$MAINFILE
+SOURCES += $$PARAMFILE
        
 #QMAKE_CXXFLAGS_RELEASE += -fexceptions
 #QMAKE_CXXFLAGS_DEBUG += -fexceptions

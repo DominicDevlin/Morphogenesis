@@ -29,18 +29,18 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <algorithm>
 #include <fstream>
 #include <math.h>
-#include "dish.h"
-#include "random.h"
-#include "cell.h"
-#include "info.h"
-#include "parameter.h"
-#include "sqr.h"
-#include "storage.h"
-#include "connections.h"
-#include "fft.h"
+#include "model/dish.h"
+#include "model/random.h"
+#include "model/cell.h"
+#include "model/info.h"
+#include "model/parameter.h"
+#include "model/sqr.h"
+#include "model/storage.h"
+#include "model/connections.h"
+#include "model/fft.h"
 
 #ifdef QTGRAPHICS
-#include "qtgraph.h"
+#include "model/qtgraph.h"
 #else
 #include "x11graph.h"
 #endif
