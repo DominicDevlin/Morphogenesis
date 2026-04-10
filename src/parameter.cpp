@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -148,7 +148,7 @@
 
     // testing
     epithelial_colour = 5;
-    MakeEpithelia=false;
+    MakeEpithelia=true;
     epiJ=2;
     epiJelse=J_med;
     epiM=1;
@@ -173,8 +173,8 @@
       gamma_LM = 7;
       gamma_SL = 9;
 
-      J_L = 2;
-      epiJ = 2;
+      J_L = 1;
+      epiJ = 1;
       // epiJelse=gamma_LM - 2;
       // J_SL = gamma_LM/2. + gamma_SL + 1 - (3.25/2);
       // J_S = gamma_LM - 3.25;
