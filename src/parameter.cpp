@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=17608024185899528845;//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=18439375632449336403;//4626157915171642161;  //18439375632449336403 fat with 4
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -92,7 +92,7 @@
 /* Cellular Potts parameters */
     sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 300;
-    mcs = 40001;
+    mcs = 70001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
     target_length = 2 / sqrt(M_PI);
@@ -137,7 +137,7 @@
     linear_increase=true;
     if (linear_increase)
       diff_coeff[0] = 8e-7;
-    increase_start_secr = 0.00275;
+    increase_start_secr = 0.00225;// 0.00275;
     increase_secr_mod = 0.00000006;
     morphogen_sweep = false;
     // might make this a optimizable parameter as well
@@ -171,10 +171,10 @@
     if (tension_params && MakeEpithelia)
     {
       gamma_LM = 7;
-      gamma_SL = 9;
+      gamma_SL = 7.;
 
       J_L = 1;
-      epiJ = 1;
+      epiJ = 5;
       // epiJelse=gamma_LM - 2;
       // J_SL = gamma_LM/2. + gamma_SL + 1 - (3.25/2);
       // J_S = gamma_LM - 3.25;
@@ -203,7 +203,7 @@
     add_to_topping=0;
     wetabove=true;
     
-    start_topping = 1000;
+    start_topping = 200;
 
     melting_adhesion = false;
     tip_max = 50;
