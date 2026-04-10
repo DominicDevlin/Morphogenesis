@@ -49,12 +49,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <fstream>
 #include "fft.h"
 #include <cmath>
-#include <vector>
-#include <algorithm>
-#include <queue>
-#include <map>
 
-using namespace std;
 
 
 // #define FILESYSTEM
@@ -81,31 +76,10 @@ using namespace std;
 double copyprob[BOLTZMANN]; 
 
 
-// X coordinates for neighbors (0 to 36)
-const int CellularPotts::nx[37] = {
-    0,                      // Self (r^2 = 0)
-    0, 1, 0,-1,             // Level 1: r^2 = 1  (4 cells)
-    1, 1,-1,-1,             // Level 2: r^2 = 2  (4 cells)
-    0, 2, 0,-2,             // Level 3: r^2 = 4  (4 cells)
-    1, 2, 2, 1,-1,-2,-2,-1, // Level 4: r^2 = 5  (8 cells)
-    2, 2,-2,-2,             // Level 5: r^2 = 8  (4 cells)
-    0, 3, 0,-3,             // Level 6: r^2 = 9  (4 cells)
-    1, 3, 3, 1,-1,-3,-3,-1  // Level 7: r^2 = 10 (8 cells)
-};
+const int CellularPotts::nx[25] = {0, 0, 1, 0,-1, 1, 1,-1,-1, 0, 2, 0, -2, 1, 2, 2, 1,-1,-2,-2,-1, 0, 2, 0,-2 };
+const int CellularPotts::ny[25] = {0,-1, 0, 1, 0,-1, 1, 1,-1,-2, 0, 2,  0,-2,-1, 1, 2, 2, 1,-1,-2,-2, 0, 2, 0 };
 
-// Y coordinates for neighbors (0 to 36)
-const int CellularPotts::ny[37] = {
-    0,                      // Self
-   -1, 0, 1, 0,             // Level 1
-   -1, 1, 1,-1,             // Level 2
-   -2, 0, 2, 0,             // Level 3
-   -2,-1, 1, 2, 2, 1,-1,-2, // Level 4
-   -2, 2, 2,-2,             // Level 5 
-   -3, 0, 3, 0,             // Level 6
-   -3,-1, 1, 3, 3, 1,-1,-3  // Level 7
-};
-
-const int CellularPotts::nbh_level[8] = { 0, 4, 8, 12, 20, 24, 28, 36 };
+const int CellularPotts::nbh_level[5] = { 0, 4, 8, 20, 24 };
 int CellularPotts::shuffleindex[9]={0,1,2,3,4,5,6,7,8};
 
 extern Parameter par;
@@ -117,20 +91,10 @@ using namespace std;
 void CellularPotts::BaseInitialisation(vector<Cell> *cells) {
   CopyProb(par.T);
   cell=cells;
-  if (par.copy_neighbourhood>=1 && par.copy_neighbourhood<=4)
-    n_nb=nbh_level[par.copy_neighbourhood];
+  if (par.neighbours>=1 && par.neighbours<=4)
+    n_nb=nbh_level[par.neighbours];
   else 
     throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4]).";
-
-  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=7)
-    n_nb_adh=nbh_level[par.adhesion_neighbourhood];
-  else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-7])";
-
-  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=7)
-    n_nb_perim=nbh_level[par.perimeter_neighbourhood];
-  else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-7])";
   
 }
 
@@ -165,20 +129,10 @@ CellularPotts::CellularPotts(vector<Cell> *cells,
     sigma[sizex-1][y]=-1;
   }
   
-  if (par.copy_neighbourhood>=1 && par.copy_neighbourhood<=4)
-    n_nb=nbh_level[par.copy_neighbourhood];
+  if (par.neighbours>=1 && par.neighbours<=4)
+    n_nb=nbh_level[par.neighbours];
   else 
     throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
-
-  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=7)
-    n_nb_adh=nbh_level[par.adhesion_neighbourhood];
-  else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-7])";
-
-  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=7)
-    n_nb_perim=nbh_level[par.perimeter_neighbourhood];
-  else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-7])";
 }
 
 CellularPotts::CellularPotts(void) {
@@ -203,18 +157,8 @@ CellularPotts::CellularPotts(void) {
     sigma[0][y]=-1;
     sigma[sizex-1][y]=-1;
   }
-  if (par.copy_neighbourhood>=1 && par.copy_neighbourhood<=4)
-    n_nb=nbh_level[par.copy_neighbourhood];
-  else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
-
-  if (par.adhesion_neighbourhood>=1 && par.adhesion_neighbourhood<=4)
-    n_nb_adh=nbh_level[par.adhesion_neighbourhood];
-  else 
-    throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
-
-  if (par.perimeter_neighbourhood>=1 && par.perimeter_neighbourhood<=4)
-    n_nb_perim=nbh_level[par.perimeter_neighbourhood];
+  if (par.neighbours>=1 && par.neighbours<=4)
+    n_nb=nbh_level[par.neighbours];
   else 
     throw "Panic in CellularPotts: parameter neighbours invalid (choose [1-4])";
 }
@@ -328,44 +272,26 @@ double sat(double x) {
   //return x;
 
 }
-
-void CellularPotts::SetMediumArea()
-{
-  int totmed=0;
-  for (int x = 1; x < sizex-1; ++x)
-  {
-    for (int y = 1; y < sizey-1; ++y)
-    {
-      if (!sigma[x][y])
-      {
-        ++totmed;
-      }
-    }
-  }
-  cell->at(0).SetTargetArea(totmed);
-  cell->at(0).SetAreaToTarget();
-}
   
-double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfield)       
+double CellularPotts::DeltaH(int x,int y, int xp, int yp, const int tsteps, PDE *PDEfield)       
 {
   double DH = 0;
-  int i, sxy;
+  int i, sxy, sxyp;
   int neighsite;
 
   /* Compute energydifference *IF* the copying were to occur */
   sxy = sigma[x][y];
+  sxyp = sigma[xp][yp];
 
 
     
   /* DH due to cell adhesion */
-  double Jen=0;
-  for (i=1;i<=n_nb_adh;i++) 
+  for (i=1;i<=n_nb;i++) 
   {
     int xp2,yp2;
     xp2=x+nx[i]; yp2=y+ny[i];
     if (par.periodic_boundaries) 
     {
-      
       // since we are asynchronic, we cannot just copy the borders once 
       // every MCS
       
@@ -391,180 +317,75 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
     
     if (neighsite==-1) 
     { // border 
-      Jen += (sxyp==0?0:par.border_energy)-(sxy==0?0:par.border_energy);
+      DH += (sxyp==0?0:par.border_energy)-(sxy==0?0:par.border_energy);
     } 
     else 
     {
-
       // UP TO HERE!
       // DH += (*cell)[sxyp].CalculateJfromKeyLock((*cell)[neighsite].get_locks_bool(), (*cell)[neighsite].get_keys_bool()) 
       // - 
       if (par.sheet)
       {
-        Jen += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
+        DH += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
+        // This is going to be an anisotropic adhesion function that adds an adhesion energy along one axis
+        // if (x > xcen + 4 || x < xcen - 4)
+        // {
+        //   DH -= par.lambda3;
+        // }
+        // if (xp > xcenp + 4 || xp < xcenp - 4)
+        // {
+        //   DH += par.lambda3;
+        // }
       }
       else if (par.melting_adhesion)
       {
         if (tsteps < par.end_program)
-          Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
         else
-          Jen += (*cell)[sxyp].Melt((*cell)[neighsite], y) - (*cell)[sxy].Melt((*cell)[neighsite], y);
+          DH += (*cell)[sxyp].Melt((*cell)[neighsite], y) - (*cell)[sxy].Melt((*cell)[neighsite], y);
       }
       else if (par.phase_evolution)
       {
         if (tsteps < par.end_program)
-          Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
         else
-          Jen += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
-
-        // cout << "adhesion: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) << endl;
-      }
-      else if (par.make_synthetic)
-      {
-        Jen += (*cell)[sxyp].SyntheticEnergy((*cell)[neighsite]) - (*cell)[sxy].SyntheticEnergy((*cell)[neighsite]);
+          DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
       }
       else
       {
         if (tsteps < par.end_program)
-          Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
+          DH += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
         else
-          Jen += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
-        
-        
+          DH += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
       }
       // debugging. 
       // cout << "COPYING: " << (*cell)[sxyp].getTau() << (*cell)[sxy].getTau() << std::endl;
       // cout << "sxyp is type: " << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) 
       // << ". sxy is type:" << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxy].EnergyDifference((*cell)[neighsite]) << std::endl;
+      
     }
   }
-  DH += Jen;// / (par.neigh_multiplier);
 
   
   // lambda is determined by chemical 0
   double lambda = (*cell)[sxy].get_lambda();
     
   //cerr << "[" << lambda << "]";
-  if (par.medium_area_constraint)
-  {
-      DH += (int)((lambda * (2.+  2.  * (double) 
-              (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
-              - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
-      
-      // cout << (*cell)[sxy].Area() << '\t' << (*cell)[sxy].TargetArea() << endl;
+  if ( sxyp == MEDIUM ) {
+    DH += (int)(lambda *  (1. - 2. *   
+			       (double) ( (*cell)[sxy].Area() - (*cell)[sxy].TargetArea()) ));
+  }
+  else if ( sxy == MEDIUM ) {
+    DH += (int)((lambda * (1. + 2. *  
+			       (double) ( (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()) )));
   }
   else
-  {
-    if ( sxyp == MEDIUM ) {
-      DH += (int)(lambda *  (1. - 2. *   
-              (double) ( (*cell)[sxy].Area() - (*cell)[sxy].TargetArea()) ));
-    }
-    else if ( sxy == MEDIUM ) {
-      DH += (int)((lambda * (1. + 2. *  
-              (double) ( (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()) )));
-    }
-    else
-      DH += (int)((lambda * (2.+  2.  * (double) 
-              (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
-              - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
-  }
+    DH += (int)((lambda * (2.+  2.  * (double) 
+			       (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
+			       - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
 
 
-  /* Active motion term */
-  if (par.active_motion)
-  {
-    if ( sxyp == MEDIUM)
-    {
-      
-      DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
-      // cout << "active: " << par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y) << endl;
-      if (par.add_gravity)
-        DH += (*cell)[sxy].Gravity();
-    }
-    else if (sxy == MEDIUM)
-    {
-      DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
-      if (par.add_gravity)
-        DH += (*cell)[sxyp].Gravity();
-    }
-    else
-    {
-      // cout << "dot product with cell: " << (*cell)[sxy].ActiveDotProduct_removed(x,y);
-      DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
-      DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
-      if (par.add_gravity)
-      {
-        DH += (*cell)[sxy].Gravity();
-        DH += (*cell)[sxyp].Gravity();
-      }
-    }
-  }
 
-  
-  /* Length constraint */
-  // sp is expanding cell, s is retracting cell  
-  // if (par.lambda2>0)
-  // {
-  //   double lambda2=par.lambda2; 
-  //   if ( sxyp == MEDIUM ) {
-  //     DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-  //           - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-  //             (*cell)[sxy].TargetLength()) ));
-      
-  //   }
-  //   else if ( sxy == MEDIUM ) {
-  //     DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-  //       -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
-      
-  //   }
-  //   else {
-  //     DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-  //         -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
-  //         ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-  //           - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-  //           (*cell)[sxy].TargetLength()) )) );
-  //   }
-  // }
-  
-  if (par.H_perim) 
-  {
-    double DH_perimeter = 0;
-    if (sxyp == MEDIUM) 
-    {
-
-      DH_perimeter -=
-          (*cell)[sxy].getPerimConstraint() *
-          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-          DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                (*cell)[sxy].TargetPerimeter()));      
-    } 
-    else if (sxy == MEDIUM) 
-    {
-
-      DH_perimeter -=
-          (*cell)[sxyp].getPerimConstraint() *
-          (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-          DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                (*cell)[sxyp].TargetPerimeter()));      
-    }
-    // they're both cells
-    else 
-    {
-      DH_perimeter -=
-          (*cell)[sxyp].getPerimConstraint() *
-          ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                (*cell)[sxyp].TargetPerimeter())));
-      DH_perimeter -=
-          (*cell)[sxy].getPerimConstraint() *
-          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                (*cell)[sxy].TargetPerimeter()));      
-    }
-    DH += DH_perimeter;
-  }
-  
-  return DH;
   // double Pconst=1;
   // /* Perimeter constraint */
   // if (sxyp == MEDIUM)
@@ -588,7 +409,104 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
   //   lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
 
   // const double lambda_r=(*cell)[sxy].get_lambda_2();
+  
+  /* Length constraint */
+  // sp is expanding cell, s is retracting cell  
+  if (par.lambda2>0)
+  {
+    double lambda2=par.lambda2; 
+    if ( sxyp == MEDIUM ) {
+      DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+            - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+              (*cell)[sxy].TargetLength()) ));
+      
+    }
+    else if ( sxy == MEDIUM ) {
+      DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+        -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
+      
+    }
+    else {
+      DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+          -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
+          ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+            - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
+            (*cell)[sxy].TargetLength()) )) );
+  }
+  }
 
+  double DH_perimeter = 0;
+  if (par.H_perim) 
+  {
+    if (sxyp == MEDIUM) 
+    {
+      bool cphase = (*cell)[sxy].GetPhase();
+      if (cphase)
+        DH_perimeter -=
+            par.lambda_perimeter_phase *
+            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                  (*cell)[sxy].TargetPerimeter()));
+      else
+        DH_perimeter -=
+            par.lambda_perimeter *
+            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                  (*cell)[sxy].TargetPerimeter()));      
+    } 
+    else if (sxy == MEDIUM) 
+    {
+      bool cphase = (*cell)[sxyp].GetPhase();
+      if (cphase)
+        DH_perimeter -=
+            par.lambda_perimeter_phase *
+            (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                  (*cell)[sxyp].TargetPerimeter()));
+      else
+        DH_perimeter -=
+            par.lambda_perimeter *
+            (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                  (*cell)[sxyp].TargetPerimeter()));      
+    }
+    // they're both cells
+    else 
+    {
+      bool cphase = (*cell)[sxy].GetPhase();
+      bool cphasep = (*cell)[sxyp].GetPhase();
+      if (cphasep)
+        DH_perimeter -=
+            par.lambda_perimeter_phase *
+            ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+              DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                  (*cell)[sxyp].TargetPerimeter())));
+      else
+        DH_perimeter -=
+            par.lambda_perimeter *
+            ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+              DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+                  (*cell)[sxyp].TargetPerimeter())));
+      if (cphase)
+        DH_perimeter -=
+            par.lambda_perimeter_phase *
+            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+              DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                  (*cell)[sxy].TargetPerimeter()));
+      else
+        DH_perimeter -=
+            par.lambda_perimeter *
+            (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+              DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+                  (*cell)[sxy].TargetPerimeter()));      
+    }
+  }
+  DH += DH_perimeter;
+
+
+
+
+  return DH;
 }
 
 
@@ -602,19 +520,33 @@ bool CellularPotts::Probability(int DH)
    return false; 
 }
 
-
-
-void CellularPotts::update_cell_velocities_MCS()
+void CellularPotts::ConvertSpin(int x,int y,int xp,int yp)
 {
+  int tmpcell;
+  if ( (tmpcell=sigma[x][y]) ) 
+  { // if tmpcell is not MEDIUM
+    (*cell)[tmpcell].DecrementArea();
+    (*cell)[tmpcell].RemoveSiteFromMoments(x,y);
 
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
-  {
-    if (c->AliveP())
+      
+        
+    if (!(*cell)[tmpcell].Area()) 
     {
-      c->update_velocity();
+      (*cell)[tmpcell].Apoptose();
+      // cerr << "Cell " << tmpcell << " apoptosed\n";
     }
   }
+  
+  if ( (tmpcell=sigma[xp][yp]) ) 
+  {// if tmpcell is not MEDIUM
+    (*cell)[tmpcell].IncrementArea();
+    (*cell)[tmpcell].AddSiteToMoments(x,y);
+      
+    
+  }
+  sigma[x][y] = sigma[xp][yp];
+
+
 }
 
 void CellularPotts::MeasureSinglePerimeter(int targetsigma)
@@ -626,7 +558,7 @@ void CellularPotts::MeasureSinglePerimeter(int targetsigma)
     for (int y = 1; y < sizey - 1; y++) 
     {
       if (sigma[x][y] == targetsigma) {
-        for (int i = 1; i <= n_nb_perim; i++) {
+        for (int i = 1; i <= n_nb; i++) {
           int xp2, yp2;
           xp2 = x + nx[i];
           yp2 = y + ny[i];
@@ -668,7 +600,7 @@ void CellularPotts::MeasureCellPerimeters()
   {
     for (int y = 1; y < sizey - 1; y++) {
       if (sigma[x][y] > 0) {
-        for (int i = 1; i <= n_nb_perim; i++) {
+        for (int i = 1; i <= n_nb; i++) {
           int xp2, yp2;
           xp2 = x + nx[i];
           yp2 = y + ny[i];
@@ -682,10 +614,6 @@ void CellularPotts::MeasureCellPerimeters()
             if (yp2 >= sizey - 1)
               yp2 = yp2 - sizey + 2;
           }
-          else if (xp2 >= sizex-1 || xp2 < 1 || yp2 >= sizey-1 || yp2 < 1)
-          {
-            continue;
-          }
           // did we find a border?
           if (sigma[xp2][yp2] != sigma[x][y]) {
             // add to the perimeter of the cell
@@ -696,14 +624,6 @@ void CellularPotts::MeasureCellPerimeters()
       }
     }
   }
-
-  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
-  {
-    if (c->AliveP())
-    {
-      c->SetTargetPerimeter(par.ptarget_perimeter);
-    }
-  }  
 
   // for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
   // {
@@ -716,35 +636,9 @@ void CellularPotts::MeasureCellPerimeters()
 
 }
 
-void CellularPotts::ConvertSpin(int x,int y,int kp)
-{
+
+void CellularPotts::ConvertSpinPerim(int x, int y, int xp, int yp) {
   int tmpcell;
-  if ( (tmpcell=sigma[x][y]) ) 
-  { // if tmpcell is not MEDIUM
-    (*cell)[tmpcell].DecrementArea();
-    (*cell)[tmpcell].RemoveSiteFromMoments(x,y);
-        
-    if (!(*cell)[tmpcell].Area()) 
-    {
-      (*cell)[tmpcell].Apoptose();
-      // cerr << "Cell " << tmpcell << " apoptosed\n";
-    }
-  }
-  
-  if ( (tmpcell = kp) ) 
-  {// if tmpcell is not MEDIUM
-    (*cell)[tmpcell].IncrementArea();
-    (*cell)[tmpcell].AddSiteToMoments(x,y);
-  }
-  sigma[x][y] = kp;
-
-}
-
-
-void CellularPotts::ConvertSpinPerim(int x, int y, int kp) 
-{
-  int tmpcell;
-
   if ((tmpcell = sigma[x][y])) { // if tmpcell is not MEDIUM
     (*cell)[tmpcell].DecrementArea();
     (*cell)[tmpcell].RemoveSiteFromMoments(x, y);
@@ -755,14 +649,12 @@ void CellularPotts::ConvertSpinPerim(int x, int y, int kp)
     }
   }
 
-  if ((tmpcell = kp)) { // if tmpcell is not MEDIUM
+  if ((tmpcell = sigma[xp][yp])) { // if tmpcell is not MEDIUM
     (*cell)[tmpcell].IncrementArea();
     (*cell)[tmpcell].AddSiteToMoments(x, y);
     (*cell)[tmpcell].SetPerimeter(GetNewPerimeterIfXYWereAdded(tmpcell, x, y));
   }
-  sigma[x][y] = kp;
-
-
+  sigma[x][y] = sigma[xp][yp];
 }
 
 
@@ -825,23 +717,18 @@ int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
    if (par.neighbours>=1 && par.neighbours<=4)
      n_nb=nbh_level[par.neighbours];
   */
-  if (par.thetime==616)
-    cout << "here! " << endl;
   int perim = (*cell)[sxyp].Perimeter();
-  if (par.thetime==616)
-    cout << "here! " << perim << endl;
 
   /* the cell with sigma sxyp wants to extend by adding lattice site (x, y).
  This means that the sxyp neighbours of (x,y) will not be borders anymore,so
  they can be subtracted from the perimeter of sxyp.
 */
-  for (int i = 1; i <= n_nb_perim; i++) {
+  for (int i = 1; i <= n_nb; i++) {
 
     int xp2, yp2;
 
     xp2 = x + nx[i];
     yp2 = y + ny[i];
-
 
     if (par.periodic_boundaries) {
 
@@ -854,11 +741,6 @@ int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
       if (yp2 >= sizey - 1)
         yp2 = yp2 - sizey + 2;
     }
-    else if (xp2 >= sizex-1 || xp2 < 1 || yp2 >= sizey-1 || yp2 < 1)
-    {
-      continue;
-    }
-
     if (sigma[xp2][yp2] == sxyp) {
       perim--;
     } else {
@@ -876,7 +758,7 @@ int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y) {
   int perim = (*cell)[sxy].Perimeter();
   /* the cell with sigma sxy loses xy
    */
-  for (int i = 1; i <= n_nb_perim; i++) {
+  for (int i = 1; i <= n_nb; i++) {
 
     int xp2, yp2;
     xp2 = x + nx[i];
@@ -892,10 +774,6 @@ int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y) {
       if (yp2 >= sizey - 1)
         yp2 = yp2 - sizey + 2;
     }
-    else if (xp2 >= sizex-1 || xp2 < 1 || yp2 >= sizey-1 || yp2 < 1)
-    {
-      continue;
-    }
     if (sigma[xp2][yp2] == sxy) {
       perim++;
     } else {
@@ -906,223 +784,24 @@ int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y) {
 }
 
 
-void CellularPotts::GetNeighborsSafe(int x, int y, int* nbs) 
-{
-  // Clockwise offsets starting from top-left (-1, -1)
-  const int cyc_nnx[8] = {-1,  0,  1,  1,  1,  0, -1, -1};
-  const int cyc_nny[8] = {-1, -1, -1,  0,  1,  1,  1,  0};
-  
-  for (int i = 0; i < 8; i++) 
-  {
-    int tx = x + cyc_nnx[i];
-    int ty = y + cyc_nny[i];
 
-    if (par.periodic_boundaries) 
-    {
-      // Mathematically identical to your old periodic wrap
-      if (tx <= 0) tx += sizex - 2;
-      else if (tx >= sizex - 1) tx -= sizex - 2;
-      
-      if (ty <= 0) ty += sizey - 2;
-      else if (ty >= sizey - 1) ty -= sizey - 2;
-    }
-    
-    // If not periodic, it naturally reads the 0 / sizex-1 ghost cells exactly like the old code did
-    nbs[i] = sigma[tx][ty];
-  }
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 //! Monte Carlo Step. Returns summed energy change
 int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
-{ 
-  int loop,p;
-  //int updated=0;
-  thetime++;
-  int SumDH=0;
-  
-  if (frozen) 
-    return 0;
-
-  const int sx_inner = sizex - 2;
-  const int sy_inner = sizey - 2;
-  const bool is_periodic = par.periodic_boundaries;
-
-  loop=(sizex-2)*(sizey-2);
-
-  int present_states[n_nb];
-  // int exemplar_neighbour_indices[n_nb];
-  int distinct_count=0;
- 
-  for (int i=0;i<loop;i++) 
-  {  
-    if (par.thetime==616)
-      cout << "here!!!!" << endl;
-    // take a random site
-    int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
-    int x = xy%(sizex-2)+1;
-    int y = xy/(sizex-2)+1; 
-    
-    int k=sigma[x][y];
-    distinct_count=0;
-
-    if (par.periodic_boundaries)
-    {
-      for (int j = 1; j <= n_nb; j++) 
-      {
-        int tx = nx[j] + x;
-        int ty = ny[j] + y;
-
-        if (tx <= 0) 
-          tx += sx_inner;
-        else if (tx >= sizex - 1) 
-          tx -= sx_inner;
-        if (ty <= 0) 
-          ty += sy_inner;
-        else if (ty >= sizey - 1) 
-          ty -= sy_inner; 
-        
-        int neighbor_val = sigma[tx][ty];
-
-        // Check if this state is already in our list
-        bool seen = false;
-        for (int u = 0; u < distinct_count; u++) {
-            if (present_states[u] == neighbor_val) {
-                seen = true;
-                break;
-            }
-        }
-
-        // If new unique state, add it
-        if (!seen) 
-        {
-            present_states[distinct_count] = neighbor_val;
-            // exemplar_neighbour_indices[distinct_count] = j;
-            distinct_count++;
-        }
-        
-      }
-    }
-    else
-    {
-      for (int j = 1; j <= n_nb; j++) 
-      {
-        int tx = nx[j] + x;
-        int ty = ny[j] + y;
-        int neighbor_val = -1;
-
-        if (tx > 0 && ty > 0 && tx < sizex - 1 && ty < sizey - 1) {
-            neighbor_val = sigma[tx][ty];
-        }
-
-        // Check if this state is already in our list
-        bool seen = false;
-        for (int u = 0; u < distinct_count; u++) {
-            if (present_states[u] == neighbor_val) {
-                seen = true;
-                break;
-            }
-        }
-
-        // If new unique state, add it
-        if (!seen) {
-            present_states[distinct_count] = neighbor_val;
-            // exemplar_neighbour_indices[distinct_count] = j;
-            distinct_count++;
-        }
-      }
-    }
-
-    // 3. Randomly select a TARGET STATE from the unique list
-    if (distinct_count == 0) 
-      continue; // Should not happen unless isolated
-    
-    int rand_idx = (int)(distinct_count * RANDOM(s_val));
-    int kp = present_states[rand_idx];
-    
-    // Recover coordinates (xp, yp) of the neighbor that had this state.
-    // This is necessary because DeltaH/ConvertSpin likely rely on coordinates.
-    // We use the 'exemplar' neighbor we found during the scan.
-    // int chosen_nb_idx = exemplar_neighbour_indices[rand_idx];
-    // int xp = nx[chosen_nb_idx] + x;
-    // int yp = ny[chosen_nb_idx] + y;
-
-    // Recalculate boundary coords for xp, yp exactly as before for use in DeltaH
-    // if (par.periodic_boundaries) 
-    // {
-    //   if (xp<=0) xp=sizex-2+xp;
-    //   if (yp<=0) yp=sizey-2+yp;
-    //   if (xp>=sizex-1) xp=xp-sizex+2;
-    //   if (yp>=sizey-1) yp=yp-sizey+2;
-    // }
-
-    int nbs[8];
-    // FAST PATH: 95%+ of the time, the cell is entirely inside the grid
-    if (!par.periodic_boundaries || (x > 1 && y > 1 && x < sizex - 2 && y < sizey - 2)) 
-    {
-        // Fetched in clockwise order starting from top-left (-1, -1)
-        nbs[0] = sigma[x-1][y-1];
-        nbs[1] = sigma[x  ][y-1];
-        nbs[2] = sigma[x+1][y-1];
-        nbs[3] = sigma[x+1][y  ];
-        nbs[4] = sigma[x+1][y+1];
-        nbs[5] = sigma[x  ][y+1];
-        nbs[6] = sigma[x-1][y+1];
-        nbs[7] = sigma[x-1][y  ];
-    }
-    else
-    {
-      GetNeighborsSafe(x,y,nbs);
-    }
-
-    bool check1 = (k == 0)  ? true : IsLocallyConnected(nbs, k);
-    bool check2 = (kp == 0) ? true : IsLocallyConnected(nbs, kp);
-
-    // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
-    // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
-
-    // test for border state (relevant only if we do not use 
-    // periodic boundaries)
-    if (kp!=-1 && check1 == true && check2 == true) 
-    {  
-      // Don't even think of copying the special border state into you!
-    
-     
-      if ( k  != kp ) 
-      {
-        /* Try to copy if sites do not belong to the same cell */
-        // connectivity dissipation:
-        int H_diss=0;
-        // if (!ConnectivityPreservedP(x,y)) 
-        //   H_diss=par.conn_diss;
-
-        double D_H=DeltaH(x,y,kp, tsteps, PDEfield);
-
-        if ((p=CopyvProb(D_H,H_diss))>0) 
-        {
-          ++par.tmpcounter;
-          if (par.H_perim)
-            ConvertSpinPerim( x,y,kp );
-          else
-          {
-            ConvertSpin( x,y,kp );
-          //   if (is_med_attempt)
-          //   {
-          //     ++medp_success;
-          //   }
-          }
-            
-        }
-      }
-    } 
-  }
-  return SumDH;
-  
-}
-
-
-int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
 {
   int loop,p;
   //int updated=0;
@@ -1151,6 +830,7 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
     int kp;
     if (par.periodic_boundaries) 
     {
+      
       // since we are asynchronic, we cannot just copy the borders once 
       // every MCS
       if (xp<=0)
@@ -1164,6 +844,7 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
       
       kp=sigma[xp][yp];
       
+      
     } 
     else 
     {
@@ -1172,8 +853,11 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
       else
 	      kp=sigma[xp][yp];
     }
+
     // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
     // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+
+
 
     // test for border state (relevant only if we do not use 
     // periodic boundaries)
@@ -1181,6 +865,7 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
     {  
       // Don't even think of copying the special border state into you!
     
+     
       if ( k  != kp ) 
       {
         /* Try to copy if sites do not belong to the same cell */
@@ -1189,25 +874,31 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
         if (!ConnectivityPreservedP(x,y)) 
           H_diss=par.conn_diss;
         
-        double D_H=DeltaH(x,y,kp, tsteps, PDEfield);
+        double D_H=DeltaH(x,y,xp,yp, tsteps, PDEfield);
         
         // dH_tally += D_H;
         // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
         //   cout << D_H << endl;
-        // bool is_med_attempt = false;
-        // if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
-        // {
-        //   is_med_attempt = true;
-        //   ++medp_count;
-        // }
+        bool is_med_attempt = false;
+        if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
+        {
+          is_med_attempt = true;
+          ++medp_count;
+        }
+          
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
           if (par.H_perim)
-            ConvertSpinPerim( x,y,kp );
+            ConvertSpinPerim( x,y,xp,yp );
           else
           {
-            ConvertSpin( x,y,kp );
-          }  
+            ConvertSpin( x,y,xp,yp );
+            if (is_med_attempt)
+            {
+              ++medp_success;
+            }
+          }
+            
         }
         //   if (par.recordcopies)
         //   {
@@ -1239,160 +930,6 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
   return SumDH;
   
 }
-
-
-
-//! Check if the set of neighbors with value 'check_val' forms a single connected component.
-//! This ensures that removing a pixel (Candidate) doesn't split a cell, 
-//! and adding a pixel (Target) doesn't create a handle/hole.
-
-bool CellularPotts::IsLocallyConnected(int *nbs, int check_val) 
-{
-  
-    int n_borders = 0;
-    
-    for (int i = 0; i < 8; i++) 
-    {
-        int s_nb = nbs[i];
-        int s_next_nb = nbs[(i + 1) & 7]; // Bitwise AND wraps 7->0 instantly
-        
-        if ((s_nb == check_val || s_next_nb == check_val) && (s_nb != s_next_nb)) 
-        {
-            n_borders++;
-            // EARLY EXIT: Don't waste CPU cycles checking the rest
-            if (n_borders > 2) 
-              return false; 
-        }
-    }
-    return true; // if we survived the loop, it's connected
-  
-  // OLD CODE BELOW!!
-  // Neighbor offsets for the 8-neighbor cycle (with overlap for i and i+1)
-  // const int cyc_nnx[10] = {-1, -1, 0, 1, 1, 1, 0, -1, -1, -1 };
-  // const int cyc_nny[10] = {0, -1,-1,-1, 0, 1, 1,  1,  0, -1 };
-
-  // // int n_borders = 0;
-
-  // for (int i = 1; i <= 8; i++) {
-    
-  //   // Calculate raw coordinates for the current neighbor (i) 
-  //   // and the next neighbor in the cycle (i+1)
-  //   int nx1 = x + cyc_nnx[i];
-  //   int ny1 = y + cyc_nny[i];
-    
-  //   int nx2 = x + cyc_nnx[i+1];
-  //   int ny2 = y + cyc_nny[i+1];
-
-  //   // Apply Periodic Boundaries if enabled
-  //   // Logic adapted strictly from GetNewPerimeterIfXYWereRemoved
-  //   if (par.periodic_boundaries) {
-      
-  //     // Wrap current neighbor (nx1, ny1)
-  //     if (nx1 <= 0) nx1 = sizex - 2 + nx1;
-  //     if (ny1 <= 0) ny1 = sizey - 2 + ny1;
-  //     if (nx1 >= sizex - 1) nx1 = nx1 - sizex + 2;
-  //     if (ny1 >= sizey - 1) ny1 = ny1 - sizey + 2;
-
-  //     // Wrap next neighbor (nx2, ny2)
-  //     if (nx2 <= 0) nx2 = sizex - 2 + nx2;
-  //     if (ny2 <= 0) ny2 = sizey - 2 + ny2;
-  //     if (nx2 >= sizex - 1) nx2 = nx2 - sizex + 2;
-  //     if (ny2 >= sizey - 1) ny2 = ny2 - sizey + 2;
-  //   }
-
-  //   int s_nb = sigma[nx1][ny1];
-  //   int s_next_nb = sigma[nx2][ny2];
-    
-  //   if ((s_nb == check_val || s_next_nb == check_val) && (s_nb != s_next_nb)) 
-  //   {
-  //     // check whether s_nb is adjacent to non-identical site, count it
-  //     n_borders++;
-  //   }
-  // }
-
-  // // Connectivity check: In a locally connected grid on a square lattice, 
-  // // there should be no more than 2 transitions entering/leaving the cell region.
-  // if (n_borders > 2) 
-  // {
-  //   return false;
-  // }
-  // else 
-  // {
-  //   return true;
-  // }
-}
-
-
-// Predicate returns true when connectivity is locally preserved
-// if the value of the central site would be changed
-bool CellularPotts::ConnectivityPreservedP(int x, int y) {
-  
-  // Use local nx and ny in a cyclic order (starts at upper left corner)
-  // first site is repeated, for easier looping
-  const int cyc_nx[10] = {-1, -1, 0, 1, 1, 1, 0, -1, -1, -1 };
-  const int cyc_ny[10] = {0, -1,-1,-1, 0, 1, 1,  1,  0, -1 };
-  
-  int sxy=sigma[x][y]; // the central site
-  if (sxy==0) return true;
-
-  int n_borders=0; // to count the amount of sites in state sxy bordering a site !=sxy
-
-  int stackp=-1;
-  bool one_of_neighbors_medium=false;
-  
-  for (int i=1;i<=8;i++) {
-    
-    int s_nb=sigma[x+cyc_nx[i]][y+cyc_ny[i]];
-    int s_next_nb=sigma[x+cyc_nx[i+1]][y+cyc_ny[i+1]];
-    
-    if ((s_nb==sxy || s_next_nb==sxy) && (s_nb!=s_next_nb)) {
-      
-      // check whether s_nb is adjacent to non-identical site,
-      // count it
-      n_borders++;
-    }
-    int j;
-    bool on_stack_p=false;
-    
-    // we need the next heuristic to prevent stalling at
-    // cell-cell borders
-    // do not enforce constraint at two cell interface(no medium)
-    if (s_nb) 
-    {
-      for (j=stackp;j>=0;j--) 
-      {
-        if (s_nb==stack[j]) 
-        {
-          on_stack_p=true;
-          break;
-        }
-      }
-      if (!on_stack_p) 
-      {
-	      if (stackp>6) 
-        {
-	        cerr << "Stack overflow, stackp=" << stackp << "\n";
-	      }
-	      stack[++stackp]=s_nb;
-      }
-    }
-    else 
-    {
-      one_of_neighbors_medium=true;
-    }
-  }
-  
-  // number of different neighbours is stackp+1;
-  if (n_borders>2 && ( (stackp+1)>2 || one_of_neighbors_medium) ) 
-  {
-    return false;
-  }
-  else 
-    return true;
-
-}
-
-
 
 /** A simple method to plot all sigma's in window
     without the black lines */
@@ -2276,8 +1813,8 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
   // set all cell areas to the mean area
   {
     for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) {
-      if (par.init_area) {
-	c->SetTargetArea(par.init_area);
+      if (par.target_area) {
+	c->SetTargetArea(par.target_area);
       } else	 {
 	c->SetTargetArea(mean_area);
       }
@@ -2285,30 +1822,6 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
   }
   if (par.phase_evolution)
     Init_Optimizer();
-}
-
-double CellularPotts::SumEnergy()
-{
-  double sumH=0;
-  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
-  {
-    if (c->AliveP()) 
-    {
-      int ca = c->Area();
-      int ta = c->TargetArea();
-      int perim = c->Perimeter();
-      int tperim = c->TargetPerimeter();
-
-      // cout << ca << '\t' << ta << '\t' << perim << '\t' << tperim << endl;
-
-      int area_energy = par.lambda * pow((ca - ta),2);
-      int perim_energy = par.lambda_perimeter * pow((perim - tperim),2);
-
-      sumH += area_energy;
-      sumH += perim_energy;
-    } 
-  }
-  return sumH;
 }
 
 
@@ -2322,7 +1835,8 @@ void CellularPotts::MeasureCellSizes(void) {
   // Clean areas of all cells, including medium
 
   for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) {
-    c->CleanMoments();
+    c->SetTargetArea(0);
+    c->area = 0;
   }
   
   // calculate the area of the cells
@@ -2337,6 +1851,13 @@ void CellularPotts::MeasureCellSizes(void) {
     }
   }
   
+  // set the actual area to the target area
+  {
+  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) {
+    c->SetAreaToTarget();
+
+  }
+  }
 }
 
 void CellularPotts::MeasureCellSize(Cell &c) {
@@ -2503,35 +2024,6 @@ void CellularPotts::ShowDirections(Graphics &g, const Dir *celldir) const
   
 }
 
-
-
-void CellularPotts::DivideCellsNoGrid(vector<bool> which_cells)
-{
-
-  int n_cells = which_cells.size();
-  for (int i=0; i<n_cells;++i)
-  {
-    if (which_cells[i]==true)
-    {
-      Cell *motherp=&((*cell)[i]);
-      Cell *daughterp;
-
-      // add daughter cell, copying states of mother
-      daughterp=new Cell(*(motherp->owner));
-      daughterp->CellBirth(*motherp);
-      cell->push_back(*daughterp);
-      // renew pointer to mother
-      motherp=&((*cell)[i]);
-      delete daughterp;
-      // array may be relocated after "push_back"
-      // renew daughter pointers
-      daughterp=&(cell->back());
-    }
-  }
-}
-
-
-
 void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 {
   // for the cell directions
@@ -2548,6 +2040,7 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
   if ( !(which_cells.size()==0 || which_cells.size()>=cell->size()) ) {
     throw "In CellularPotts::DivideCells, Too few elements in vector<int> which_cells.";
   }
+  vector<int> divided_cells{};
   
   /* division */
   {
@@ -2688,7 +2181,7 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
     queue<pair<int, int>> q; // Queue for BFS
     q.push({x, y});
 
-    int cell_size = par.cell_target_area;
+    int cell_size = par.cell_areas;
     int cell_sigma=cell->back().Sigma();
     // cout << "cp sigma is: " << cp_sigma << endl;
     // cout << "sigma is: " << cell_sigma << endl;
@@ -3412,209 +2905,6 @@ void CellularPotts::FillGrid()
     }
 }
 
-double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey) 
-{
-  // Calculate direct distances
-  double dx = std::abs(x2 - x1);
-  double dy = std::abs(y2 - y1);
-  if (par.periodic_boundaries)
-  {
-    // Apply periodic boundary conditions
-    if (dx > sizex / 2) {
-        dx = sizex - dx - 2;  // Wrap around horizontally
-    }
-    if (dy > sizey / 2) {
-        dy = sizey - dy - 2;  // Wrap around vertically
-    }
-  }
-
-  
-  // Return the Euclidean distance
-  return std::sqrt(dx * dx + dy * dy);
-}
-
-
-
-void CellularPotts::ClearGrid()
-{
-  for (int x = 1; x < sizex - 1; ++x) 
-  {
-    for (int y = 1; y < sizey - 1; ++y) 
-    {
-      sigma[x][y] = 0;
-    }
-  }
-}
-
-// Added 'double R' to the function parameters
-void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, int shifty)
-{
-
-  int current_cells = CountCells();
-  // 1. Define the usable active grid space
-  int W = sizex - 2;
-  int H = sizey - 2;
-  
-  double target_area = static_cast<double>(par.cell_target_area);
-  
-  // Guard against invalid parameters
-  if (target_area <= 0 || density <= 0.0 || R <= 0.0) return;
-  
-  // 2. Calculate lattice spacing directly from density and target area.
-  // This ensures the density inside the radius is exactly what was requested.
-  double area_per_center = target_area / density;
-  
-  // Hexagonal area per center = 2 * sqrt(3) * r^2
-  double r = std::sqrt(area_per_center / (2.0 * std::sqrt(3.0)));
-
-  // 3. Determine lattice parameters to cover the grid
-  int num_cols = static_cast<int>(std::round(W / (2.0 * r)));  
-  int num_rows = static_cast<int>(std::round(H / (std::sqrt(3.0) * r)));
-  if (num_cols <= 0) num_cols = 1;
-  if (num_rows <= 0) num_rows = 1;
-
-  // 4. Calculate actual lattice bounds to perfectly center the cells on the grid
-  double max_x = 0, max_y = 0;
-  for (int row = 0; row < num_rows; ++row) {
-    for (int col = 0; col < num_cols; ++col) {
-      double cx = col * 2.0 * r;
-      double cy = row * std::sqrt(3.0) * r;
-      if (row % 2 == 1) cx += r; // Stagger odd rows
-      
-      if (cx > max_x) max_x = cx;
-      if (cy > max_y) max_y = cy;
-    }
-  }
-
-  // Offset ensures perfectly symmetric empty padding near the walls
-  double offset_x = (W - max_x) / 2.0 + 1.0 + shiftx; 
-  double offset_y = (H - max_y) / 2.0 + 1.0 + shifty;
-
-  // Find the exact mathematical center of the grid
-  double grid_center_x = sizex / 2.0 + shiftx;
-  double grid_center_y = sizey / 2.0 + shifty;
-
-  // 5. Generate the centers, filtering by distance to grid center <= R
-  struct VPoint { double x, y; int id; };
-  std::vector<VPoint> centers;
-
-  for (int row = 0; row < num_rows; ++row) {
-    for (int col = 0; col < num_cols; ++col) {
-      double cx = col * 2.0 * r;
-      double cy = row * std::sqrt(3.0) * r;
-      if (row % 2 == 1) cx += r;
-      
-      double final_cx = cx + offset_x;
-      double final_cy = cy + offset_y;
-      
-      // Calculate distance from grid center. 
-      // Re-using your euclideanDistance function ensures periodic boundaries are respected if applicable.
-      double dist = euclideanDistance(final_cx, final_cy, grid_center_x, grid_center_y, sizex, sizey);
-      
-      if (dist <= R) {
-          centers.push_back({final_cx, final_cy, -1});
-      }
-      if (final_cx < 5 || final_cx > sizex-5 || final_cy < 5 || final_cy > sizey-5)
-        cerr << "warning: some centers are outside of domain\n";
-    }
-  }
-
-  int final_ncells = centers.size();
-  if (final_ncells == 0) {
-      std::cout << "Density/Radius too low to generate any cells inside R." << std::endl;
-      return;
-  }
-
-  // 6. Split sheet to prepare sufficient cell instances
-  FractureSheet(final_ncells);
-
-  // Map the new alive cell IDs to our spatial centers
-  std::vector<int> valid_ids;
-  for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) {
-    if (c == cell->begin()) continue; // Skip medium/background index 0
-    if (c->AliveP()) {
-      valid_ids.push_back(c->Sigma());
-    }
-  }
-
-  for (size_t i = 0; i < centers.size(); ++i) {
-      if (i < valid_ids.size()) {
-          centers[i].id = valid_ids[i];
-      }
-  }
-
-
-  // 8. Draw the Voronoi domains, strictly bounded to achieve `par.cell_target_area` size.
-  // Formula for circle radius: R = sqrt(A / pi). 
-  // We apply a slight 5% buffer to account for discrete pixelation artifacts cutting areas short.
-  double radius_limit = std::sqrt(target_area / M_PI) * 1.05; 
-
-  for (int x = 1; x < sizex - 1; ++x) {
-      for (int y = 1; y < sizey - 1; ++y) {
-        double minDistance = std::numeric_limits<double>::max();
-        int closestCenter = -1;
-        
-        for (const auto& center : centers) {
-          if (center.id == -1) continue;
-          
-          double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
-          if (dist < minDistance) {
-              minDistance = dist;
-              closestCenter = center.id;
-          }
-        }
-          
-        if (minDistance < radius_limit) {
-            sigma[x][y] = closestCenter;
-        }
-      }
-  }
-
-  // 9. Re-evaluate actual populated cell areas
-  for (auto c = cell->begin(); c != cell->end(); ++c) {
-    if (c == cell->begin()) 
-      continue;
-    if (c->AliveP()) 
-      c->area = 0;
-  }
-
-  for (int x = 1; x < sizex - 1; ++x) {
-    for (int y = 1; y < sizey - 1; ++y) {
-      if (sigma[x][y] > 0) 
-      {
-        (*cell)[sigma[x][y]].area += 1;
-        (*cell)[sigma[x][y]].makeAlive();
-      }
-    }   
-  }
-  
-  // 10. Single unified cleanup and target initialization loop
-  int deadcells = 0;
-  for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) 
-  {
-    if (c == cell->begin()) continue;
-    if (c->AliveP()) 
-    {
-      if (c->area == 0) 
-      {
-        c->Apoptose();
-        ++deadcells;
-      } 
-      else 
-      {
-        c->SetTargetArea(c->area);
-        c->setSpheroid(false);
-      }
-    }
-  }
-  MeasureCellSizes();
-
-  std::cout << "Grid generated | Radius: " << R 
-            << " | Density: " << density 
-            << " | Cells populated: " << (final_ncells - deadcells)
-            << " | Cells killed (0 area): " << deadcells << std::endl;
-}
-
 
 
 //split sheet into cells
@@ -3670,7 +2960,7 @@ void CellularPotts::FractureSheet(int n_cells)
       }
     }
     if (dividing)
-      DivideCellsNoGrid(which_cells);
+      DivideCells(which_cells);
     if (counter >= n_cells)
     {
       dividing=false;
@@ -3718,54 +3008,6 @@ vector<VPoint> HexaCenters(int m, int n, double r)
     return centers;
 }
 
-
-vector<VPoint> HexaCircleCenters(double circle_radius, double dist, int centerx, int centery, int starting_value)
-{
-    vector<VPoint> centers;
-    
-    // Calculate the max rows and columns needed to cover the circle's radius
-    int max_row = static_cast<int>(std::floor(circle_radius / (sqrt(3) * dist)));
-    int max_col = static_cast<int>(std::floor(circle_radius / (2 * dist))) + 1;
-    
-    int center_count = starting_value;
-    double radius_squared = circle_radius * circle_radius;
-
-    // Generate centers from -max to +max (centered at 0,0)
-    for (int row = -max_row; row <= max_row; ++row) 
-    {
-        for (int col = -max_col; col <= max_col; ++col) 
-        {
-            double x = col * 2 * dist;
-            double y = row * sqrt(3) * dist;
-            
-            // Stagger odd rows
-            // (Using != 0 ensures negative odd rows are handled correctly in C++)
-            if (row % 2 != 0) {
-                x += dist;  // Shift odd rows horizontally by dist
-            }
-            
-            // Ensure the center is within the circular bounds
-            if ((x * x + y * y) <= radius_squared) {
-                
-                // Keep your original padding of + 2 + (dist/2)
-                double final_x = x + 2 + (dist / 2);
-                double final_y = y + 2 + (dist / 2);
-                
-                // uncomment the two lines below to shift the whole circle into the positive quadrant:
-                final_x += centerx;
-                final_y += centery;
-
-                centers.push_back({final_x, final_y, center_count});
-                center_count++;
-            }
-        }
-    }
-    
-    // cout << "CENTRE COUNT IS: " << center_count - 1 << endl;
-    return centers;
-}
-
-
 int HexaCounter(int m, int n, double r)
 {
   // int num_rows = static_cast<int>(std::floor(m / (sqrt(3) * r)));
@@ -3798,279 +3040,39 @@ int HexaCounter(int m, int n, double r)
     return center_count;
 }
 
-int CircleHexaCounter(double circle_radius, double dist)
+
+
+
+double euclideanDistance(int x1, int y1, int x2, int y2, int sizex, int sizey) 
 {
-  // Calculate how many rows/cols we need to check in the positive/negative directions.
-  // We add 1 to the columns just to provide a safe buffer for the odd-row shift.
-  int max_row = static_cast<int>(std::floor(circle_radius / (sqrt(3) * dist)));
-  int max_col = static_cast<int>(std::floor(circle_radius / (2 * dist))) + 1;
-
-  int center_count = 0;
-  double radius_squared = circle_radius * circle_radius;
-
-  // Generate centers from -max to +max to cover the whole circle centered at (0,0)
-  for (int row = -max_row; row <= max_row; ++row) 
+  // Calculate direct distances
+  double dx = std::abs(x2 - x1);
+  double dy = std::abs(y2 - y1);
+  if (par.periodic_boundaries)
   {
-    for (int col = -max_col; col <= max_col; ++col) 
-    {
-      double x = col * 2 * dist;
-      double y = row * sqrt(3) * dist;
-      
-      // Stagger odd rows. 
-      // NOTE: We use != 0 instead of == 1 because C++ modulo on negative numbers yields negative results.
-      if (row % 2 != 0) 
-      {
-          x += dist;  // Shift odd rows horizontally by r
-      }
-      
-      // Ensure the center is within the circle using x^2 + y^2 <= R^2
-      // (Using squared values avoids a costly std::sqrt() call)
-      if ((x * x + y * y) <= radius_squared) {
-          center_count++;
-      }
+    // Apply periodic boundary conditions
+    if (dx > sizex / 2) {
+        dx = sizex - dx - 2;  // Wrap around horizontally
+    }
+    if (dy > sizey / 2) {
+        dy = sizey - dy - 2;  // Wrap around vertically
     }
   }
-  return center_count;
+
+  
+  // Return the Euclidean distance
+  return std::sqrt(dx * dx + dy * dy);
 }
 
 
-
-
-
-
-
-void CellularPotts::Voronoi()
-{
-  // double total = sizex*sizey;
-  // int ncells = round(total / 75.);
-  // cout << ncells << endl;
-  double A = double(par.cell_target_area);
-  double distance = sqrt((A)/(2*sqrt(3)));
-  double leftover = fmod(sizex-2, distance);
-  int dividor = int(floor(double(sizex-2)/distance));
-  // cout << "LEFTOVERS: " << leftover << '\t' << dividor << endl;
-  distance += leftover/dividor;
-
-
-  int ncells = HexaCounter(sizex-2,sizey-2,distance);
-  FractureSheet(ncells);
-
-  int periodic_length_x = sizex - 2;
-  int periodic_length_y = sizey - 2;
-
-  vector<VPoint> centers = HexaCenters(periodic_length_x, periodic_length_y, distance);
-  // for (const auto& center : centers) 
-  // {
-  //     std::cout << "Center at (" << center.x << ", " << center.y << ")\n";
-  // }
-
-
-  for (int x = 1; x < sizex-1; ++x) {
-      for (int y = 1; y < sizey-1; ++y) 
-      {
-        double minDistance = std::numeric_limits<double>::max();
-        int closestCenter = -1;
-        
-        // Find the closest center to (i, j)
-        for (const auto& center : centers) 
-        {
-          double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
-          if (dist < minDistance) {
-              minDistance = dist;
-              closestCenter = center.id;
-          }
-        }
-          
-        // Assign the closest center id to the grid cell
-        sigma[x][y] = closestCenter;
-      }
-  }
-
-  vector<Cell>::iterator c;
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      c->area = 0;
-    }
-  }
-
-  for (int x=1; x<sizex; ++x)
-    for (int y=1; y<sizey; ++y)
-    {
-      if (sigma[x][y] > 0)
-      {
-        (*cell)[sigma[x][y]].area +=1;
-      }
-    }   
-  
-  int deadcells{};
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      if (!c->area)
-      {
-        c->Apoptose();
-        ++deadcells;
-      }
-      else
-      {
-        c->SetTargetArea(c->area);
-        // cout << c->area << endl;
-      }
-    }
-  }
-}
-
-
-
-void CellularPotts::VoronoiSeparated(int xlen, int ylen, int shift, int xshift, bool turnonphase)
-{
-  // 1. Calculate the base dimensions from the target area
-  double A = double(par.cell_target_area);
-  
-  // This 'base_distance' represents the radius required for the target Area A 
-  // in a packed configuration. We will use this to limit the drawn cell size.
-  double base_distance = sqrt((A)/(2*sqrt(3)));
-
-  // 2. Define a Spacing Factor to spread the points out.
-  // A factor of 1.25 means the centers are 25% further apart than in the dense packing.
-  // This creates the "separation" or gaps between cells.
-  double spread_factor = 1.25; 
-  double spacing_distance = base_distance * spread_factor;
-
-  // 3. Adjust spacing to fit the grid perfectly (Leftover logic applied to spacing)
-  // We apply the fitting logic to 'spacing_distance' because that determines the lattice.
-  double leftover = fmod(xlen-2, spacing_distance);
-  int dividor = int(floor(double(xlen-2)/spacing_distance));
-  spacing_distance += leftover/dividor;
-
-  // 4. Generate centers using the LARGER spacing_distance (Fewer cells, spread out)
-  int ncells = HexaCounter(xlen-2,ylen-2, spacing_distance);
-  FractureSheet(ncells);
-
-  // Clear grid
-  for (int x = 1; x < sizex-1; ++x) 
-  {
-    for (int y = 1; y < sizey-1; ++y) 
-    {
-      sigma[x][y]=0;
-    }
-  }
-
-  int periodic_length_x = xlen - 2;
-  int periodic_length_y = ylen - 2;
-
-  // Get centers based on the spread out spacing
-  vector<VPoint> centers = HexaCenters(periodic_length_x, periodic_length_y, spacing_distance);
-  
-  // Shift centers to the correct ROI
-  for (auto& center : centers) 
-  {
-    center.x += sizex - xlen - xshift;
-    center.y += sizey - ylen - shift;
-  }
-
-  // 5. Draw the cells, but LIMIT the radius to 'base_distance'
-  // This ensures the cells are roughly the size of 'par.cell_target_area', 
-  // but because the centers are spread out, there will be empty space (Medium 0) between them.
-  
-  // We use a slight multiplier (e.g., 1.1) on base_distance for the drawing limit 
-  // to allow them to be slightly organic/hexagonal but definitely not touching 
-  // neighbors calculated at 1.25x distance.
-  double radius_limit = base_distance * 1.1; 
-
-  for (int x = 1 + sizex - xlen - xshift; x < sizex - xshift - 1; ++x) {
-      for (int y = 1 + sizey - ylen - shift; y < sizey - shift - 1; ++y) 
-      {
-        double minDistance = std::numeric_limits<double>::max();
-        int closestCenter = -1;
-        
-        // Find the closest center
-        for (const auto& center : centers) 
-        {
-          double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
-          if (dist < minDistance) {
-              minDistance = dist;
-              closestCenter = center.id;
-          }
-        }
-          
-        // KEY CHANGE: Only assign if within the radius limit.
-        // Since centers are spaced by `spacing_distance` (1.25x) and we cut off at 
-        // `radius_limit` (~1.0x), gaps are guaranteed.
-        if (minDistance < radius_limit) {
-            sigma[x][y] = closestCenter;
-        }
-      }
-  }
-
-  // Standard cleanup and initialization logic from original function
-  vector<Cell>::iterator c;
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      c->area = 0;
-    }
-  }
-
-  for (int x=1; x<sizex; ++x)
-    for (int y=1; y<sizey; ++y)
-    {
-      if (sigma[x][y] > 0)
-      {
-        (*cell)[sigma[x][y]].area +=1;
-      }
-    }   
-  
-  int deadcells{};
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      if (!c->area)
-      {
-        c->Apoptose();
-        ++deadcells;
-      }
-      else
-      {
-        c->SetTargetArea(c->area);
-      }
-    }
-  }
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      if (!c->area)
-      {
-        c->Apoptose();
-        ++deadcells;
-      }
-      else
-      {
-        c->SetTargetArea(c->area);
-        c->makeAlive();
-      }
-    }
-  }
-  MeasureCellSizes();
-
-  cout << "Total cells killed: " << deadcells << endl;
-}
-
-
-void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turnonphase)
+void CellularPotts::Voronoi(int xlen, int ylen, int shift)
 {
 
 
   // double total = sizex*sizey;
   // int ncells = round(total / 75.);
   // cout << ncells << endl;
-  double A = double(par.cell_target_area);
+  double A = double(par.cell_areas);
   double distance = sqrt((A)/(2*sqrt(3)));
   double leftover = fmod(xlen-2, distance);
   int dividor = int(floor(double(xlen-2)/distance));
@@ -4098,13 +3100,13 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turn
   vector<VPoint> centers = HexaCenters(periodic_length_x, periodic_length_y, distance);
   for (auto& center : centers) 
   {
-    center.x += sizex - xlen - xshift;
+    center.x += sizex - xlen;
     center.y += sizey - ylen - shift;
     // std::cout << "Center at (" << center.x << ", " << center.y << ")\n";
   }
 
 
-  for (int x = 1 + sizex - xlen - xshift; x < sizex - xshift - 1; ++x) {
+  for (int x = 1 + sizex - xlen; x < sizex-1; ++x) {
       for (int y = 1 + sizey - ylen - shift; y < sizey - shift - 1; ++y) 
       {
         double minDistance = std::numeric_limits<double>::max();
@@ -4156,12 +3158,28 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turn
       else
       {
         c->SetTargetArea(c->area);
-        c->makeAlive();
         // cout << c->area << endl;
       }
     }
   }
-  MeasureCellSizes();
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
+      }
+      else
+      {
+        c->SetTargetArea(c->area);
+        double guess_perim = par.ptarget_perimeter * sqrt(c->area);// 2*M_PI * sqrt(c->area/M_PI)*par.neighbour_multiplier;
+        c->SetTargetPerimeter(guess_perim);
+        // cout << c->area << endl;
+      }
+    }
+  }
 
   cout << "Total cells killed: " << deadcells << endl;
 }
@@ -4271,8 +3289,8 @@ void CellularPotts::ToppingVoronoi()
       if (c->AliveP() && c->Sigma() >= newsigma)
       {
         c->TransformPhase(true);
-        c->SetTargetArea(par.cell_target_area);
-        if (c->Area() < par.cell_target_area)
+        c->SetTargetArea(par.cell_areas);
+        if (c->Area() < par.cell_areas)
         {
           reached_min = true;
           break;
@@ -4283,7 +3301,7 @@ void CellularPotts::ToppingVoronoi()
     {
       if (c->AliveP() && c->Sigma() >= newsigma)
       {
-        c->SetTargetArea(par.cell_target_area);
+        c->SetTargetArea(par.cell_areas);
         if (c->Area() == 0)
         {
           c->Apoptose();
@@ -4443,7 +3461,7 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int o
   }}}
   else
   {
-    double radius = sqrt(par.init_area / M_PI);
+    double radius = sqrt(par.target_area / M_PI);
 
     // Iterate over the grid and fill the points within the circle
     for (int i = 0; i < sizex; ++i) {
@@ -4472,6 +3490,74 @@ int CellularPotts::GrowInCells(int n_cells, int cell_size, int sx, int sy, int o
 }
   
 
+// Predicate returns true when connectivity is locally preserved
+// if the value of the central site would be changed
+bool CellularPotts::ConnectivityPreservedP(int x, int y) {
+  
+  // Use local nx and ny in a cyclic order (starts at upper left corner)
+  // first site is repeated, for easier looping
+  const int cyc_nx[10] = {-1, -1, 0, 1, 1, 1, 0, -1, -1, -1 };
+  const int cyc_ny[10] = {0, -1,-1,-1, 0, 1, 1,  1,  0, -1 };
+  
+  int sxy=sigma[x][y]; // the central site
+  if (sxy==0) return true;
+
+  int n_borders=0; // to count the amount of sites in state sxy bordering a site !=sxy
+
+  int stackp=-1;
+  bool one_of_neighbors_medium=false;
+  
+  for (int i=1;i<=8;i++) {
+    
+    int s_nb=sigma[x+cyc_nx[i]][y+cyc_ny[i]];
+    int s_next_nb=sigma[x+cyc_nx[i+1]][y+cyc_ny[i+1]];
+    
+    if ((s_nb==sxy || s_next_nb==sxy) && (s_nb!=s_next_nb)) {
+      
+      // check whether s_nb is adjacent to non-identical site,
+      // count it
+      n_borders++;
+    }
+    int j;
+    bool on_stack_p=false;
+    
+    // we need the next heuristic to prevent stalling at
+    // cell-cell borders
+    // do not enforce constraint at two cell interface(no medium)
+    if (s_nb) 
+    {
+      for (j=stackp;j>=0;j--) 
+      {
+        if (s_nb==stack[j]) 
+        {
+          on_stack_p=true;
+          break;
+        }
+      }
+      if (!on_stack_p) 
+      {
+	      if (stackp>6) 
+        {
+	        cerr << "Stack overflow, stackp=" << stackp << "\n";
+	      }
+	      stack[++stackp]=s_nb;
+      }
+    }
+    else 
+    {
+      one_of_neighbors_medium=true;
+    }
+  }
+  
+  // number of different neighbours is stackp+1;
+  if (n_borders>2 && ( (stackp+1)>2 || one_of_neighbors_medium) ) {
+    return false;
+  }
+  else 
+    return true;
+
+}
+
 
 double CellularPotts::CellDensity(void) const {
   
@@ -4486,8 +3572,7 @@ double CellularPotts::CellDensity(void) const {
 
 }
 
-double CellularPotts::MeanCellArea(void) const
-{
+double CellularPotts::MeanCellArea(void) const {
   
   int sum_area=0, n=0;
   double sum_length=0.;
@@ -4502,24 +3587,8 @@ double CellularPotts::MeanCellArea(void) const
     n++;    
   }
   
-  // cerr << "Mean cell length is " << sum_length/((double)n) << endl;
+  cerr << "Mean cell length is " << sum_length/((double)n) << endl;
   return (double)sum_area/(double)n;
-}
-
-double CellularPotts::MeanCellPerimeter(void) const {
-  
-  int sum_perim=0, n=0;
-  double sum_length=0.;
-  vector<Cell>::iterator c=cell->begin(); ++c;
-  
-  for (; 
-	c!=cell->end();
-	c++) {
-    
-    sum_perim+=c->Perimeter();
-    n++;    
-  }
-  return (double)sum_perim/(double)n;
 }
 
 void CellularPotts::ResetTargetLengths(void)  {
@@ -4565,7 +3634,7 @@ void CellularPotts::GrowAndDivideCells(int growth_rate) {
      
       c->SetTargetArea(c->TargetArea()+growth_rate);
     
-      if (c->Area()>par.init_area) {
+      if (c->Area()>par.target_area) {
 	which_cells[c->Sigma()]=true;
       } else {
 	which_cells[c->Sigma()]=false;
@@ -5675,29 +4744,13 @@ double CellularPotts::HTouchMedium()
 }
 
 
-void CellularPotts::WetAllCells()
-{
-
-  vector<Cell>::iterator c;
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      if (c->area)
-      {
-        c->TransformPhase(true);
-      }
-    }
-  }
-}
-
 
 void CellularPotts::WetAbove(int width, int depth)
 {
   vector<int> mark_for_deletion{};
 
   // we use 2.5 * circle (circle being a cell) as max depth.
-  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
+  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
   for (int x = 1; x < sizex; ++x) 
   {
     int cells_encountered;
@@ -5772,7 +4825,7 @@ void CellularPotts::WetAbove(int width, int depth)
 void CellularPotts::WetTopCells(int width, int depth)
 {
   // we use 2.5 * circle (circle being a cell) as max depth.
-  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
+  double max_depth = (depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
   for (int x = width; x < sizex-width; ++x) 
   {
     int cells_encountered;
@@ -5828,42 +4881,25 @@ int CellularPotts::WettingLength()
 {
   int length = 0;
   int minx = sizex;
-  int minxy=0;
   int maxx = 0;
-  int maxxy = 0;
-
-  for (int x = 1; x < sizex-1; ++x)
+  for (int x = 1; x < sizex; ++x)
   {
-    for (int y = 1; y < sizey-1; ++y)
+    for (int y = 1; y < sizey; ++y)
     {
-      // if (x < 150 && x > 148 && y < 102 && y > 100)
-      //   cout << x << '\t' << y << '\t' << sigma[x][y] << endl;      
       if (sigma[x][y] > 0)
       {
         bool ph = cell->at(sigma[x][y]).GetPhase();
-        bool epi = cell->at(sigma[x][y]).IsEpithelia();
-        if (ph && !epi)
+        if (ph)
         {
           if (x < minx)
-          {
             minx = x;
-            minxy = y;
-          }
-            
           if (x > maxx)
-          {
             maxx = x;
-            maxxy = y;
-          }
-            
         }
       }
     }
   }
   length = maxx - minx;
-  // cout << maxx << '\t' << minx << endl;
-  // cout << tminy << '\t' << tmaxy << endl;
-
   if (!init_wet_length)
   {
     init_wet_length = length;
@@ -5874,10 +4910,7 @@ int CellularPotts::WettingLength()
 double CellularPotts::WettingRatio()
 {
   double dlen = double(WettingLength());
-  // cout << "init wet length: " << par.init_wet_length << "   thoeretical diam: " << par.theoretical_diameter << endl;  
-  // cout << "current wet length: " << ratio << endl;  
-  double ratio = (par.init_wet_length - dlen) / double(par.init_wet_length - par.theoretical_diameter);
-  // cout << "current wet ratio: " << ratio << endl;
+  double ratio = dlen / double(init_wet_length);
   return ratio;
 }
 
@@ -5911,136 +4944,109 @@ int CellularPotts::CountEpithelial()
 
 void CellularPotts::AddEpithelialLayer()
 {
-  // --- STEP 1: INITIALIZE PROGENITOR ---
-  Cell *motherp = &((*cell)[1]);
+  // first fill with pixels. Want to make this colour pink!
+  // Main problem is the whole set up is with a single "phase" variable. Now we are adding another!
+
+  // make a new cell.
+
+  Cell *motherp=&((*cell)[1]);
   Cell *daughterp = new Cell(*(motherp->owner));
   daughterp->CellBirth(*motherp);
-  // Give it a huge target area so it doesn't die immediately
-  daughterp->SetTargetArea(10000000); 
   cell->push_back(*daughterp);
   int newsigma = daughterp->Sigma();
 
-  // --- STEP 2: FILL PIXELS AND CALCULATE TOTAL AREA ---
-  long long total_filled_pixels = 0; // Track total area filled
-  
+  int radius = par.ball_radius;
   vector<pair<int,int>> hitpoints{};
-  
-  // Optimized boundary finder
-  for (int x = 1; x < sizex - 1; x++) {
-    for (int y = 1; y < sizey - 1; y++) {
-      if (sigma[x][y] > 0) {
-        hitpoints.push_back({x, y});
-        break; 
+  for (int x=1;x<sizex-1;x++)
+  {
+    for (int y=1;y<sizey-1;y++)
+    {
+      if (sigma[x][y] > 0)
+      {
+        pair<int,int> newp = {x,y};
+        hitpoints.push_back(newp);
+        break;
       }    
     }
-  }
 
-  int fill_radius = 200; 
+  }
   for (auto hitpoint : hitpoints)
   {
-    int x_c = hitpoint.first;
-    int y_c = hitpoint.second;
-    int x_s = max(1, x_c - fill_radius);
-    int x_e = min(sizex - 2, x_c + fill_radius);
-    int y_s = max(1, y_c - fill_radius);
-    int y_e = min(sizey - 2, y_c + fill_radius);
-
-    for (int xx = x_s; xx <= x_e; ++xx) {
-      for (int yy = y_s; yy <= y_e; ++yy) {
-        if (sigma[xx][yy] == 0) {
-          sigma[xx][yy] = newsigma;
-          cell->back().AddSiteToMoments(xx, yy);
-          cell->back().IncrementArea();
-          total_filled_pixels++; 
-        }
-      }
-    }
-  }
-  
-  // Update geometry tracking
-  if (par.H_perim) MeasureCellPerimeters();
-
-
-  // --- STEP 3: CALCULATE EXACTLY HOW MANY CELLS WE NEED ---
-  // If we filled 10,000 pixels and want size 100, we need 100 cells.
-  int current_layer_cell_count = 1; // We started with 1 giant cell
-  int target_layer_cell_count = 0;
-  
-  if (par.cell_target_area > 0) {
-      target_layer_cell_count = total_filled_pixels / par.cell_target_area;
-  }
-  
-  // Safety: at least 1 cell
-  if (target_layer_cell_count < 1) target_layer_cell_count = 1;
-
-
-  // --- STEP 4: DIVIDE UNTIL WE HIT THE TARGET COUNT ---
-  
-  // We loop until we have enough cells. 
-  // In every step, we split the LARGEST cell available.
-  
-  while (current_layer_cell_count < target_layer_cell_count)
-  {
-    MeasureCellSizes(); 
-    
-    // Find the largest cell in the new layer
-    int largest_cell_index = -1;
-    double max_area = -1.0;
-
-    for (size_t i = 0; i < cell->size(); ++i)
+    int x = hitpoint.first;
+    int y = hitpoint.second;
+    int radiuss = 200;
+    for (int xx = x - radiuss; xx <= x + radiuss; ++xx )
     {
-      // Only check cells belonging to this new layer (>= newsigma)
-      // and ensure they are alive.
-      if (i >= newsigma && cell->at(i).AliveP())
+      for (int yy = y - radiuss; yy <= y + radiuss; ++yy )
       {
-        if (cell->at(i).Area() > max_area)
+        if (xx < sizex-1 && yy < sizey-1 && yy > 0 && xx > 0)
         {
-          max_area = cell->at(i).Area();
-          largest_cell_index = i;
+          if (sigma[xx][yy] == 0 )
+          {
+            sigma[xx][yy] = newsigma;
+            cell->back().AddSiteToMoments(xx,yy);
+            cell->back().IncrementArea();
+            cell->back().IncrementTargetArea();
+          }
+
         }
       }
     }
-
-    // Safety check: if we couldn't find a cell or the largest is already tiny 
-    // (edge case protection), stop.
-    if (largest_cell_index == -1 || max_area < 2) {
-        break; 
-    }
-
-    // Mark ONLY the largest cell for division
-    vector<bool> to_divide = divide_vector(); // ensure this creates valid size
-    if (to_divide.size() < cell->size()) to_divide.resize(cell->size(), false);
-    
-    // Reset vector
-    std::fill(to_divide.begin(), to_divide.end(), false);
-    
-    to_divide[largest_cell_index] = true;
-
-    // Execute Division
-    DivideCells(to_divide);
-
-    // Update count. Note: DivideCells usually turns 1 parent into 2 daughters 
-    // (net +1 cell) or keeps parent and makes 1 daughter (net +1 cell).
-    // It is safer to recalculate count or just increment.
-    current_layer_cell_count++;
   }
 
+  if (par.H_perim)
+    MeasureCellPerimeters();
 
-  // --- STEP 5: CLEANUP AND SET TARGETS ---
-  // Now we have the correct number of cells. Their actual sizes might vary 
-  // (some 90, some 110), but the AVERAGE is perfect.
-  // We set the target area, and the CPM Hamiltonian will fix the shapes 
-  // in the first few MCS.
   
-  for (size_t i = 0; i < cell->size(); ++i)
+  bool reached_min = false;
+  while (!reached_min)
   {
-    Cell* c = &((*cell)[i]);
-    if (c->AliveP() && c->Sigma() >= newsigma)
+    int n_divided =0;
+    vector<bool> to_divide = divide_vector();
+    for (int i = 0; i < to_divide.size(); ++i)
     {
-      c->SetTargetArea(par.cell_target_area);
-      c->SetEpithelial(true);
-      c->TransformPhase(true);
+      // cout << "celln\t" << i << " has area: " << cell->at(i).Area() << endl;
+      if (i >= newsigma && cell->at(i).Area() > par.cell_areas)
+      {
+        to_divide[i] = true;
+        ++n_divided;
+      }
+      else
+      {
+        to_divide[i] = false;
+      }
     }
+    DivideCells(to_divide);
+    MeasureCellSizes();
+    vector<Cell>::iterator c;
+
+    // for ((c=cell->begin(), c++); c!=cell->end(); c++)
+    // {
+    //   if (c->AliveP() && c->Sigma() >= newsigma)
+    //   {
+    //     c->SetTargetArea(par.cell_areas);
+    //     if (c->Area() < par.cell_areas)
+    //     {
+    //       reached_min = true;
+    //       break;
+    //     }
+    //   }
+    // }  
+    for ((c=cell->begin(), c++); c!=cell->end(); c++)
+    {
+      if (c->AliveP() && c->Sigma() >= newsigma)
+      {
+        c->SetTargetArea(c->Area());
+        c->SetEpithelial(true);
+        c->TransformPhase(true);
+      }
+    } 
+
+    if (n_divided==0)
+    {
+      break;
+    }
+
   }
 }
 
@@ -6079,7 +5085,7 @@ void CellularPotts::PhaseShapeIndex(int time, bool measure_proportion)
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
+  int neigh_level=par.neighbours; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
 
@@ -6099,7 +5105,7 @@ void CellularPotts::PhaseShapeIndex(int time, bool measure_proportion)
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb_perim;i++) 
+        for (int i=1;i<=n_nb;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -6211,6 +5217,8 @@ double CellularPotts::ReturnShapeProportion()
 
 void CellularPotts::PhaseHexaticOrder(int time)
 {
+  if (!par.velocities)
+    SetCellCenters();
 
   tmp_hex_order=0;
   int tmp_counter=0;
@@ -6342,111 +5350,6 @@ void CellularPotts::PhaseHexaticOrder(int time)
 }
 
 
-void CellularPotts::MeasureHexaticOrder()
-{
-
-  tmp_hex_order=0;
-  int tmp_counter=0;
-  int **ns = SearchNeighbours();
-  int n_size = CountCells();
-  for (int i = 1; i < n_size; ++i)
-  {
-    bool phaser = cell->at(i).GetPhase();
-    bool isepi = cell->at(i).IsEpithelia();
-
-    if (cell->at(i).AliveP() && phaser && !isepi)
-    {
-      double XCEN = cell->at(i).get_xcen();
-      double YCEN = cell->at(i).get_ycen();
-      vector<double> xcens{};
-      vector<double> ycens{};
-      int n_neighbours=0;
-      bool med_check=false;
-      int j = 0;
-      while (ns[i][j] >= 0)
-      {
-        med_check = false;
-        if (ns[i][j] == 0)
-        {
-          med_check=true;
-          break;
-        }
-        else
-        {
-          double xc = cell->at(ns[i][j]).get_xcen();
-          double yc = cell->at(ns[i][j]).get_ycen();
-          xcens.push_back(xc);
-          ycens.push_back(yc);
-          ++n_neighbours;
-        }
-        ++j;
-      }
-      // cout << i << '\t' << n_neighbours << endl;
-
-      if (med_check) 
-        continue;
-
-      vector<vec2d> com_vectors{};
-      vec2d reference_axis(1.0,0.0);
-
-      for (int n1 = 0; n1 < n_neighbours; ++n1)
-      {
-        double ABx = XCEN - xcens[n1];
-        double ABy = YCEN - ycens[n1];
-        vec2d newvec(ABx, ABy);
-        com_vectors.push_back(newvec);
-      }
-      sort(com_vectors.begin(), com_vectors.end(), compareVec);
-      // for (auto v : com_vectors)
-      //   cout << v.x << '\t' << v.y << '\t';
-
-      // cout << endl;
-      vector<double> angles{};
-      for (const auto& vec : com_vectors) 
-      {
-        double angle = atan2(vec.y, vec.x);
-        angles.push_back(angle);
-      }
-      // Now use angles to calculate psi_6 for each particle
-      complex<double> psi_sum(0,0);
-      for (const auto& angle : angles) {
-        psi_sum += std::exp(std::complex<double>(0, 6 * angle));
-      }
-      psi_sum /= static_cast<double>(angles.size());
-      double psi_mag = std::abs(psi_sum);
-
-      hexatic_tally += psi_mag;
-      ++hexatic_counter;
-
-    }
-  }
-  free(ns[0]);
-  free(ns);
-}
-
-void CellularPotts::AverageHexaticOrder()
-{
-  if (hexatic_counter>0)
-  {
-    double to_add = hexatic_tally / hexatic_counter;
-    hex_vec.push_back(to_add);
-    hexatic_tally = 0;
-    hexatic_counter = 0;
-  }
-  else
-  {
-    return hex_vec.push_back(-1);
-  }
-}
-
-vector<double>& CellularPotts::ReturnHexaticOrder()
-{
-  return hex_vec;
-}
-
-
-
-
 map<int, vector<pair<int,double>>> CellularPotts::Get_time_hexatic_order()
 {
   return time_hexatic_order;
@@ -6456,133 +5359,6 @@ map<int, vector<pair<int,double>>> CellularPotts::Get_time_shape_index()
 {
   return time_shape_index;
 }
-
-
-void CellularPotts::RecordPressure()
-{
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      c->AddPressure();
-    }
-  }
-}
-
-
-
-void CellularPotts::RecordStress()
-{
-  RecordPressure();
-
-  initVolume();
-  adjustPerimeters();
-  
-  map<int, double> perims = TruePerimetersMap();
-
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      int csig = c->Sigma();
-
-      double adh_stress = par.J_L * perims[csig] / (2*c->Area());
-      c->AddAdhesionStress(adh_stress);
-    }
-  }
-}
-
-
-
-void CellularPotts::CheckIfCellTouchingMedium()
-{
-  
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      bool touched = false;
-      int celln = c->Sigma();
-      pair<int, bool> touch = {celln, false};
-
-      
-
-      for ( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
-      {
-        int x=it->first;
-        int y=it->second;
-
-        for (int i=1;i<=n_nb;i++) 
-        {
-
-          int xp2,yp2;
-          xp2=x+nx[i]; yp2=y+ny[i];
-          if (sigma[xp2][yp2] == 0)
-          {
-            touching_medium[celln] = true;
-            touched = true;
-            break;
-          }
-        }
-        if (touched) 
-        {
-            break; // Breaks the perimeter loop (it loop)
-        }
-      }
-      if (!touched)
-      {
-        touching_medium[celln] = false;
-      }
-    }
-  }
-}
-
-map<int,bool> CellularPotts::ReturnMediumTouching()
-{
-  return touching_medium;
-}
-
-
-
-
-vector<double> CellularPotts::HydrostaticPressure()
-{
-  vector<double> pressure_list{};
-
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      double pressure = c->GetCellPressure();
-      pressure_list.push_back(pressure);
-
-    }
-  }
-  return pressure_list;
-}
-
-
-vector<double> CellularPotts::AdhesionStress()
-{
-  vector<double> stress_list{};
-
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      double adhstress = c->GetAdhesionStress();
-      stress_list.push_back(adhstress);
-
-    }
-  }
-  return stress_list;
-}
-
 
 
 
@@ -6800,633 +5576,6 @@ void CellularPotts::add_noise()
 }
 
 
-double synNotch_bound_derivative(double c, double L)
-{
-  return par.production_rate_synNotch - (par.decay_synNotch_bound*c) - par.binding_rate_CD19_synNotch * L * c;
-}
-
-double synNotch_bound_rk4(double dt, double c, double L)
-{
-  // the CD19 ligand is incorporated in L
-  double k1 = synNotch_bound_derivative(c, L);
-  double k2 = synNotch_bound_derivative(c + dt * k1/2.0, L);
-  double k3 = synNotch_bound_derivative(c + dt*k2/2.0, L);
-  double k4 = synNotch_bound_derivative(c + dt*k3, L);
-  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
-}
-
-double synNotch_unbound_derivative(double c, double cB, double L)
-{
-  return par.binding_rate_CD19_synNotch * L * cB - par.decay_synNotch_unbound * c;
-}
-
-double synNotch_unbound_rk4(double dt, double c, double cB, double L)
-{
-  double k1 = synNotch_unbound_derivative(c, cB, L);
-  double k2 = synNotch_unbound_derivative(c + dt * k1/2.0, cB, L);
-  double k3 = synNotch_unbound_derivative(c + dt*k2/2.0, cB, L);
-  double k4 = synNotch_unbound_derivative(c + dt*k3, cB, L);
-  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
-}
-
-double synNotch_intra_derivative(double c, double cB, double L)
-{
-  return par.binding_rate_CD19_synNotch * L  * cB - par.decay_synNotch_intra * c;
-}
-
-
-double synNotch_intra_rk4(double dt, double c, double cB, double L)
-{
-  double k1 = synNotch_intra_derivative(c, cB, L);
-  double k2 = synNotch_intra_derivative(c + dt * k1/2.0, cB, L);
-  double k3 = synNotch_intra_derivative(c + dt*k2/2.0, cB, L);
-  double k4 = synNotch_intra_derivative(c + dt*k3, cB, L);
-  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
-}
-
-
-double E_cadherin_derivative(double c, double I, double X, double prate)
-{
-  // X is the proportion shared surface with cells also expressing E_cadherin (have to normalise to so that peak concentration = 1)
-  return prate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient))) * (1. - c/par.c_max)
-  - par.decay_E_cadherin_bound * c * X - par.decay_E_cadherin_unbound * c * (1-X);
-}
-
-
-double E_cadherin_rk4(double dt, double c, double I, double X, double prate)
-{
-  double k1 = E_cadherin_derivative(c, I, X, prate);
-  double k2 = E_cadherin_derivative(c + dt * k1/2.0, I, X, prate);
-  double k3 = E_cadherin_derivative(c + dt*k2/2.0, I, X, prate);
-  double k4 = E_cadherin_derivative(c + dt*k3, I, X, prate);
-  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
-}
-
-double random_binding_derivative(double c, double X)
-{
-  return par.random_binding_protein_production
-  - par.decay_random_binding_protein_bound * c * X - par.decay_random_binding_protein_unbound * c * (1-X);
-}
-
-double random_binding_rk4(double dt, double c, double X)
-{
-  double k1 = random_binding_derivative(c, X);
-  double k2 = random_binding_derivative(c + dt * k1/2.0, X);
-  double k3 = random_binding_derivative(c + dt*k2/2.0, X);
-  double k4 = random_binding_derivative(c + dt*k3, X);
-  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
-}
-
-double GFP_derivative(double c, double I)
-{
-  return par.GFP_production_rate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient))) * (1. - c/par.c_max) - par.decay_GFP * c;
-}
-
-double GFP_rk4(double dt, double c, double I)
-{
-  double k1 = GFP_derivative(c, I);
-  double k2 = GFP_derivative(c + dt * k1/2.0, I);
-  double k3 = GFP_derivative(c + dt*k2/2.0, I);
-  double k4 = GFP_derivative(c + dt*k3, I);
-  return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
-}
-
-
-void CellularPotts::SurfaceBindings()
-{
-  // reset values
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      c->ResetSurfaceBindings();
-      c->setTouchingMed(false);
-    }
-  }
-
-  for (int x = 1; x < sizex - 1; x++) 
-  {
-    for (int y = 1; y < sizey - 1; y++) 
-    {
-      if (sigma[x][y] > 0) 
-      {
-        int current_cell = sigma[x][y];
-        for (int i = 1; i <= n_nb_adh; i++) 
-        {
-          int xp2, yp2;
-          xp2 = x + nx[i];
-          yp2 = y + ny[i];
-          if (xp2 > sizex-1 || xp2 < 1 || yp2 > sizey-1 || yp2 < 1)
-            continue;
-            
-          if (par.periodic_boundaries) 
-          {
-            if (xp2 <= 0)
-              xp2 = sizex - 2 + xp2;
-            if (yp2 <= 0)
-              yp2 = sizey - 2 + yp2;
-            if (xp2 >= sizex - 1)
-              xp2 = xp2 - sizex + 2;
-            if (yp2 >= sizey - 1)
-              yp2 = yp2 - sizey + 2;
-          }
-          // did we find a border?
-          if (sigma[xp2][yp2] != sigma[x][y]) 
-          {
-            bool oppCD19 = (*cell)[sigma[xp2][yp2]].getCD19();
-            double oppEcad = (*cell)[sigma[xp2][yp2]].getE_cadherin();
-            double oppGFP = (*cell)[sigma[xp2][yp2]].getGFP();
-            double oppNcad = (*cell)[sigma[xp2][yp2]].getN_cadherin();
-            double oppPcad = (*cell)[sigma[xp2][yp2]].getP_cadherin();
-            // cout << oppCD19 << '\t' << oppEcad << endl;
-            (*cell)[current_cell].AddtoSurfaces(oppCD19, oppEcad, oppGFP, oppPcad, oppNcad);
-            if (sigma[xp2][yp2]==0)
-            {
-              (*cell)[current_cell].setTouchingMed(true);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-
-
-
-void CellularPotts::StartSyntheticNetwork(int start_point)
-{
-  for (auto c=std::next(cell->begin(), start_point); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-
-      double init_synNotch_bound = 1.0;
-      double init_synNotch_unbound = 0.0;
-      double init_synNotch_intra = 0.0;
-      double init_E_cadherin = 0.0;
-      double init_P_cadherin = 0.0;
-      double init_N_cadherin = 0.0;
-      double init_GFP = 0.0;
-      double init_mCherry = 0.0;
-      double init_random_binding_proteins = par.init_random_binding;
-
-      c->setsynNotch_bound(init_synNotch_bound);
-      c->setsynNotch_unbound(init_synNotch_unbound);
-      c->setsynNotch_intra(init_synNotch_intra);
-      c->setE_cadherin(init_E_cadherin);
-      c->setP_cadherin(init_P_cadherin);
-      c->setN_cadherin(init_N_cadherin);
-      c->setGFP(init_GFP);
-      c->setmCherry(init_mCherry);
-      c->setRandomBindingProteins(init_random_binding_proteins);
-
-      if (c->isSpheroid())
-      {
-        double init_P_cadherin=1.0;
-        double init_random_binding_proteins = par.init_random_binding;
-        c->setP_cadherin(init_P_cadherin);
-        c->setRandomBindingProteins(init_random_binding_proteins);
-
-        vector<double> init_diffusers{1.0};
-        c->set_diffusers(init_diffusers);
-        cout << c->Sigma() << endl;
-
-        c->SetConstitutives(par.spheroid_const);
-        c->SetGFP_induced(par.spheroid_GFP_induced);
-        c->SetMcherry_induced(par.spheroid_mCherry_induced);
-        c->SetCD19_induced(par.spheroid_CD19_induced);
-
-
-      }
-      else
-      {
-        vector<double> init_diffusers{0.0};
-        c->set_diffusers(init_diffusers);
-        // randomly make cell CD19 or not (move to different method eventually)
-        double rand = RANDOM(s_val);
-        if (rand < par.proportion_starting_CD19)
-        {
-          c->setCD19(1.);
-          // assuming c1
-          c->SetConstitutives(par.c2_const);
-          c->SetGFP_induced(par.c2_GFP_induced);
-          c->SetMcherry_induced(par.c2_mCherry_induced);
-          c->SetCD19_induced(par.c2_CD19_induced);
-        }
-        else 
-        {
-          c->setCD19(0.);
-          // assuming c2
-          c->SetConstitutives(par.c1_const);
-          c->SetGFP_induced(par.c1_GFP_induced);
-          c->SetMcherry_induced(par.c1_mCherry_induced);
-          c->SetCD19_induced(par.c1_CD19_induced);
-        }
-      }
-
-    } 
-  }
-}
-
-void CellularPotts::StartSyntheticNetwork(Cell &newcell)
-{
-
-  if (newcell.AliveP())
-  {
-    if (newcell.isSpheroid())
-    {
-      double init_P_cadherin=1.0;
-      double init_random_binding_proteins = par.init_random_binding;
-      newcell.setP_cadherin(init_P_cadherin);
-      newcell.setRandomBindingProteins(init_random_binding_proteins);
-
-      vector<double> init_diffusers{1.0};
-      newcell.set_diffusers(init_diffusers);
-    }
-    else
-    {
-      double init_synNotch_bound = 1.0;
-      double init_synNotch_unbound = 0.0;
-      double init_synNotch_intra = 0.0;
-      double init_E_cadherin = 0.0;
-      double init_P_cadherin = 0.0;
-      double init_N_cadherin = 0.0;
-      double init_GFP = 0.0;
-      double init_mCherry = 0.0;
-      double init_random_binding_proteins = par.init_random_binding;
-
-      newcell.setsynNotch_bound(init_synNotch_bound);
-      newcell.setsynNotch_unbound(init_synNotch_unbound);
-      newcell.setsynNotch_intra(init_synNotch_intra);
-      newcell.setE_cadherin(init_E_cadherin);
-      newcell.setP_cadherin(init_P_cadherin);
-      newcell.setN_cadherin(init_N_cadherin);
-      newcell.setGFP(init_GFP);
-      newcell.setmCherry(init_mCherry);
-      newcell.setRandomBindingProteins(init_random_binding_proteins);
-
-      vector<double> init_diffusers{0.0};
-      newcell.set_diffusers(init_diffusers);
-
-      // randomly make cell CD19 or not (move to different method eventually)
-      double rand = RANDOM(s_val);
-      if (rand < par.proportion_starting_CD19)
-      {
-        newcell.setCD19(true);
-      }
-      else 
-      {
-        newcell.setCD19(false);
-      }
-    }
-
-  } 
-}
-
-void CellularPotts::OutputSyntheticNetwork(int thetime)
-{
-  vector<Cell>::iterator c;
-
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {  
-      ofstream outfile;
-      string out = data_file + "/cell-" + to_string(c->Sigma()) + ".dat";
-      outfile.open(out, ios::app);
-      outfile << c->getCD19() << '\t' << c->getsynNotch_bound() << '\t' << c->getsynNotch_unbound() << '\t' << c->getsynNotch_intra() << '\t' << c->getE_cadherin() << '\t' << '\t' << '\t' << c->getGFP() << '\t' << c->getmCherry() << endl;
-      outfile.close();
-    }
-  }
-
-
-}
-
-void CellularPotts::UpdateSyntheticCellConstraints()
-{
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      double area_constraint = par.bulk_modulus / double(c->TargetArea());
-      c->setAreaConstraint(area_constraint);
-      int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
-      target_perim+= round(target_perim*(par.Ecadherin_tension_multiple*c->getE_cadherin() + par.Ncadherin_tension_multiple*c->getN_cadherin() + par.Pcadherin_tension_multiple*c->getP_cadherin() ));
-      c->SetTargetPerimeter(target_perim);
-      double perim_constraint = (par.elastic_modulus / double(target_perim));
-      c->setPerimConstraint(perim_constraint);
-      // cout << target_perim << '\t' << area_constraint << '\t' << perim_constraint << endl;
-
-    }
-  }
-}
-
-
-
-void CellularPotts::SyntheticNetwork()
-{
-
-  // WE MUST DO SURFACE BINDINGS FIRST!
-  SurfaceBindings();
-
-  vector<Cell>::iterator c;
-
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      double dt = par.synthetic_dt;
-      // averaging after surface bindings
-      c->AverageSurfaceBindings();
-
-      // cells either do or do not have the synethic network. So, we have to get
-      // its network type and then decide how to update. For now, we say CD19.
-      double& CD19 = c->getCD19();
-      bool& spheroid_cell = c->isSpheroid();
-      double& synNotch_bound = c->getsynNotch_bound();
-      double& synNotch_unbound = c->getsynNotch_unbound();
-      double& synNotch_intra = c->getsynNotch_intra();
-      double& E_cadherin = c->getE_cadherin();
-      double& GFP = c->getGFP();
-      double& mCherry = c->getmCherry();
-      double& N_cadherin = c->getN_cadherin();
-      double& P_cadherin = c->getP_cadherin();
-
-      double opposite_Ecad = c->getOpposing_E_cadherin();
-      double opposite_Pcad = c->getOpposingP_cadherin();
-      double opposite_Ncad = c->getOpposingN_cadherin();
-
-    
-      double opposite_CD19=c->getOpposingCD19();
-      double opposite_GFP=c->getOppositeGFP();
-
-      /* all cells have random binding proteins*/
-      // double& random_binding_proteins = c->getRandomBindingProteins();
-      // random_binding_proteins = random_binding_rk4(dt, random_binding_proteins, opposite_Ecad);
-      vector<bool> constitutives = c->GetConstitutives();
-      vector<bool> GFP_induced = c->GetGFP_induced();
-      vector<bool> mCherry_induced = c->GetMcherry_induced();
-      vector<bool> CD19_induced = c->GetCD19_induced();
-
-      if (constitutives[0]==true)
-      {
-        E_cadherin=1.;
-      }
-      if (constitutives[1]==true)
-      {
-        E_cadherin=0.5;
-      }
-      if (constitutives[2]==true)
-      {
-        P_cadherin==1.;
-      }
-      if (constitutives[3]==true)
-      {
-        N_cadherin=1.;
-      }
-      if (constitutives[4]==true)
-      {
-        CD19=1.;
-      }
-      if (constitutives[5]==true)
-      {
-        GFP=1.;
-      }
-      if (constitutives[6]==true)
-      {
-        mCherry=1.;
-      }
-
-      bool receptsGFP = std::find(GFP_induced.begin(), GFP_induced.end(), true) != GFP_induced.end();
-
-      bool receptsCD19 = std::find(CD19_induced.begin(), CD19_induced.end(), true) != CD19_induced.end();
-      
-      if (receptsGFP)
-      {
-        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_GFP);
-        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_GFP);
-        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_GFP );
-      }
-      else if (receptsCD19)
-      {
-        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19);
-        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
-        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
-      }
-
-      if (GFP_induced[0]==true || CD19_induced[0]==true)
-      {
-        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate);
-      }
-      if (GFP_induced[1]==true || CD19_induced[1]==true)
-      {
-        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.lo_cadherin_production_rate);
-      }
-      if (GFP_induced[2]==true || CD19_induced[2]==true)
-      {
-        P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);
-      }
-      if (GFP_induced[3]==true || CD19_induced[3]==true)
-      {
-        N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
-      }
-      if (GFP_induced[5]==true || CD19_induced[5]==true)
-      {
-        GFP = GFP_rk4(dt, GFP, synNotch_intra);
-      }
-      if (GFP_induced[6]==true || CD19_induced[6]==true)
-      {
-        mCherry = GFP_rk4(dt, mCherry, synNotch_intra);
-      }
- 
-      // for colour output
-      int rounded_GFP = round(GFP * 200);
-      if (rounded_GFP > 100)
-        rounded_GFP = 100;
-
-      int rounded_cherry = round(mCherry * 200);
-      if (rounded_cherry > 100)
-        rounded_cherry = 100;
-
-      int cellcolour{};
-      if (rounded_cherry < 1)
-      {
-        cellcolour = rounded_GFP + 2;
-      }
-      else
-      {
-        cellcolour = rounded_cherry + 102;
-      }
-      c->set_ctype(cellcolour);
-      
-      if (c->isSpheroid())
-      {
-        c->set_ctype(203);
-      }
-    }
-  }
-  UpdateSyntheticCellConstraints();
-}
-
-void CellularPotts::SyntheticGrowth()
-{
-
-  vector<bool> which_cells(cell->size());
-  int cell_division=0;
-  // Note this function MUST come after synthetic network,
-  // which sets the touching med variable
-
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      double outside_growth_rate=10;
-      double inside_growth_rate=5;
-      
-      double rand = RANDOM(s_val);
-      bool istouching = c->getTouchingMed();
-
-      int targetarea=c->TargetArea();
-      int area=c->Area();
-
-      if (istouching)
-      {
-        int growth_rate = int(round(outside_growth_rate * rand));
-        c->SetTargetArea(targetarea + growth_rate);
-      }
-      else
-      {
-        int growth_rate = int(round(inside_growth_rate * rand));
-        c->SetTargetArea(targetarea + growth_rate);
-      }
-      if (area>par.div_threshold) 
-      {
-        
-        which_cells[c->Sigma()]=true;
-        cell_division++;
-      }
-    }
-  }
-  if (cell_division) 
-  {
-    DivideCells(which_cells);
-  }
-
-  // adjust constraints!
-  UpdateSyntheticCellConstraints();
-}
-
-
-void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
-{
-
-  int current_cells = CountCells();
-
-  if (radius > centerx/2 || radius > centery/2)
-    cerr << "ERROR: SPHEROID RADIUS TOO LARGE!";
-  // double total = sizex*sizey;
-  // int ncells = round(total / 75.);
-  // cout << ncells << endl;
-  double A = double(par.cell_target_area);
-  double distance = sqrt((A)/(2*sqrt(3)));
-  double leftover = fmod(sizex-2, distance);
-  int dividor = int(floor(double(sizex-2)/distance));
-  // cout << "LEFTOVERS: " << leftover << '\t' << dividor << endl;
-  distance += leftover/dividor;
-  // cout << "distance between cells is: " << distance << endl;
-
-
-  int ncells = CircleHexaCounter(radius, distance);
-  FractureSheet(ncells);
-
-
-  vector<VPoint> centers = HexaCircleCenters(radius, distance, centerx, centery, current_cells);
-
-
-  for (int x = 1; x < sizex-1; ++x) {
-      for (int y = 1; y < sizey-1; ++y) 
-      {
-        double minDistance = std::numeric_limits<double>::max();
-        int closestCenter = -1;
-        
-        // Find the closest center to (i, j)
-        for (const auto& center : centers) 
-        {
-          double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
-          if (dist < minDistance) {
-              minDistance = dist;
-              closestCenter = center.id;
-          }
-        }
-        int xdist = abs(x - centerx);
-        int ydist = abs(y - centery);
-        // Assign the closest center id to the grid cell if its inside the circle
-        if ((xdist * xdist + ydist*ydist) < radius*radius)
-        {
-          sigma[x][y] = closestCenter;
-        }
-        else if (minDistance < distance / 2)
-        {
-          sigma[x][y] = closestCenter;
-
-        }
-      }
-  }
-
-  vector<Cell>::iterator c;
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
-  {
-    if (c->AliveP())
-    {
-      c->area = 0;
-    }
-  }
-
-  for (int x=1; x<sizex; ++x)
-    for (int y=1; y<sizey; ++y)
-    {
-      if (sigma[x][y] > 0)
-      {
-        (*cell)[sigma[x][y]].area +=1;
-      }
-    }   
-  
-  // 10. Single unified cleanup and target initialization loop
-  int deadcells = 0;
-  for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) {
-    if (c == cell->begin()) 
-      continue;
-    if (c->area == 0) 
-    {
-      c->Apoptose();
-      ++deadcells;
-    } 
-    else 
-    {
-      c->SetTargetArea(c->area);
-      c->makeAlive();
-      c->setSpheroid(true);
-    }
-  }
-  MeasureCellSizes();
-
-  std::cout << "Grid generated | Radius: " << radius 
-            << " | Cells populated: " << (ncells - deadcells)
-            << " | Cells killed (0 area): " << deadcells << std::endl;
-
-}
-  
-
-
-
-
-
-
-/* network for cell differentiation/morphogenesis model */
 void CellularPotts::update_network(int tsteps)
 {
   vector<Cell>::iterator c;
@@ -7824,7 +5973,7 @@ double CellularPotts::Cooperativity(int time_skip)
     {
       // we are just going to program this for moving cells for now:
       bool phaser = cell->at(i).GetPhase();
-      if (phaser && cell->at(i).IsEpithelia() == false)
+      if (phaser)
       {
         vector<double>& xcens = cell->at(i).get_xcens();
         vector<double>& ycens = cell->at(i).get_ycens();
@@ -8297,8 +6446,8 @@ void CellularPotts::SetPerims(int tperim)
   vector<Cell>::iterator i;
   for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
   {
-    i->SetTargetPerimeter(par.ptarget_perimeter);
-    i->setPerimConstraint(par.lambda_perimeter);
+    i->SetTargetPerimeter(round(double(tperim)*sqrt(double(par.cell_areas))));
+    cout << round(double(tperim)*sqrt(double(par.cell_areas))) << endl;
   }
 }
 
@@ -10059,230 +8208,6 @@ int CellularPotts::MediumExchangeRate()
 
 
 
-
-
-
-
-// Change return type to vector of vectors to group events
-vector<vector<int>> CellularPotts::t1transitions()
-{
-  vector<vector<int>> t1_events;
-
-  if (!old_cell_count)
-  {
-    old_nbhs = SearchNeighbours();
-    old_cell_count = cell->size();
-    return t1_events;
-  }
-
-  int** new_nbhs = SearchNeighbours();
-  int n_cells = cell->size();
-
-  // Sets to track which cells have changed topology
-  set<int> changed_cells_set;
-  
-  // Maps to store clean neighbor lists for changed cells
-  map<int, vector<int>> clean_new_nbhs;
-  map<int, vector<int>> clean_old_nbhs;
-
-  // --- PASS 1: Identify all cells that underwent a change ---
-  for (int i = 1; i < n_cells; ++i)
-  {
-    if (i >= old_cell_count) 
-      break;
-
-    // 1. Extract Current Neighbours
-    vector<int> curr_nbhs;
-    int j = 0;
-    while (new_nbhs[i][j] >= 0)
-    {
-      if (new_nbhs[i][j] > 0) // Ensure we don't count Medium (0) as a cell interaction
-        curr_nbhs.push_back(new_nbhs[i][j]);
-      ++j;
-    }
-    if (j > 50) continue;
-
-    // 2. Extract Previous Neighbours
-    vector<int> prev_nbhs;
-    j = 0;
-    while (old_nbhs[i][j] >= 0)
-    {
-      if (old_nbhs[i][j] > 0)
-        prev_nbhs.push_back(old_nbhs[i][j]);
-      ++j;
-    }
-    if (j > 50) continue;
-
-    // 3. Compare
-    sort(curr_nbhs.begin(), curr_nbhs.end());
-    sort(prev_nbhs.begin(), prev_nbhs.end());
-
-    if (curr_nbhs != prev_nbhs)
-    {
-      changed_cells_set.insert(i);
-      clean_new_nbhs[i] = curr_nbhs;
-      clean_old_nbhs[i] = prev_nbhs;
-    }
-  }
-
-  // --- PASS 2: Group connected changed cells into events ---
-  set<int> visited;
-  for (int cell_id : changed_cells_set)
-  {
-    if (visited.count(cell_id)) continue;
-
-    vector<int> current_event;
-    queue<int> q;
-    
-    q.push(cell_id);
-    visited.insert(cell_id);
-    current_event.push_back(cell_id);
-
-    while (!q.empty())
-    {
-      int u = q.front();
-      q.pop();
-
-      auto check_neighbors = [&](const vector<int>& nbhs) {
-        for (int neighbor : nbhs) {
-          if (changed_cells_set.count(neighbor) && !visited.count(neighbor)) {
-            visited.insert(neighbor);
-            current_event.push_back(neighbor);
-            q.push(neighbor);
-          }
-        }
-      };
-
-      check_neighbors(clean_new_nbhs[u]);
-      check_neighbors(clean_old_nbhs[u]);
-    }
-
-    // --- FILTERING LOGIC ADDED HERE ---
-    if (!current_event.empty()) {
-        bool has_phase = false;
-        bool has_epi = false; 
-
-        // Analyze the cells in this specific event
-        for (int id : current_event) 
-        {
-            bool phaser = cell->at(id).GetPhase();
-            bool isepi = cell->at(id).IsEpithelia();
-
-            if (phaser && !isepi) 
-            {
-                has_phase = true;
-            }
-
-        }
-
-        // Logic:
-        // 1. All cells must be either Phase or Epithelia (all_valid_types == true)
-        // 2. There must be at least one Phase cell involved (has_phase == true).
-        //    (This excludes transitions between only Epithelial cells).
-        if (has_phase) {
-            t1_events.push_back(current_event);
-        }
-    }
-  }
-
-  // --- MEMORY MANAGEMENT ---
-  free(old_nbhs[0]);
-  free(old_nbhs);
-  old_nbhs = 0;
-
-  old_nbhs = (int **)malloc((cell->size() + 1) * sizeof(int *));
-  if (old_nbhs == NULL) MemoryWarning();
-
-  old_nbhs[0] = (int *)malloc((cell->size() + 1) * (cell->size() + 1) * sizeof(int));
-  if (old_nbhs[0] == NULL) MemoryWarning();
-
-  for (int i = 1; i < (int)cell->size() + 1; i++)
-    old_nbhs[i] = old_nbhs[i - 1] + (cell->size() + 1);
-
-  for (int i = 0; i < ((int)cell->size() + 1) * ((int)cell->size() + 1); i++)
-    old_nbhs[0][i] = new_nbhs[0][i];
-
-  free(new_nbhs[0]);
-  free(new_nbhs);
-
-  return t1_events;
-}
-
-
-vector<vector<double>> CellularPotts::find_shared_centres()
-{
-  vector<vector<double>> cpoints{};
-  vector<vector<int>> t1s = t1transitions();
-  
-  if (!t1s.size())
-  {
-    return cpoints;
-  }
-
-  for (vector<int> trans : t1s)
-  {
-    double xtot{};
-    double ytot{};
-    
-    if (trans.size() != 4)
-      continue;
-    
-    vector<double> to_push{};
-    
-    // Variables to determine transition type
-    bool all_phase = true; 
-
-    for (int id : trans)
-    {
-      to_push.push_back(id);
-      
-      double xc = cell->at(id).get_xcen();
-      double yc = cell->at(id).get_ycen();
-      xtot += xc;
-      ytot += yc;
-
-      // Check type for classification
-      // Note: t1transitions has already filtered out invalid types and pure-epithelia events.
-      // We only need to distinguish between "All Phase" and "Mixed".
-      if (cell->at(id).IsEpithelia()) 
-      {
-          all_phase = false;
-      }
-    }
-
-    xtot = xtot / double(trans.size());
-    ytot = ytot / double(trans.size());
-    
-    to_push.push_back(xtot);
-    to_push.push_back(ytot);
-
-    // Append flag for transition type
-    // 1.0 -> Only Phase cells
-    // 2.0 -> Mixed Phase and Epithelia
-    if (all_phase) {
-        to_push.push_back(1.0); 
-    } else {
-        to_push.push_back(2.0);
-    }
-
-    cpoints.push_back(to_push);
-  }
-
-  for (auto &id : transition_cooldown_list)
-  {
-    if (id.second > 0)
-    {
-      --id.second;
-    }
-  }
-  return cpoints;
-}
-
-
-
-
-
-
 double CellularPotts::avgMedMovement()
 {
   vector<double> curr_xs{};
@@ -11854,24 +9779,35 @@ bool CellularPotts::CheckShape()
 
 void CellularPotts::SetCellCenters()
 {
+  map<int, double> xvals{};
+  map <int, double> yvals{};
 
+  // get center of mass for all cells. Probably faster than searching through the vector every time! Turn this into function
   if (!par.periodic_boundaries)
   {
+    for (int x=1;x<sizex;++x)
+      for (int y=1;y<sizey;++y)
+      {
+        if (sigma[x][y] > 0)
+        {
+          xvals[sigma[x][y]] += x;
+          yvals[sigma[x][y]] += y;
+        }
+      }
+    int count=1;
     vector<Cell>::iterator c;
     for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
       if (c->AliveP())
       {
-        c->set_xcen();
-        c->set_ycen();
+        xvals[count] = xvals[count] / double(c->Area());
+        yvals[count] = yvals[count] / double(c->Area());
       }
+      ++count;
     }
   }
   else
   {
-    map<int, double> xvals{};
-    map <int, double> yvals{};
-
     map<int, double> xvals_px{};
 
     map<int, double> yvals_py{};
@@ -12015,46 +9951,22 @@ void CellularPotts::SetCellCenters()
       }
       ++count;
     }
-    // give each cell its x and y coords
-    map<int, double>::iterator iter;
-    for (iter = xvals.begin(); iter != xvals.end(); iter++)
-    {
-      (*cell)[iter->first].set_xcen(iter->second);
-      // cout << "xvals: " << iter->first << " : " << iter->second << endl;
-    }
-    for (iter = yvals.begin(); iter != yvals.end(); iter++)
-    {
-      (*cell)[iter->first].set_ycen(iter->second);
-      // cout << "yvals: " << iter->first << " : " << iter->second << endl;
-    }    
+  }
+
+  // give each cell its x and y coords
+  map<int, double>::iterator iter;
+  for (iter = xvals.begin(); iter != xvals.end(); iter++)
+  {
+    (*cell)[iter->first].set_xcen(iter->second);
+    // cout << "xvals: " << iter->first << " : " << iter->second << endl;
+  }
+  for (iter = yvals.begin(); iter != yvals.end(); iter++)
+  {
+    (*cell)[iter->first].set_ycen(iter->second);
+    // cout << "yvals: " << iter->first << " : " << iter->second << endl;
   }
 
 
-
-  /*old code for no periodics*/ 
-  // if (!par.periodic_boundaries)
-  // {
-  //   for (int x=1;x<sizex;++x)
-  //     for (int y=1;y<sizey;++y)
-  //     {
-  //       if (sigma[x][y] > 0)
-  //       {
-  //         xvals[sigma[x][y]] += x;
-  //         yvals[sigma[x][y]] += y;
-  //       }
-  //     }
-  //   int count=1;
-  //   vector<Cell>::iterator c;
-  //   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
-  //   {
-  //     if (c->AliveP())
-  //     {
-  //       xvals[count] = xvals[count] / double(c->Area());
-  //       yvals[count] = yvals[count] / double(c->Area());
-  //     }
-  //     ++count;
-  //   }
-  // }
 
 
 }
@@ -12427,9 +10339,6 @@ vector<vector<double>> CellularPotts::ReturnMSD()
   vector<int> xbound_crossings(cell->size()+1, 0);
   vector<int> ybound_crossings(cell->size()+1, 0);
 
-  int start_point = round(par.equilibriate/par.msd_interval);
-  int end_point = round(par.mcs/par.msd_interval);
-
   int timer = 0;
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
@@ -12441,9 +10350,9 @@ vector<vector<double>> CellularPotts::ReturnMSD()
 
       vector<double>& xm = c->get_xcens();
       vector<double>& ym = c->get_ycens();
-      double x = xm[start_point];
-      double y = ym[start_point];
-      for (int i = start_point+1; i < end_point;++i)
+      double x = xm[par.equilibriate];
+      double y = ym[par.equilibriate];
+      for (int i = par.equilibriate+1; i < par.mcs;++i)
       {
         // we want displacement from a while ago to account for back and forth motion
         double x1 = xm[i];
@@ -12511,120 +10420,6 @@ vector<vector<double>> CellularPotts::ReturnMSD()
     }
   return displacements;
 
-}
-
-
-
-vector<double> CellularPotts::ReturnDriftCorrectedMSD()
-{
-    // 1. Setup Iterators and Indices
-    int start_point = round(par.equilibriate / par.msd_interval);
-    int end_point = round(par.mcs / par.msd_interval);
-    int num_steps = end_point - start_point; 
-
-    // We need to identify valid cells first (skipping Medium/Background if necessary)
-    // Assuming c->begin() is background, we skip it as per your loop: (c=cell->begin(), c++)
-    vector<Cell*> valid_cells;
-    vector<Cell>::iterator c;
-    for (c = cell->begin(); c != cell->end(); c++) {
-        // Skip background (usually index 0) if that's your convention, 
-        // usually implicitly handled by the loop start or sigma check.
-        // Your loop started at c++, so I assume sigma=0 is skipped.
-        if (c->sigma == 0) continue; 
-        
-        if (c->AliveP()) {
-            valid_cells.push_back(&(*c));
-        }
-    }
-
-    int N = valid_cells.size();
-    if (N == 0) return {}; // Handle empty case
-
-    // 2. Storage for "Unwrapped" Displacements
-    // disp_x[i][t] stores the cumulative x-displacement of cell i at time t
-    // relative to t=start_point.
-    vector<vector<double>> disp_x(N, vector<double>(num_steps, 0.0));
-    vector<vector<double>> disp_y(N, vector<double>(num_steps, 0.0));
-
-    // 3. Compute Continuous Trajectories (Unwrapping PBC)
-    for (int i = 0; i < N; ++i) {
-        Cell* curr_cell = valid_cells[i];
-        vector<double>& xm = curr_cell->get_xcens();
-        vector<double>& ym = curr_cell->get_ycens();
-
-        // Previous unwrapped position (initialized to 0 displacement)
-        double cum_dx = 0;
-        double cum_dy = 0;
-
-        for (int t_idx = 0; t_idx < num_steps; ++t_idx) {
-            // Indices in the raw data
-            int current_time = start_point + t_idx;
-            // Use current_time + 1 to calculate step from t to t+1, 
-            // OR use current_time vs current_time-1. 
-            // Let's look at displacement from 'start_point' to 'start_point + t_idx'
-            
-            if (t_idx == 0) {
-                disp_x[i][0] = 0.0;
-                disp_y[i][0] = 0.0;
-                continue;
-            }
-
-            // Get raw step from previous recorded interval
-            double x_now = xm[current_time];
-            double y_now = ym[current_time];
-            double x_prev = xm[current_time - 1];
-            double y_prev = ym[current_time - 1];
-
-            double dx = x_now - x_prev;
-            double dy = y_now - y_prev;
-
-            // --- PBC UNWRAPPING ---
-            // If jump is > L/2, we actually crossed boundary.
-            // round(dx/L) gives -1, 0, or 1.
-            if (par.periodic_boundaries) {
-                dx -= sizex * round(dx / sizex);
-                dy -= sizey * round(dy / sizey);
-            }
-
-            cum_dx += dx;
-            cum_dy += dy;
-
-            disp_x[i][t_idx] = cum_dx;
-            disp_y[i][t_idx] = cum_dy;
-        }
-    }
-
-    // 4. Calculate Drift and Compute Corrected MSD
-    vector<double> msd_curve;
-    msd_curve.reserve(num_steps);
-
-    for (int t = 0; t < num_steps; ++t) {
-        
-        // A. Calculate Center of Mass Drift of the System at this time
-        double sum_dx = 0;
-        double sum_dy = 0;
-        for (int i = 0; i < N; ++i) {
-            sum_dx += disp_x[i][t];
-            sum_dy += disp_y[i][t];
-        }
-        
-        double drift_x = sum_dx / N;
-        double drift_y = sum_dy / N;
-
-        // B. Calculate MSD relative to the moving Center of Mass
-        double sq_disp_sum = 0;
-        for (int i = 0; i < N; ++i) {
-            // Subtract the system drift from the individual cell displacement
-            double corrected_x = disp_x[i][t] - drift_x;
-            double corrected_y = disp_y[i][t] - drift_y;
-
-            sq_disp_sum += (corrected_x * corrected_x) + (corrected_y * corrected_y);
-        }
-
-        msd_curve.push_back(sq_disp_sum / N);
-    }
-
-    return msd_curve;
 }
 
 
@@ -12697,7 +10492,7 @@ void CellularPotts::adjustPerimeters()
       if(sigma[x][y] != celln )
           printf("\nproblem, we have a cell site that thinks it's not in the cell: (%d, %d)", x, y);
 
-      for (int i=1;i<=n_nb_perim;i++) 
+      for (int i=1;i<=n_nb;i++) 
       {
         int xp2,yp2;
         xp2=x+nx[i]; yp2=y+ny[i];
@@ -12741,80 +10536,10 @@ void CellularPotts::adjustPerimeters()
 }
 
 
-map<int, double> CellularPotts::TruePerimetersMap()
-{
-  //  See Magno et al (2015) BMC biophysics for correction factor.
-  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
-  double correction=par.neighbour_multiplier;
-
-  map<int, double> toreturn;
-
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++);c!=cell->end();c++)
-  {
-    if (c->AliveP())
-    {
-      int celln=c->Sigma();
-      int perim_length{};
-
-      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
-      {
-        int x=it->first;
-        int y=it->second;
-
-
-        for (int i=1;i<=n_nb_perim;i++) 
-        {
-          int xp2,yp2;
-          xp2=x+nx[i]; yp2=y+ny[i];
-          if (par.periodic_boundaries)
-          {
-            // since we are asynchronic, we cannot just copy the borders once 
-            // every MCS
-            
-            if (xp2<=0)
-              xp2=sizex-2+xp2;
-            if (yp2<=0)
-              yp2=sizey-2+yp2;
-            if (xp2>=sizex-1)
-              xp2=xp2-sizex+2;
-            if (yp2>=sizey-1)
-              yp2=yp2-sizey+2;
-          
-            // neighsite=sigma[xp2][yp2];
-            if (sigma[x][y]!=sigma[xp2][yp2])  
-            {
-              ++perim_length;
-            }
-          }
-          else
-          {
-            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
-            {
-              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
-              continue;
-            }
-            else if (sigma[x][y]!=sigma[xp2][yp2])  
-            {
-              ++perim_length;
-            }
-          } 
-        }
-      }
-      double correted_perim = perim_length / correction; 
-      toreturn[celln] = correted_perim;      
-    }
-  }  
-  return toreturn;
-}
-
-
-
-
 vector<double> CellularPotts::TruePerimeters()
 {
   //  See Magno et al (2015) BMC biophysics for correction factor.
-  int neigh_level=par.copy_neighbourhood;; // (using n_nb because 2)
+  int neigh_level=2; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
   vector<double> toreturn;
@@ -12833,7 +10558,7 @@ vector<double> CellularPotts::TruePerimeters()
         int y=it->second;
 
 
-        for (int i=1;i<=n_nb_perim;i++) 
+        for (int i=1;i<=n_nb;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -12991,7 +10716,7 @@ void CellularPotts::ShapeIndex()
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
+  int neigh_level=par.neighbours; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
 
@@ -13008,7 +10733,7 @@ void CellularPotts::ShapeIndex()
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb_perim;i++) 
+        for (int i=1;i<=n_nb;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -13055,113 +10780,7 @@ void CellularPotts::ShapeIndex()
 }
 
 
-void CellularPotts::MeasureShapeIndex()
-{
-  initVolume();
-  adjustPerimeters();
 
-  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
-  double correction=par.neighbour_multiplier;
-
-
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++);c!=cell->end();c++)
-  {
-    bool phaser = c->GetPhase();
-    bool isepi = c->IsEpithelia();
-
-    if (c->AliveP() && phaser && !isepi)
-    {
-      int celln=c->Sigma();
-      int perim_length{};
-      bool touching_med=false;
-
-      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
-      {
-        int x=it->first;
-        int y=it->second;
-
-        for (int i=1;i<=n_nb_perim;i++) 
-        {
-          int xp2,yp2;
-          xp2=x+nx[i]; yp2=y+ny[i];
-          if (par.periodic_boundaries)
-          {
-            // since we are asynchronic, we cannot just copy the borders once 
-            // every MCS
-            
-            if (xp2<=0)
-              xp2=sizex-2+xp2;
-            if (yp2<=0)
-              yp2=sizey-2+yp2;
-            if (xp2>=sizex-1)
-              xp2=xp2-sizex+2;
-            if (yp2>=sizey-1)
-              yp2=yp2-sizey+2;
-          
-            // neighsite=sigma[xp2][yp2];
-            if (sigma[x][y]!=sigma[xp2][yp2])  
-            {
-              ++perim_length;
-              if (sigma[xp2][yp2] == 0)
-              {
-                touching_med = true;
-              }
-            }
-          }
-          else
-          {
-            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
-            {
-              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
-              continue;
-            }
-            else if (sigma[x][y]!=sigma[xp2][yp2])  
-            {
-              ++perim_length;
-              if (sigma[xp2][yp2] == 0)
-              {
-                touching_med = true;
-              }
-            }
-          } 
-        }
-      }
-      if (!touching_med)
-      {
-        // cout << corrected_perim << '\t' << vlist[p] << endl;
-        double corrected_perim = perim_length / correction; 
-        double sindex = corrected_perim / sqrt(double(vlist[celln]));
-        // cout << sindex << endl;
-        
-        shape_tally += sindex;
-        ++shape_counter;
-      }
-
-    }
-  }  
-}
-
-void CellularPotts::AverageShapeIndex()
-{
-  if (shape_counter > 0)
-  {
-    double to_add = shape_tally / shape_counter;
-    shape_vec.push_back(to_add);
-    shape_tally = 0;
-    shape_counter = 0;
-  }
-  else
-  {
-    shape_vec.push_back(0.);
-  }
-
-}
-
-vector<double>& CellularPotts::ReturnShapeIndex()
-{
-  return shape_vec;
-}
 
 
 vector<double> CellularPotts::GetHexes()
@@ -13366,7 +10985,7 @@ void CellularPotts::ShapeOrder(int time)
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
+  int neigh_level=2; // (using n_nb because 2)
   double correction=3.;
 
 
@@ -13383,7 +11002,7 @@ void CellularPotts::ShapeOrder(int time)
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb_perim;i++) 
+        for (int i=1;i<=n_nb;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -13469,7 +11088,7 @@ void CellularPotts::ShapeIndexByState()
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb_perim;i++) 
+        for (int i=1;i<=n_nb;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -13628,6 +11247,7 @@ int CellularPotts::EmptySpace()
 vector<double> CellularPotts::TrueAdhesion()
 {
   //  See Magno et al (2015) BMC biophysics for correction factor.
+  int neigh_level=2; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
   vector<double> toreturn;
@@ -13646,7 +11266,7 @@ vector<double> CellularPotts::TrueAdhesion()
         int y=it->second;
 
 
-        for (int i=1;i<=n_nb_adh;i++) 
+        for (int i=1;i<=n_nb;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -13708,6 +11328,7 @@ vector<double> CellularPotts::TrueAdhesion()
 void CellularPotts::AdhesionByState()
 {
 
+  int neigh_level=2; // (using n_nb because 2)
   double correction=par.neighbour_multiplier;
 
 
@@ -13726,7 +11347,7 @@ void CellularPotts::AdhesionByState()
         int x=it->first;
         int y=it->second;
 
-        for (int i=1;i<=n_nb_adh;i++) 
+        for (int i=1;i<=n_nb;i++) 
         {
           int xp2,yp2;
           xp2=x+nx[i]; yp2=y+ny[i];
@@ -17239,3 +14860,590 @@ int** CellularPotts::ReturnGrid()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ALL OF IS DEPRACATED
+
+
+double CellularPotts::AngleCurvature()
+{
+  // find perimeter cells
+  // find center of mass for perimeter of cells
+  // if we assume cells are equally spaced around the border
+  // calculate change in angle from one center of mass to the next around the circle.
+
+  vector<int> pcells = LinkPerimeter();
+  if (pcells.size() < 5)
+  {
+    cout << "Angle curvature incorrectly called." << endl;
+    return 0.;
+  }
+
+  // Check which cells are too exposed (we exclude these from angle calculations. )
+  CellExposure();
+
+
+  // MUST CALL CELL MASS TO ENSURE CELLS HAVE CORRECT CENTER OF MASS VARIABLES ( this is called in link perimeter or derivatives )
+
+  // storage
+  vector<double> angles;
+  vector<double> arc_lengths;
+
+  // how far around the unit circle we hav gone
+  double sumtheta = 0;
+
+  //total perimeter (we don't want a hyper-accurate perimeter because prone to fluctuations.)
+  double perimeter = 0;
+
+  for (unsigned int i=0; i<pcells.size()-2;i++)
+  {
+
+    // Only calculate angle if both cells are approporiately positioned.
+    if (!(*cell)[pcells.at(i+2)].exposed && !(*cell)[pcells.at(i)].exposed)
+    {
+
+      double dx = (*cell)[pcells.at(i+2)].xcen - (*cell)[pcells.at(i)].xcen;
+      double dy = (*cell)[pcells.at(i+2)].ycen - (*cell)[pcells.at(i)].ycen;
+
+      // add arc lengths and to perimeter
+      double length = sqrt(pow(dx, 2) + pow(dy, 2));
+      arc_lengths.push_back(length);
+      perimeter += length;
+
+      // formula is: angle = how far around the unit circle - how far went round in previous theta
+      double angle{};
+
+      if (dx > 0 && dy > 0)
+      {
+        angle = abs(atan(dx/dy));
+      }
+      else if (dx > 0)
+      {
+        angle = M_PI_2 + abs(atan(dy/dx));
+      }
+      else if (dy < 0)
+      {
+        angle = M_PI + abs(atan(dx/dy));
+      }
+      else
+      {
+        angle = M_PI + M_PI_2 + abs(atan(dy/dx));      
+      }
+      // cout << "UNIT CIRCLE: " << angle << endl;
+
+      double chg = angle - sumtheta;
+      if (chg > M_PI)
+      {
+        chg = -2. * M_PI + angle - sumtheta;
+      }
+      else if (chg < -M_PI)
+      {
+        chg = 2. * M_PI + angle - sumtheta;
+      }
+      angles.push_back(chg);
+      sumtheta = angle;
+    }
+    else
+    {
+      angles.push_back(100.);
+    }
+
+  }
+
+  // unfortunately need to remove first and redo last to go around the unit circle correctly. 
+  angles.erase(angles.begin());
+
+  if (!(*cell)[pcells.at(2)].exposed && !(*cell)[pcells.at(0)].exposed)
+  {
+    double dx = (*cell)[pcells.at(2)].xcen - (*cell)[pcells.at(0)].xcen;
+    double dy = (*cell)[pcells.at(2)].ycen - (*cell)[pcells.at(0)].ycen;
+    double length = sqrt(pow(dx, 2) + pow(dy, 2));
+    double angle{};
+
+    if (dx > 0 && dy > 0)
+    {
+      angle = abs(atan(dx/dy));
+    }
+    else if (dx > 0)
+    {
+      angle = M_PI_2 + abs(atan(dy/dx));
+    }
+    else if (dy < 0)
+    {
+      angle = M_PI + abs(atan(dx/dy));
+    }
+    else
+    {
+      angle = M_PI + M_PI_2 + abs(atan(dy/dx));      
+    }
+    double chg = angle - sumtheta;
+    if (chg > M_PI)
+    {
+      chg = -2. * M_PI + angle - sumtheta;
+    }
+    else if (chg < -M_PI)
+    {
+      chg = 2. * M_PI + angle - sumtheta;
+    }
+    angles.insert(angles.begin(), chg);
+    sumtheta = angle;
+  }
+  else
+  {
+    angles.insert(angles.begin(), 100.);
+  }
+
+
+
+
+  /// Now we compute first and second derivative with respect to arc lengths. Compute first and then second 
+  vector<double> firstd{};
+
+  double curve=0;
+
+  for (unsigned int i=0; i < arc_lengths.size()-1;++i)
+  {
+    if (angles[i+1] > 90 || angles[i] > 90)
+    {
+      // exposed cell detected
+      // cout << "skipped a cell.  " << angles[i+1] << "  " << angles[i] << endl;
+      firstd.push_back(100.);
+      continue;
+    }
+    else
+    {
+      double dydx = (angles[i+1] - angles[i]) / (arc_lengths[i] + arc_lengths[i+1]);
+      firstd.push_back(dydx);
+      // cout << "Angle: " << angles[i+1] << "  " << angles[i] << endl;
+    }
+  }
+  
+  int skip{};
+  int noskip{};
+
+  vector<double> secondd;
+  for (unsigned int i=0; i < firstd.size()-1;++i)
+  {
+    if (firstd[i+1] > 90 || firstd[i] > 90)
+    {
+      // exposed cell detected
+      ++skip;
+      continue;
+    }
+    else
+    {
+      double dydx = (firstd[i+1] - firstd[i]) / (arc_lengths[i] + arc_lengths[i+1] + arc_lengths[i+2]);
+      secondd.push_back(dydx);
+      curve += abs(dydx);
+      ++noskip;
+    }
+  }
+  curve = curve / firstd.size();
+  double scalar = perimeter * curve;
+  // cout << "Shape value: " << scalar << endl;
+
+  // cout << "Skipped: " << skip << "   Not skipped: " << noskip << endl;
+
+
+  // curve = curve / static_cast<double>(secondd.size());
+
+  // 
+
+
+  // for (double i : angles)
+  // {
+  //   cout << "Angle: " << i << endl;
+  // }
+
+  // cout << endl << "NOW DERIVATIVES!" << endl;
+  // for (double i : secondd)
+  // {
+  //   cout << "second d: " << i << endl;
+  // }
+  
+  return scalar;
+
+}
+
+
+
+vector<vector<bool>> CellularPotts::ReturnGridBad()
+{
+  vector<vector<bool>> grid;
+  grid.resize(sizex); 
+  for (vector<bool>& i : grid)
+  {
+    i.resize(sizey);
+  }
+
+  for (int x=0;x<sizex;++x)
+    for (int y=0;y<sizey;++y)
+    {
+      if (sigma[x][y] > 0)
+        grid[x][y] = true;
+      else
+        grid[x][y] = false;
+    }
+  return grid;
+}
+
+
+
+double CellularPotts::VecDoubleDeriv(vector<double> &vex)
+{
+  // calculate first derivative
+  vector<double> firstder{};
+
+  for (unsigned int i=0;i<vex.size()-1;++i)
+  {
+    firstder.push_back(vex[i+1]-vex[i]);
+  }
+
+  double sum=0;
+  // calculate second derivative and sum absolute values
+  for (unsigned int i=0;i<firstder.size()-1;++i)
+  {
+    sum += abs(firstder[i+1]-firstder[i]);
+    cout << "double dir: " << abs(firstder[i+1]-firstder[i]) << endl;
+  }
+
+  return sum;
+}
+
+
+
+// Shape stuff is not working AND IS LEAKING!! 
+// void CellularPotts::InitShape(int n)
+// {
+//   Shape = new int**[n];
+//   for (int l=0;l<n;l++)
+//   {
+//     Shape[l] = new int*[sizex];
+//     for (int i=0;i<sizex;i++)
+//     {
+//       Shape[l][i] = new int[sizey];
+//     }
+//   }
+//   for (int l=0;l<n;l++)
+//     for (int x=0;x<sizex;x++)
+//       for (int y=0;y<sizey;y++)
+//         Shape[l][x][y] = 0;
+
+
+
+
+//   // Shape = (int ***)malloc(n*sizeof(int **));
+
+//   // if (Shape == NULL)
+//   //   cerr << "MEMORY FUCKERY\n";
+  
+  
+//   // Shape[0]=(int **)malloc(n*sizex*sizeof(int *));
+//   // if (Shape[0]==NULL)  
+//   //     cerr << "MEMORY FUCKERY\n";
+  
+//   // for (int i=1;i<n;i++) 
+//   //   Shape[i]=Shape[i-1]+sizex;
+  
+//   // Shape[0][0]=(int *)malloc(n*sizex*sizey*sizeof(int));
+//   // if (Shape[0][0]==NULL)  
+//   //   cerr << "MEMORY FUCKERY\n";
+
+//   // for (int i=1;i<n*sizex;i++) 
+//   //   Shape[0][i]=Shape[0][i-1]+sizey;
+
+  
+//   // for (int i=0;i<n*sizex*sizey;i++) 
+//   //   Shape[0][0][i]=0;
+// }
+
+
+// void CellularPotts::AddNewShape()
+// {
+//   bool con = CheckAllConnected();
+//   if (con && ShapeMaintained)
+//   {
+//     for (int x=0;x<sizex;++x)
+//       for (int y=0;y<sizey;++y)
+//       {
+//         if (sigma[x][y] > 0)
+//           Shape[scount][x][y] = 1;
+//         else
+//           Shape[scount][x][y] = 0;
+//       }
+//   }
+//   else 
+//   {
+//     ShapeMaintained = false;
+//   }
+//   ++scount;
+// }
+
+
+// double CellularPotts::ChangeInShape()
+// {
+//   double count=0;
+
+//   bool filled[sizex][sizey];
+
+//   for (int n=1;n<scount;++n)
+//   {
+//     for (int x=0;x<sizex;++x)
+//       for (int y=0;y<sizey;++y)
+//       {
+//         if (Shape[n][x][y] != Shape[n-1][x][y])
+//         {
+//           if (filled[x][y])
+//             count += 0.2;
+//           else
+//           {
+//             count += 1;
+//             filled[x][y] = true;
+//           } 
+//         }
+//       }
+//    }
+//   return count; 
+// }
+
+
+
+
+double getcurve(vector<int> &vec)
+{
+  int samples = vec.size()-2;
+  int* fd = new int[samples];
+  for (int i=0;i<samples;++i)
+  {
+    fd[i] = (vec[i+2] - vec[i+1]) - (vec[i+1] - vec[i]);
+  }
+
+  // get absolute value of curvature
+  double var=0;
+  for (int i=0;i<samples;++i)
+  {
+    var += abs(fd[i]);
+  }
+  var = var / (double)samples;
+
+  delete[] fd;
+
+  return var;
+
+}
+
+
+
+double CellularPotts::Curvature()
+{
+  vector<int> miny;
+  vector<int> maxy;
+  vector<int> maxx;
+  vector<int> minx;
+
+  for (int x=0;x<sizex;)
+  {
+    int max=0;
+    int min=1000;
+    bool if_sig = false;
+    
+    for (int y=0;y<sizey;++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        if_sig = true;
+        if (y > max)
+          max = y;
+
+        if (y < min)
+          min = y;
+      }        
+    }
+    if (if_sig)
+    {
+      miny.push_back(min);
+      maxy.push_back(max); 
+    }
+    x += 5; // needs to be greater than 1 so that we can get a good look at global curvature and not random fluctuations. 
+  }
+  // iterate opposite direction
+  for (int y=0;y<sizey;)
+  {
+    int max=0;
+    int min=1000;
+    bool if_sig = false;
+    
+    for (int x=0;x<sizex;++x)
+    {
+      if (sigma[x][y] > 0)
+      {
+        if_sig = true;
+        if (x > max)
+          max = x;
+
+        if (x < min)
+          min = x;
+      }        
+    }
+    if (if_sig)
+    {
+      minx.push_back(min);
+      maxx.push_back(max); 
+    }
+    y += 5;
+  }
+
+
+  double curvature = 0;
+  curvature += getcurve(minx);
+  curvature += getcurve(miny);
+  curvature += getcurve(maxx);
+  curvature += getcurve(maxy);
+
+  return curvature;
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// void CellularPotts::morphogenWave() // FUNCTION IS SCREWED UP BECAUSE OF CENTER ATM
+// {
+// // get organism center, assumming it is an approximate circle at time of calling morphogen wave:
+
+//   double center[] = {0., 0., 0.,};
+//   get_center(center);
+
+//   for (int i=0;i<sizex-1;++i)
+//     for (int j=0;j<sizey-1;++j)
+//     {
+//       //find vector to value (function is symmetric so only need absolute value)
+
+//       if (sigma[i][j] > 0)
+//       {
+//         int lx = i - center[0];
+//         int ly = j - center[1];
+//         double vec_length = sqrt(pow(lx, 2) + pow(ly,2));
+//         // cout << vec_length << endl;
+
+//         // We are doing a gaussian distribution for the morphogen gradient (e^(-(x)^2)).
+//         double val = pow((-vec_length / center[2]), 2);
+//         double amount = exp(-val);
+//         // cout << amount << endl;
+
+//         (*cell)[sigma[i][j]].add_morphogen(amount);
+//       } 
+//     }
+  
+//   vector<Cell>::iterator c;
+//   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+//     if (c->AliveP())
+//     {
+//       c->calc_morphogen();
+//     }
+// }
+
+// void CellularPotts::decay_morph(double& morph)
+// {
+//   morph = morph * par.morphdecay;
+// }
+
+
+
+int CellularPotts::CountSomaticCells(void) 
+{
+  int amount=0;
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(),c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP() && c->checkforcycles(1) == false) 
+    {
+      vector<double> &genes = c->get_genes();
+      int count=0;
+      int i = par.n_diffusers + par.n_MF;
+      int k = i + par.n_stem;
+      while (i < k)
+      {
+        if (genes[i] > 0.5)
+          ++count;
+        ++i;
+      }
+      if (count == par.n_stem)
+        amount++;
+    }
+    // Old way of counting somatic cells. 
+    // {
+    //   vector<bool> &set = c->get_set();
+    //   int count=0;
+    //   for (int i=0;i<par.n_lockandkey + par.n_length_genes;i++)
+    //   {
+    //     if (set[i])
+    //       ++count;
+    //   }
+    //   if (count > par.max_on)
+    //     amount++;
+
+    // }
+  }
+  return amount;
+}
+
+void CellularPotts::som_fitness()
+{
+  som_cell_list.push_back(CountSomaticCells());
+}

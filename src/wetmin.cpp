@@ -365,14 +365,10 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
 
   int n_times_apart{};
 
-  vector<vector<double>> cooperativities(par.n_orgs);
   vector<vector<double>> dewetting_ratio(par.n_orgs);
   vector<vector<int>> dewetting_length(par.n_orgs);
   vector<int> depin_time(par.n_orgs);
-
-  vector<vector<double>> shape_proportions(par.n_orgs);
   vector<vector<double>> contact_angles(par.n_orgs);
-  // vector<vector<double>> nbh_exchange_rates(par.n_orgs);
 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
@@ -383,7 +379,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
     dishes[i].Init();
     dishes[i].CPM->start_network(network_list.at(i));
     dishes[i].CPM->Set_evoJ(par.J_SL);
-    dishes[i].CPM->SetAreas(par.cell_target_area);
+    dishes[i].CPM->SetAreas(par.cell_areas);
 
     bool stayed_together=true;
 
@@ -412,7 +408,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         {
           dishes[i].CPM->WetAbove(par.dewet_length, par.dewet_cell_depth);
         }
-        else        
+        else
           dishes[i].CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
       }
 
@@ -454,67 +450,21 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         }
       }
 
-      if (par.velocities && t % 1 == 0)
-      {
-        dishes[i].CPM->RecordMasses(true);
-        if (t > par.coop_start)
-        {
-          double coop = dishes[i].CPM->Cooperativity(1);
-          cooperativities[i].push_back(coop);
-        }
-      }
 
       if (t > 200 && par.measure_time_order_params && t % 1 == 0)
       {
-        dishes[i].CPM->PhaseHexaticOrder(t);
-        dishes[i].CPM->PhaseShapeIndex(t, true);
         if (t > 1000)
           dishes[i].CPM->ContactAngle();
         
       }
-      // if (t >= par.init_wetting && t % 1000 == 0)
-      // {
-      //   double nbh_exchange = dishes[i].CPM->NeighbourExchangeRate();
-      //   if (nbh_exchange >= 0)
-      //     nbh_exchange_rates[i].push_back(nbh_exchange);
-      // }
+
       if (t > 1000 + par.measure_interval && par.measure_time_order_params && t % par.measure_interval == 0)
       {
-        double shape_pr = dishes[i].CPM->ReturnShapeProportion();
         double contacta = dishes[i].CPM->GetContactAngles();
-
-        shape_proportions[i].push_back(shape_pr);
         contact_angles[i].push_back(contacta);
       }
 
-      // // dishes[i].CPM->DiscreteGrowthAndDivision(t);
-      // if (t % par.cell_addition_rate == 0 && t > 200 && par.add_cells)
-      // {
-      //   int cnum = dishes[i].CPM->FindHighestCell();
-      //   int mnum = dishes[i].CPM->TopStalk();
-      //   int check_n_points = dishes[i].CPM->CheckAddPoints();
-      //   int counter = 0;
-      //   bool set=false;
-      //   if (check_n_points < 60)
-      //   {
-      //     t = par.mcs;            
-      //   }
-      //   else
-      //   {
-      //     while (!set)
-      //     {
-      //       pair<int,int> val = dishes[i].CPM->ChooseAddPoint(mnum);
-      //       set = dishes[i].CPM->SpawnCell(val.first, val.second, cnum, t);
-      //       ++counter;
-      //       if (counter > 4)
-      //       {
-      //         set = true;
-      //         cerr << "Error in spawn cell with phase count " << dishes[i].CPM->CountPhaseOnCells() << endl;
-      //         t=par.mcs;
-      //       }
-      //     }
-      //   }
-      // }       
+
 
       dishes[i].CPM->AmoebaeMove(t);
 
@@ -569,33 +519,6 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   stream << fixed << setprecision(2) << par.J_L; // Setting precision to 2 decimal points
   string formatted_value = stream.str();
 
-  int t_shape_count{};
-  int t_hex_count{};
-
-  if (par.measure_time_order_params)
-  {
-    vector<map<int, vector<pair<int,double>>>> hexdata;
-    vector<map<int, vector<pair<int,double>>>> shapedata;
-
-    for (int i = 0; i < par.n_orgs;++i)
-    {
-      hexdata.push_back(dishes[i].CPM->Get_time_hexatic_order());
-      shapedata.push_back(dishes[i].CPM->Get_time_shape_index());
-
-    }
-
-
-    string oname = par.data_file + "/hex_time-" + formatted_value + ".dat";
-    t_hex_count = WriteData(hexdata, oname);
-
-    oname = par.data_file + "/shape_time-" + formatted_value + ".dat";
-    t_shape_count = WriteData(shapedata, oname);
-  }
-
-  string coopname = par.data_file + "/coop-" + formatted_value + ".dat";
-  OutputCooperativities(cooperativities, coopname);
-
-  coopname = par.data_file + "/coop-" + formatted_value + ".dat";
 
   double avg_phase_remained = 0;
   for (int i=0; i < par.n_orgs;++i)
@@ -618,14 +541,9 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   string fname = par.data_file + "/dewetting.ratio-" + formatted_value + ".dat";
   OutputColumnData(dewetting_ratio, fname);
 
-  // fname = par.data_file + "/neighbour.exchange-" + formatted_value + ".dat";
-  // OutputColumnData(nbh_exchange_rates, fname);
 
   fname = par.data_file + "/contact.angle-" + formatted_value + ".dat";
   OutputColumnData(contact_angles, fname);
-
-  fname = par.data_file + "/transition.proportion-" + formatted_value + ".dat";
-  OutputColumnData(shape_proportions, fname);
 
 
   fname = par.data_file + "/dewetting.length-" + formatted_value + ".dat";
@@ -635,7 +553,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
   ofstream outfile;
   string infoname = par.data_file + "/info.txt";
   outfile.open(infoname, ios::app);  // Append mode
-  outfile << par.J_L << '\t' << avg_depin << '\t' << t_hex_count << '\t' << t_shape_count << '\t' << double(n_times_apart) / double(par.n_orgs) << endl;
+  outfile << par.J_L << '\t' << avg_depin << '\t' << double(n_times_apart) / double(par.n_orgs) << endl;
   outfile.close();
 
   delete[] dishes;
@@ -674,9 +592,10 @@ int main(int argc, char *argv[])
   
   par.phase_evolution = true;
   par.min_phase_cells=4;
-  par.mcs = 2000;
+  par.mcs = 400000;
+  par.begin_network = par.mcs;
   par.sheet_hex=false;
-  par.n_orgs = 2;
+  par.n_orgs = 60;
   par.do_voronoi = true;
   par.add_cells = false;
 
@@ -684,18 +603,38 @@ int main(int argc, char *argv[])
   par.coop_stime=0;
   par.coop_start=1000;
 
-  par.sizex=300;
-  par.sizey=200;
-  par.begin_network = par.mcs;
+  // deep parameters?
+  // par.sizex=350;
+  // par.sizey=260;
+  // par.init_wetting=1000;
+  // par.sheet_depth=140;
+  // par.sheet_shift=10;
+  // par.dewet_cell_depth=7;
+  // // 1240 is mass * 15.5 cells, 100 is the baseline length
+  // double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
+  // par.dewet_length=floor(tmp_length)-26;
+
+  // long parameters:
+  // par.sizex = 512;
+  // par.dewet_length = 36;  
+  // par.init_wetting=1000;
+  // par.sheet_depth=95;
+  // par.sheet_shift=10;
+  // par.dewet_cell_depth=3;
+  // // 1240 is mass * 15.5 cells, 100 is the baseline length
+  // double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
+  // par.dewet_length=floor(tmp_length);
 
   // typical wetting parameters used:
-  par.init_wetting=1000;
   
+  par.sizey=200;
+  par.sizex=300;
+  par.init_wetting=1000;
   par.sheet_shift=10;
-  par.dewet_cell_depth=3;
+  par.dewet_cell_depth=5;
   par.sheet_depth=95;
-  par.sheet_depth+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
-  par.sizey+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_target_area)/M_PI);
+  par.sheet_depth+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+  par.sizey+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
   
   // 1240 is mass * 15.5 cells, 100 is the baseline length
   double tmp_length = (par.sizex - 100 - 2 * sqrt((1240 * par.dewet_cell_depth ) / M_PI)) / 2.;
@@ -710,7 +649,7 @@ int main(int argc, char *argv[])
     networks.push_back(par.start_matrix);
   }
   par.J_L = 1;
-  while (par.J_L < 8.1)
+  while (par.J_L < 10)
   {
     
     par.J_S = par.J_L + 8.;

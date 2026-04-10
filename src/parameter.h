@@ -39,7 +39,7 @@ class Parameter {
   void Read(const char *filename);
   void Write(ostream &os) const;
   double T;
-  int init_area;
+  int target_area;
   int target_length;
   double lambda;
   double lambda2;
@@ -49,42 +49,12 @@ class Parameter {
   bool extensiononly;
   int chemotaxis;
   int border_energy;
-  int adhesion_neighbourhood;
-  int perimeter_neighbourhood;
-  vector<int> neigh_multipliers;
-  double neigh_multiplier;
-  int copy_neighbourhood;
+  int neighbours;
   bool periodic_boundaries;
   int n_chem;
   double * diff_coeff; //DIFFUSER CORRECTION NEEDED
   double * decay_rate;
   double * secr_rate;
-  double * diff_coeff_cell;
-  double * decay_rate_cell;
-
-
-  vector<bool> spheroid_const;
-  vector<bool> spheroid_GFP_induced;
-  vector<bool> spheroid_mCherry_induced;
-  vector<bool> spheroid_CD19_induced;
-  vector<bool> c1_const;
-  vector<bool> c2_const;
-  vector<bool> c1_GFP_induced;
-  vector<bool> c2_GFP_induced;
-  vector<bool> c1_mCherry_induced;
-  vector<bool> c2_mCherry_induced;
-  vector<bool> c1_CD19_induced;
-  vector<bool> c2_CD19_induced;
-
-  vector<bool> spheroid_signal_const_surface;
-  vector<bool> spheroid_signal_const_morph;
-  vector<bool> spheroid_signal_induced;
-  vector<bool> morph_or_surface;
-
-  bool make_spheroid;
-  bool make_sparse_cells;
-
-
   double saturation;
   double dt;
   double dx;
@@ -119,54 +89,6 @@ class Parameter {
   double neighbour_multiplier;
   int ptarget_perimeter;
   bool H_perim;
-
-  double bulk_modulus;
-  double elastic_modulus;
-
-  /* synthetic params*/
-  bool make_synthetic;
-  double decay_synNotch_bound;
-  double decay_synNotch_unbound;
-  double decay_synNotch_intra;
-  double decay_E_cadherin_unbound;
-  double decay_E_cadherin_bound;
-
-  double production_rate_synNotch;
-  double binding_rate_CD19_synNotch;
-
-  double E_cadherin_production_rate;
-  double E_cadherin_saturation_constant;
-  double hill_coefficient;
-  double c_max;
-
-  double GFP_production_rate;
-  double decay_GFP;
-  double lo_cadherin_production_rate;
-
-  int synthetic_update_step;
-  double synthetic_dt;
-
-  double synthetic_Jm;
-  double synthetic_Jcell_baseline;
-  double JEcadherin_scaling;
-  double JPcadherin_scaling;
-  double JNcadherin_scaling;
-  double Jrandom_scaling_E;
-  double Jrandom_scaling_P;
-  double Jrandom_scaling_N;
-  double Jmed_scaling;
-
-  double init_random_binding;
-  double random_binding_protein_production;
-  double decay_random_binding_protein_bound;
-  double decay_random_binding_protein_unbound;
-
-  bool gut_villus;
-  bool jamming;
-
-
-  double proportion_starting_CD19;
-
 
   bool convert_cells;
   bool choose_alive_cell;
@@ -212,7 +134,7 @@ class Parameter {
   double lT;
 
   bool eden_growth;
-  int cell_target_area;
+  int cell_areas;
   int cell_addition_rate;
   bool add_cells;
   int cell_lengths;
@@ -222,15 +144,8 @@ class Parameter {
   int sheet_depth;
   int sheet_shift;
   int dewet_length;
-  int conserved_dewet_distance;
-  double L2;
-  double theoretical_diameter;
-  int init_wet_length;
   int dewet_cell_depth;
   bool wetabove;
-
-  bool record_pressure;
-  int pressure_time_length;
 
   int ball_radius;
 
@@ -272,13 +187,6 @@ class Parameter {
 
   bool insert_randoms;
 
-  bool add_gravity;
-  double lambda_gravity;
-  double Ecadherin_tension_multiple;
-  double Pcadherin_tension_multiple;
-  double Ncadherin_tension_multiple;
-
-  int thetime;
 
   int n_diffusers;
   int n_locks;
@@ -360,8 +268,7 @@ class Parameter {
 
 
   bool do_voronoi;
-  int tmpcounter;
-  int tmpcountertotal;
+
   double J_L;
   double J_S;
   double J_SL;
@@ -379,23 +286,8 @@ class Parameter {
   double J_mutate_probability;
   int penalty;
 
-  bool medium_area_constraint;
-
   bool measure_time_order_params;
   int measure_interval;
-
-  bool record_transitions;
-  int struct_avg_interval;
-  int struct_measure_interval;
-
-  int msd_interval;
-
-  double gamma_circle;
-
-  //active terms
-  bool active_motion;
-  double motility_strength;
-  int persistence_time;
 
   bool melting_adhesion;  
   int tip_max;

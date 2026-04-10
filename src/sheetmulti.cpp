@@ -19,7 +19,6 @@
 #include "storage.h"
 #include "connections.h"
 #include <sys/stat.h>
-#include "fft.h"
 
 #ifdef QTGRAPHICS
 #include "qtgraph.h"
@@ -150,22 +149,9 @@ void process_population()
 
   vector<vector<double>> hex_order(par.n_orgs);
   vector<vector<double>> shape_index(par.n_orgs);  
-  
+  vector<vector<double>> cell_displacements;
 
   Dish *dishes = new Dish[par.n_orgs];
-
-  ostringstream makefll;
-  makefll << fixed << setprecision(2) << par.sheet_J; // Setting precision to 2 decimal points
-  string fnamer = par.data_file + "/" + makefll.str();
-
-  if (par.record_transitions)
-  {
-    if (mkdir(fnamer.c_str(), 0777) == -1)
-      cerr << "Error : " << strerror(errno) << endl;
-    else
-      cout << "Directory created." << endl;
-  }
-
 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
@@ -174,7 +160,7 @@ void process_population()
     dishes[i].CPM->set_num(i + 1);
     // does init block above.
     dishes[i].Init();
-    dishes[i].CPM->SetAreas(par.cell_target_area);
+
 
 
     if (par.sheetmix)
@@ -196,7 +182,7 @@ void process_population()
       dishes[i].CPM->CopyProb(par.T);
       dishes[i].CPM->Set_J(par.sheet_J);
       dishes[i].CPM->set_mixJ(par.sheetmixJ);
-      if (par.lambda_perimeter > 0.01)
+      if (par.lambda_perimeter > 0)
       {
         par.H_perim = true; 
         dishes[i].CPM->MeasureCellPerimeters();
@@ -215,25 +201,19 @@ void process_population()
       //   double toT = par.highT_temp;
       //   dishes[i].CPM->CopyProb(toT);
       // }
-      if (!par.velocities)
-      {
-        dishes[i].CPM->SetCellCenters();
-      }
-      
-
       if (par.highT && t==par.highT_time)
       {
         dishes[i].CPM->CopyProb(par.T);
         dishes[i].CPM->Set_J(par.sheet_J);
         dishes[i].CPM->set_mixJ(par.sheetmixJ);
-        if (par.lambda_perimeter > 0.01)
+        if (par.lambda_perimeter > 0)
         {
           par.H_perim = true; 
           dishes[i].CPM->MeasureCellPerimeters();
         }
       }
 
-      if (par.velocities && t % par.msd_interval == 0)
+      if (par.velocities)
       {
         dishes[i].CPM->RecordMasses();
       }
@@ -241,27 +221,6 @@ void process_population()
       if (par.sheetmix)
       {
         dishes[i].CPM->RandomSheetType();
-      }
-
-
-      if (par.record_transitions && t>10 && t % 10 == 0)
-      {
-        vector<vector<double>> shared_centres = dishes[i].CPM->find_shared_centres();
-        if (shared_centres.size() > 0)
-        {
-          ostringstream stream;
-          stream << fixed << setprecision(2) << par.sheet_J; // Setting precision to 2 decimal points
-          string formatted_value = stream.str();
-          string fnamee = fnamer + "/transitions-" + formatted_value + "-" + to_string(i+1) +".dat";
-          ofstream outfile;
-          outfile.open(fnamee, ios::app);  // Append mode
-          outfile << fixed << setprecision(3);
-          for (auto &vv : shared_centres)
-          {
-            outfile << t << '\t' << vv[4] << '\t' << vv[5] << '\t' << vv[0] << '\t' << vv[1] <<'\t' << vv[2] <<'\t' << vv[3] <<endl;
-          }
-          outfile.close();
-        }
       }
 
       // if (t % 10 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
@@ -292,112 +251,60 @@ void process_population()
       //   }
       // }
 
-      if (t > par.struct_avg_interval-1+par.highT_time && par.measure_time_order_params && t % par.measure_interval == 0)
+      if (t % 1 == 0 && t >= par.start_sheet_measure && t<= par.end_sheet_measure && par.sheet_hex)
       {
-        dishes[i].CPM->MeasureHexaticOrder();
-        dishes[i].CPM->MeasureShapeIndex();
-
+        dishes[i].CPM->ShapeOrder(t);
+        dishes[i].CPM->HexaticOrder(t);
       }
 
-      if (par.measure_time_order_params && t % par.struct_avg_interval == 0 && t > par.struct_avg_interval+par.highT_time && t < par.mcs - par.highT_time)
-      {
-        dishes[i].CPM->AverageShapeIndex();
-        dishes[i].CPM->AverageHexaticOrder();
-      } 
+
 
       dishes[i].CPM->AmoebaeMove(t);
-
-      if (par.pics_for_opt && t % 100 == 0)
-      {
-        string dirn = par.pic_dir;
-        if (mkdir(dirn.c_str(), 0777) != -1)
-        {
-          cout << "Directory created." << endl;
-        }
-
-        for (int org=0; org < par.n_orgs; ++org)
-        {
-          // dishes[i].CPM->ColourCells(par.phase_evolution);
-          fft new_org(par.sizex,par.sizey);
-          new_org.ImportCPM(dishes[org].get_cpm());
-          string f2 = "org-";
-          string n2 = to_string(org);
-          string ftype = ".png";
-          string foutput = dirn + "/" + f2 + n2 + "-" + to_string(t) + ftype;
-          new_org.cpmOutput(foutput);
-        }
-      }
-
     }
   }
 
-  // outputting mean squared displacement.
+  if (mkdir(par.data_file.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;
+
+
+
 
   if (par.velocities)
   {
-    vector<vector<double>> cell_displacements;
-
-    // for (int i = 0; i < par.n_orgs; ++i)
-    // {
-    //   vector<vector<double>> displc = dishes[i].CPM->ReturnMSD();
-    //   for (auto i : displc)
-    //     cell_displacements.push_back(i);
-    // }
-    // std::stringstream stream;
-    // stream << std::fixed << std::setprecision(2) << "-" << par.sheet_J;
-    // string s = stream.str();
-
-    // string var_name = par.data_file + "/msd" + s + ".dat"; 
-    // ofstream outfile;
-    // outfile.open(var_name, ios::app);  
-
-    // int timer = 1;
-    // int nsteps = round((par.mcs - par.equilibriate)/(par.msd_interval)) - 1;
-    // for (auto j=0;j<nsteps;++j)
-    // {
-    //   double msd=0;
-    //   int n = 0;
-
-    //   for (auto i=0;i<cell_displacements.size();++i)
-    //   {
-    //     msd += cell_displacements[i][j];
-    //     ++n;
-    //   }
-    //   // outfile << timer << "\t" << msd/((double)n) << endl;
-    //   outfile << (msd)/((double)n) << endl;
-
-    //   ++timer;
-    // }
-
-    // outfile.close();
-
-
-    int nsteps = round((par.mcs - par.equilibriate)/(par.msd_interval)) - 1;
-    vector<double> grid_displacements(nsteps, 0.0);
     for (int i = 0; i < par.n_orgs; ++i)
     {
-      vector<double> displc = dishes[i].CPM->ReturnDriftCorrectedMSD();
-      for (int j = 0; j < nsteps; ++j)
-      {
-        grid_displacements[j] += displc[j];
-      }
+      vector<vector<double>> displc = dishes[i].CPM->ReturnMSD();
+      for (auto i : displc)
+        cell_displacements.push_back(i);
     }
     std::stringstream stream;
-    stream << std::fixed << std::setprecision(2) << "-" << par.sheet_J;
+    stream << std::fixed << std::setprecision(2) << par.lambda_perimeter << "-" << par.sheet_J;
     string s = stream.str();
+
     string var_name = par.data_file + "/msd" + s + ".dat"; 
     ofstream outfile;
     outfile.open(var_name, ios::app);  
 
-    for (auto j=0;j<nsteps;++j)
+    int timer = 1;
+    for (auto j=0;j<par.mcs-par.equilibriate-1;++j)
     {
-      outfile << grid_displacements[j]/double(par.n_orgs) << endl;
+      double msd=0;
+      int n = 0;
+
+      for (auto i=0;i<cell_displacements.size();++i)
+      {
+        msd += cell_displacements[i][j];
+        ++n;
+      }
+      // outfile << timer << "\t" << msd/((double)n) << endl;
+      outfile << (msd)/((double)n) << endl;
+
+      ++timer;
     }
 
     outfile.close();
-
-
-
   }
 
   // if (par.sheet_hex)
@@ -437,88 +344,35 @@ void process_population()
   //   outfile.close();  
   // }
 
-  if (par.measure_time_order_params)
+  if (par.sheet_hex)
   {
-    int container_size = par.mcs / par.struct_avg_interval - 2;
-    vector<double> shape_index_output(container_size, 0.);
-    vector<int> hex_counts(container_size, 0);
-    vector<double> hex_order_output(container_size, 0.);
-    for (int i = 0; i < par.n_orgs; ++i)
-    {
-      vector<double>& org_shapes = dishes[i].CPM->ReturnShapeIndex();
-      vector<double>& org_hexes = dishes[i].CPM->ReturnHexaticOrder();
-      for (int j = 0; j < container_size; ++j)
-      {
-        shape_index_output[j] += org_shapes[j];
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(1) << par.sheet_J;
+    string s = stream.str();
+    vector<pair<int,double>> hexdata = dishes[0].CPM->Get_sheet_hexatic_order();
+    vector<pair<int,double>> shapedata = dishes[0].CPM->Get_sheet_shape_index();
 
-        if (org_hexes[j] > 0.)
-        {
-          hex_order_output[j] += org_hexes[j];
-          hex_counts[j] += 1;
-        }
+    for (int i = 1; i < par.n_orgs;++i)
+    {
+      vector<pair<int,double>> next = dishes[i].CPM->Get_sheet_hexatic_order();
+      for (auto&kv : next)
+      {
+        hexdata.push_back(kv);
+      }
+      vector<pair<int,double>> shape_next = dishes[i].CPM->Get_sheet_shape_index();
+      for (auto&kv : shape_next)
+      {
+        shapedata.push_back(kv);
       }
     }
-    for (int i = 0; i < container_size; ++i)
-    {
-      shape_index_output[i] /= par.n_orgs;
-      if (hex_counts[i]==0)
-      {
-        hex_order_output[i] = 0.;
-      }
-      else
-      {
-        hex_order_output[i] /= hex_counts[i];
-      }
-    }
-    
-    ostringstream stream;
-    stream << fixed << setprecision(2) << par.sheet_J; // Setting precision to 2 decimal points
-    string formatted_value = stream.str();
-    string oname = par.data_file + "/hex_time-" + formatted_value + ".dat";
-    ofstream outfile;
-    outfile.open(oname, ios::app);  // Append mode
-    outfile << fixed << setprecision(3);
-    for (int i = 0; i < container_size; ++i)
-    {
-      outfile << i*par.struct_avg_interval + 2*par.struct_avg_interval << '\t' << hex_order_output[i] << endl;
-    }
-    outfile.close();
+    string oname = par.data_file + "/hex_time-" + s + ".dat";
+    WriteData(hexdata, oname);
 
-    oname = par.data_file + "/shape_time-" + formatted_value + ".dat";
-    outfile.open(oname, ios::app);  // Append mode
-    outfile << fixed << setprecision(3);
-    for (int i = 0; i < container_size; ++i)
-    {
-      outfile << i*par.struct_avg_interval + 2*par.struct_avg_interval << '\t' << shape_index_output[i] << endl;
-    }
-    outfile.close();
-
+    oname = par.data_file + "/shape_time-" + s + ".dat";
+    WriteData(shapedata, oname);       
   }
 
-    // std::stringstream stream;
-    // stream << std::fixed << std::setprecision(1) << par.sheet_J;
-    // string s = stream.str();
-    // vector<pair<int,double>> hexdata = dishes[0].CPM->Get_sheet_hexatic_order();
-    // vector<pair<int,double>> shapedata = dishes[0].CPM->Get_sheet_shape_index();
 
-    // for (int i = 1; i < par.n_orgs;++i)
-    // {
-    //   vector<pair<int,double>> next = dishes[i].CPM->Get_sheet_hexatic_order();
-    //   for (auto&kv : next)
-    //   {
-    //     hexdata.push_back(kv);
-    //   }
-    //   vector<pair<int,double>> shape_next = dishes[i].CPM->Get_sheet_shape_index();
-    //   for (auto&kv : shape_next)
-    //   {
-    //     shapedata.push_back(kv);
-    //   }
-    // }
-    // string oname = par.data_file + "/hex_time-" + s + ".dat";
-    // WriteData(hexdata, oname);
-
-    // oname = par.data_file + "/shape_time-" + s + ".dat";
-    // WriteData(shapedata, oname);  
 
 
   delete[] dishes;
@@ -528,23 +382,9 @@ void process_population()
 
 
 
-int main(int argc, char *argv[]) 
-{
-  par.pics_for_opt = false;
+int main(int argc, char *argv[]) {
 
-#ifdef QTGRAPHICS
-  {
-    if (par.pics_for_opt)
-    {
-      QApplication* a = new QApplication(argc, argv);
-      // if (mkdir(par.pic_dir.c_str(), 0777) != -1)
-      //   cout << "Directory created." << endl;
-    }
-  }
-#endif
   
-
-  Parameter();
   par.graphics=false;
   par.contours=false;
   par.print_fitness=true;
@@ -553,35 +393,28 @@ int main(int argc, char *argv[])
   par.gene_record=false;
   // par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
   
-  par.sizex=300;
-  par.sizey=300;
+  par.sizex=200;
+  par.sizey=200;
   par.end_program=0;
   par.sheet=true;
   par.periodic_boundaries=true;
-  par.mcs=25000 + par.equilibriate;
-  par.n_orgs = 4;
+  par.mcs=100000 + par.equilibriate;
+  par.n_orgs = 60;
 
   par.velocities=true;
-  par.measure_time_order_params=true;
-  par.sheetmix = false;
-
-  par.do_voronoi=false;
-
-  par.record_transitions=false;
-
-  par.sheet_minJ=2.25; //0.5;
-  par.sheet_maxJ=12.25;
-  par.J_width=0.25; // 0.25
+  par.sheet_hex=false;
+  par.measure_interval=10;
   // par.velocities = true;
   //   par.output_sizes = true;
   // else
   //   par.output_sizes = false;
-  
-  if (mkdir(par.data_file.c_str(), 0777) == -1)
-    cerr << "Error : " << strerror(errno) << endl;
-  else
-    cout << "Directory created." << endl;
+  Parameter();
 
+
+  if (par.sheet_hex)
+  {
+    par.mcs = par.end_sheet_measure + par.equilibriate;
+  }
 
   par.periodic_boundaries = true;
   par.flush_cells = true;

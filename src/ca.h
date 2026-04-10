@@ -257,8 +257,6 @@ public:
 
   vector<vector<int>> CellNeighbours(vector<int> cell_list); 
 
-  void update_cell_velocities_MCS();
-
   void CellExposure();
 
   vector<vector<bool>> ReturnGridBad();
@@ -361,13 +359,7 @@ public:
 
   void FractureSheet(int n_cells);
 
-  // make whole grid voronoi cell tesselatoin
-  void Voronoi();
-  
-  //specify rectangular area of voronoi tesselation
-  void Voronoi(int xlen, int ylen, int shift=0, int xshift=0, bool turnonphase=false);
-
-  void VoronoiSeparated(int xlen, int ylen, int shift, int xshift, bool turnonphase=false);
+  void Voronoi(int xlen, int ylen, int shift=0);
 
   void ToppingVoronoi();
 
@@ -377,16 +369,7 @@ public:
 
   void MeanSquareDisplacement();
 
-  double SumEnergy();
-
-  void SetMediumArea();
-
-  bool IsLocallyConnected(int* nbs, int check_val);
-
-
   vector<vector<double>> ReturnMSD();
-
-  vector<double> ReturnDriftCorrectedMSD();
 
   void ShapeIndex();
 
@@ -399,25 +382,9 @@ public:
 
   vector<double> TruePerimeters();
 
-  map<int, double> TruePerimetersMap();
-
   void ShapeIndexByState();
 
   void PhaseShapeIndex(int time=0, bool measure_proportion=false);
-
-  void MeasureShapeIndex();
-
-  void AverageShapeIndex();
-
-  vector<double>& ReturnShapeIndex();
-
-  void MeasureHexaticOrder();
-
-  void AverageHexaticOrder();
-
-  vector<double>& ReturnHexaticOrder();
-
-
 
   vector<double> GetVolumes();
 
@@ -518,13 +485,11 @@ public:
   void MeasureSinglePerimeter(int targetsigma);
 
 
-  void SetPerims(int tperim);
+  void SetPerims(int tpeirm);
 
   void WetTopCells(int width, int depth);
 
   void WetAbove(int width, int depth);
-
-  void WetAllCells();
 
   double HTouchMedium();
   
@@ -562,48 +527,6 @@ public:
   double MedPSuccessRate();
 
   void ApoptoseDeadCells();
-
-  vector<double> HydrostaticPressure();
-
-  void RecordPressure();
-
-  void RecordStress();
-
-  void CheckIfCellTouchingMedium();
-
-  map<int, bool> ReturnMediumTouching();
-
-  vector<double> AdhesionStress();
-
-  vector<vector<int>> t1transitions();
-
-  vector<vector<double>> find_shared_centres();
-
-  void PopulateSparseCells(double density, double R, int shiftx, int shifty);
-
-  /* SYNTHETIC MULTICELLULAR STRUCTURE METHODS */
-  void SyntheticNetwork();
-
-  void StartSyntheticNetwork(int start_point=0);
-
-  void StartSyntheticNetwork(Cell &newcell);
-
-  // this is going to be quite costly and iterate over the whole grid so we should be 
-  // efficien and try and double things up.
-  void SurfaceBindings();
-
-  void OutputSyntheticNetwork(int thetime);
-
-  void SyntheticGrowth();
-
-  void UpdateSyntheticCellConstraints();
-
-  void MakeSpheroid(int centerx, int centery, int radius);
-
-  void DivideCellsNoGrid(vector<bool> which_cells);
-
-  void ClearGrid();
-
 
 
   // inline double prop_success()
@@ -719,8 +642,6 @@ public:
       \return Total energy change during MCS.
     */
     int AmoebaeMove(long tsteps, PDE *PDEfield=0);
-
-    int AmoebaeMoveLegacy(long tsteps, PDE *PDEfield=0);
   
     /*! \brief Read initial cell shape from XPM file.
       Reads the initial cell shape from an 
@@ -806,8 +727,6 @@ public:
   
   //! \brief Returns the mean area of the cells. 
   double MeanCellArea(void) const;
-
-  double MeanCellPerimeter(void) const;
   
   /*! \brief Returns the cell density.
 
@@ -853,11 +772,10 @@ public:
 
 private:
   void IndexShuffle(void);
-  double DeltaH(int x,int y, int sxyp, int tsteps, PDE *PDEfield=0);
+  double DeltaH(int x,int y, int xp, int yp, int tsteps, PDE *PDEfield=0);
   bool Probability(int DH);
-  void ConvertSpin(int x,int y,int kp);
-  void ConvertSpinPerim(int x, int y, int kp);
-  void GetNeighborsSafe(int x, int y, int* nbs); 
+  void ConvertSpin(int x,int y,int xp,int yp);
+  void ConvertSpinPerim(int x, int y, int xp, int yp);
   void SprayMedium(void);
   int CopyvProb(double DH,  double stiff);
   void FreezeAmoebae(void);
@@ -865,6 +783,7 @@ private:
   void MeasureCellSize(Cell &c);
   
   bool ConnectivityPreservedP(int x, int y);
+
   
 
 
@@ -889,7 +808,7 @@ protected:
   int **outside;
 
   int **old_nbhs;
-  int old_cell_count{};
+  int old_cell_count;
 
   vector<int> old_med_nbhs;
   bool exchange_encounter=false;
@@ -910,15 +829,13 @@ protected:
 
 private:
   bool frozen;
-  static const int nx[37], ny[37];
-  static const int nbh_level[8];
+  static const int nx[25], ny[25];
+  static const int nbh_level[5];
   static int shuffleindex[9];
   std::vector<Cell> *cell;
   int zygote_area;
   int thetime;
   int n_nb;
-  int n_nb_adh;
-  int n_nb_perim;
 
   int stack[8]; // stack to count number of different surrounding cells, CHANGE TO MEMBER FUNCTION
 
@@ -956,14 +873,6 @@ private:
   int start_width;
   int opt_starty;
 
-  double hexatic_tally{};
-  double hexatic_counter{};
-  vector<double> hex_vec{};
-
-  double shape_tally{};
-  double shape_counter{};
-  vector<double> shape_vec{};
-
   int rows;
   int cols;
 
@@ -980,7 +889,7 @@ private:
   vector<double> type_fitness_list;
   vector<double> shape_fitness_list;
 
-  map<int, bool> touching_medium;
+
   // long flip_true{};
   // long flip_false{};
   // double dH_tally{};
@@ -999,7 +908,6 @@ private:
   vector<vector<int>> matrix;
   vector<bool> polarity;
   int org_num=1;
-  map<int,int> transition_cooldown_list;
 
 
   //count grid hits for awkward gradients

@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -79,209 +79,188 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;//15120834811895428147//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=17608024185899528845;//4626157915171642161;//4766666018663198866used seed for tagaki
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
     print_fitness = true; 
 
+    // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
+    start_matrix =  { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
+    // THIS IS IMPORTANT ONE!!!! { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
 
 /* Cellular Potts parameters */
-    sizex = 250;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 250;
-    mcs = 2000001;
-    // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
-    T = 1;
-    // NOTE: lambda must be divided by A_0 to maintain constant force
-
-    periodic_boundaries = false;
-    // copy neighbourhood 2 used in old simulations.
-    // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
-    // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
-    adhesion_neighbourhood=5;
-    perimeter_neighbourhood=adhesion_neighbourhood;
-    copy_neighbourhood=1;
-    neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
-    neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
-
-    bulk_modulus = 13;
-    cell_target_area = 100;
-    lambda = bulk_modulus / cell_target_area;// 130;
+    sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 300;
+    mcs = 40001;
+    T = 3;
+    // currently multiplied by sqrt of area to get actual target length
+    target_length = 2 / sqrt(M_PI);
+    lambda = 0.5;
+    lambda2 = 0; 
     div_threshold = 100;
-
-    H_perim = true;
-    elastic_modulus = 2;
-    ptarget_perimeter = 42;
-    ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
-    // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
-    lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
-      
-
-
+    cell_areas = 80;
+    // thresholds which cell has to be GREATER THAN before its target volume shifts to its actual volume. 
+    lambda_perimeter=0.0;
+    lambda_perimeter_phase=0.0;
+    neighbour_multiplier=3;
+    ptarget_perimeter=3.7*neighbour_multiplier;//*M_PI * sqrt(cell_areas/M_PI)*neighbour_multiplier;
+    // must be false. turned true automatically.
+    H_perim=false;
+  
+    // shrink gene is neutral for simulations because it has no effect. Good for comparison to neutral rate of evolution
+    
+    periodic_boundaries = true;
+    // keep this at 2= moore neighbourhood. 2 used in simulations. 
+    neighbours = 2;
     // high value ensures cells are never broken apart by copy attempts.
-    // This value is only used in the slightly faster CPM implementation where 
-    // detailed balance is not ensured.
     conn_diss = 2000;
 
+/* adhesion params */
 
-/* synthetic params */
-    make_synthetic = true;
-    synthetic_update_step=160;
-
-    production_rate_synNotch=0.02;
-    decay_synNotch_bound=0.02;
-
-    binding_rate_CD19_synNotch = 0.5;
-    decay_synNotch_unbound=0.02;
-    decay_synNotch_intra=0.04;
-
-    GFP_production_rate=0.01;
-    decay_GFP=0.002;
-    lo_cadherin_production_rate=0.01;
-
-
-    E_cadherin_production_rate=0.04;
-    E_cadherin_saturation_constant=0.25;
-    hill_coefficient=3.0;
-    decay_E_cadherin_unbound=0.01;
-    decay_E_cadherin_bound=0.005;
-    c_max = 1.5;
-
-    Ecadherin_tension_multiple=-0.08;
-    Ncadherin_tension_multiple=-0.04;
-    Pcadherin_tension_multiple=-0.04;
-
-    // this concentration is too high, needs to come down i think (and get scaling right)
-    random_binding_protein_production=0.003;
-    decay_random_binding_protein_bound=0.001;
-    decay_random_binding_protein_unbound=0.01;
-
-    synthetic_dt=0.3;
-
-    synthetic_Jm=3.8;
-
-    // not using atm
-    Jmed_scaling=10.4;
-
-    synthetic_Jcell_baseline = 5.2;
-    JEcadherin_scaling=2;//5.2;
-    JPcadherin_scaling=1.5;//2.6;
-    JNcadherin_scaling=1.5;//2.6;
-
-    Jrandom_scaling_E=0.;
-    Jrandom_scaling_N=0.5;
-    Jrandom_scaling_P=0.5;
-    
-    init_random_binding=1.;
-    // IMPORTANT NOTE!!
-    // CORTICAL TENSION SHOULD GO DOWN FOR ALL CELLS!!! AS THEY BIND MORE TO OTHER CELLS
-    // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
-    // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
-
-    proportion_starting_CD19 =0.47; // i used 0.68 for 3 layer and 0.47? for asymmetric
-
-    // Here we decide the genes of c1 and c2.
-    // first = E_cadherin high, second = E_cadherin low, third = P_cadherin, fourth = N_cadherin, 5 = CD19, 6=GFP, 7=mCherry
-    spheroid_const={0,0,1,0,0,0,0};
-    spheroid_GFP_induced={0,0,0,0,0,0,0};
-    spheroid_mCherry_induced={0,0,0,0,0,0,0};
-    spheroid_CD19_induced={0,0,0,0,0,0,0};
-
-    make_spheroid=true;
-    make_sparse_cells=true;
-
-    // three layered structure
-    c1_const={0,0,0,0,0,0,0};
-    c2_const={0,0,0,0,0,0,0};
-    c1_GFP_induced={0,0,0,0,0,0,0};
-    c2_GFP_induced={0,0,0,0,0,0,0};
-    c1_mCherry_induced={0,0,0,0,0,0,0};
-    c2_mCherry_induced={0,0,0,0,0,0,0};
-    c1_CD19_induced={1,0,0,0,0,1,0};
-    c2_CD19_induced={0,0,0,0,0,0,0};
-
-    // asymmetric
-    // c1_const={0,0,0,0,0,0,0};
-    // c2_const={0,0,0,0,0,0,0};
-    // c1_GFP_induced={0,0,0,0,0,0,0};
-    // c2_GFP_induced={0,0,1,0,0,0,1};
-    // c1_mCherry_induced={0,0,0,0,0,0,0};
-    // c2_mCherry_induced={0,0,0,0,0,0,0};
-    // c1_CD19_induced={0,0,0,1,0,1,0};
-    // c2_CD19_induced={0,0,0,0,0,0,0};
-
-    // for spheroid stuff
-    // c1_const={0,0,0,0,0,0,0};
-    // c2_const={0,0,0,0,0,0,0};
-    // c1_GFP_induced={0,0,0,0,0,0,1};
-    // c2_GFP_induced={0,0,0,0,0,0,1};
-    // c1_mCherry_induced={0,0,0,0,0,0,0};
-    // c2_mCherry_induced={0,0,0,0,0,0,0};
-    // c1_CD19_induced={0,0,0,0,0,0,0};
-    // c2_CD19_induced={0,0,0,0,0,0,0};
-
-    // we have GFP, mcherry and cd19. This vector decides whether
-    // they are morphogens or not. 1=morph, 2=surface.
-    if (make_spheroid)
-      morph_or_surface={1,0,0};
-    else
-      morph_or_surface={0,0,0};
-
-    div_threshold = 150;
-
-    active_motion = true;
-    motility_strength = 0.4;
-    persistence_time = 200.;
-
-    // note - currently active motion must be on for gravity.
-    add_gravity=true;
-    lambda_gravity=0.001;
-
-    // morphogen stuff.
-    n_diffusers = 3; // morphogens (cant be less than one)
+    // phase transition params;
+    phase_evolution=true;
+    J_L=3;
+    J_S=11.5;
+    J_med=6;//J_S/2+0.25;
+    if (J_L > J_med)
+      J_med = J_L;
+    J_SL=11.75;//J_S;
+    // J_med=8;
+    J_med2=J_med;//0.5*J_S+0.5;
+    add_cells = false;
+    cell_addition_rate=509; 
     secr_rate = new double[n_diffusers];
     diff_coeff = new double[n_diffusers];
-    diff_coeff_cell = new double [n_diffusers];
-    decay_rate = new double[n_diffusers];
-    decay_rate_cell = new double[n_diffusers];
-    subfield = 1.0;
-    relaxation = 0;
-    saturation = 0;
-    dt = 1.0;
-    dx = double(1)/double(250);// 1/((double)sizex);
-    pde_its = 4;
+    secr_rate[0] = 0.006; //126251;// 2.039e12*pow((J_L+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
+    diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 
+    linear_increase=true;
+    if (linear_increase)
+      diff_coeff[0] = 8e-7;
+    increase_start_secr = 0.00275;
+    increase_secr_mod = 0.00000006;
+    morphogen_sweep = false;
+    // might make this a optimizable parameter as well
+    gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
+    Vs_max = 0.398977; // 1;
+    Vd_max = 0; // 1; 
+    addition_distance = sqrt(cell_areas / M_PI);
+
+    // testing
+    epithelial_colour = 5;
+    MakeEpithelia=false;
+    epiJ=2;
+    epiJelse=J_med;
+    epiM=1;
+
+    makesemicircle=false;
     
-    // GFP
-    diff_coeff[0] = 2e-6;
-    diff_coeff_cell[0]=1e-7;
-    decay_rate[0] = 0.03e-3;
-    decay_rate_cell[0]=0.09e-3;
-    secr_rate[0] = 1e-3;
+    gamma_SM = 0.25; // we set to 0.25 for all simulations (other params derived from this)
+    tension_params = true;
+    if (tension_params)
+    {
 
-    //mCHERRY
-    diff_coeff[1] = 2e-6;
-    diff_coeff_cell[1]=1e-6;
-    decay_rate[1] = 0.03e-3;
-    decay_rate_cell[1]=0.4e-3;
-    secr_rate[1] = 1e-3;
+      gamma_LM = 7.0;
+      gamma_SL = 7.0;
+      J_L = 2;
+      J_med = gamma_LM + J_L/2;
+      J_med2 = J_med;
+      J_SL = gamma_LM + gamma_SL + J_L - gamma_SM;
+      J_S = 2 * gamma_LM - 2*gamma_SM + J_L;
+    }
+    if (tension_params && MakeEpithelia)
+    {
+      gamma_LM = 7;
+      gamma_SL = 9;
 
-    //CD19 (probably not needed)
-    diff_coeff[2] = 4e-6;
-    diff_coeff_cell[2]=2e-6;
-    decay_rate[2] = 0.03e-3;
-    decay_rate_cell[2]=0.4e-3;
-    secr_rate[2] = 1e-3;
+      J_L = 2;
+      epiJ = 2;
+      // epiJelse=gamma_LM - 2;
+      // J_SL = gamma_LM/2. + gamma_SL + 1 - (3.25/2);
+      // J_S = gamma_LM - 3.25;
+      J_med = gamma_LM + J_L/2;
+      J_med2 = J_med;
+      epiJelse = gamma_LM + J_L/2 + epiJ/2;
+      J_SL = gamma_LM + gamma_SL + J_L - gamma_SM;
+      J_S = 2 * gamma_LM - 2*gamma_SM + J_L;
+      cout << epiJelse << '\t' << J_SL << '\t' << J_S << endl;
 
-    // for debugging
-    thetime=0;
+
+    }
 
 
-/* adhesion params */
-    phase_evolution=false;
-    // Gut Villus project;
-    gut_villus=false;
+    /*
+    wetting params:
+    */
+    init_wetting=1000;
+    sheet_depth=95;
+    sheet_shift=10;
+    dewet_length=80;
+    dewet_cell_depth=3;
+    double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
+    dewet_length=floor(tmp_length);
+    ball_radius=54; // I used 48 and 30 for the equilibria test
+    add_to_topping=0;
+    wetabove=true;
+    
+    start_topping = 1000;
 
-  /*small genome params*/
+    melting_adhesion = false;
+    tip_max = 50;
+    tip_min = 0;
+    melt = -30;
+    slope = 4;
+    addition_rate=1;
+    if (melting_adhesion)
+    {
+      gthresh = 50;
+    }
+    // volume addition params
+    v_melt = -30;
+    v_slope = -2;
+
+    offset = 85;//65 normally used
+    
+    cell_lengths = 2 * sqrt(cell_lengths / M_PI);
+    optimization_replicates = 6;
+    pics_for_opt = true;
+    pics_for_opt_interval = 1;
+    max_div_time = 20000;
+    min_phase_cells = 20;
+    penalty=250;
+
+    measure_time_order_params = false;
+    measure_interval = 50;
+
+  
+    // GRN params
+    n_TF = 0; 
+    n_diffusers = 1; // morphogens
+    n_length_genes = 0;
+    n_MF = 2;
+
+/*stem-cell system project params*/
+    // n_lockandkey = 10; // number of lock and keys (==), stored in separate vector for ease
+    // n_locks = n_lockandkey / 2;
+    // n_TF = 4; 
+    // n_length_genes = 2;
+    // minJ=4;
+    // maxJ=24;
+    // n_mediums=5;
+    // med_table = new int[n_mediums];
+    // med_table[0] = 5;
+    // med_table[1] = 4;
+    // med_table[2] = 3;
+    // med_table[3] = 2;
+    // med_table[4] = 1;
+    // n_diffusers=3;
+    // n_MF=2;
+    // minM=6;
+    // tlength1 = 3; // target length with 1 gene or 2 genes on. These are multipliers (area / tlength = true target length)
+    // tlength2 = 2;
+
+
+/*small genome params*/
     n_lockandkey = 4; // Locks+keys. number of lock = keys, stored in separate vectors. 
     n_locks = n_lockandkey / 2; // must be half lockandkey. 
     n_mediums = 2;
@@ -292,225 +271,110 @@
     maxJ = 20; // max J if all cell-cell are not paired
     minM = 6; // min J with medium if all proteins are on
 
+/*iterators */
+    shrink = -16;
+    shrink_on = false;
+    // difference between maximum and minimum cell J
+    interval1 = maxJ-minJ;
+    // addition of J for each lock and key pair
+    interval2 = interval1 / (double)n_lockandkey;
 
-    // GRN params
-    n_TF = 0; 
-    n_length_genes = 0;
-    n_MF = 2;
+    n_genes = n_diffusers + n_TF + n_MF + !phase_evolution * (n_lockandkey + n_mediums + shrink_on + n_length_genes + (enzymes * n_diffusers)) + phase_evolution*(1);
+    // number of genes. All gene types must sum to this value (except if using morphogenwave, then activators is +1).
+    // n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers); 
+    n_activators = n_diffusers + n_TF+n_MF; //number of genes that can activate network (<= n_genes)
+    n_functional = phase_evolution * (1) + !phase_evolution*(n_lockandkey + n_length_genes + n_mediums);
+    gene_vector_size = n_diffusers + n_TF + n_MF +  !phase_evolution * (n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers));
 
-    if (gut_villus)
-    {
-      // This start matrix is for sorting, overlap and transitions. For evolution start matrix, see start_n below 
-      // IMPORTANT - this matrix is used for gut villus sims.
-      start_matrix =  { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
+    //location of maternal factors in genome
+    mfloc1 = n_diffusers;
+    mfloc2 = mfloc1 + 1;
+    // default pattern is : 1,0 -- 0,1
+    // for stem only do 0,0 -- 1,1
+    mf1_conc_on=1;
+    mf1_conc_off=0;
+    mf2_conc_on=0;
+    mf2_conc_off=1;
 
-      sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-      sizey = 250;
-      J_L=3;
-      J_S=11.5;
-      J_med=6;//J_S/2+0.25;
-      if (J_L > J_med)
-        J_med = J_L;
-      J_SL=11.75;//J_S;
-      // J_med=8;
-      J_med2=J_med;//0.5*J_S+0.5;
-      add_cells = false;
-      cell_addition_rate=509; 
-      secr_rate[0] = 0.006; //126251;// 2.039e12*pow((J_L+14.567),-12.1771)+0.0018588;// 0.00214; // 2.4e-3;
-      diff_coeff[0] = 8e-7; // Keeping it at this for now. Maybe this could be evolvable. 
-      linear_increase=true;
-      if (linear_increase)
-        diff_coeff[0] = 8e-7;
-      increase_start_secr = 0.00275;
-      increase_secr_mod = 0.00000006;
-      morphogen_sweep = false;
-      // might make this a optimizable parameter as well
-      gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
-      Vs_max = 0.398977; // 1;
-      Vd_max = 0; // 1; 
-      addition_distance = sqrt(cell_target_area / M_PI);
+    // location of target length genes in genome. 
+    tloc1 = n_diffusers + n_MF + n_TF;
+    tloc2 = tloc1+1;
 
+    shrink_loc = tloc2+1;
+    // DEPRACATED
+    e1_loc=shrink_loc+1;
+    e2_loc=e1_loc+1;
+    e1_loc=shrink_loc+1;
+    e2_loc=e1_loc+1;
 
-  /*iterators */
-      shrink = -16;
-      shrink_on = false;
-      // difference between maximum and minimum cell J
-      interval1 = maxJ-minJ;
-      // addition of J for each lock and key pair
-      interval2 = interval1 / (double)n_lockandkey;
+    // cooperativity params:
+    coop_wtime=3000;//3000
+    coop_stime=500;
+    coop_start=1000;//5000
 
-      n_genes = n_diffusers + n_TF + n_MF + !phase_evolution * (n_lockandkey + n_mediums + shrink_on + n_length_genes + (enzymes * n_diffusers)) + phase_evolution*(1);
-      // number of genes. All gene types must sum to this value (except if using morphogenwave, then activators is +1).
-      // n_genes = n_diffusers + n_lockandkey + n_mediums + n_TF + n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers); 
-      n_activators = n_diffusers + n_TF+n_MF; //number of genes that can activate network (<= n_genes)
-      n_functional = phase_evolution * (1) + !phase_evolution*(n_lockandkey + n_length_genes + n_mediums);
-      gene_vector_size = n_diffusers + n_TF + n_MF +  !phase_evolution * (n_length_genes + n_MF + shrink_on + (enzymes * n_diffusers));
+/* sheet related parameters */
+    sheet=false;
+    sheet_hex = true;
+    sheet_J = 3;
+    sheet_minJ=0.5;
+    sheet_maxJ=12.5;
+    J_width=0.5;
 
-      //location of maternal factors in genome
-      mfloc1 = n_diffusers;
-      mfloc2 = mfloc1 + 1;
-      // default pattern is : 1,0 -- 0,1
-      // for stem only do 0,0 -- 1,1
-      mf1_conc_on=1;
-      mf1_conc_off=0;
-      mf2_conc_on=0;
-      mf2_conc_off=1;
+    do_voronoi=true;
 
-      // location of target length genes in genome. 
-      tloc1 = n_diffusers + n_MF + n_TF;
-      tloc2 = tloc1+1;
-
-    }
+    sheetmix=false;
+    sheetmixJ=2*sheet_J;
+    sheetcol1=4;
+    sheetcol2=6;
+    mix_swaprate=0.;
 
 
-    jamming=false;
-    if (jamming)
-    {
-      sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-      sizey = 250;
-      // basic jamming parameters
-      epithelial_colour = 5;
-      MakeEpithelia=true;
-      epiJ=2;
-      epiJelse=J_med;
-      epiM=2;
-      J_L = 7;
-      gamma_circle=4.25;
-
-      J_med = gamma_circle + J_L/2;
-      J_med2 = J_med;
-      epiJelse = gamma_circle + J_L / 2 + epiJ / 2;
-
-      makesemicircle=false;
-      
-      gamma_SM = 0.25; // we set to 0.25 for all simulations (other params derived from this)
-      tension_params = false;
-      if (tension_params)
-      {
-        gamma_LM = 6.0;
-        gamma_SL = 7.0;
-        J_med = gamma_LM + J_L/2;
-        J_med2 = J_med;
-        J_SL = gamma_LM + gamma_SL + J_L - gamma_SM;
-        J_S = 2 * gamma_LM - 2*gamma_SM + J_L;
-      }
-      if (tension_params && MakeEpithelia)
-      {
-        gamma_LM = 7;
-        gamma_SL = 9;
-
-        J_L = 2;
-        epiJ = 2;
-        // epiJelse=gamma_LM - 2;
-        // J_SL = gamma_LM/2. + gamma_SL + 1 - (3.25/2);
-        // J_S = gamma_LM - 3.25;
-        J_med = gamma_LM + J_L/2;
-        J_med2 = J_med;
-        epiJelse = gamma_LM + J_L/2 + epiJ/2;
-        J_SL = gamma_LM + gamma_SL + J_L - gamma_SM;
-        J_S = 2 * gamma_LM - 2*gamma_SM + J_L;
-        cout << epiJelse << '\t' << J_SL << '\t' << J_S << endl;
-      }
-      /*
-      wetting params:
-      */
-      init_wetting=1000;
-      sheet_depth=95;
-      sheet_shift=10;
-      dewet_length=150;
-      dewet_cell_depth=10;
-      conserved_dewet_distance = 150;
-      // double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
-
-      L2 = sqrt((sqrt(3.)/2) * cell_target_area ) * dewet_cell_depth;
-      double tmp_length = L2 + (sqrt(pow(L2,2) + pow(M_PI * conserved_dewet_distance,2) )) / M_PI;
-      dewet_length=round(tmp_length);
-
-
-      theoretical_diameter = 2 * sqrt((dewet_length * L2)/M_PI);
-
-      record_pressure=false;
-      pressure_time_length = 5;
-
-      ball_radius=54; // I used 48 and 30 for the equilibria test
-      add_to_topping=0;
-      wetabove=true;
-      
-      start_topping = 1000;
-
-      melting_adhesion = false;
-      tip_max = 50;
-      tip_min = 0;
-      melt = -30;
-      slope = 4;
-      addition_rate=1;
-      if (melting_adhesion)
-      {
-        gthresh = 50;
-      }
-      // volume addition params
-      v_melt = -30;
-      v_slope = -2;
-
-      offset = 85;//65 normally used
-      
-      cell_lengths = 2 * sqrt(cell_lengths / M_PI);
-      optimization_replicates = 6;
-      pics_for_opt = true;
-      pics_for_opt_interval = 1;
-      max_div_time = 20000;
-      min_phase_cells = 20;
-      penalty=250;
-
-      measure_time_order_params = false;
-      measure_interval = 4;
-      struct_avg_interval = 100;
-
-      record_transitions = false;
-
-  /* sheet related parameters */
-      sheet=false;
-      sheet_hex = true;
-      sheet_J = 3;
-      sheet_minJ=0.5;
-      sheet_maxJ=12.5;
-      J_width=0.5;
-
-      do_voronoi=true;
-
-      sheetmix=false;
-      sheetmixJ=2*sheet_J;
-      sheetcol1=4;
-      sheetcol2=6;
-      mix_swaprate=0.;
-
-
-      // sheet anisotropy adhesion;
-      lambda3=1;
+    // sheet anisotropy adhesion;
+    lambda3=1;
 
 
 
-      highT=true;
-      highT_time = 100;
-      highT_temp = 5.;
+    highT=true;
+    highT_time = 100;
+    highT_temp = 5.;
 
-      start_sheet_measure = highT_time + 500;
-      end_sheet_measure = start_sheet_measure + 100;
-      msd_interval=20;
+    start_sheet_measure = highT_time + 500;
+    end_sheet_measure = start_sheet_measure + 100;
 
-      // diffusion parameters
-      waiting_time = 2000;
-      // equilibrate MUST be bigger than highT_time (pref 2000, 1000)
-      equilibriate = highT_time + 2000;
+    // diffusion parameters
+    waiting_time = 2000;
+    // equilibrate MUST be bigger than highT_time (pref 2000, 1000)
+    equilibriate = highT_time + 1000;
 
-      // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
-      // dH is calculated on the fly. 
-      IntegerHamiltonian = false;
+    // if temperature or adhesion energies etc. are not integers, we need to set this to false, so that
+    // dH is calculated on the fly. 
+    IntegerHamiltonian = false;
 
-      insitu_shapes=true;
+    insitu_shapes=true;
 
 
-    }
+/* differentiation parameters */
+
+    // edges and nodes only at end of simulation (always true).
+    potency_edges = true;
+    // what mcs to start measuring adult types & differentiation. set to 6000 for all results
+    adult_begins = 8000;
+
+    // prune tiny edges (<1 per org) from graph, but true for separating stem and differentiated or nearly stem where necessary)
+    prune_edges = false;
+    prune_amount = 6;
+
+    cycle_check = false;
+
+    // flat threshold for nodes
+    node_threshold = 0; // int(floor((mcs - adult_begins) / 40) * 2 * 10 * n_orgs);
+
+    // DEPRACATED - prune nodes below this percent. Should probably set this as a minimum value (i.e. 10 cells equivalent)
+    // using node threshold above
+    node_percent = 0.03;
+
+    cycle_size = 8; // number of past states held by a cell for determining cell types. Selecting against cycling cell types. 
+    cycle_threshold = 1; // Dom thinks it is okay to increase this from 2 to 3.  Change back if needed.   
 
 
 
@@ -551,7 +415,7 @@
 
 /* init conditions and so forth */
     // init params for organisms
-    init_area = 10240;
+    target_area = 10240;
     size_init_cells = 80; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     eden_growth=false;
     n_init_cells = 1;
@@ -581,6 +445,7 @@
     // noise amount
     noise_dose=0.1;
     noise_start = 6500;
+
 
 
     // show output of all comparisons for overlap. Only use when comparing a small number of organisms. 
@@ -618,6 +483,7 @@
     flush_cells = false;
    // turn all cells into this state at beginning of development
     flush_states = { 4.64542e-09, 1, 0.692659, 1, 1, 5.10909e-12, 6.54489e-28, 3.35757e-22, 1.34902e-36, 0.999999, 1.72289e-16, 1, 6.20555e-07, 1.16941, 0.829774,  };
+
 
 
     // convert cells at certain time point to square with radius as shown (radius is half length of square).
@@ -687,7 +553,49 @@
     n_chem = 0; // Dom not currently using, instead using n_diffusers
 
     
+    
+    decay_rate = new double[n_diffusers];
 
+    
+    subfield = 1.0;
+    relaxation = 0;
+
+    saturation = 0;
+    dt = 1.0;
+    dx = double(1)/double(250);// 1/((double)sizex);
+    pde_its = 1;
+
+    
+    diff_coeff[1] = 8e-7;
+
+    decay_rate[0] = 2e-3;
+    decay_rate[1] = 2e-3;
+    
+    
+    secr_rate[1] = 2.4e-3;
+
+    // depracated
+    reaction_rate = 5e-3; // small rate = 5e-3; // large rate = 1e-2
+
+    if (n_diffusers > 2)
+    {
+      
+      diff_coeff[2] = 8e-7; 
+      decay_rate[2] = 2.4e-3;
+      secr_rate[2] = 2.4e-3;
+      
+      // Morphogens with shorter range 
+      // diff_coeff[2] = 8e-7;
+      // decay_rate[2] = 5e-3;
+      // secr_rate[2] = 5.5e-3;
+
+      // Morphogens with longer range
+      // diff_coeff[2] = 4e-6;
+      // decay_rate[2] = 1e-3;
+      // secr_rate[2] = 1.5e-3;
+
+
+    }
     // enzymes that can break down the morphogen
     enzymes = false;
 
@@ -746,7 +654,7 @@
 
 
     // T = fgetpar(fp, "T", 50., true);
-    // init_area = igetpar(fp, "init_area", 100, true);
+    // target_area = igetpar(fp, "target_area", 100, true);
     // target_length = igetpar(fp, "target_length", 60, true);
     // lambda = fgetpar(fp, "lambda", 50, true);
     // lambda2 = fgetpar(fp, "lambda2", 5.0, true);
@@ -796,7 +704,7 @@
     setlocale(LC_NUMERIC, "C");
 
     os << " T = " << T << endl;
-    os << " init_area = " << init_area << endl;
+    os << " target_area = " << target_area << endl;
     os << " target_length = " << target_length << endl;
     os << " lambda = " << lambda << endl;
     os << " lambda2 = " << lambda2 << endl;
@@ -808,7 +716,7 @@
     os << " extensiononly = " << sbool(extensiononly) << endl;
     os << " chemotaxis = " << chemotaxis << endl;
     os << " border_energy = " << border_energy << endl;
-    os << " neighbours = " << copy_neighbourhood << endl;
+    os << " neighbours = " << neighbours << endl;
     os << " periodic_boundaries = " << sbool(periodic_boundaries) << endl;
     os << " n_chem = " << n_chem << endl;
     os << " diff_coeff = "<< diff_coeff[0] << endl;

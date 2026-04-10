@@ -133,38 +133,11 @@ void Cell::CellBirth(Cell &mother_cell) {
 
   epithelial = mother_cell.epithelial;
 
-  synNotch_bound = mother_cell.synNotch_bound;
-  synNotch_unbound = mother_cell.synNotch_unbound;
-  synNotch_intra = mother_cell.synNotch_intra;
-  E_cadherin = mother_cell.E_cadherin;
-  CD19 = mother_cell.CD19;
-  opposing_CD19 = mother_cell.opposing_CD19;
-  opposing_E_cadherin = mother_cell.opposing_E_cadherin;
-  random_binding_proteins = mother_cell.random_binding_proteins;
-  touching_med = mother_cell.touching_med;
-  mCherry=mother_cell.mCherry;
-  GFP=mother_cell.GFP;
-  opposing_GFP=mother_cell.opposing_GFP;
-  P_cadherin=mother_cell.P_cadherin;
-  N_cadherin=mother_cell.N_cadherin;
-  spheroid_cell=mother_cell.spheroid_cell;
-
-  constitutives=mother_cell.constitutives;
-  GFP_induced=mother_cell.GFP_induced;
-  mCherry_induced=mother_cell.mCherry_induced;
-  CD19_induced=mother_cell.CD19_induced;  
-
   for (int i=0;i<par.n_diffusers;i++)
   {
     diffs[i]=mother_cell.diffs[i];
   }
 
-  velocity_histories_x = mother_cell.velocity_histories_x;
-  velocity_histories_y = mother_cell.velocity_histories_y;
-  prev_com_x = mother_cell.prev_com_x;
-  prev_com_y = mother_cell.prev_com_y;
-  avg_vx= mother_cell.avg_vx;
-  avg_vy= mother_cell.avg_vy;
 
   c_type=mother_cell.c_type;
   
@@ -178,9 +151,6 @@ void Cell::CellBirth(Cell &mother_cell) {
 
   grad[0]=mother_cell.grad[0];
   grad[1]=mother_cell.grad[1];
-
-  centerx = mother_cell.centerx;
-  centery=mother_cell.centery;
   
 }
 
@@ -231,14 +201,6 @@ void Cell::ConstructorBody(int settau) {
   n_copies=0;
 
   chem = new double[par.n_chem];
-
-  if (par.active_motion)
-  {
-    velocity_histories_x.assign(par.persistence_time, 0.);
-    velocity_histories_y.assign(par.persistence_time, 0.);
-  }
-  centerx = double(par.sizex)/2 - 1;
-  centery = double(par.sizey)/2 - 1;
 
 }
 
@@ -308,30 +270,6 @@ double Cell::SheetDif(Cell &cell2, double &sJ, double &sheetmixJ)
   return sJ;
 
 }
-
-
-double Cell::SyntheticEnergy(Cell &cell2)
-{
-  if (sigma==cell2.sigma)
-    return 0;
-  else if (sigma == 0)
-    return (par.synthetic_Jm)/par.neigh_multiplier;// + par.Jmed_scaling * cell2.getE_cadherin()) / par.neigh_multiplier;
-  else if (cell2.sigma==0)
-    return (par.synthetic_Jm)/par.neigh_multiplier;// + par.Jmed_scaling * E_cadherin) / par.neigh_multiplier;
-  else
-  {
-    return (par.synthetic_Jcell_baseline 
-     - par.JEcadherin_scaling * (E_cadherin * cell2.getE_cadherin())
-     - par.Jrandom_scaling_E * ((E_cadherin*cell2.getRandomBindingProteins()) + (random_binding_proteins*cell2.getE_cadherin()))
-     - par.JPcadherin_scaling * (P_cadherin * cell2.getP_cadherin()) 
-     - par.JNcadherin_scaling * (N_cadherin * cell2.getN_cadherin())
-     - par.Jrandom_scaling_N * (N_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getN_cadherin())
-     - par.Jrandom_scaling_P * (P_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getP_cadherin())
-    ) * 2 / par.neigh_multiplier;
-  }
-}
-
-
 
 double Cell::Melt(Cell &cell2, int x)
 {
@@ -444,11 +382,11 @@ double Cell::EnergyDifference(Cell &cell2)
   if (sigma==cell2.sigma) 
     return 0;
   else if (sigma==0)
-    return CalculateJfromMed(cell2.get_medp_bool()) / par.neigh_multiplier; // (cell2.get_medp_bool()); && (cell2.get_keys_bool());
+    return CalculateJfromMed(cell2.get_medp_bool()); // (cell2.get_medp_bool()); && (cell2.get_keys_bool());
   else if (cell2.sigma == 0)
-    return CalculateJwithMed() / par.neigh_multiplier;
+    return CalculateJwithMed();
   else
-    return CalculateJfromKeyLock(cell2.get_keys_bool(), cell2.get_locks_bool()) * 2 / par.neigh_multiplier;
+    return CalculateJfromKeyLock(cell2.get_keys_bool(), cell2.get_locks_bool());
 
 
   // return J[tau][cell2.tau];

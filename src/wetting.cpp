@@ -103,12 +103,12 @@ void WriteData(const map<int, vector<pair<int, double>>>& shapedata, const strin
       if (count > 0) 
       {
         double average = sum / count;
-        outfile << "\t" << average;  // Output the average in the second column
+        outfile << "\t" << average << '\t' << count;  // Output the average in the second column
       } 
       else 
       {
-        cout << "Error in time output" << endl;
-        outfile << "\t";  // No data for this row, leave empty
+        // cout << "Error in time output" << endl;
+        outfile << "\t" << 0.0 << '\t' << count;  // No data for this row, leave empty
       }
 
       first_col = false;  // Set this to false after the first column
@@ -184,9 +184,16 @@ INIT
 {
   try 
   {
+    par.J_L = 2 ;
+    par.J_S = par.J_L + 8.;
+    par.J_med = par.J_S / 2 + 0.25;
+    par.J_med2 = par.J_med;
+    par.J_SL = par.J_S;
+    
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
+
     if (par.make_sheet)
     {
       CPM->ConstructSheet(par.sheetx,par.sheety);
@@ -195,11 +202,13 @@ INIT
     else
       CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
 
+    
+
     CPM->ConstructInitCells(*this);
     if (par.velocities)
       par.output_sizes = true;
-    
 
+    // par.divisions = 6;
     if (par.do_voronoi)
     {
       par.highT=false;
@@ -212,6 +221,12 @@ INIT
         CPM->DivideCells();
       }
     }
+    
+    // If we have only one big cell and divide it a few times
+    // we start with a nice initial clump of cells. 
+    // 
+    // The behavior can be changed in the parameter file using 
+    // parameters n_init_cells, size_init_cells and divisions
 
     
     // Assign a random type to each of the cells
@@ -262,24 +277,13 @@ TIMESTEP {
       cout << "calling init" << endl;
       dish->Init();
       dish->CPM->CopyProb(par.T);
+
+      dish->CPM->SetAreas(par.cell_areas);
       
     }
 
-    // static int counter{};
-    // static int n_cells{};
-    // if (t > 50)
-    // {
-    //   ++counter;
-    //   int tmp = dish->CPM->CountCells();
-    //   if (tmp > n_cells)
-    //   {
-    //     cout << "TIME BETWEEN DIVISIONS: " << counter << endl;
-    //     n_cells = tmp;
-    //     counter = 0;
-    //   }
-    // }
+    bool GRN = true;
 
-  
     static Info *info=new Info(*dish, *this);
     // record initial expression state. This occurs before any time step updates. 
     if (t == 100)
@@ -294,63 +298,102 @@ TIMESTEP {
 
       if (par.output_init_concs)
         dish->CPM->OutputInitConcs();
-    }
-    
-    if (t % 1000 == 0 && t > 0)
-    {
-      dish->CPM->RemoveUnconnectedCells();
-      // dish->CPM->MeasureCellPerimeters();
-    }
-    
-    if ((t == 0) && par.lambda_perimeter > 0)
-    {
-      par.H_perim = true; 
-      dish->CPM->SetPerims(par.ptarget_perimeter);
-      dish->CPM->MeasureCellPerimeters();
+
     }
 
-    // programmed cell division section
-    if (t < par.end_program)
+    if (par.velocities)
     {
-      if (!par.do_voronoi)
+      dish->CPM->RecordMasses();
+    }
+
+    if (t > 1000 && t%1==0)
+    {
+      dish->CPM->ContactAngle();
+      // dish->CPM->NeighbourExchangeRate();
+    }
+    if (t > 1000 + par.measure_interval && t % par.measure_interval == 0)
+    {
+      double contacta = dish->CPM->GetContactAngles();      
+    }
+
+    // static vector<double> cooperativities;
+
+    if (t == par.init_wetting)
+    {
+      if (par.wetabove)
       {
-        if (t % par.div_freq == 0 && t <= par.div_end && !par.make_sheet)
-        {
-          dish->CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
-          dish->CPM->SetAreas(par.cell_target_area);
-          if (par.lambda2 > 0)
-          {
-            dish->CPM->SetLengths(par.cell_lengths);
-          }
-        }
+        dish->CPM->WetAbove(par.dewet_length, par.dewet_cell_depth);
+        double nht = dish->CPM->HTouchMedium();
+        cout << nht << endl;
+        cout << "WET CELLS: " << dish->CPM->CountPhaseOnCells() << endl;
+      }
+      else
+        dish->CPM->WetTopCells(par.dewet_length, par.dewet_cell_depth);
+    }
+
+    par.measure_time_order_params = false;
+    if (par.measure_time_order_params && t > 1000)
+    {
+      dish->CPM->PhaseHexaticOrder(t);
+      dish->CPM->PhaseShapeIndex(t, true);
+    
+      // if (t > par.coop_start)
+      // {
+      //   double coop = dish->CPM->Cooperativity(200);
+      //   cooperativities.push_back(coop);
+      // }
+      if (t % 1000 == 0)
+      {
+        cout << "Wetting length is... " << dish->CPM->WettingLength() << endl;
       }
 
-     
-      if (t >= par.begin_network && t % par.update_freq == 0)
+      if (t % 50 == 0)
       {
-        dish->CPM->update_phase_network(t);
-        dish->AverageChemCell(); 
-        if (par.gene_output)
-          dish->CPM->record_GRN();   
-
-        // nop point recording velocities here?
-        // if (par.velocities)
-        // {
-        //   dish->CPM->RecordMasses();
-        // }
-        if (par.output_gamma)
-          dish->CPM->RecordGamma(); 
-
-        // speed up initial PDE diffusion
-        for (int r=0;r<par.program_its;r++) 
-        {
-          dish->PDEfield->Secrete(dish->CPM);
-          dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
-        } 
+        double prp = dish->CPM->ReturnShapeProportion();
+        cout << "proportion is: " << prp << endl;
       }
+      
     }
-    else
+
+    // if (t % 1000 == 0 && t > 0)
+    // {
+    //   dish->CPM->RemoveUnconnectedCells();
+    //   // dish->CPM->MeasureCellPerimeters();
+    // }
+    
+    // if ((t == 0) && par.lambda_perimeter > 0)
+    // {
+    //   par.H_perim = true; 
+    //   dish->CPM->SetPerims(par.ptarget_perimeter);
+    //   dish->CPM->MeasureCellPerimeters();
+    // }
+
+
+
+    // if (t == 22000)
+    // {
+    //   par.J_L=1.5; 
+    //   par.J_S = 6;
+    //   par.J_med = 4.25;
+    //   par.J_med2 = 4.25;
+    //   par.J_SL=5.6;
+    //   par.gthresh=3;
+    //   par.secr_rate[0]=0.00274;
+    //   dish->CPM->Set_evoJ(par.J_SL);
+    // }
+    // if (t>22000)
+    // {
+    //   dish->CPM->CellGrowthAndDivision(t);
+    // }
+
+    if (GRN && t >= par.mcs)
     {
+      if (t==3000)
+      {
+        par.secr_rate[0]=0.0023;
+        dish->CPM->StartWettingNetwork();
+      }
+        
       if (t % par.update_freq == 0)
       {
         dish->CPM->update_phase_network(t);
@@ -363,39 +406,7 @@ TIMESTEP {
           dish->CPM->record_GRN();
           dish->CPM->CountTypesTime();
         }
-
-        if (par.output_gamma)
-        {
-          dish->CPM->RecordGamma();
-        }
-
       }
-
-      // if (t % 10 == 0 && t > 200 && par.measure_time_order_params)
-      // {
-      //   dish->CPM->PhaseShapeIndex(t);
-      //   dish->CPM->HexaticOrder(t);
-      // }
-      
-      if (par.velocities)
-      {
-        dish->CPM->RecordMasses();
-      }
-
-      if (par.output_sizes)
-      {
-        dish->CPM->RecordSizes();
-      }
-
-      // if (par.gene_record)
-      // {
-      //   dish->CPM->RecordTypes();
-      // }
-
-      // if (par.gene_record && t > par.adult_begins)
-      // {
-      //   dish->CPM->RecordAdultTypes();
-      // }
       for (int r=0;r<par.pde_its;r++) 
       {
         if (!par.hold_morph_constant)
@@ -405,44 +416,23 @@ TIMESTEP {
         }
 
       }
-      // print individual chemical concentrations. 
-      // if (t % 100 == 0 && t > par.end_program)
-      // {
-      //   dish->PDEfield->print_concentrations(dish->CPM);
-      // }
     }
-    if (t > par.end_program)
-    {
-      if (t % par.addition_rate == 0 && par.melting_adhesion)
-      {
-        dish->CPM->SetXTip();
-        dish->CPM->VolumeAddition();
-        dish->CPM->CellGrowthAndDivision(t);
-        // dish->CPM->ShapeIndex();
-        // dish->CPM->ColourCellsByShape();
-      }
-      else
-      {
-        // if (t < 400)
-        // dish->CPM->DiscreteGrowthAndDivision(t);
-        // dish->CPM->ConstrainedGrowthAndDivision(t);        
-      }
-    }
+    
+    dish->CPM->ColourCells(true);
     dish->CPM->AmoebaeMove(t);
 
 
-    // if (t > 200 && par.measure_time_order_params && t % 1 == 0)
-    // {
-    //   dish->CPM->PhaseShapeIndex(t);
-    //   dish->CPM->PhaseHexaticOrder(t);
-    // }  
-
-    if (t % par.cell_addition_rate == 0 && t > 200)
+    if (t % par.cell_addition_rate == 0 && t > 200 && par.add_cells)
     {
       int cnum = dish->CPM->FindHighestCell();
       int mnum = dish->CPM->TopStalk();
-      
+      int count_phase = dish->CPM->CountPhaseOnCells();
+
       bool set=false;
+      if (count_phase == 0)
+      {
+        set = true;
+      }
       while (!set)
       {
         // pair<int,int> val = dish->CPM->ChooseAddPoint(mnum);
@@ -450,7 +440,6 @@ TIMESTEP {
         set = dish->CPM->SpawnCell(val.first, val.second, cnum, t);
       }
         
-      //dish->CPM->SpawnCell(val.first-20, val.second-20, cnum, t);
     }
     if (t % 4000 == 0)
     {
@@ -487,167 +476,6 @@ TIMESTEP {
         dish->CPM->OutputSizes();
         dish->CPM->Vectorfield();
       }
-        
-      // if (par.umap)
-      dish->CPM->ColourIndex();
-
-
-      map<int, int> phens = dish->CPM->get_phenotype_time();
-      map<int, int> types = dish->CPM->get_AdultTypes();  
-
-      map<pair<int,int>,int> edge_tally{};
-      
-      // check if there are super long cycles. Need to account for this tiny edge case where there is a >3000 mcs cycle (very annoying)
-      bool cycling = dish->CPM->CycleCheck();
-      if (cycling && par.cycle_check)
-      {
-        cout << "There is cycling!!" << endl;
-        dish->CPM->set_long_switches(edge_tally);
-      }
-      else
-      {
-        dish->CPM->set_switches(edge_tally);
-      }
-
-
-
-      vector<vector<int>> scc;
-      if (par.insitu_shapes)
-      {
-        par.node_threshold = 0;
-        par.prune_edges = true;
-        map<int,int>subcomps{};
-        Graph ungraph(types.size());
-        subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-        scc = ungraph.GetComps(types, 500);
-        for (auto i : scc)
-        {
-            cout << "component: ";
-            for (int j : i)
-            {
-                cout << j << "  ";
-            }
-            cout << std::endl;
-        }
-
-        map<int, vector<double>> data = dish->CPM->Get_state_shape_index();
-        string switch_out = par.data_file + "/state_shapes.dat";
-        Outputter(data, scc, switch_out);
-
-        // map<int, vector<double>> data2 = dish->CPM->Get_state_Adhesion();
-        // switch_out = par.data_file + "/state_adhesion.dat";
-        // Outputter(data2, scc, switch_out);
-
-        /* this prints individual cell states */
-        // ofstream outfile;
-        // string switch_out = par.data_file + "/state_shapes.dat";
-        // outfile.open(switch_out, ios::app);
-
-        // size_t maxLength = 0;
-        // for (const auto& pair : data) 
-        // {
-        //     maxLength = std::max(maxLength, pair.second.size());
-        // }
-        // for (const auto& pair : data) 
-        // {
-        //   outfile << pair.first << '\t';
-        // }
-        // outfile << '\n';        
-
-        // // Print the vector elements as columns
-        // for (size_t i = 0; i < maxLength; ++i) 
-        // {
-        //     for (const auto& pair : data) 
-        //     {
-        //         if (i < pair.second.size()) 
-        //         {
-        //             outfile << pair.second[i];
-        //             cout << pair.second[i] << endl;
-        //         } 
-        //         else 
-        //         {
-        //             outfile << "NaN"; // Using NaN for missing values
-        //         }
-        //         outfile << '\t';
-        //     }
-        //     outfile << '\n';
-        // }
-      }
-
-
-      if (par.potency_edges)
-      {
-        // entire program is run from ungraph now
-        map<int,int>subcomps{};
-        if (cycling && par.cycle_check)
-        {
-          Graph ungraph(phens.size());
-          subcomps = ungraph.CreateUnGraph(phens, phens, edge_tally, 1, true);          
-        }
-        else
-        {
-          Graph ungraph(types.size());
-          par.node_threshold = int(floor((par.mcs - par.adult_begins) / 40) * 20);
-          par.prune_edges = false;
-          subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-          vector<vector<int>> result = ungraph.GetComps(types);
-
-        }
-
-        if (par.gene_output)
-        {
-          ofstream outfile;
-          string switch_out = par.data_file + "/potency.dat";
-          outfile.open(switch_out, ios::app);
-
-          for (auto kv : subcomps)
-          {
-            outfile << "Component number: " << kv.first;
-            if (kv.second > 1)
-              outfile << " is weakly connected." << endl;
-            else
-              outfile << " is strongly connected." << endl;
-          }
-          outfile.close();
-        }
-        
-      }
-      else
-      {
-        // Graph newgraph(phens.size());
-        // newgraph.CreateDiGraph(phens, types, edge_start, edge_end);
-
-        // cout << "Having a look at the undirected graph...." << endl;
-        Graph ungraph(phens.size());
-        map<int,int> subcomps = ungraph.CreateUnGraph(phens, types, edge_tally);
-      }
-
-      if (par.gene_output)
-      {
-        ofstream outnet;
-        string netw = par.data_file + "/network.txt";
-        outnet.open(netw, ios::app);
-        for (int i=0;i<par.n_genes;++i)
-        {
-          if (i == 0)
-            outnet << "{ ";
-          for (int j=0;j<par.n_activators;++j)
-          {
-            if (j==0)
-              outnet << "{ " << par.start_matrix[i][j] << ", ";
-            else if (j==par.n_activators-1)
-              outnet << par.start_matrix[i][j] << " }, ";
-            else 
-              outnet << par.start_matrix[i][j] << ", ";
-          }
-          if (i == par.n_genes -1)
-            outnet << "}" << endl;
-        }
-
-        outnet << endl << "Seed is: " << endl << par.pickseed;
-        outnet.close();
-      }
-
 
       if (par.velocities)
       {
@@ -655,22 +483,9 @@ TIMESTEP {
         // dish->CPM->scc_momenta(scc);
         // dish->CPM->momenta();
         // dish->CPM->diff_anisotropy(scc);
-        if (par.division_anisotropy)
-          dish->CPM->division_anisotropy(scc);
       }
-        
-      // dish->CPM->SpecialVelocity();
-      if (par.record_directions)
-      {
-        dish->CPM->Directionality();
-        // dish->CPM->SingleCellDirection();
-      }
-   
-    }
 
-    if (t % 200 == 0)
-    {
-      cout << "Cooperativity: " << dish->CPM->Cooperativity() << endl;
+   
     }
 
     //printing every 1000 steps. Do other debugging things here as well. 
@@ -679,27 +494,20 @@ TIMESTEP {
 
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;
-      dish->CPM->PrintPhenotypes();
-      // dish->CPM->WhiteSpace();
-      // dish->CPM->DeviationFromCircle();
-      cout << "ORG MASS IS: " << dish->CPM->Mass() << endl;
-      double center[] = {0.0,0.0};
-      dish->CPM->get_center(center);
-      cout << "x center: " << center[0] << "   y center: " << center[1] << endl;
+        // dish->CPM->PrintPhenotypes();
+        // // dish->CPM->WhiteSpace();
+        // // dish->CPM->DeviationFromCircle();
+        // cout << "ORG MASS IS: " << dish->CPM->Mass() << endl;
+        // double center[] = {0.0,0.0};
+        // dish->CPM->get_center(center);
+        // cout << "x center: " << center[0] << "   y center: " << center[1] << endl;
 
-      dish->CPM->PrintColours();
+        // dish->CPM->PrintColours();
 
-      cout << "DISTANCE TO TOP: " << dish->CPM->Optimizer() << endl;
+        // cout << "DISTANCE TO TOP: " << dish->CPM->Optimizer() << endl;
 
-      dish->CPM->ShapeAlignmentByPhase();
+      // dish->CPM->ShapeAlignmentByPhase();
     }
-
-    // used to create morphogen stuff
-    // if (t==9000)
-    // {
-    //   dish->PDEfield->PrintAxisConcentrations(true, 120);
-    //   dish->CPM->OutputProteinNorms();
-    // }
 
 
     if (t >= 6000 && t < 8000 && t % 40 == 0 && par.scramble)
@@ -714,51 +522,6 @@ TIMESTEP {
       dish->CPM->ConvertToStem(100,230,par.convert_size,par.convert_to_type, dish->PDEfield, true, par.clear_radius);  
     }
 
-    if (t % 500 == 0)
-    {
-      // int ** ns = dish->CPM->SearchNeighbours();
-      // int n_size = dish->CountCells();
-
-      // for (int i = 0; i < n_size; ++i)
-      // {
-      //   cout << "cell: " << i << " neighbours: ";
-      //   for (int j = 0; j < n_size; ++j)
-      //   {
-      //     if (ns[i][j] < 0)
-      //       break;
-      //     else
-      //       cout << ns[i][j] << '\t';
-      //   }
-
-      //   cout << endl;
-      // }
-      dish->CPM->HexaticOrder();
-      // dish->CPM->ConvertToStem(125,95,40,11907, dish->PDEfield, true, 45);
-      // dish->IntroduceMorphogen(1, 120, 90);
-    }
-
-    // for removing cells. 
-    if (t == 12000)
-    {
-      // dish->CPM->DestroyCellsByRadius(34.);
-    }
-
-    if (t == 12000)
-    {
-      // fft test;
-      // test.AllocateGrid(par.sizex, par.sizey);
-      // test.ImportGrid(dish->CPM->ReturnGrid());//, dish->CPM);
-      // test.PolarTransform();
-      // test.PolarToOutput();
-
-      // test.ShiftGrid(test.GetPolar(), 8);
-
-      // test.PolarToOutput("polar-shift.png");
-
-      // test.ReflectGrid(test.GetPolar());
-      // test.PolarToOutput("polar3.png");
-
-    }
 
 
 
@@ -911,6 +674,8 @@ int main(int argc, char *argv[]) {
 #endif
     Parameter();
     par.phase_evolution = true;    
+    par.sheet_depth+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
+    par.sizey+=round(par.dewet_cell_depth - 0.5) * 2 * sqrt(double(par.cell_areas)/M_PI);
     // Read parameters
     bool read = false;
     if (read)

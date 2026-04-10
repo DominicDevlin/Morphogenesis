@@ -276,7 +276,7 @@ TIMESTEP {
       dish->Init();
       dish->CPM->CopyProb(par.T);
 
-      dish->CPM->SetAreas(par.cell_target_area);
+      dish->CPM->SetAreas(par.cell_areas);
       
     }
 
@@ -388,6 +388,7 @@ TIMESTEP {
           dish->PDEfield->Secrete(dish->CPM);
           dish->PDEfield->Diffuse(1); // might need to do more diffussion steps ? 
         }
+
       }
     }
     

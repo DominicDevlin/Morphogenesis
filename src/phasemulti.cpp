@@ -261,7 +261,7 @@ void process_population(vector<vector<vector<int>>>& network_list, int argn=0)
         {
           
           dishes[i].CPM->Programmed_Division(par.phase_evolution); // need to get the number of divisions right. 
-          dishes[i].CPM->SetAreas(par.cell_target_area);
+          dishes[i].CPM->SetAreas(par.cell_areas);
         }
        
       

@@ -29,8 +29,6 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <unordered_map>
 #include <utility>
 #include <map>
-#include <deque>
-#include <numeric>
 
 
 extern Parameter par;
@@ -88,14 +86,6 @@ public:
     sum_yy=src.sum_yy;
     sum_xy=src.sum_xy;
     owner=src.owner;
-
-    velocity_histories_x = src.velocity_histories_x;
-    velocity_histories_y = src.velocity_histories_y;
-    prev_com_x = src.prev_com_x;
-    prev_com_y = src.prev_com_y;
-    avg_vx= src.avg_vx;
-    avg_vy= src.avg_vy;
-
 
     fitness=src.fitness;
     genes=src.genes;
@@ -163,32 +153,7 @@ public:
       chem[ch]=src.chem[ch];
 
     epithelial = src.epithelial;
-
-    synNotch_bound = src.synNotch_bound;
-    synNotch_unbound = src.synNotch_unbound;
-    synNotch_intra = src.synNotch_intra;
-    E_cadherin = src.E_cadherin;
-    CD19 = src.CD19;
-    opposing_CD19 = src.opposing_CD19;
-    opposing_E_cadherin = src.opposing_E_cadherin;
-    random_binding_proteins = src.random_binding_proteins;
-    touching_med = src.touching_med;
-    mCherry=src.mCherry;
-    GFP=src.GFP;
-    opposing_GFP=src.opposing_GFP;
-    P_cadherin=src.P_cadherin;
-    N_cadherin=src.N_cadherin;
-    opposing_P_cadherin=src.opposing_P_cadherin;
-    opposing_N_cadherin=src.opposing_N_cadherin;
-    spheroid_cell=src.spheroid_cell;
-
-    constitutives=src.constitutives;
-    GFP_induced=src.GFP_induced;
-    mCherry_induced=src.mCherry_induced;
-    CD19_induced=src.CD19_induced;
-
-    centerx = src.centerx;
-    centery = src.centery;
+    
     
   }
   
@@ -224,13 +189,6 @@ public:
     sum_xx=src.sum_xx;
     sum_yy=src.sum_yy;
     sum_xy=src.sum_xy;
-
-    velocity_histories_x = src.velocity_histories_x;
-    velocity_histories_y = src.velocity_histories_y;
-    prev_com_x = src.prev_com_x;
-    prev_com_y = src.prev_com_y;
-    avg_vx= src.avg_vx;
-    avg_vy= src.avg_vy;
     
     length=src.length;
     target_length=src.target_length;
@@ -290,29 +248,6 @@ public:
     epithelial = src.epithelial;
 
 
-    synNotch_bound = src.synNotch_bound;
-    synNotch_unbound = src.synNotch_unbound;
-    synNotch_intra = src.synNotch_intra;
-    E_cadherin = src.E_cadherin;
-    CD19 = src.CD19;
-    opposing_CD19 = src.opposing_CD19;
-    opposing_E_cadherin = src.opposing_E_cadherin;
-    random_binding_proteins = src.random_binding_proteins;
-    touching_med = src.touching_med;
-    mCherry=src.mCherry;
-    GFP=src.GFP;
-    opposing_GFP=src.opposing_GFP;
-    P_cadherin=src.P_cadherin;
-    N_cadherin=src.N_cadherin;
-    opposing_P_cadherin=src.opposing_P_cadherin;
-    opposing_N_cadherin=src.opposing_N_cadherin;
-    spheroid_cell=src.spheroid_cell;
-
-    constitutives=src.constitutives;
-    GFP_induced=src.GFP_induced;
-    mCherry_induced=src.mCherry_induced;
-    CD19_induced=src.CD19_induced;
-
     diffs = new double[par.n_diffusers];
 
     for (int i=0;i<par.n_diffusers;i++)
@@ -327,9 +262,6 @@ public:
     
     return *this;
 
-    centerx = src.centerx;
-    centery = src.centery;
-
   }
 
   /*! \brief Returns false if Cell has apoptosed (vanished). */
@@ -337,10 +269,6 @@ public:
     return alive;
   }
   
-  inline void makeAlive(void) {
-    alive = true;
-  }
-
   //! Returns the cell colour.
   inline int Colour(void) const {
    
@@ -414,8 +342,7 @@ public:
   {
     if (phase_state)
     {
-      return 2* sqrt(area/M_PI);
-      // return length;
+      return length;
     }
     else
       return target_length;// sqrt(area)*par.target_length;
@@ -582,23 +509,6 @@ private:
     // sum_x, sum_y, sum_xx, sum_xy and sum_yy are adjusted
     // Eventually this function may be used to carry
     // out all necessary adminstration at once
-
-    if (par.periodic_boundaries)
-    {
-
-      double Lx = par.sizex - 2;
-      double Ly = par.sizey - 2;
-
-      double com_x = sum_x / (double)area;
-      double com_y = sum_y / (double)area;
-
-      double dx = (double)x - com_x;
-      double dy = (double)y - com_y;
-
-      // Find the "unfolded" coordinate relative to current COM
-      x -= (int)(Lx * round(dx / Lx));
-      y -= (int)(Ly * round(dy / Ly));
-    }
     sum_x+=x;
     sum_y+=y;
     sum_xx+=x*x;
@@ -625,24 +535,6 @@ private:
     // sum_x, sum_y, sum_xx, sum_xy and sum_yy are adjusted
     // Eventually this function may be used to carry
     // out all necessary adminstration at once
-
-    if (par.periodic_boundaries)
-    {
-
-      double Lx = par.sizex - 2;
-      double Ly = par.sizey - 2;
-
-      double com_x = sum_x / (double)area;
-      double com_y = sum_y / (double)area;
-
-      double dx = (double)x - com_x;
-      double dy = (double)y - com_y;
-
-      // Find the "unfolded" coordinate relative to current COM
-      x -= (int)(Lx * round(dx / Lx));
-      y -= (int)(Ly * round(dy / Ly));
-    }
-
     sum_x-=x;
     sum_y-=y;
     sum_xx-=x*x;
@@ -940,17 +832,6 @@ private:
     }
   }
 
-  inline void average_chem_synthetic()
-  {
-    if (par.morph_or_surface[0]==true)
-      opposing_GFP = opposing_GFP / (double)(area);
-    if (par.morph_or_surface[1]==true)
-      opposing_mCherry = opposing_mCherry / (double)(area);
-    if (par.morph_or_surface[2]==true)
-      opposing_CD19 = opposing_CD19 / (double)(area);
-  }
-
-
   inline double chem_conc(int d)
   {
     return diffs[d];
@@ -1027,18 +908,6 @@ private:
     return shrinker;
   }
 
-
-  inline void set_xcen()
-  {
-    xcen = double(sum_x) / area;
-  }
-
-  inline void set_ycen()
-  {
-    ycen = double(sum_y) / area;
-  }
-
-
   inline void set_xcen(double x)
   {
     xcen = x;
@@ -1063,10 +932,7 @@ private:
   {
     xcens.push_back(xcen);
     ycens.push_back(ycen);
-    cout << xcen << '\t' << ycen << '\t' << double(sum_x) / area << '\t' << double(sum_y) / area << endl;
-
   }
-
 
   inline vector<double>& get_xcens()
   {
@@ -1082,48 +948,6 @@ private:
   {
     return vel_phens;
   }
-
-  inline void AddPressure()
-  {
-      double cpressure = - par.lambda * 2 * (area - target_area);
-      pressure.push_front(cpressure);
-      if (pressure.size() > par.pressure_time_length)
-      {
-        pressure.pop_back();
-      }
-  }
-
-  inline double GetCellPressure()
-  {
-    double avgpressure{};
-    for (double &i : pressure)
-    {
-      avgpressure+=i;
-    }
-    avgpressure = avgpressure / double(pressure.size());
-    return avgpressure;
-  }
-
-  inline void AddAdhesionStress(double stress)
-  {
-    adhesion_stress.push_front(stress);
-    if (adhesion_stress.size() > par.pressure_time_length)
-    {
-      adhesion_stress.pop_back();
-    } 
-  }
-
-  inline double GetAdhesionStress()
-  {
-    double avg_adhstress{};
-    for (double &i : adhesion_stress)
-    {
-      avg_adhstress+=i;
-    }
-    avg_adhstress = avg_adhstress / double(adhesion_stress.size());
-    return avg_adhstress;
-  }
-
 
   inline void cellmed()
   {
@@ -1254,26 +1078,6 @@ private:
   {
     return shape_index;
   }
-
-  inline void AddShapeIndex(double ind)
-  {
-    shape_indices.push_back(ind);
-  }
-
-  inline double& GetShapeIndices()
-  {
-    double avg_ind=-1;
-    if (shape_indices.size() == 0)
-    {
-      cerr << "error in shape counting";
-      return avg_ind;
-    }
-    avg_ind = accumulate(shape_indices.begin(), shape_indices.end(), 0.0);
-    avg_ind = avg_ind / double(shape_indices.size());
-    shape_indices.clear();
-    return avg_ind;
-  }
-
 
   inline void SetTimeCreated(int &time)
   {
@@ -1495,449 +1299,9 @@ private:
     return sheet_type;
   }
 
-  /* active matter methods */
 
-  // called every time step to determine the direction of cell motion over last N steps.
-  inline void update_velocity()
-  {
-    // calculate velocity here
 
 
-
-    double com_x = double(sum_x) / double(area);
-    double com_y = double(sum_y) / double(area);
-
-    // if (prev_com_x < 0.0001)
-    // {
-    //   prev_com_x = com_x;
-    //   prev_com_y = com_y;
-    // }
-    if (!velocity_initialised)
-    {
-      prev_com_x = com_x;
-      prev_com_y = com_y;
-      velocity_initialised = true;
-      // Initialize histories with 0 so the cell starts neutral
-      return; 
-    }
-
-
-    double v_x = com_x - prev_com_x;
-    double v_y = com_y - prev_com_y;
-
-    // double Lx = par.sizex -2;
-    // double Ly = par.sizey -2;
-    // if (par.periodic_boundaries)
-    // {
-    //     if (v_x >  Lx / 2.0) v_x -= Lx;
-    //     if (v_x < -Lx / 2.0) v_x += Lx;
-    //     if (v_y >  Ly / 2.0) v_y -= Ly;
-    //     if (v_y < -Ly / 2.0) v_y += Ly;
-    // }
-    // need function 
-    avg_vx -= velocity_histories_x.back() / par.persistence_time;
-    avg_vy -= velocity_histories_y.back() / par.persistence_time;
-    avg_vx += v_x / par.persistence_time;
-    avg_vy += v_y / par.persistence_time;
-
-    // cout << "velocity debugging: " << avg_vx << '\t' << avg_vy << endl;
-    
-    velocity_histories_x.push_front(v_x);
-    velocity_histories_x.pop_back();
-
-    velocity_histories_y.push_front(v_y);
-    velocity_histories_y.pop_back();
-
-    prev_com_x = com_x;
-    prev_com_y = com_y;
-  }
-
-  inline double cell_velx()
-  {
-    return avg_vx;
-  }
-  inline double cell_vely()
-  {
-    return avg_vy;
-  }
-
-  inline double ActiveDotProduct_added(int x, int y)
-  {
-    double Lx = par.sizex - 2;
-    double Ly = par.sizey - 2;
-
-    com_x = (double)sum_x / area;
-    com_y = (double)sum_y / area;
-
-    double dx = (double)x - com_x;
-    double dy = (double)y - com_y;
-
-
-    
-    if (par.periodic_boundaries) 
-    {
-        dx -= Lx * round(dx / Lx);
-        dy -= Ly * round(dy / Ly);
-
-        // if (dx >  Lx / 2.0) dx -= Lx;
-        // if (dx < -Lx / 2.0) dx += Lx;
-        // if (dy >  Ly / 2.0) dy -= Ly;
-        // if (dy < -Ly / 2.0) dy += Ly;
-    }
-
-    // Displacement of COM: dCOM = (x - COM_old) / (Area + 1)
-    com_shiftx = dx / (double)(area + 1);
-    com_shifty = dy / (double)(area + 1);
-
-    // Energy contribution: area * (dCOM . Velocity)
-    return (double)area * (com_shiftx * avg_vx + com_shifty * avg_vy);
-
-
-    // double dirx = double(sum_x+x)/double(area+1) - double(sum_x)/double(area);
-    // double diry = double(sum_y+y)/double(area+1) - double(sum_y)/double(area);
-
-    // double dot_product = area * (dirx * avg_vx + diry * avg_vy);
-    // return dot_product; 
-  }
-
-  inline double ActiveDotProduct_removed(int x, int y)
-  {
-    double Lx = par.sizex - 2;
-    double Ly = par.sizey - 2;
-
-    com_x = (double)sum_x / area;
-    com_y = (double)sum_y / area;
-
-    // Vector from COM to the pixel being removed
-    double dx = (double)x - com_x;
-    double dy = (double)y - com_y;
-
-    if (par.periodic_boundaries) 
-    {
-        dx -= Lx * round(dx / Lx);
-        dy -= Ly * round(dy / Ly);
-        // if (dx >  Lx / 2.0) dx -= Lx;
-        // if (dx < -Lx / 2.0) dx += Lx;
-        // if (dy >  Ly / 2.0) dy -= Ly;
-        // if (dy < -Ly / 2.0) dy += Ly;
-    }
-
-    // cout << dx << endl;
-    // if (abs(dx) > 20)
-    //   cout << x << '\t' << y << '\t' << com_x << '\t' << com_y << '\t' << dx << endl;
-
-    // Displacement of COM: dCOM = (COM_old - x) / (Area - 1)
-    // Note: Removing a pixel moves the COM in the opposite direction
-    com_shiftx = -dx / (double)(area - 1);
-    com_shifty = -dy / (double)(area - 1);
-    // if (abs(toreturn) > 1)
-    // {
-    //   cout << shift_x << '\t' << avg_vx << '\t' << shift_y << '\t' << avg_vy << '\t' << toreturn << endl;
-    // }
-      // cout << toreturn << endl;
-    // cout << (double)area * (shift_x * avg_vx + shift_y * avg_vy) << endl;
-    return (double)area * (com_shiftx * avg_vx + com_shifty * avg_vy);
-}  
-
-  double Gravity()
-  {
-    // x^2 gravity, we typically use coeffiecnt of..
-    double newcom_x = com_x + com_shiftx;
-    double newcom_y = com_y + com_shifty;
-    double delta_x = com_x - centerx;
-    double delta_y = com_y - centery;
-    double delta_xnew = newcom_x - centerx;
-    double delta_ynew = newcom_y - centery;
-    // cout << centerx << '\t' << newcom_x << '\t' << com_x << endl;
-    double old_energy = par.lambda_gravity * (delta_x * delta_x + delta_y * delta_y);
-    double new_energy = par.lambda_gravity * (delta_xnew * delta_xnew + delta_ynew * delta_ynew);
-    return new_energy - old_energy;
-
-    // x^4 gravity, coefficient of approx 0.00000008;
-      // 1. Calculate the squared distance from the center for the current position
-    // double delta_x = com_x - centerx;
-    // double delta_y = com_y - centery;
-    // double dist_sq_old = delta_x * delta_x + delta_y * delta_y;
-
-    // // 2. Calculate the squared distance for the proposed new position
-    // double newcom_x = com_x + com_shiftx;
-    // double newcom_y = com_y + com_shifty;
-    // double delta_xnew = newcom_x - centerx;
-    // double delta_ynew = newcom_y - centery;
-    // double dist_sq_new = delta_xnew * delta_xnew + delta_ynew * delta_ynew;
-    // // cout << centerx << '\t' << newcom_x << '\t' << com_x << endl;
-
-    // // 3. Compute quartic energy: E = lambda * (r^2)^2 = lambda * r^4
-    // // This creates a flat bottom and steep walls.
-    // double old_energy = par.lambda_gravity * (dist_sq_old * dist_sq_old);
-    // double new_energy = par.lambda_gravity * (dist_sq_new * dist_sq_new);
-
-    // return new_energy - old_energy;
-  }
-
-
-/* synthetic structure methods */
-
-
-void setsynNotch_bound(double new_value)
-{
-  synNotch_bound = new_value;
-}
-double& getsynNotch_bound()
-{
-  return synNotch_bound;
-}
-
-void setsynNotch_unbound(double new_value)
-{
-  synNotch_unbound = new_value;
-}
-double& getsynNotch_unbound()
-{
-  return synNotch_unbound;
-}
-
-void setsynNotch_intra(double new_value)
-{
-  synNotch_intra = new_value;
-}
-double& getsynNotch_intra()
-{
-  return synNotch_intra;
-}
-
-void setE_cadherin(double new_value)
-{
-  E_cadherin = new_value;
-}
-double& getE_cadherin()
-{
-  return E_cadherin;
-}
-
-void setRandomBindingProteins(double new_value)
-{
-  random_binding_proteins = new_value;
-}
-double& getRandomBindingProteins()
-{
-  return random_binding_proteins;
-}
-
-void setmCherry(double new_value)
-{
-  mCherry = new_value;
-}
-double& getmCherry()
-{
-  return mCherry;
-}
-void setGFP(double new_value)
-{
-  GFP = new_value;
-}
-double& getGFP()
-{
-  return GFP;
-}
-
-double& getOppositeGFP()
-{
-  return opposing_GFP;
-}
-
-double& getN_cadherin()
-{
-  return N_cadherin;
-}
-
-void setN_cadherin(double new_value)
-{
-  N_cadherin = new_value;
-}
-double& getP_cadherin()
-{
-  return P_cadherin;
-}
-
-void setP_cadherin(double new_value)
-{
-  P_cadherin = new_value;
-}
-
-double& getOpposingN_cadherin()
-{
-  return opposing_N_cadherin;
-}
-
-void setOpposingN_cadherin(double new_value)
-{
-  opposing_N_cadherin = new_value;
-}
-double& getOpposingP_cadherin()
-{
-  return opposing_N_cadherin;
-}
-
-void setOpposingP_cadherin(double new_value)
-{
-  opposing_P_cadherin = new_value;
-}
-
-
-
-void setCD19(double new_value)
-{
-  CD19 = new_value;
-}
-double& getCD19()
-{
-  return CD19;
-}
-
-double& getOpposingCD19()
-{
-  return opposing_CD19;
-}
-
-double& getOpposing_E_cadherin()
-{
-  return opposing_E_cadherin;
-}
-
-void ResetSurfaceBindings()
-{
-  if (!par.morph_or_surface[0])
-    opposing_GFP=0;
-  if (!par.morph_or_surface[2])
-    opposing_CD19=0;
-  opposing_E_cadherin=0;
-  
-}
-
-void AddtoSurfaces(bool bcd19, double bE_cad, double bGFP, double bP_cad, double bN_cad)
-{
-  if (!par.morph_or_surface[0])
-  {
-    if (bGFP > 1)
-      opposing_GFP = opposing_GFP + 1.;
-    else
-      opposing_GFP = opposing_GFP + bGFP;
-  }
-  if (!par.morph_or_surface[2])
-  {
-    opposing_CD19=opposing_CD19 + bcd19;
-  }
-
-  if (bE_cad > 1)
-    opposing_E_cadherin = opposing_E_cadherin + 1.;
-  else
-    opposing_E_cadherin = opposing_E_cadherin + bE_cad;
-
-  if (bP_cad > 1)
-    opposing_P_cadherin = opposing_P_cadherin + 1.;
-  else
-    opposing_P_cadherin = opposing_P_cadherin + bP_cad;
-  
-  if (bN_cad)
-    opposing_N_cadherin = opposing_N_cadherin + 1.;
-  else
-    opposing_N_cadherin = opposing_N_cadherin + bN_cad;
-  // cout << "ADDING:" << opposing_CD19 << '\t' << opposing_E_cadherin << endl;
-}
-
-void AverageSurfaceBindings()
-{
-  // cout << opposing_CD19 << '\t' << perimeter << endl;
-  if (!par.morph_or_surface[0])
-    opposing_GFP = opposing_GFP / double(perimeter);
-  if (!par.morph_or_surface[2])
-    opposing_CD19 = opposing_CD19 / double(perimeter);
-
-  opposing_E_cadherin = opposing_E_cadherin / double(perimeter);
-  opposing_N_cadherin = opposing_N_cadherin / double(perimeter);
-  opposing_P_cadherin = opposing_P_cadherin / double(perimeter);
-  
-  
-}
-
-bool& isSpheroid()
-{
-  return spheroid_cell;
-}
-
-void setSpheroid(bool S)
-{
-  spheroid_cell = S;
-}
-
-vector<bool> GetConstitutives()
-{
-  return constitutives;
-}
-vector<bool>GetGFP_induced()
-{
-  return GFP_induced;
-}
-vector<bool>GetMcherry_induced()
-{
-  return mCherry_induced;
-}
-vector<bool>GetCD19_induced()
-{
-  return CD19_induced;
-}
-
-void SetConstitutives(vector<bool> incoming)
-{
-  constitutives=incoming;
-}
-void SetGFP_induced(vector<bool> incoming)
-{
-  GFP_induced=incoming;
-}
-void SetMcherry_induced(vector<bool> incoming)
-{
-  mCherry_induced=incoming;
-}
-void SetCD19_induced(vector<bool> incoming)
-{
-  CD19_induced=incoming;
-}
-
-
-
-
-void setTouchingMed(bool is)
-{
-  touching_med = is;
-}
-
-bool& getTouchingMed()
-{
-  return touching_med;
-}
-
-void setPerimConstraint(double is)
-{
-  cell_perim_constraint = is;
-}
-
-double& getPerimConstraint()
-{
-  return cell_perim_constraint;
-}
-
-
-void setAreaConstraint(double is)
-{
-  cell_area_constraint = is;
-}
-
-double& getAreaConstraint()
-{
-  return cell_area_constraint;
-}
 
 private:
 //! Increments the cell's actual area by 1 unit.
@@ -2005,9 +1369,6 @@ protected:
   vector<double> gamma_list; 
   vector<double> mass_list;
 
-  deque<double> pressure;
-  deque<double> adhesion_stress;
-
   double phase_protein_conc;
   bool phase_state=false;
   double medium_protein_conc;
@@ -2025,38 +1386,6 @@ protected:
 
   double SheetDif(Cell &cell2, double &sJ=par.sheet_J, double &sheetmix=par.sheetmixJ);
 
-  double SyntheticEnergy(Cell &cell2);
-
-
-  /* parameters for synthetic structures */
-  double synNotch_bound{};
-  double synNotch_unbound{};
-  double synNotch_intra{};
-  double E_cadherin{};
-  double N_cadherin{};
-  double P_cadherin{};  
-  double CD19{};
-  double opposing_CD19{};
-  double opposing_E_cadherin{};
-  double opposing_mCherry{};
-
-  double random_binding_proteins{};
-  double GFP{};
-  double mCherry{};
-  double opposing_GFP{};
-  double opposing_N_cadherin{};
-  double opposing_P_cadherin{};
-  bool spheroid_cell{};
-
-  vector<bool>constitutives;
-  vector<bool>GFP_induced;
-  vector<bool>mCherry_induced;
-  vector<bool>CD19_induced;
-  
-  bool touching_med{};
-
-  double cell_perim_constraint;
-  double cell_area_constraint;
 
 
   // static int maxsigma; // the last cell identity number given out, Dom removed
@@ -2065,7 +1394,7 @@ protected:
   // I will make the gene network I vector for now.
   vector<double> genes; // should initialise to appropriate value
 
-  vector<double> diff_genes{};
+  vector<double> diff_genes;
 
 
   vector<double> locks{};
@@ -2133,16 +1462,6 @@ protected:
   int area;
   int target_area;
 
-  /* for energy calculations shift in c.o.m*/
-  double com_x;
-  double com_y;
-  double com_shiftx;
-  double com_shifty;
-  double centerx;
-  double centery;
-
-  double lambda_perim;
-
   
 
   double v[2];
@@ -2160,20 +1479,9 @@ protected:
   // and center of mass
   // are locally adjusted, so axes are easily
   // and quickly calculated!
-
-
-  // active motion terms
-  deque<double> velocity_histories_x;
-  deque<double> velocity_histories_y;
-  double prev_com_x = 0;
-  double prev_com_y = 0;
-  double avg_vx=0;
-  double avg_vy=0;
-  bool velocity_initialised=false;
   
   // N.B: N is area!
   double shape_index;
-  vector<double> shape_indices;
   
   long int sum_x;
   long int sum_y;
