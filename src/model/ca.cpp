@@ -1242,6 +1242,43 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
 
 
 
+
+void CellularPotts::UpdateDynamicAdhesion()
+{
+  // for starters we will just do neighbour or not to increase/snap adhesion.
+  // We can add in a cell joining threshold later
+
+  // first, we find neighbours
+
+  int **nbs = SearchNeighbours();
+  
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+      int sig = c->Sigma();
+      int j=0;
+      while(nbs[sig][j] != EMPTY)
+      {
+        if (nbs[sig][j] ==  some value)
+        {
+          // do math in here to change 
+          y = (y0-yf)e^-kt^2
+          DynamicMeeting[xxx] += 1
+        }
+        ++j;
+      }         
+      // need something if they snap?
+    }
+  }
+  free(nbs[0]);
+  free(nbs);
+
+}
+
+
+
 //! Check if the set of neighbors with value 'check_val' forms a single connected component.
 //! This ensures that removing a pixel (Candidate) doesn't split a cell, 
 //! and adding a pixel (Target) doesn't create a handle/hole.
