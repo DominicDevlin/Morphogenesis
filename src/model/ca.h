@@ -608,6 +608,21 @@ public:
   // dynamic adhesion project methods
   void UpdateDynamicAdhesion();
 
+  void StartDynamicAdhesion();
+
+  void AddtoMeeting(int i, int j);
+  void SnapMeeting(int i, int j);
+  int GetMeeting(int i, int j);
+
+
+  inline double GetDynamicAdhesion(int i, int j) const
+  {
+    int row = std::max(i, j);
+    int col = std::min(i, j);
+    return DynamicAdhesions[(row * (row + 1) >> 1) + col];
+  }
+
+
 
 
   // inline double prop_success()
@@ -993,8 +1008,9 @@ private:
   double leftover_mass_stem{};
   double leftover_mass_diff{};
 
-  vector<double> DynamicAdhesions{};
-  vector<double> DynamicMeeting{};
+  int** prev_nbs;
+  vector<double> DynamicAdhesions;
+  vector<int> DynamicMeeting;
 
 
   vector<map<int,int>> TypeCounts;

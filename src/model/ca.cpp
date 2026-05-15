@@ -1237,6 +1237,42 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
 
 
 
+void CellularPotts::StartDynamicAdhesion()
+{
+  prev_nbs = SearchNeighbours();
+
+  double init_J = 3.;
+  int ncells = CountCells();
+  int total_elements = (ncells * (ncells + 1)) / 2;
+
+  DynamicAdhesions.resize(total_elements, init_J);
+
+  DynamicMeeting.resize(total_elements, 0);
+
+}
+
+void CellularPotts::AddtoMeeting(int i, int j)
+{
+  int row = std::max(i, j);
+  int col = std::min(i, j);
+  DynamicMeeting[(row * (row + 1)) / 2 + col] += 1;
+}
+
+void CellularPotts::SnapMeeting(int i, int j)
+{
+  int row = std::max(i, j);
+  int col = std::min(i, j);
+  DynamicMeeting[(row * (row + 1)) / 2 + col] = 0;
+}
+
+int CellularPotts::GetMeeting(int i, int j)
+{
+  int row = std::max(i, j);
+  int col = std::min(i, j);
+  return DynamicMeeting[(row * (row + 1)) / 2 + col];
+}
+
+
 void CellularPotts::UpdateDynamicAdhesion()
 {
   // for starters we will just do neighbour or not to increase/snap adhesion.
@@ -1253,19 +1289,83 @@ void CellularPotts::UpdateDynamicAdhesion()
     {
       int sig = c->Sigma();
       int j=0;
-      while(nbs[sig][j] != EMPTY)
+      while(nbs[sig][j] != EMPTY && nbs[sig][j] > 0)
       {
-        if (nbs[sig][j] ==  some value)
-        {
-          // do math in here to change 
-          y = (y0-yf)e^-kt^2
-          DynamicMeeting[xxx] += 1
-        }
+        int nbh = nbs[sig][j];
+        AddtoMeeting(sig, nbh);
         ++j;
       }         
       // need something if they snap?
+int k = 0; 
+while (prev_nbs[sig][k] != EMPTY && prev_nbs[sig][k] > 0)
+{
+    int prev_nbh = prev_nbs[sig][k];
+    bool found_in_current = false;
+    int i = 0;
+
+    // Search for prev_nbh in the current nbs array
+    while (nbs[sig][i] != EMPTY && nbs[sig][i] > 0)
+    {
+        if (nbs[sig][i] == prev_nbh)
+        {
+            found_in_current = true;
+            break; // Stop searching once we find it
+        }
+        ++i;
+    }
+
+    // Handle the result
+    if (!found_in_current)
+    {
+        // SNAP LOGIC GOES HERE:
+        // prev_nbh was in prev_nbs, but is NO LONGER in nbs.
+        // e.g., RemoveFromMeeting(sig, prev_nbh);
+    }
+    else 
+    {
+        // Logic for if they are STILL connected (if needed)
+    }
+
+    ++k; // Move to the next previous neighbor
+}
+
+
     }
   }
+  int vecsize = DynamicMeeting.size();
+  for (int i = 0; i < vecsize; ++i)
+  {
+    int cortex_time = DynamicMeeting[i];
+
+    // now perform math
+    double dynJmax = 3;
+    double dynJmin = 2;
+    double timescaler = 0.0001;
+
+    double dynJ = dynJmin + ( dynJmax -  dynJmin ) * exp(-timescaler * pow(cortex_time, 2 ) ); 
+    DynamicAdhesions[i] = dynJ;
+  }
+
+
+  free(prev_nbs[0]);
+  free(prev_nbs);
+  prev_nbs=0;
+
+  // cout << "neighbours swapped and total: " << n_swapped_neighbours << '\t' << counter << endl;
+  prev_nbs=(int **)malloc((cell->size()+1)*sizeof(int *));
+  if (prev_nbs==NULL) 
+    MemoryWarning();
+  
+  prev_nbs[0]=(int *)malloc((cell->size()+1)*(cell->size()+1)*sizeof(int));
+  if (prev_nbs[0]==NULL)
+    MemoryWarning();
+  
+  for (int i=1;i<(int)cell->size()+1;i++)
+    prev_nbs[i]=prev_nbs[i-1]+(cell->size()+1);
+  
+  for (int i=0;i<((int)cell->size()+1)*((int)cell->size()+1);i++)
+    prev_nbs[0][i]=prev_nbs[0][i]; 
+
   free(nbs[0]);
   free(nbs);
 
