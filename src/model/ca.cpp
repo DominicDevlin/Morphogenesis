@@ -825,11 +825,7 @@ int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
    if (par.neighbours>=1 && par.neighbours<=4)
      n_nb=nbh_level[par.neighbours];
   */
-  if (par.thetime==616)
-    cout << "here! " << endl;
   int perim = (*cell)[sxyp].Perimeter();
-  if (par.thetime==616)
-    cout << "here! " << perim << endl;
 
   /* the cell with sigma sxyp wants to extend by adding lattice site (x, y).
  This means that the sxyp neighbours of (x,y) will not be borders anymore,so
@@ -957,8 +953,6 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
  
   for (int i=0;i<loop;i++) 
   {  
-    if (par.thetime==616)
-      cout << "here!!!!" << endl;
     // take a random site
     int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
     int x = xy%(sizex-2)+1;
