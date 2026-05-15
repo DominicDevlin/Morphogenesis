@@ -605,6 +605,10 @@ public:
   void ClearGrid();
 
 
+  // dynamic adhesion project methods
+  void UpdateDynamicAdhesion();
+
+
 
   // inline double prop_success()
   // {
@@ -988,6 +992,9 @@ private:
 
   double leftover_mass_stem{};
   double leftover_mass_diff{};
+
+  vector<double> DynamicAdhesions{};
+  vector<double> DynamicMeeting{};
 
 
   vector<map<int,int>> TypeCounts;
