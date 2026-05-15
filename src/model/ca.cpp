@@ -1296,38 +1296,38 @@ void CellularPotts::UpdateDynamicAdhesion()
         ++j;
       }         
       // need something if they snap?
-int k = 0; 
-while (prev_nbs[sig][k] != EMPTY && prev_nbs[sig][k] > 0)
-{
-    int prev_nbh = prev_nbs[sig][k];
-    bool found_in_current = false;
-    int i = 0;
+      int k = 0; 
+      while (prev_nbs[sig][k] != EMPTY && prev_nbs[sig][k] > 0)
+      {
+          int prev_nbh = prev_nbs[sig][k];
+          bool found_in_current = false;
+          int i = 0;
 
-    // Search for prev_nbh in the current nbs array
-    while (nbs[sig][i] != EMPTY && nbs[sig][i] > 0)
-    {
-        if (nbs[sig][i] == prev_nbh)
-        {
-            found_in_current = true;
-            break; // Stop searching once we find it
-        }
-        ++i;
-    }
+          // Search for prev_nbh in the current nbs array
+          while (nbs[sig][i] != EMPTY && nbs[sig][i] > 0)
+          {
+              if (nbs[sig][i] == prev_nbh)
+              {
+                  found_in_current = true;
+                  break; // Stop searching once we find it
+              }
+              ++i;
+          }
 
-    // Handle the result
-    if (!found_in_current)
-    {
-        // SNAP LOGIC GOES HERE:
-        // prev_nbh was in prev_nbs, but is NO LONGER in nbs.
-        // e.g., RemoveFromMeeting(sig, prev_nbh);
-    }
-    else 
-    {
-        // Logic for if they are STILL connected (if needed)
-    }
+          // Handle the result
+          if (!found_in_current)
+          {
+              // SNAP LOGIC GOES HERE:
+              // prev_nbh was in prev_nbs, but is NO LONGER in nbs.
+              // e.g., RemoveFromMeeting(sig, prev_nbh);
+          }
+          else 
+          {
+              // Logic for if they are STILL connected (if needed)
+          }
 
-    ++k; // Move to the next previous neighbor
-}
+          ++k; // Move to the next previous neighbor
+      }
 
 
     }
