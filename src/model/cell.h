@@ -2028,6 +2028,7 @@ protected:
   double SyntheticEnergy(Cell &cell2);
 
 
+
   /* parameters for synthetic structures */
   double synNotch_bound{};
   double synNotch_unbound{};

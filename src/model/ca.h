@@ -622,6 +622,20 @@ public:
     return DynamicAdhesions[(row * (row + 1) >> 1) + col];
   }
 
+  inline double DynamicAdhesionDiff(int i, int j) const
+  {
+    if (i==j)
+      return 0;
+    else if (i == 0)
+      return 0.2;
+    else if (j == 0)
+      return 0.2;
+    else
+    {
+      return GetDynamicAdhesion(i, j);
+    }
+  }
+
 
 
 

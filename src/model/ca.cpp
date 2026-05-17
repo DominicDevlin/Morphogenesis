@@ -423,14 +423,17 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
       {
         Jen += (*cell)[sxyp].SyntheticEnergy((*cell)[neighsite]) - (*cell)[sxy].SyntheticEnergy((*cell)[neighsite]);
       }
+      else if (par.dynamic_sorting)
+      {
+        // cout << GetDynamicAdhesion(sxy, sxyp) << endl;
+        Jen += DynamicAdhesionDiff(sxyp, neighsite) - DynamicAdhesionDiff(sxy, neighsite);
+      }
       else
       {
         if (tsteps < par.end_program)
           Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
         else
           Jen += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
-        
-        
       }
       // debugging. 
       // cout << "COPYING: " << (*cell)[sxyp].getTau() << (*cell)[sxy].getTau() << std::endl;
@@ -475,28 +478,37 @@ double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfi
   {
     if ( sxyp == MEDIUM)
     {
-      
       DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
       // cout << "active: " << par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y) << endl;
-      if (par.add_gravity)
-        DH += (*cell)[sxy].Gravity();
     }
     else if (sxy == MEDIUM)
     {
       DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
-      if (par.add_gravity)
-        DH += (*cell)[sxyp].Gravity();
+
     }
     else
     {
       // cout << "dot product with cell: " << (*cell)[sxy].ActiveDotProduct_removed(x,y);
       DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
       DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
-      if (par.add_gravity)
-      {
-        DH += (*cell)[sxy].Gravity();
-        DH += (*cell)[sxyp].Gravity();
-      }
+    }
+  }
+
+  // gravity term for synthetic structures. I think this might be wrong doing medium this way?
+  if (par.add_gravity)
+  {
+    if ( sxyp == MEDIUM)
+    {
+      DH += (*cell)[sxy].Gravity();
+    }
+    else if (sxy == MEDIUM)
+    {
+      DH += (*cell)[sxyp].Gravity();
+    }
+    else
+    {
+      DH += (*cell)[sxy].Gravity();
+      DH += (*cell)[sxyp].Gravity(); 
     }
   }
 
@@ -1241,11 +1253,11 @@ void CellularPotts::StartDynamicAdhesion()
 {
   prev_nbs = SearchNeighbours();
 
-  double init_J = 3.;
-  int ncells = CountCells();
+  // note that we should make it +1 bigger because of medium
+  int ncells = CountCells() + 1;
   int total_elements = (ncells * (ncells + 1)) / 2;
 
-  DynamicAdhesions.resize(total_elements, init_J);
+  DynamicAdhesions.resize(total_elements, par.init_J);
 
   DynamicMeeting.resize(total_elements, 0);
 
@@ -1255,7 +1267,7 @@ void CellularPotts::AddtoMeeting(int i, int j)
 {
   int row = std::max(i, j);
   int col = std::min(i, j);
-  DynamicMeeting[(row * (row + 1)) / 2 + col] += 1;
+  DynamicMeeting[(row * (row + 1)) / 2 + col] += par.timeadd_ifmet;
 }
 
 void CellularPotts::SnapMeeting(int i, int j)
@@ -1295,7 +1307,7 @@ void CellularPotts::UpdateDynamicAdhesion()
         AddtoMeeting(sig, nbh);
         ++j;
       }         
-      // need something if they snap?
+      // SNAP condition
       int k = 0; 
       while (prev_nbs[sig][k] != EMPTY && prev_nbs[sig][k] > 0)
       {
@@ -1317,19 +1329,11 @@ void CellularPotts::UpdateDynamicAdhesion()
           // Handle the result
           if (!found_in_current)
           {
-              // SNAP LOGIC GOES HERE:
-              // prev_nbh was in prev_nbs, but is NO LONGER in nbs.
-              // e.g., RemoveFromMeeting(sig, prev_nbh);
-          }
-          else 
-          {
-              // Logic for if they are STILL connected (if needed)
+              SnapMeeting(sig, prev_nbh);
           }
 
           ++k; // Move to the next previous neighbor
       }
-
-
     }
   }
   int vecsize = DynamicMeeting.size();
@@ -1337,12 +1341,7 @@ void CellularPotts::UpdateDynamicAdhesion()
   {
     int cortex_time = DynamicMeeting[i];
 
-    // now perform math
-    double dynJmax = 3;
-    double dynJmin = 2;
-    double timescaler = 0.0001;
-
-    double dynJ = dynJmin + ( dynJmax -  dynJmin ) * exp(-timescaler * pow(cortex_time, 2 ) ); 
+    double dynJ = par.dynJmin + ( par.dynJmax -  par.dynJmin ) * exp(-par.timescaler * pow(cortex_time, 2 ) ); 
     DynamicAdhesions[i] = dynJ;
   }
 

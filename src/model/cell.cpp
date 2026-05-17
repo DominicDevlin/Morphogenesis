@@ -333,6 +333,7 @@ double Cell::SyntheticEnergy(Cell &cell2)
 
 
 
+
 double Cell::Melt(Cell &cell2, int x)
 {
   if (sigma==cell2.sigma)

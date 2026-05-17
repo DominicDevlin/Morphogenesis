@@ -359,6 +359,17 @@ class Parameter {
   double epiM;
 
 
+  // dynamic sorting params
+  bool dynamic_sorting;
+  double init_J;
+  double dynJmed;
+  double dynJmax;
+  double dynJmin;
+  double timescaler;
+  int timeadd_ifmet;
+
+
+
   bool do_voronoi;
   int tmpcounter;
   int tmpcountertotal;
