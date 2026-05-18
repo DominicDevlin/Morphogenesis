@@ -367,6 +367,7 @@ class Parameter {
   double dynJmin;
   double timescaler;
   int timeadd_ifmet;
+  double Jdyndiff;
 
 
 

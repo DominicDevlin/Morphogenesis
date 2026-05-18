@@ -80,11 +80,11 @@ INIT
     CPM->ClearGrid();
     if (par.make_sparse_cells)
     {
-      if (par.make_spheroid)
-        CPM->PopulateSparseCells(0.8, 80, 0, 0);
-      else
-        CPM->PopulateSparseCells(0.3, 110, 0, 0);
-
+      CPM->PopulateSparseCells(0.8, 80, 0, 0);
+    }
+    else if (par.do_voronoi)
+    {
+      CPM->Voronoi(par.sizex, par.sizey);
     }
 
 
@@ -153,6 +153,7 @@ TIMESTEP {
       cout << "Number of cells: " << dish->CPM->CountCells() << endl;
       // dish->CPM->ColourCellsByIndex();'
       dish->CPM->StartDynamicAdhesion();
+      dish->CPM->SetSortingTypesRandomly();
         
     }
 
@@ -172,7 +173,10 @@ TIMESTEP {
       dish->CPM->update_cell_velocities_MCS();
     }
     
-
+    if (t % 100 == 0)
+    {
+      cout << dish->CPM->CalculateABBoundaryLength() << endl;
+    }
 
 
     static Info *info=new Info(*dish, *this);
@@ -260,7 +264,7 @@ int main(int argc, char *argv[])
     // par.sizex=200;
     // par.sizey=200;
     par.end_program=0;
-    par.periodic_boundaries = false;
+    par.periodic_boundaries = true;
     par.flush_cells = true;
     par.dynamic_sorting=true;
 

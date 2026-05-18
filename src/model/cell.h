@@ -1907,6 +1907,21 @@ void SetCD19_induced(vector<bool> incoming)
 
 
 
+inline bool& GetSortingType()
+{
+  return sorting_type;
+}
+
+inline void SetSortingType(bool t)
+{
+  sorting_type = t;
+  if (sorting_type)
+    c_type = 4;
+  else
+    c_type = 90;
+}
+
+
 
 void setTouchingMed(bool is)
 {
@@ -2067,6 +2082,8 @@ protected:
   vector<double> genes; // should initialise to appropriate value
 
   vector<double> diff_genes{};
+
+  bool sorting_type{};
 
 
   vector<double> locks{};

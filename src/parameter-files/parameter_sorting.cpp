@@ -124,21 +124,22 @@
     
 
     // sorting parameters
-    init_J=0.;
+    init_J=-0.;
     dynJmed=0.;
-    dynJmax=0.;
+    Jdyndiff=-0.1;
+    dynJmax=-0.1;
     dynJmin=-0.2;
     timescaler=0.00001;
     //note this needs to be half (there are two meetings each recording)
     timeadd_ifmet=5;
 
 
-    make_spheroid=true;
-    make_sparse_cells=true;
+    make_spheroid=false;
+    do_voronoi=true;
 
-    active_motion = false;
-    motility_strength = 0.4;
-    persistence_time = 200.;
+    active_motion = true;
+    motility_strength = 0.5;
+    persistence_time = 500.;
 
 
 

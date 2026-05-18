@@ -1304,7 +1304,8 @@ void CellularPotts::UpdateDynamicAdhesion()
       while(nbs[sig][j] != EMPTY && nbs[sig][j] > 0)
       {
         int nbh = nbs[sig][j];
-        AddtoMeeting(sig, nbh);
+        if (c->GetSortingType() == (*cell)[nbh].GetSortingType())
+          AddtoMeeting(sig, nbh);
         ++j;
       }         
       // SNAP condition
@@ -1367,6 +1368,30 @@ void CellularPotts::UpdateDynamicAdhesion()
 
   free(nbs[0]);
   free(nbs);
+
+}
+
+
+void CellularPotts::SetSortingTypesRandomly()
+{
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
+  {
+    if (c->AliveP())
+    {
+
+      double rand = RANDOM(s_val);
+      if (rand > 0.5)
+      {
+        c->SetSortingType(true);
+      }
+      else
+      {
+        c->SetSortingType(false);
+      }
+    }
+  }
 
 }
 
@@ -1683,6 +1708,59 @@ bool containsTargetVector(const vector<int>& target, const vector<std::vector<in
     }
   }
   return false;  // No such vector found
+}
+
+
+int CellularPotts::CalculateABBoundaryLength()
+{
+    int total_ab_boundary = 0;
+
+    // Iterate through the entire grid
+    for (int i = 0; i < sizex; i++) {
+        for (int j = 0; j < sizey; j++) {
+            
+            int current_id = sigma[i][j];
+            
+            // Skip if the current pixel is empty medium (<= 0)
+            if (current_id <= 0) continue; 
+            
+            // Get the type of the current cell (false = A, true = B)
+            bool current_type = (*cell)[current_id].GetSortingType();
+
+            // 1. Check the RIGHT neighbor
+            if (i + 1 < sizex) {
+                int right_id = sigma[i + 1][j];
+                
+                // Check if right pixel is a valid cell and is a different cell
+                if (right_id > 0 && current_id != right_id) {
+                    bool right_type = (*cell)[right_id].GetSortingType();
+                    
+                    // If the types are different (one is A, one is B)
+                    if (current_type != right_type) {
+                        total_ab_boundary++;
+                    }
+                }
+            }
+
+            // 2. Check the BOTTOM neighbor
+            if (j + 1 < sizey) {
+                int bottom_id = sigma[i][j + 1];
+                
+                // Check if bottom pixel is a valid cell and is a different cell
+                if (bottom_id > 0 && current_id != bottom_id) {
+                    bool bottom_type = (*cell)[bottom_id].GetSortingType();
+                    
+                    // If the types are different (one is A, one is B)
+                    if (current_type != bottom_type) {
+                        total_ab_boundary++;
+                    }
+                }
+            }
+            
+        }
+    }
+
+    return total_ab_boundary;
 }
 
 

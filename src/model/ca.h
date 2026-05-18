@@ -627,14 +627,21 @@ public:
     if (i==j)
       return 0;
     else if (i == 0)
-      return 0.2;
+      return par.dynJmed;
     else if (j == 0)
-      return 0.2;
+      return par.dynJmed;
+    else if ((*cell)[i].GetSortingType() != (*cell)[j].GetSortingType())
+      return par.Jdyndiff;
     else
     {
       return GetDynamicAdhesion(i, j);
     }
   }
+
+  void SetSortingTypesRandomly();
+
+  int CalculateABBoundaryLength();
+
 
 
 
