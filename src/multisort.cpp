@@ -214,10 +214,9 @@ void process_population()
       avg_bound_length += boundary_lengths[i][j];
     }
     avg_bound_length /= par.n_orgs;
-    outfile << avg_bound_length << endl;
+    outfile << j*10 << '\t' << avg_bound_length << endl;
   }
   outfile.close();
-
 
 }
 
