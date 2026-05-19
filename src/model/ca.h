@@ -617,9 +617,10 @@ public:
 
   inline double GetDynamicAdhesion(int i, int j) const
   {
-    int row = std::max(i, j);
-    int col = std::min(i, j);
-    return DynamicAdhesions[(row * (row + 1) >> 1) + col];
+    return DynamicAdhesions[i][j];
+    // int row = std::max(i, j);
+    // int col = std::min(i, j);
+    // return DynamicAdhesions[(row * (row + 1) >> 1) + col];
   }
 
   inline double DynamicAdhesionDiff(int i, int j) const
@@ -1030,7 +1031,7 @@ private:
   double leftover_mass_diff{};
 
   int** prev_nbs;
-  vector<double> DynamicAdhesions;
+  vector<vector<double>> DynamicAdhesions;
   vector<int> DynamicMeeting;
 
 

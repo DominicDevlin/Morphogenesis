@@ -363,8 +363,17 @@ class Parameter {
   bool dynamic_sorting;
   double init_J;
   double dynJmed;
-  double dynJmax;
-  double dynJmin;
+  
+  bool Ahascortex;
+  bool Bhascortex;
+  
+  double AstaticJ;
+  double BstaticJ;
+
+  double AdynJmax;
+  double AdynJmin;
+  double BdynJmax;
+  double BdynJmin;
   double timescaler;
   int timeadd_ifmet;
   double Jdyndiff;

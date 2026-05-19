@@ -1254,11 +1254,14 @@ void CellularPotts::StartDynamicAdhesion()
   prev_nbs = SearchNeighbours();
 
   // note that we should make it +1 bigger because of medium
-  int ncells = CountCells() + 1;
+  int ncells = (*cell).size();
   int total_elements = (ncells * (ncells + 1)) / 2;
-
-  DynamicAdhesions.resize(total_elements, par.init_J);
-
+  vector<double> onevec(ncells, par.init_J);
+  for (int i = 0; i < ncells; ++i)
+  {
+    DynamicAdhesions.push_back(onevec);
+  }
+  // DynamicAdhesions.resize(total_elements, par.init_J);
   DynamicMeeting.resize(total_elements, 0);
 
 }
@@ -1337,13 +1340,46 @@ void CellularPotts::UpdateDynamicAdhesion()
       }
     }
   }
-  int vecsize = DynamicMeeting.size();
-  for (int i = 0; i < vecsize; ++i)
+  int vecsize = DynamicAdhesions.size();
+  for (int i = 1; i < vecsize; ++i)
   {
-    int cortex_time = DynamicMeeting[i];
-
-    double dynJ = par.dynJmin + ( par.dynJmax -  par.dynJmin ) * exp(-par.timescaler * pow(cortex_time, 2 ) ); 
-    DynamicAdhesions[i] = dynJ;
+    bool ctype = (*cell)[i].GetSortingType();
+    if (ctype == true)
+    {
+      if (par.Ahascortex)
+      {
+        for (int j = 1; j<vecsize; ++j)
+        {
+          int cortex_time = GetMeeting(i, j);
+          DynamicAdhesions[i][j] = par.AdynJmin + ( par.AdynJmax -  par.AdynJmin ) * exp(-par.timescaler * pow(cortex_time, 2 ) ); 
+        }
+      }
+      else
+      {
+        for (int j = 1; j<vecsize; ++j)
+        {
+          DynamicAdhesions[i][j] = par.AstaticJ;
+        }
+      }
+    }
+    else
+    {
+      if (par.Bhascortex)
+      {
+        for (int j = 1; j<vecsize; ++j)
+        {
+          int cortex_time = GetMeeting(i, j);
+          DynamicAdhesions[i][j] = par.BdynJmin + ( par.BdynJmax -  par.BdynJmin ) * exp(-par.timescaler * pow(cortex_time, 2 ) ); 
+        }
+      }
+      else
+      {
+        for (int j = 1; j<vecsize; ++j)
+        {
+          DynamicAdhesions[i][j] = par.BstaticJ;
+        }
+      }
+    }
   }
 
 

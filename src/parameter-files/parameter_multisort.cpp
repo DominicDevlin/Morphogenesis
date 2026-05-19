@@ -89,7 +89,7 @@
 /* Cellular Potts parameters */
     sizex = 250;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 250;
-    mcs = 2000001;
+    mcs = 1000;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
@@ -120,6 +120,7 @@
     // detailed balance is not ensured.
     conn_diss = 2000;
     
+    n_orgs = 6;
 
     // sorting parameters
     init_J=-0.;
