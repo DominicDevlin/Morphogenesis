@@ -1251,7 +1251,7 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
 
 void CellularPotts::StartDynamicAdhesion()
 {
-  prev_nbs = SearchNeighbours();
+  prev_nbs = GetNeighbourArray();
 
   // note that we should make it +1 bigger because of medium
   int ncells = (*cell).size();
@@ -1295,7 +1295,7 @@ void CellularPotts::UpdateDynamicAdhesion()
 
   // first, we find neighbours
 
-  int **nbs = SearchNeighbours();
+  int **nbs = GetNeighbourArray();
   
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++);c!=cell->end();c++) 
@@ -1307,37 +1307,47 @@ void CellularPotts::UpdateDynamicAdhesion()
       while(nbs[sig][j] != EMPTY && nbs[sig][j] > 0)
       {
         int nbh = nbs[sig][j];
-        if (c->GetSortingType() == (*cell)[nbh].GetSortingType())
-          AddtoMeeting(sig, nbh);
+        if (nbh > 0)
+        {
+          if (c->GetSortingType() == (*cell)[nbh].GetSortingType())
+          {
+            AddtoMeeting(sig, nbh);
+          }
+        }
+        // cout << nbh << '\t';
         ++j;
       }         
+      // cout << endl;
       // SNAP condition
       int k = 0; 
       while (prev_nbs[sig][k] != EMPTY && prev_nbs[sig][k] > 0)
       {
-          int prev_nbh = prev_nbs[sig][k];
+        int prev_nbh = prev_nbs[sig][k];
+        if (prev_nbh > 0)
+        {
           bool found_in_current = false;
           int i = 0;
-
+          // cout << prev_nbh << '\t';
           // Search for prev_nbh in the current nbs array
-          while (nbs[sig][i] != EMPTY && nbs[sig][i] > 0)
+          while (nbs[sig][i] != EMPTY)
           {
-              if (nbs[sig][i] == prev_nbh)
-              {
-                  found_in_current = true;
-                  break; // Stop searching once we find it
-              }
-              ++i;
+            if (nbs[sig][i] == prev_nbh)
+            {
+                found_in_current = true;
+                break; // Stop searching once we find it
+            }
+            ++i;
           }
-
           // Handle the result
           if (!found_in_current)
           {
-              SnapMeeting(sig, prev_nbh);
+            // cout << GetMeeting(sig, prev_nbh) << '\t' << sig << '\t' << prev_nbh << '\t' << (*cell)[sig].GetSortingType() << '\t' << (*cell)[prev_nbh].GetSortingType() << endl;
+            SnapMeeting(sig, prev_nbh);
           }
-
-          ++k; // Move to the next previous neighbor
+        }
+        ++k; // Move to the next previous neighbor
       }
+      // cout << endl;
     }
   }
   int vecsize = DynamicAdhesions.size();
@@ -1351,7 +1361,9 @@ void CellularPotts::UpdateDynamicAdhesion()
         for (int j = 1; j<vecsize; ++j)
         {
           int cortex_time = GetMeeting(i, j);
-          DynamicAdhesions[i][j] = par.AdynJmin + ( par.AdynJmax -  par.AdynJmin ) * exp(-par.timescaler * pow(cortex_time, 2 ) ); 
+          DynamicAdhesions[i][j] = par.AdynJmin + ( par.AdynJmax -  par.AdynJmin ) * exp(-par.timescaler * pow(double(cortex_time), 2 ) ); 
+          // if (cortex_time > 100)
+            // cout << cortex_time << '\t' << DynamicAdhesions[i][j] << endl;
         }
       }
       else
@@ -1400,7 +1412,7 @@ void CellularPotts::UpdateDynamicAdhesion()
     prev_nbs[i]=prev_nbs[i-1]+(cell->size()+1);
   
   for (int i=0;i<((int)cell->size()+1)*((int)cell->size()+1);i++)
-    prev_nbs[0][i]=prev_nbs[0][i]; 
+    prev_nbs[0][i]=nbs[0][i]; 
 
   free(nbs[0]);
   free(nbs);
@@ -1597,6 +1609,104 @@ void CellularPotts::PlotSigma(Graphics *g, int mag) {
   }
   
 }
+
+
+
+
+
+int **CellularPotts::GetNeighbourArray()
+{
+  int i, j, q;
+  int num_cells = (int)cell->size();
+  
+  /* Allocate neighbour matrix */
+  int **neighbours = (int **)malloc((num_cells + 1) * sizeof(int *));
+  if (neighbours == NULL) {
+    MemoryWarning();
+    return NULL;
+  }
+  
+  neighbours[0] = (int *)malloc((num_cells + 1) * (num_cells + 1) * sizeof(int));
+  if (neighbours[0] == NULL) {
+    free(neighbours);
+    MemoryWarning();
+    return NULL;
+  }
+ 
+  for (i = 1; i < num_cells + 1; i++) {
+    neighbours[i] = neighbours[i - 1] + (num_cells + 1);
+  }
+  
+  /* Clear this matrix */
+  for (i = 0; i < (num_cells + 1) * (num_cells + 1); i++) {
+    neighbours[0][i] = EMPTY;  
+  }
+
+  /* Scan grid and find neighbors with periodic boundary conditions */
+  for (i = 1; i < sizex-1; i++) {
+    for (j = 1; j < sizey-1; j++) {
+      
+      int current = sigma[i][j];
+      int next_i = (i + 1) % (sizex-2);
+      int next_j = (j + 1) % (sizey-2);
+      
+      int right = sigma[next_i][j];
+      int bottom = sigma[i][next_j];
+      
+      /* Compare with right neighbor */
+      if (current != right) {
+        if (current > 0) {
+          for (q = 0; q < num_cells; q++) {
+            if (neighbours[current][q] == EMPTY) { 
+              neighbours[current][q] = right;  
+              break;
+            } else if (neighbours[current][q] == right) {
+              break;
+            }
+          }
+        }
+        if (right > 0) {
+          for (q = 0; q < num_cells; q++) {
+            if (neighbours[right][q] == EMPTY) { 
+              neighbours[right][q] = current; 
+              break;
+            } else if (neighbours[right][q] == current) {
+              break;
+            }
+          }
+        }
+      }
+      
+      /* Compare with bottom neighbor */
+      if (current != bottom) {
+        if (current > 0) {
+          for (q = 0; q < num_cells; q++) {
+            if (neighbours[current][q] == EMPTY) { 
+              neighbours[current][q] = bottom;  
+              break; 
+            } else if (neighbours[current][q] == bottom) {
+              break;
+            }
+          }
+        }
+        if (bottom > 0) {
+          for (q = 0; q < num_cells; q++) {
+            if (neighbours[bottom][q] == EMPTY) { 
+              neighbours[bottom][q] = current; 
+              break;
+            } else if (neighbours[bottom][q] == current) {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  return neighbours;
+}
+
+
 
 int **CellularPotts::SearchNandPlot(Graphics *g, bool get_neighbours)
 {

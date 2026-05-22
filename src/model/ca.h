@@ -632,9 +632,12 @@ public:
     else if (j == 0)
       return par.dynJmed;
     else if ((*cell)[i].GetSortingType() != (*cell)[j].GetSortingType())
+    {
       return par.Jdyndiff;
+    }
     else
     {
+      // cout << "return 2: " << GetDynamicAdhesion(i, j) << endl;
       return GetDynamicAdhesion(i, j);
     }
   }
@@ -693,6 +696,8 @@ public:
    cells and for searching the neighbours the cell borders have to be
    determined. */
   int **SearchNandPlot(Graphics *g=0, bool get_neighbours=true);
+
+  int **GetNeighbourArray();
 
   vector<vector<int>> SearchNforVertices();
 

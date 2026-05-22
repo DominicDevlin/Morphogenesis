@@ -108,7 +108,7 @@
     div_threshold = 100;
 
     H_perim = true;
-    elastic_modulus = 2;
+    elastic_modulus = 0.5;
     ptarget_perimeter = 42;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -126,15 +126,15 @@
     dynJmed=0.;
     Jdyndiff=-0.1;
 
-    Ahascortex=true;
+    Ahascortex=false;
     AdynJmax=-0.1;
     AdynJmin=-0.2;
-    AstaticJ=-0.2;//we dont use this
+    AstaticJ=-0.2;//we dont use this unless hascortex is false.
 
     Bhascortex=false;
     BdynJmax=-0.1;
     BdynJmin=-0.2;
-    BstaticJ=-0.1;
+    BstaticJ=-0.2;
     
     timescaler=0.000001;
     //note this needs to be half (there are two meetings each recording)
@@ -146,8 +146,8 @@
     periodic_boundaries = true;
 
     active_motion = true;
-    motility_strength = 0.5;
-    persistence_time = 500.;
+    motility_strength = 0.4;
+    persistence_time = 200.;
 
 
 

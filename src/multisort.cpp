@@ -195,6 +195,8 @@ void process_population()
       {
         bound_lengths.push_back(dishes[i].CPM->CalculateABBoundaryLength());
       }
+      if (t%1000==0)
+        cout << i << "  reached time step: " << t << endl;
     }
     boundary_lengths[i]=bound_lengths;
   }
