@@ -166,7 +166,7 @@ void process_population()
       dishes[i].CPM->SetPerims(par.ptarget_perimeter);
     }
     // dish->CPM->ColourCellsByIndex();'
-    dishes[i].CPM->StartDynamicAdhesion();
+    // dishes[i].CPM->StartDynamicAdhesion();
     dishes[i].CPM->SetSortingTypesRandomly();
       
     int t;
@@ -177,10 +177,10 @@ void process_population()
         dishes[i].CPM->CopyProb(par.T);
       }
 
-      if (t % 10 == 0)
-      {
-        dishes[i].CPM->UpdateDynamicAdhesion();
-      }
+      // if (t % 10 == 0)
+      // {
+      //   dishes[i].CPM->UpdateDynamicAdhesion();
+      // }
 
       dishes[i].CPM->AmoebaeMove(t);
       if (par.active_motion)
@@ -195,7 +195,7 @@ void process_population()
       {
         bound_lengths.push_back(dishes[i].CPM->CalculateABBoundaryLength());
       }
-      if (t%1000==0)
+      if (t%10000==0)
         cout << i << "  reached time step: " << t << endl;
     }
     boundary_lengths[i]=bound_lengths;

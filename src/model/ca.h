@@ -635,10 +635,15 @@ public:
     {
       return par.Jdyndiff;
     }
+    else if ((*cell)[i].GetSortingType()==0)
+    {
+      return par.AstaticJ;
+      // cout << "return 2: " << GetDynamicAdhesion(i, j) << endl;
+      // return GetDynamicAdhesion(i, j);
+    }
     else
     {
-      // cout << "return 2: " << GetDynamicAdhesion(i, j) << endl;
-      return GetDynamicAdhesion(i, j);
+      return par.BstaticJ;
     }
   }
 

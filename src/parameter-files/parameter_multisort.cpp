@@ -87,9 +87,9 @@
 
 
 /* Cellular Potts parameters */
-    sizex = 500;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 500;
-    mcs = 50001;
+    sizex = 1000;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 1000;
+    mcs = 100001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
@@ -120,33 +120,27 @@
     // detailed balance is not ensured.
     conn_diss = 2000;
     
-    n_orgs = 10;
+    n_orgs = 20;
 
     // sorting parameters
     init_J=-0.;
     dynJmed=0.;
     Jdyndiff=-0.1;
 
-    Ahascortex=false;
-    AdynJmax=-0.1;
-    AdynJmin=-0.2;
-    AstaticJ=-0.2;//we dont use this
+    AstaticJ=-0.2;
 
-    Bhascortex=false;
-    BdynJmax=-0.1;
-    BdynJmin=-0.2;
-    BstaticJ=-0.1;
+    BstaticJ=-0.2;
     
-    timescaler=0.000001;
-    //note this needs to be half (there are two meetings each recording)
-    timeadd_ifmet=5;
+    // timescaler=0.000001;
+    // //note this needs to be half (there are two meetings each recording)
+    // timeadd_ifmet=5;
 
 
     make_sparse_cells=false;
     do_voronoi=true;
     periodic_boundaries = true;
 
-    active_motion = false;
+    active_motion = true;
     motility_strength = 0.4;
     persistence_time = 500.;
 

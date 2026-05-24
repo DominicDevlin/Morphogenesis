@@ -152,7 +152,7 @@ TIMESTEP {
       }
       cout << "Number of cells: " << dish->CPM->CountCells() << endl;
       // dish->CPM->ColourCellsByIndex();'
-      dish->CPM->StartDynamicAdhesion();
+      // dish->CPM->StartDynamicAdhesion();
       dish->CPM->SetSortingTypesRandomly();
         
     }
@@ -162,10 +162,10 @@ TIMESTEP {
       dish->CPM->CopyProb(par.T);
     }
 
-    if (t % 10 == 0)
-    {
-      dish->CPM->UpdateDynamicAdhesion();
-    }
+    // if (t % 10 == 0)
+    // {
+    //   dish->CPM->UpdateDynamicAdhesion();
+    // }
 
     dish->CPM->AmoebaeMove(t);
     if (par.active_motion)
