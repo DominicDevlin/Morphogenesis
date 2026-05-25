@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #SBATCH --job-name=CPM_evolution  
-#SBATCH --time=25:00:00      # Walltime (HH:MM:SS)
+#SBATCH --time=20:00:00      # Walltime (HH:MM:SS)
 #SBATCH --mem=10GB 
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10  
@@ -21,6 +21,6 @@ which qmake-qt5 && qmake-qt5 || qmake            # or `qmake-qt5` if that exists
 
 # full build
 make  -j $SLURM_CPUS_ON_NODE
-./multisort
+./multisort       
 ## to output images on the cluster, prepend the output with "xvfb-run". e.g. "xvfb-run ./evolution"
 
