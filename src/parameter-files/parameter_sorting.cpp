@@ -96,7 +96,7 @@
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
     // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
-    adhesion_neighbourhood=5;
+    adhesion_neighbourhood=1;
     perimeter_neighbourhood=adhesion_neighbourhood;
     copy_neighbourhood=1;
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
