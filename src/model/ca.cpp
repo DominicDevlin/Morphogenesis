@@ -1430,7 +1430,7 @@ void CellularPotts::SetSortingTypesRandomly()
     {
 
       double rand = RANDOM(s_val);
-      if (rand > 0.5)
+      if (rand > 1.)
       {
         c->SetSortingType(true);
       }
