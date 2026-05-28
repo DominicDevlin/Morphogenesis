@@ -601,7 +601,15 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
       else 
       {
         int type_neigh = (neighsite == 0) ? 0 : (*cell)[neighsite].GetSortingType();
-        Jen += DynamicAdhesionDiff(type_sxyp, type_neigh) - DynamicAdhesionDiff(type_sxy, neighsite);
+        
+        // Only calculate adhesion if the neighbor belongs to a DIFFERENT cell.
+        // If neighsite == sxyp (proposed state), the boundary is internal to the cell, so energy is 0.
+        double E_final = (sxyp == neighsite) ? 0.0 : DynamicAdhesionDiff(type_sxyp, type_neigh);
+        
+        // If neighsite == sxy (initial state), the boundary was internal to the cell, so energy was 0.
+        double E_initial = (sxy == neighsite) ? 0.0 : DynamicAdhesionDiff(type_sxy, type_neigh);
+
+        Jen += (E_final - E_initial);
       }
     }
   }

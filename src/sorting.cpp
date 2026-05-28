@@ -176,7 +176,7 @@ TIMESTEP {
     if (t % 1000 == 0)
     {
       // cout << dish->CPM->CalculateABBoundaryLength() << endl;
-      cout << dish->CPM->MeasureDomainSizeR() << endl;
+      // cout << dish->CPM->MeasureDomainSizeR() << endl;
     }
 
 

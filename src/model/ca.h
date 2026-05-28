@@ -626,13 +626,13 @@ public:
 
   inline double DynamicAdhesionDiff(int i, int j) const
   {
-    if (i==j)
-      return 0;
-    else if (i == 0)
-      return par.dynJmed;
-    else if (j == 0)
-      return par.dynJmed;
-    else if (i != j)
+    // if (i==j)
+    //   return 0;
+    // else if (i == 0)
+    //   return par.dynJmed;
+    // else if (j == 0)
+    //   return par.dynJmed;
+    if (i != j)
     {
       return par.Jdyndiff;
     }
