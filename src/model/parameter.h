@@ -363,6 +363,8 @@ class Parameter {
   bool dynamic_sorting;
   double init_J;
   double dynJmed;
+
+  double startingAproportion;
   
   bool Ahascortex;
   bool Bhascortex;

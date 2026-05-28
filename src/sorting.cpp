@@ -173,9 +173,10 @@ TIMESTEP {
       dish->CPM->update_cell_velocities_MCS();
     }
     
-    if (t % 100 == 0)
+    if (t % 1000 == 0)
     {
-      cout << dish->CPM->CalculateABBoundaryLength() << endl;
+      // cout << dish->CPM->CalculateABBoundaryLength() << endl;
+      cout << dish->CPM->MeasureDomainSizeR() << endl;
     }
 
 

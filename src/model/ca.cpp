@@ -346,262 +346,393 @@ void CellularPotts::SetMediumArea()
   cell->at(0).SetAreaToTarget();
 }
   
-double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfield)       
+
+
+
+
+// double CellularPotts::DeltaH(int x,int y, int sxyp, const int tsteps, PDE *PDEfield)       
+// {
+//   double DH = 0;
+//   int i, sxy;
+//   int neighsite;
+
+//   /* Compute energydifference *IF* the copying were to occur */
+//   sxy = sigma[x][y];
+
+//   Cell& cell_sxy = (*cell)[sxy];
+//   Cell& cell_sxyp = (*cell)[sxyp];
+//   double Jen=0;
+
+
+//   if (par.dynamic_sorting)
+//   {
+//     int type_sxy  = (sxy == 0)  ? 0 : cell_sxy.GetSortingType();
+//     int type_sxyp = (sxyp == 0) ? 0 : cell_sxyp.GetSortingType();
+//     for (i=1;i<=n_nb_adh;i++) 
+//     {
+//       int xp2,yp2;
+//       xp2=x+nx[i]; yp2=y+ny[i];
+//       if (par.periodic_boundaries) 
+//       {
+        
+//         // since we are asynchronic, we cannot just copy the borders once 
+//         // every MCS
+        
+//         if (xp2<=0)
+//           xp2=sizex-2+xp2;
+//         if (yp2<=0)
+//           yp2=sizey-2+yp2;
+//         if (xp2>=sizex-1)
+//           xp2=xp2-sizex+2;
+//         if (yp2>=sizey-1)
+//           yp2=yp2-sizey+2;
+      
+//         neighsite=sigma[xp2][yp2];
+    
+//       } 
+//       else 
+//       {
+//         if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+//           neighsite=-1;
+//         else
+//           neighsite=sigma[xp2][yp2];
+//       }
+      
+//       if (neighsite==-1) 
+//       { // border 
+//         Jen += (sxyp==0?0:par.border_energy)-(sxy==0?0:par.border_energy);
+//       } 
+//       else 
+//       {
+//         int type_neigh = (neighsite == 0) ? 0 : (*cell)[neighsite].GetSortingType();
+//         Jen += DynamicAdhesionDiff(type_sxyp, type_neigh) - DynamicAdhesionDiff(type_sxy, neighsite);
+//       }
+//     }
+//   }
+//   else if (par.make_synthetic)
+//   {
+//     for (i=1;i<=n_nb_adh;i++) 
+//     {
+//       int xp2,yp2;
+//       xp2=x+nx[i]; yp2=y+ny[i];
+//       if (par.periodic_boundaries) 
+//       {
+        
+//         // since we are asynchronic, we cannot just copy the borders once 
+//         // every MCS
+        
+//         if (xp2<=0)
+//           xp2=sizex-2+xp2;
+//         if (yp2<=0)
+//           yp2=sizey-2+yp2;
+//         if (xp2>=sizex-1)
+//           xp2=xp2-sizex+2;
+//         if (yp2>=sizey-1)
+//           yp2=yp2-sizey+2;
+      
+//         neighsite=sigma[xp2][yp2];
+    
+//       } 
+//       else 
+//       {
+//         if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+//           neighsite=-1;
+//         else
+//           neighsite=sigma[xp2][yp2];
+//       }
+      
+//       if (neighsite==-1) 
+//       { // border 
+//         Jen += (sxyp==0?0:par.border_energy)-(sxy==0?0:par.border_energy);
+//       } 
+//       else 
+//       {
+//         Jen += (*cell)[sxyp].SyntheticEnergy((*cell)[neighsite]) - (*cell)[sxy].SyntheticEnergy((*cell)[neighsite]);
+//       }
+//     }
+//   }
+//   DH += Jen;// / (par.neigh_multiplier);
+
+  
+//   // lambda is determined by chemical 0
+//   double lambda = (*cell)[sxy].get_lambda();
+    
+//   //cerr << "[" << lambda << "]";
+//   if (par.medium_area_constraint)
+//   {
+//       DH += (int)((lambda * (2.+  2.  * (double) 
+//               (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
+//               - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
+      
+//       // cout << (*cell)[sxy].Area() << '\t' << (*cell)[sxy].TargetArea() << endl;
+//   }
+//   else
+//   {
+//     if ( sxyp == MEDIUM ) {
+//       DH += (int)(lambda *  (1. - 2. *   
+//               (double) ( (*cell)[sxy].Area() - (*cell)[sxy].TargetArea()) ));
+//     }
+//     else if ( sxy == MEDIUM ) {
+//       DH += (int)((lambda * (1. + 2. *  
+//               (double) ( (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()) )));
+//     }
+//     else
+//       DH += (int)((lambda * (2.+  2.  * (double) 
+//               (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
+//               - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
+//   }
+
+
+//   /* Active motion term */
+//   if (par.active_motion)
+//   {
+//     if ( sxyp == MEDIUM)
+//     {
+//       DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+//       // cout << "active: " << par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y) << endl;
+//     }
+//     else if (sxy == MEDIUM)
+//     {
+//       DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
+
+//     }
+//     else
+//     {
+//       // cout << "dot product with cell: " << (*cell)[sxy].ActiveDotProduct_removed(x,y);
+//       DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
+//       DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+//     }
+//   }
+
+//   // gravity term for synthetic structures. I think this might be wrong doing medium this way?
+//   if (par.add_gravity)
+//   {
+//     if ( sxyp == MEDIUM)
+//     {
+//       DH += (*cell)[sxy].Gravity();
+//     }
+//     else if (sxy == MEDIUM)
+//     {
+//       DH += (*cell)[sxyp].Gravity();
+//     }
+//     else
+//     {
+//       DH += (*cell)[sxy].Gravity();
+//       DH += (*cell)[sxyp].Gravity(); 
+//     }
+//   }
+
+
+  
+//   if (par.H_perim) 
+//   {
+//     double DH_perimeter = 0;
+//     if (sxyp == MEDIUM) 
+//     {
+
+//       DH_perimeter -=
+//           (*cell)[sxy].getPerimConstraint() *
+//           (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+//           DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+//                 (*cell)[sxy].TargetPerimeter()));      
+//     } 
+//     else if (sxy == MEDIUM) 
+//     {
+
+//       DH_perimeter -=
+//           (*cell)[sxyp].getPerimConstraint() *
+//           (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+//           DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+//                 (*cell)[sxyp].TargetPerimeter()));      
+//     }
+//     // they're both cells
+//     else 
+//     {
+//       DH_perimeter -=
+//           (*cell)[sxyp].getPerimConstraint() *
+//           ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+//             DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+//                 (*cell)[sxyp].TargetPerimeter())));
+//       DH_perimeter -=
+//           (*cell)[sxy].getPerimConstraint() *
+//           (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+//             DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+//                 (*cell)[sxy].TargetPerimeter()));      
+//     }
+//     DH += DH_perimeter;
+//   }
+  
+//   return DH;
+
+// }
+
+
+
+double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int* neighbor_spins, PDE *PDEfield)       
 {
   double DH = 0;
   int i, sxy;
   int neighsite;
 
-  /* Compute energydifference *IF* the copying were to occur */
+  /* Compute energy difference *IF* the copying were to occur */
   sxy = sigma[x][y];
 
+  // Pre-fetch references to save standard vector lookups
+  Cell& cell_sxy = (*cell)[sxy];
+  Cell& cell_sxyp = (*cell)[sxyp];
+  double Jen = 0;
 
-    
-  /* DH due to cell adhesion */
-  double Jen=0;
-  for (i=1;i<=n_nb_adh;i++) 
+  // ==========================================
+  // ADHESION ENERGY CALCULATION
+  // ==========================================
+  if (par.dynamic_sorting)
   {
-    int xp2,yp2;
-    xp2=x+nx[i]; yp2=y+ny[i];
-    if (par.periodic_boundaries) 
-    {
-      
-      // since we are asynchronic, we cannot just copy the borders once 
-      // every MCS
-      
-      if (xp2<=0)
-	      xp2=sizex-2+xp2;
-      if (yp2<=0)
-	      yp2=sizey-2+yp2;
-      if (xp2>=sizex-1)
-	      xp2=xp2-sizex+2;
-      if (yp2>=sizey-1)
-	      yp2=yp2-sizey+2;
-    
-      neighsite=sigma[xp2][yp2];
-	
-    } 
-    else 
-    {
-      if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
-	      neighsite=-1;
-      else
-	      neighsite=sigma[xp2][yp2];
-    }
-    
-    if (neighsite==-1) 
-    { // border 
-      Jen += (sxyp==0?0:par.border_energy)-(sxy==0?0:par.border_energy);
-    } 
-    else 
-    {
+    int type_sxy  = (sxy == 0)  ? 0 : cell_sxy.GetSortingType();
+    int type_sxyp = (sxyp == 0) ? 0 : cell_sxyp.GetSortingType();
 
-      // UP TO HERE!
-      // DH += (*cell)[sxyp].CalculateJfromKeyLock((*cell)[neighsite].get_locks_bool(), (*cell)[neighsite].get_keys_bool()) 
-      // - 
-      if (par.sheet)
+    for (i = 1; i <= n_nb_adh; i++) 
+    {
+      neighsite = neighbor_spins[i];
+      
+      if (neighsite == -1) 
+      { // out-of-bounds border 
+        Jen += (sxyp == 0 ? 0 : par.border_energy) - (sxy == 0 ? 0 : par.border_energy);
+      } 
+      else 
       {
-        Jen += (*cell)[sxyp].SheetDif((*cell)[neighsite], internal_J, internal_mixJ) - (*cell)[sxy].SheetDif((*cell)[neighsite], internal_J, internal_mixJ);
+        int type_neigh = (neighsite == 0) ? 0 : (*cell)[neighsite].GetSortingType();
+        Jen += DynamicAdhesionDiff(type_sxyp, type_neigh) - DynamicAdhesionDiff(type_sxy, neighsite);
       }
-      else if (par.melting_adhesion)
-      {
-        if (tsteps < par.end_program)
-          Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
-        else
-          Jen += (*cell)[sxyp].Melt((*cell)[neighsite], y) - (*cell)[sxy].Melt((*cell)[neighsite], y);
-      }
-      else if (par.phase_evolution)
-      {
-        if (tsteps < par.end_program)
-          Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
-        else
-          Jen += (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J);
-
-        // cout << "adhesion: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) - (*cell)[sxy].EnergyDifference((*cell)[neighsite], par.phase_evolution, evo_J) << endl;
-      }
-      else if (par.make_synthetic)
-      {
-        Jen += (*cell)[sxyp].SyntheticEnergy((*cell)[neighsite]) - (*cell)[sxy].SyntheticEnergy((*cell)[neighsite]);
-      }
-      else if (par.dynamic_sorting)
-      {
-        // cout << GetDynamicAdhesion(sxy, sxyp) << endl;
-        Jen += DynamicAdhesionDiff(sxyp, neighsite) - DynamicAdhesionDiff(sxy, neighsite);
-      }
-      else
-      {
-        if (tsteps < par.end_program)
-          Jen += (*cell)[sxyp].EnDif((*cell)[neighsite]) - (*cell)[sxy].EnDif((*cell)[neighsite]);
-        else
-          Jen += (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) - (*cell)[sxy].EnergyDifference((*cell)[neighsite]);
-      }
-      // debugging. 
-      // cout << "COPYING: " << (*cell)[sxyp].getTau() << (*cell)[sxy].getTau() << std::endl;
-      // cout << "sxyp is type: " << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxyp].EnergyDifference((*cell)[neighsite]) 
-      // << ". sxy is type:" << (*cell)[neighsite].getTau() << " with val: " << (*cell)[sxy].EnergyDifference((*cell)[neighsite]) << std::endl;
     }
   }
-  DH += Jen;// / (par.neigh_multiplier);
-
+  else if (par.make_synthetic)
+  {
+    for (i = 1; i <= n_nb_adh; i++) 
+    {
+      neighsite = neighbor_spins[i];
+      
+      if (neighsite == -1) 
+      { // out-of-bounds border 
+        Jen += (sxyp == 0 ? 0 : par.border_energy) - (sxy == 0 ? 0 : par.border_energy);
+      } 
+      else 
+      {
+        Jen += cell_sxyp.SyntheticEnergy((*cell)[neighsite]) - cell_sxy.SyntheticEnergy((*cell)[neighsite]);
+      }
+    }
+  }
   
-  // lambda is determined by chemical 0
-  double lambda = (*cell)[sxy].get_lambda();
+  // NOTE: If you have other modes (par.sheet, par.melting_adhesion) re-add them 
+  // here following the EXACT SAME pattern (just use neighsite = neighbor_spins[i])!
+
+  DH += Jen; // / (par.neigh_multiplier);
+
+
+  // ==========================================
+  // AREA CONSTRAINT
+  // ==========================================
+  double lambda = cell_sxy.get_lambda();
     
-  //cerr << "[" << lambda << "]";
   if (par.medium_area_constraint)
   {
-      DH += (int)((lambda * (2.+  2.  * (double) 
-              (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
-              - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
-      
-      // cout << (*cell)[sxy].Area() << '\t' << (*cell)[sxy].TargetArea() << endl;
+      DH += (int)((lambda * (2. + 2. * (double) 
+              (cell_sxyp.Area() - cell_sxyp.TargetArea()
+             - cell_sxy.Area()  + cell_sxy.TargetArea()))));
   }
   else
   {
-    if ( sxyp == MEDIUM ) {
-      DH += (int)(lambda *  (1. - 2. *   
-              (double) ( (*cell)[sxy].Area() - (*cell)[sxy].TargetArea()) ));
+    if (sxyp == MEDIUM) {
+      DH += (int)(lambda * (1. - 2. * (double) (cell_sxy.Area() - cell_sxy.TargetArea())));
     }
-    else if ( sxy == MEDIUM ) {
-      DH += (int)((lambda * (1. + 2. *  
-              (double) ( (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()) )));
+    else if (sxy == MEDIUM) {
+      DH += (int)((lambda * (1. + 2. * (double) (cell_sxyp.Area() - cell_sxyp.TargetArea()))));
     }
-    else
-      DH += (int)((lambda * (2.+  2.  * (double) 
-              (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
-              - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
+    else {
+      DH += (int)((lambda * (2. + 2. * (double) 
+              (cell_sxyp.Area() - cell_sxyp.TargetArea()
+             - cell_sxy.Area()  + cell_sxy.TargetArea()))));
+    }
   }
 
 
-  /* Active motion term */
+  // ==========================================
+  // ACTIVE MOTION TERM
+  // ==========================================
   if (par.active_motion)
   {
-    if ( sxyp == MEDIUM)
+    if (sxyp == MEDIUM)
     {
-      DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
-      // cout << "active: " << par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y) << endl;
+      DH -= par.motility_strength * cell_sxy.ActiveDotProduct_removed(x, y);
     }
     else if (sxy == MEDIUM)
     {
-      DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
-
+      DH -= par.motility_strength * cell_sxyp.ActiveDotProduct_added(x, y);
     }
     else
     {
-      // cout << "dot product with cell: " << (*cell)[sxy].ActiveDotProduct_removed(x,y);
-      DH -= par.motility_strength * (*cell)[sxyp].ActiveDotProduct_added(x,y);
-      DH -= par.motility_strength * (*cell)[sxy].ActiveDotProduct_removed(x,y);
+      DH -= par.motility_strength * cell_sxyp.ActiveDotProduct_added(x, y);
+      DH -= par.motility_strength * cell_sxy.ActiveDotProduct_removed(x, y);
     }
   }
 
-  // gravity term for synthetic structures. I think this might be wrong doing medium this way?
+  // ==========================================
+  // GRAVITY TERM
+  // ==========================================
   if (par.add_gravity)
   {
-    if ( sxyp == MEDIUM)
+    if (sxyp == MEDIUM)
     {
-      DH += (*cell)[sxy].Gravity();
+      DH += cell_sxy.Gravity();
     }
     else if (sxy == MEDIUM)
     {
-      DH += (*cell)[sxyp].Gravity();
+      DH += cell_sxyp.Gravity();
     }
     else
     {
-      DH += (*cell)[sxy].Gravity();
-      DH += (*cell)[sxyp].Gravity(); 
+      DH += cell_sxy.Gravity();
+      DH += cell_sxyp.Gravity(); 
     }
   }
 
-  
-  /* Length constraint */
-  // sp is expanding cell, s is retracting cell  
-  // if (par.lambda2>0)
-  // {
-  //   double lambda2=par.lambda2; 
-  //   if ( sxyp == MEDIUM ) {
-  //     DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-  //           - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-  //             (*cell)[sxy].TargetLength()) ));
-      
-  //   }
-  //   else if ( sxy == MEDIUM ) {
-  //     DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-  //       -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
-      
-  //   }
-  //   else {
-  //     DH -= (int)(lambda2*((DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-  //         -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
-  //         ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-  //           - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-  //           (*cell)[sxy].TargetLength()) )) );
-  //   }
-  // }
-  
+  // ==========================================
+  // PERIMETER CONSTRAINT
+  // ==========================================
   if (par.H_perim) 
   {
     double DH_perimeter = 0;
     if (sxyp == MEDIUM) 
     {
-
-      DH_perimeter -=
-          (*cell)[sxy].getPerimConstraint() *
-          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-          DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                (*cell)[sxy].TargetPerimeter()));      
+      DH_perimeter -= cell_sxy.getPerimConstraint() *
+          (DSQR(cell_sxy.Perimeter() - cell_sxy.TargetPerimeter()) -
+           DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y, neighbor_spins) - cell_sxy.TargetPerimeter()));      
     } 
     else if (sxy == MEDIUM) 
     {
-
-      DH_perimeter -=
-          (*cell)[sxyp].getPerimConstraint() *
-          (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-          DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                (*cell)[sxyp].TargetPerimeter()));      
+      DH_perimeter -= cell_sxyp.getPerimConstraint() *
+          (DSQR(cell_sxyp.Perimeter() - cell_sxyp.TargetPerimeter()) -
+           DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y, neighbor_spins) - cell_sxyp.TargetPerimeter()));      
     }
-    // they're both cells
     else 
     {
-      DH_perimeter -=
-          (*cell)[sxyp].getPerimConstraint() *
-          ((DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-                (*cell)[sxyp].TargetPerimeter())));
-      DH_perimeter -=
-          (*cell)[sxy].getPerimConstraint() *
-          (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-                (*cell)[sxy].TargetPerimeter()));      
+      // they're both cells
+      DH_perimeter -= cell_sxyp.getPerimConstraint() *
+          ((DSQR(cell_sxyp.Perimeter() - cell_sxyp.TargetPerimeter()) -
+            DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y, neighbor_spins) - cell_sxyp.TargetPerimeter())));
+            
+      DH_perimeter -= cell_sxy.getPerimConstraint() *
+          (DSQR(cell_sxy.Perimeter() - cell_sxy.TargetPerimeter()) -
+           DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y, neighbor_spins) - cell_sxy.TargetPerimeter()));      
     }
     DH += DH_perimeter;
   }
   
   return DH;
-  // double Pconst=1;
-  // /* Perimeter constraint */
-  // if (sxyp == MEDIUM)
-  //   DH += (int)(Pconst *  (1. - 2. * (double) ( (*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) ));
-
-
-  /* Chemotaxis */
-  // if (PDEfield && (par.vecadherinknockout || (sxyp==0 || sxy==0))) {
-    
-  //   // copying from (xp, yp) into (x,y)
-  //   // If par.extensiononly == true, apply CompuCell's method, i.e.
-  //   // only chemotactic extensions contribute to energy change
-  //   if (!( par.extensiononly && sxyp==0)) {
-  //     int DDH=(int)(par.chemotaxis*(sat(PDEfield->Sigma(0,x,y))-sat(PDEfield->Sigma(0,xp,yp))));
-    
-  //     DH-=DDH;
-  //   }
-  // }
-  
-  // if (tsteps > par.end_program)
-  //   lambda2 = (*cell)[sxyp].get_lambda_2(); // par.lambda2;
-
-  // const double lambda_r=(*cell)[sxy].get_lambda_2();
-
 }
+
+
+
+
 
 
 
@@ -753,15 +884,18 @@ void CellularPotts::ConvertSpin(int x,int y,int kp)
 }
 
 
-void CellularPotts::ConvertSpinPerim(int x, int y, int kp) 
+void CellularPotts::ConvertSpinPerim(int x, int y, int kp, const int* neighbor_spins) 
 {
   int tmpcell;
 
   if ((tmpcell = sigma[x][y])) { // if tmpcell is not MEDIUM
     (*cell)[tmpcell].DecrementArea();
     (*cell)[tmpcell].RemoveSiteFromMoments(x, y);
+    
+    // Pass neighbor_spins array here!
     (*cell)[tmpcell].SetPerimeter(
-        GetNewPerimeterIfXYWereRemoved(tmpcell, x, y));
+        GetNewPerimeterIfXYWereRemoved(tmpcell, x, y, neighbor_spins));
+        
     if (!(*cell)[tmpcell].Area()) {
       (*cell)[tmpcell].Apoptose();
     }
@@ -770,12 +904,15 @@ void CellularPotts::ConvertSpinPerim(int x, int y, int kp)
   if ((tmpcell = kp)) { // if tmpcell is not MEDIUM
     (*cell)[tmpcell].IncrementArea();
     (*cell)[tmpcell].AddSiteToMoments(x, y);
-    (*cell)[tmpcell].SetPerimeter(GetNewPerimeterIfXYWereAdded(tmpcell, x, y));
+    
+    // Pass neighbor_spins array here!
+    (*cell)[tmpcell].SetPerimeter(
+        GetNewPerimeterIfXYWereAdded(tmpcell, x, y, neighbor_spins));
   }
   sigma[x][y] = kp;
-
-
 }
+
+
 
 
 /** PUBLIC **/
@@ -830,44 +967,21 @@ void CellularPotts::FreezeAmoebae(void)
 
 
 
-int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
-
-  /*int n_nb;
-
-   if (par.neighbours>=1 && par.neighbours<=4)
-     n_nb=nbh_level[par.neighbours];
-  */
+int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y, const int* neighbor_spins) 
+{
   int perim = (*cell)[sxyp].Perimeter();
 
-  /* the cell with sigma sxyp wants to extend by adding lattice site (x, y).
- This means that the sxyp neighbours of (x,y) will not be borders anymore,so
- they can be subtracted from the perimeter of sxyp.
-*/
+  /* the cell with sigma sxyp wants to extend by adding lattice site (x, y). */
   for (int i = 1; i <= n_nb_perim; i++) {
-
-    int xp2, yp2;
-
-    xp2 = x + nx[i];
-    yp2 = y + ny[i];
-
-
-    if (par.periodic_boundaries) {
-
-      if (xp2 <= 0)
-        xp2 = sizex - 2 + xp2;
-      if (yp2 <= 0)
-        yp2 = sizey - 2 + yp2;
-      if (xp2 >= sizex - 1)
-        xp2 = xp2 - sizex + 2;
-      if (yp2 >= sizey - 1)
-        yp2 = yp2 - sizey + 2;
-    }
-    else if (xp2 >= sizex-1 || xp2 < 1 || yp2 >= sizey-1 || yp2 < 1)
-    {
+    
+    int neighsite = neighbor_spins[i];
+    
+    // Skip out-of-bounds just like your original code did
+    if (neighsite == -1) {
       continue;
     }
 
-    if (sigma[xp2][yp2] == sxyp) {
+    if (neighsite == sxyp) {
       perim--;
     } else {
       perim++;
@@ -876,35 +990,21 @@ int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
   return perim;
 }
 
-int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y) {
-  /*int n_nb;
-   if (par.neighbours>=1 && par.neighbours<=4)
-    int n_nb=nbh_level[par.neighbours];
-  */
+int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y, const int* neighbor_spins) {
   int perim = (*cell)[sxy].Perimeter();
-  /* the cell with sigma sxy loses xy
-   */
+  
+  /* the cell with sigma sxy loses xy */
   for (int i = 1; i <= n_nb_perim; i++) {
-
-    int xp2, yp2;
-    xp2 = x + nx[i];
-    yp2 = y + ny[i];
-    if (par.periodic_boundaries) {
-
-      if (xp2 <= 0)
-        xp2 = sizex - 2 + xp2;
-      if (yp2 <= 0)
-        yp2 = sizey - 2 + yp2;
-      if (xp2 >= sizex - 1)
-        xp2 = xp2 - sizex + 2;
-      if (yp2 >= sizey - 1)
-        yp2 = yp2 - sizey + 2;
-    }
-    else if (xp2 >= sizex-1 || xp2 < 1 || yp2 >= sizey-1 || yp2 < 1)
-    {
+    
+    int neighsite = neighbor_spins[i];
+    
+    // -1 means it was an out-of-bounds border. Your original code skipped these 
+    // with 'continue', so we do the exact same thing here.
+    if (neighsite == -1) {
       continue;
     }
-    if (sigma[xp2][yp2] == sxy) {
+
+    if (neighsite == sxy) {
       perim++;
     } else {
       perim--;
@@ -942,101 +1042,88 @@ void CellularPotts::GetNeighborsSafe(int x, int y, int* nbs)
 
 
 
-//! Monte Carlo Step. Returns summed energy change
 int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
 { 
-  int loop,p;
-  //int updated=0;
+  int loop, p;
   thetime++;
-  int SumDH=0;
+  int SumDH = 0;
   
   if (frozen) 
     return 0;
 
   const int sx_inner = sizex - 2;
   const int sy_inner = sizey - 2;
-  const bool is_periodic = par.periodic_boundaries;
 
-  loop=(sizex-2)*(sizey-2);
+  loop = sx_inner * sy_inner;
 
-  int present_states[n_nb];
-  // int exemplar_neighbour_indices[n_nb];
-  int distinct_count=0;
+  // Use a fixed size (e.g., 64) to avoid Variable Length Array compiler errors. 
+  // It is more than enough for up to 5th+ order neighborhoods.
+  int present_states[64]; 
+  int distinct_count = 0;
+
+  // We need enough neighbors to satisfy BOTH Adhesion and Perimeter checks
+  int max_nb = n_nb_adh;
+  int neighbor_spins[64]; // Fixed size covers max_nb easily, allows 1-based indexing safely
  
-  for (int i=0;i<loop;i++) 
+  for (int i = 0; i < loop; i++) 
   {  
-    // take a random site
-    int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
-    int x = xy%(sizex-2)+1;
-    int y = xy/(sizex-2)+1; 
+    // FAST random site selection (replaces expensive % and / modulo operations)
+    int x = 1 + (int)(RANDOM(s_val) * sx_inner);
+    int y = 1 + (int)(RANDOM(s_val) * sy_inner);
     
-    int k=sigma[x][y];
-    distinct_count=0;
+    int k = sigma[x][y];
 
-    if (par.periodic_boundaries)
+    // =============================================================
+    // 1. PRE-FETCH ALL REQUIRED NEIGHBORS EXACTLY ONCE
+    // =============================================================
+    for (int j = 1; j <= max_nb; j++) 
     {
-      for (int j = 1; j <= n_nb; j++) 
+      int tx = nx[j] + x;
+      int ty = ny[j] + y;
+
+      if (par.periodic_boundaries) {
+          if (tx <= 0) tx += sx_inner;
+          else if (tx >= sizex - 1) tx -= sx_inner;
+          if (ty <= 0) ty += sy_inner;
+          else if (ty >= sizey - 1) ty -= sy_inner;
+          
+          neighbor_spins[j] = sigma[tx][ty];
+      } 
+      else 
       {
-        int tx = nx[j] + x;
-        int ty = ny[j] + y;
-
-        if (tx <= 0) 
-          tx += sx_inner;
-        else if (tx >= sizex - 1) 
-          tx -= sx_inner;
-        if (ty <= 0) 
-          ty += sy_inner;
-        else if (ty >= sizey - 1) 
-          ty -= sy_inner; 
-        
-        int neighbor_val = sigma[tx][ty];
-
-        // Check if this state is already in our list
-        bool seen = false;
-        for (int u = 0; u < distinct_count; u++) {
-            if (present_states[u] == neighbor_val) {
-                seen = true;
-                break;
-            }
-        }
-
-        // If new unique state, add it
-        if (!seen) 
-        {
-            present_states[distinct_count] = neighbor_val;
-            // exemplar_neighbour_indices[distinct_count] = j;
-            distinct_count++;
-        }
-        
+          if (tx <= 0 || ty <= 0 || tx >= sizex - 1 || ty >= sizey - 1) {
+              neighbor_spins[j] = -1; // -1 means out-of-bounds border
+          } else {
+              neighbor_spins[j] = sigma[tx][ty];
+          }
       }
     }
-    else
+
+    // =============================================================
+    // 2. IDENTIFY TARGET STATES (using only copy neighborhood: n_nb)
+    // =============================================================
+    distinct_count = 0;
+    for (int j = 1; j <= n_nb; j++)
     {
-      for (int j = 1; j <= n_nb; j++) 
+      int neighbor_val = neighbor_spins[j];
+      
+      if (neighbor_val == -1) 
+          continue; // Skip out-of-bounds border states
+
+      // Check if this state is already in our list
+      bool seen = false;
+      for (int u = 0; u < distinct_count; u++) {
+          if (present_states[u] == neighbor_val) {
+              seen = true;
+              break;
+          }
+      }
+
+      // If new unique state, add it
+      if (!seen) 
       {
-        int tx = nx[j] + x;
-        int ty = ny[j] + y;
-        int neighbor_val = -1;
-
-        if (tx > 0 && ty > 0 && tx < sizex - 1 && ty < sizey - 1) {
-            neighbor_val = sigma[tx][ty];
-        }
-
-        // Check if this state is already in our list
-        bool seen = false;
-        for (int u = 0; u < distinct_count; u++) {
-            if (present_states[u] == neighbor_val) {
-                seen = true;
-                break;
-            }
-        }
-
-        // If new unique state, add it
-        if (!seen) {
-            present_states[distinct_count] = neighbor_val;
-            // exemplar_neighbour_indices[distinct_count] = j;
-            distinct_count++;
-        }
+          present_states[distinct_count] = neighbor_val;
+          distinct_count++;
       }
     }
 
@@ -1046,28 +1133,15 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     
     int rand_idx = (int)(distinct_count * RANDOM(s_val));
     int kp = present_states[rand_idx];
-    
-    // Recover coordinates (xp, yp) of the neighbor that had this state.
-    // This is necessary because DeltaH/ConvertSpin likely rely on coordinates.
-    // We use the 'exemplar' neighbor we found during the scan.
-    // int chosen_nb_idx = exemplar_neighbour_indices[rand_idx];
-    // int xp = nx[chosen_nb_idx] + x;
-    // int yp = ny[chosen_nb_idx] + y;
 
-    // Recalculate boundary coords for xp, yp exactly as before for use in DeltaH
-    // if (par.periodic_boundaries) 
-    // {
-    //   if (xp<=0) xp=sizex-2+xp;
-    //   if (yp<=0) yp=sizey-2+yp;
-    //   if (xp>=sizex-1) xp=xp-sizex+2;
-    //   if (yp>=sizey-1) yp=yp-sizey+2;
-    // }
-
+    // =============================================================
+    // 4. CONNECTIVITY CHECK (Kept separate because it relies on 
+    //    strict Clockwise 8-neighborhood ordering for Moore Check)
+    // =============================================================
     int nbs[8];
     // FAST PATH: 95%+ of the time, the cell is entirely inside the grid
     if (!par.periodic_boundaries || (x > 1 && y > 1 && x < sizex - 2 && y < sizey - 2)) 
     {
-        // Fetched in clockwise order starting from top-left (-1, -1)
         nbs[0] = sigma[x-1][y-1];
         nbs[1] = sigma[x  ][y-1];
         nbs[2] = sigma[x+1][y-1];
@@ -1079,172 +1153,154 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     }
     else
     {
-      GetNeighborsSafe(x,y,nbs);
+      GetNeighborsSafe(x, y, nbs);
     }
 
     bool check1 = (k == 0)  ? true : IsLocallyConnected(nbs, k);
     bool check2 = (kp == 0) ? true : IsLocallyConnected(nbs, kp);
 
-    // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
-    // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
-
-    // test for border state (relevant only if we do not use 
-    // periodic boundaries)
-    if (kp!=-1 && check1 == true && check2 == true) 
+    // =============================================================
+    // 5. ATTEMPT COPY
+    // =============================================================
+    if (kp != -1 && check1 == true && check2 == true && k != kp) 
     {  
-      // Don't even think of copying the special border state into you!
-    
-     
-      if ( k  != kp ) 
+      int H_diss = 0;
+
+      // PASS IN THE PRE-CALCULATED ARRAY HERE!
+      double D_H = DeltaH(x, y, kp, tsteps, neighbor_spins, PDEfield);
+
+      if ((p = CopyvProb(D_H, H_diss)) > 0) 
       {
-        /* Try to copy if sites do not belong to the same cell */
-        // connectivity dissipation:
-        int H_diss=0;
-        // if (!ConnectivityPreservedP(x,y)) 
-        //   H_diss=par.conn_diss;
-
-        double D_H=DeltaH(x,y,kp, tsteps, PDEfield);
-
-        if ((p=CopyvProb(D_H,H_diss))>0) 
-        {
-          ++par.tmpcounter;
-          if (par.H_perim)
-            ConvertSpinPerim( x,y,kp );
-          else
-          {
-            ConvertSpin( x,y,kp );
-          //   if (is_med_attempt)
-          //   {
-          //     ++medp_success;
-          //   }
-          }
-            
+        ++par.tmpcounter;
+        if (par.H_perim) {
+          // PASS IN THE PRE-CALCULATED ARRAY HERE TOO!
+          ConvertSpinPerim(x, y, kp, neighbor_spins);
+        } else {
+          ConvertSpin(x, y, kp);
         }
       }
     } 
   }
   return SumDH;
-  
 }
 
-
-int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
-{
-  int loop,p;
-  //int updated=0;
-  thetime++;
-  int SumDH=0;
+// int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
+// {
+//   int loop,p;
+//   //int updated=0;
+//   thetime++;
+//   int SumDH=0;
   
-  if (frozen) 
-    return 0;
+//   if (frozen) 
+//     return 0;
 
-  loop=(sizex-2)*(sizey-2);
+//   loop=(sizex-2)*(sizey-2);
  
-  for (int i=0;i<loop;i++) 
-  {  
-    // take a random site
-    int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
-    int x = xy%(sizex-2)+1;
-    int y = xy/(sizex-2)+1; 
+//   for (int i=0;i<loop;i++) 
+//   {  
+//     // take a random site
+//     int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
+//     int x = xy%(sizex-2)+1;
+//     int y = xy/(sizex-2)+1; 
     
-    // take a random neighbour
-    int xyp=(int)(n_nb*RANDOM(s_val)+1);
-    int xp = nx[xyp]+x;
-    int yp = ny[xyp]+y;
+//     // take a random neighbour
+//     int xyp=(int)(n_nb*RANDOM(s_val)+1);
+//     int xp = nx[xyp]+x;
+//     int yp = ny[xyp]+y;
     
-    int k=sigma[x][y];
+//     int k=sigma[x][y];
     
-    int kp;
-    if (par.periodic_boundaries) 
-    {
-      // since we are asynchronic, we cannot just copy the borders once 
-      // every MCS
-      if (xp<=0)
-	      xp=sizex-2+xp;
-      if (yp<=0)
-	      yp=sizey-2+yp;
-      if (xp>=sizex-1)
-	      xp=xp-sizex+2;
-      if (yp>=sizey-1)
-	      yp=yp-sizey+2;
+//     int kp;
+//     if (par.periodic_boundaries) 
+//     {
+//       // since we are asynchronic, we cannot just copy the borders once 
+//       // every MCS
+//       if (xp<=0)
+// 	      xp=sizex-2+xp;
+//       if (yp<=0)
+// 	      yp=sizey-2+yp;
+//       if (xp>=sizex-1)
+// 	      xp=xp-sizex+2;
+//       if (yp>=sizey-1)
+// 	      yp=yp-sizey+2;
       
-      kp=sigma[xp][yp];
+//       kp=sigma[xp][yp];
       
-    } 
-    else 
-    {
-      if (xp<=0 || yp<=0 || xp>=sizex-1 || yp>=sizey-1)
-	      kp=-1;
-      else
-	      kp=sigma[xp][yp];
-    }
-    // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
-    // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+//     } 
+//     else 
+//     {
+//       if (xp<=0 || yp<=0 || xp>=sizex-1 || yp>=sizey-1)
+// 	      kp=-1;
+//       else
+// 	      kp=sigma[xp][yp];
+//     }
+//     // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+//     // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
 
-    // test for border state (relevant only if we do not use 
-    // periodic boundaries)
-    if (kp!=-1) 
-    {  
-      // Don't even think of copying the special border state into you!
+//     // test for border state (relevant only if we do not use 
+//     // periodic boundaries)
+//     if (kp!=-1) 
+//     {  
+//       // Don't even think of copying the special border state into you!
     
-      if ( k  != kp ) 
-      {
-        /* Try to copy if sites do not belong to the same cell */
-        // connectivity dissipation:
-        int H_diss=0;
-        if (!ConnectivityPreservedP(x,y)) 
-          H_diss=par.conn_diss;
+//       if ( k  != kp ) 
+//       {
+//         /* Try to copy if sites do not belong to the same cell */
+//         // connectivity dissipation:
+//         int H_diss=0;
+//         if (!ConnectivityPreservedP(x,y)) 
+//           H_diss=par.conn_diss;
         
-        double D_H=DeltaH(x,y,kp, tsteps, PDEfield);
+//         double D_H=DeltaH(x,y,kp, tsteps, PDEfield);
         
-        // dH_tally += D_H;
-        // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
-        //   cout << D_H << endl;
-        // bool is_med_attempt = false;
-        // if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
-        // {
-        //   is_med_attempt = true;
-        //   ++medp_count;
-        // }
-        if ((p=CopyvProb(D_H,H_diss))>0) 
-        {
-          if (par.H_perim)
-            ConvertSpinPerim( x,y,kp );
-          else
-          {
-            ConvertSpin( x,y,kp );
-          }  
-        }
-        //   if (par.recordcopies)
-        //   {
-        //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
-        //     {
-        //       ++flip_true;
-        //       SumDH+=D_H;
-        //       dH_neg+=D_H;
-        //     }
-        //   }
+//         // dH_tally += D_H;
+//         // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+//         //   cout << D_H << endl;
+//         // bool is_med_attempt = false;
+//         // if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
+//         // {
+//         //   is_med_attempt = true;
+//         //   ++medp_count;
+//         // }
+//         if ((p=CopyvProb(D_H,H_diss))>0) 
+//         {
+//           if (par.H_perim)
+//             ConvertSpinPerim( x,y,kp );
+//           else
+//           {
+//             ConvertSpin( x,y,kp );
+//           }  
+//         }
+//         //   if (par.recordcopies)
+//         //   {
+//         //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+//         //     {
+//         //       ++flip_true;
+//         //       SumDH+=D_H;
+//         //       dH_neg+=D_H;
+//         //     }
+//         //   }
           
-        // }
-        // else
-        // {
-        //   if (par.recordcopies)
-        //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
-        //     {
-        //       ++flip_false;
-        //     }
-        // }
-        // if (Probability(D_H)) 
-        // {
-        //   ConvertSpin( x,y,xp,yp );
-        //   SumDH+=D_H;
-        // }
-      }
-    } 
-  }
-  return SumDH;
+//         // }
+//         // else
+//         // {
+//         //   if (par.recordcopies)
+//         //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+//         //     {
+//         //       ++flip_false;
+//         //     }
+//         // }
+//         // if (Probability(D_H)) 
+//         // {
+//         //   ConvertSpin( x,y,xp,yp );
+//         //   SumDH+=D_H;
+//         // }
+//       }
+//     } 
+//   }
+//   return SumDH;
   
-}
+// }
 
 
 
@@ -1430,7 +1486,7 @@ void CellularPotts::SetSortingTypesRandomly()
     {
 
       double rand = RANDOM(s_val);
-      if (rand > 1.)
+      if (rand > par.startingAproportion)
       {
         c->SetSortingType(true);
       }
@@ -1442,6 +1498,146 @@ void CellularPotts::SetSortingTypesRandomly()
   }
 
 }
+
+
+double CellularPotts::MeasureDomainSizeR()
+{
+    const int sx_inner = sizex - 2;
+    const int sy_inner = sizey - 2;
+    
+    // ------------------------------------------------------------------------
+    // 1. Helper to safely get the physics paper's tau (+1.0 or -1.0)
+    // ------------------------------------------------------------------------
+    auto get_tau = [&](int cell_id) -> double {
+        bool is_type_A = (*cell)[cell_id].GetSortingType();
+        return is_type_A ? 1.0 : -1.0; 
+    };
+
+    // ------------------------------------------------------------------------
+    // 2. Calculate the global mean tau (spatial average of cell types)
+    // ------------------------------------------------------------------------
+    double sum_tau = 0.0;
+    int count_p = 0;
+    
+    for (int x = 1; x <= sx_inner; x++) 
+    {
+      for (int y = 1; y <= sy_inner; y++) 
+      {
+        int id = sigma[x][y];
+        if (id != 0)
+        {
+          sum_tau += get_tau(id);
+          count_p++;
+        }
+      }
+    }
+    
+    if (count_p == 0) return 0.0; // Guard against empty grid
+    
+    double mean_tau = sum_tau / count_p;
+    double mean_tau_sq = mean_tau * mean_tau;
+
+    // ------------------------------------------------------------------------
+    // 3. Compute the radial correlation function C(r)
+    // ------------------------------------------------------------------------
+    int max_r = std::min(sx_inner, sy_inner) / 2; // Maximum radius to track
+    int max_r_sq = max_r * max_r;
+    
+    std::vector<double> C_r(max_r + 1, 0.0);
+    std::vector<long long> count_r(max_r + 1, 0);
+    
+    int stride = 4; 
+    
+    for (int x = 1; x <= sx_inner; x += stride) 
+    {
+      for (int y = 1; y <= sy_inner; y += stride) 
+      {
+        int origin_id = sigma[x][y];
+        if (origin_id == 0)
+          continue;
+
+        double tau1 = get_tau(origin_id);
+        
+        // Scan local window up to max_r
+        for (int dx = -max_r; dx <= max_r; dx++) 
+        {
+          for (int dy = -max_r; dy <= max_r; dy++) 
+          {
+            int r_sq = dx*dx + dy*dy;
+            if (r_sq == 0 || r_sq > max_r_sq) continue;
+            
+            int tx = x + dx;
+            int ty = y + dy;
+            
+            // Apply your existing periodic boundaries logic
+            if (par.periodic_boundaries) 
+            {
+              if (tx <= 0) tx += sx_inner;
+              else if (tx >= sizex - 1) tx -= sx_inner;
+              
+              if (ty <= 0) ty += sy_inner;
+              else if (ty >= sizey - 1) ty -= sy_inner;
+            } 
+            else 
+            {
+              if (tx <= 0 || ty <= 0 || tx >= sizex - 1 || ty >= sizey - 1) 
+                  continue; // Out of bounds
+            }
+            
+            int target_id = sigma[tx][ty];
+            
+            // FIX: Ensure we do not evaluate the medium for correlation!
+            if (target_id != 0) 
+            {
+              double tau2 = get_tau(target_id);
+              int r = (int)std::round(std::sqrt(r_sq));
+              
+              // FIX: We accumulate for ALL cell pairs, not just true ones
+              C_r[r] += tau1 * tau2;
+              count_r[r]++;
+            }
+          }
+        }
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // 4. Normalize C(r) and find the first zero-crossing point R(t)
+    // ------------------------------------------------------------------------
+    for (int r = 1; r <= max_r; r++) 
+    {
+      if (count_r[r] > 0) 
+      {
+        // Apply the formula: <tau(0)*tau(r)> - <tau>^2
+        C_r[r] = (C_r[r] / count_r[r]) - mean_tau_sq;
+      }
+    }
+    
+    double R_t = -1.0;
+    
+    for (int r = 1; r < max_r; r++) 
+    {
+      // Look for the point where C(r) crosses from positive to negative
+      if (count_r[r] > 0 && count_r[r+1] > 0) 
+      {
+        if (C_r[r] >= 0.0 && C_r[r+1] < 0.0) 
+        {
+            // Linear interpolation: C_r[r] = m * x + b
+            double slope = C_r[r+1] - C_r[r];
+            if (slope != 0.0) {
+                R_t = r - (C_r[r] / slope); 
+            } else {
+                R_t = r;
+            }
+            break; // Found the FIRST zero-crossing point
+        }
+      }
+    }
+    
+    return R_t;
+}
+
+
 
 
 

@@ -509,9 +509,9 @@ public:
 
   double Cooperativity(int time_skip=1);
 
-  int GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y);
+  int GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y, const int* neighbor_spins);
 
-  int GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y);
+  int GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y, const int* neighbor_spins);
 
   void MeasureCellPerimeters();
 
@@ -604,6 +604,7 @@ public:
 
   void ClearGrid();
 
+  double MeasureDomainSizeR();
 
   // dynamic adhesion project methods
   void UpdateDynamicAdhesion();
@@ -631,11 +632,11 @@ public:
       return par.dynJmed;
     else if (j == 0)
       return par.dynJmed;
-    else if ((*cell)[i].GetSortingType() != (*cell)[j].GetSortingType())
+    else if (i != j)
     {
       return par.Jdyndiff;
     }
-    else if ((*cell)[i].GetSortingType()==0)
+    else if (i==0)
     {
       return par.AstaticJ;
       // cout << "return 2: " << GetDynamicAdhesion(i, j) << endl;
@@ -904,10 +905,11 @@ public:
 
 private:
   void IndexShuffle(void);
-  double DeltaH(int x,int y, int sxyp, int tsteps, PDE *PDEfield=0);
+  // double DeltaH(int x,int y, int sxyp, int tsteps, PDE *PDEfield=0);
+  double DeltaH(int x,int y, int sxyp, int tsteps, const int* neighbor_spins, PDE *PDEfield=0);
   bool Probability(int DH);
   void ConvertSpin(int x,int y,int kp);
-  void ConvertSpinPerim(int x, int y, int kp);
+  void ConvertSpinPerim(int x, int y, int kp, const int* neighbor_spins);
   void GetNeighborsSafe(int x, int y, int* nbs); 
   void SprayMedium(void);
   int CopyvProb(double DH,  double stiff);
