@@ -1507,139 +1507,140 @@ void CellularPotts::SetSortingTypesRandomly()
 
 }
 
-
-double CellularPotts::MeasureDomainSizeR()
+double CellularPotts::MeasureDomainSizeR(std::vector<double>* out_C_r)
 {
     const int sx_inner = sizex - 2;
     const int sy_inner = sizey - 2;
+    // we dont really need the correlation function for values larger than 400.
+    int max_r = std::min(std::min(sx_inner, sy_inner) / 2  , 400);
+    if (max_r < 1) return 0.0;
     
     // ------------------------------------------------------------------------
-    // 1. Helper to safely get the physics paper's tau (+1.0 or -1.0)
+    // 1. PRECOMPUTE TAU GRID (Eliminates pointer chasing)
     // ------------------------------------------------------------------------
-    auto get_tau = [&](int cell_id) -> double {
-        bool is_type_A = (*cell)[cell_id].GetSortingType();
-        return is_type_A ? 1.0 : -1.0; 
-    };
-
-    // ------------------------------------------------------------------------
-    // 2. Calculate the global mean tau (spatial average of cell types)
-    // ------------------------------------------------------------------------
+    std::vector<std::vector<double>> tau_grid(sizex, std::vector<double>(sizey, 0.0));
+    std::vector<std::vector<bool>> valid_grid(sizex, std::vector<bool>(sizey, false));
+    
     double sum_tau = 0.0;
-    int count_p = 0;
+    long long count_p = 0;
     
-    for (int x = 1; x <= sx_inner; x++) 
-    {
-      for (int y = 1; y <= sy_inner; y++) 
-      {
-        int id = sigma[x][y];
-        if (id != 0)
-        {
-          sum_tau += get_tau(id);
-          count_p++;
+    for (int x = 1; x <= sx_inner; x++) {
+        for (int y = 1; y <= sy_inner; y++) {
+            int id = sigma[x][y];
+            if (id != 0) {
+                double t = (*cell)[id].GetSortingType() ? 1.0 : -1.0;
+                tau_grid[x][y] = t;
+                valid_grid[x][y] = true;
+                sum_tau += t;
+                count_p++;
+            }
         }
-      }
     }
     
-    if (count_p == 0) return 0.0; // Guard against empty grid
-    
-    double mean_tau = sum_tau / count_p;
-    double mean_tau_sq = mean_tau * mean_tau;
+    if (count_p == 0) return 0.0;
+    double mean_tau_sq = (sum_tau / count_p) * (sum_tau / count_p);
+
+    // Setup output array if requested
+    if (out_C_r) {
+        out_C_r->assign(max_r + 1, 0.0);
+        // C(0) is perfectly correlated with itself: (1.0 * 1.0) - mean_tau_sq
+        (*out_C_r)[0] = 1.0 - mean_tau_sq; 
+    }
 
     // ------------------------------------------------------------------------
-    // 3. Compute the radial correlation function C(r)
+    // 2. PRECOMPUTE RINGS
     // ------------------------------------------------------------------------
-    int max_r = std::min(sx_inner, sy_inner) / 2; // Maximum radius to track
-    int max_r_sq = max_r * max_r;
-    
-    std::vector<double> C_r(max_r + 1, 0.0);
-    std::vector<long long> count_r(max_r + 1, 0);
-    
-    int stride = 4; 
-    
-    for (int x = 1; x <= sx_inner; x += stride) 
-    {
-      for (int y = 1; y <= sy_inner; y += stride) 
-      {
-        int origin_id = sigma[x][y];
-        if (origin_id == 0)
-          continue;
-
-        double tau1 = get_tau(origin_id);
-        
-        // Scan local window up to max_r
-        for (int dx = -max_r; dx <= max_r; dx++) 
-        {
-          for (int dy = -max_r; dy <= max_r; dy++) 
-          {
+    std::vector<std::vector<std::pair<int, int>>> rings(max_r + 1);
+    for (int dx = -max_r; dx <= max_r; dx++) {
+        for (int dy = -max_r; dy <= max_r; dy++) {
             int r_sq = dx*dx + dy*dy;
-            if (r_sq == 0 || r_sq > max_r_sq) continue;
-            
-            int tx = x + dx;
-            int ty = y + dy;
-            
-            // Apply your existing periodic boundaries logic
-            if (par.periodic_boundaries) 
-            {
-              if (tx <= 0) tx += sx_inner;
-              else if (tx >= sizex - 1) tx -= sx_inner;
-              
-              if (ty <= 0) ty += sy_inner;
-              else if (ty >= sizey - 1) ty -= sy_inner;
-            } 
-            else 
-            {
-              if (tx <= 0 || ty <= 0 || tx >= sizex - 1 || ty >= sizey - 1) 
-                  continue; // Out of bounds
+            if (r_sq == 0 || r_sq > max_r*max_r) continue;
+            int r = (int)std::round(std::sqrt(r_sq));
+            if (r <= max_r) {
+                rings[r].push_back({dx, dy});
             }
-            
-            int target_id = sigma[tx][ty];
-            
-            // FIX: Ensure we do not evaluate the medium for correlation!
-            if (target_id != 0) 
-            {
-              double tau2 = get_tau(target_id);
-              int r = (int)std::round(std::sqrt(r_sq));
-              
-              // FIX: We accumulate for ALL cell pairs, not just true ones
-              C_r[r] += tau1 * tau2;
-              count_r[r]++;
-            }
-          }
         }
-      }
     }
 
     // ------------------------------------------------------------------------
-    // 4. Normalize C(r) and find the first zero-crossing point R(t)
+    // 3. CACHE-OPTIMIZED RING EVALUATION
     // ------------------------------------------------------------------------
-    for (int r = 1; r <= max_r; r++) 
-    {
-      if (count_r[r] > 0) 
-      {
-        // Apply the formula: <tau(0)*tau(r)> - <tau>^2
-        C_r[r] = (C_r[r] / count_r[r]) - mean_tau_sq;
-      }
-    }
+    int stride = 4; 
+    double prev_C = 0.0;
+    bool has_prev = false;
     
     double R_t = -1.0;
-    
-    for (int r = 1; r < max_r; r++) 
+    bool found_Rt = false;
+
+    for (int r = 1; r <= max_r; r++) 
     {
-      // Look for the point where C(r) crosses from positive to negative
-      if (count_r[r] > 0 && count_r[r+1] > 0) 
-      {
-        if (C_r[r] >= 0.0 && C_r[r+1] < 0.0) 
+        if (rings[r].empty()) continue;
+
+        double current_sum = 0.0;
+        long long current_count = 0;
+
+        // INVERTED LOOPS: Offset -> X -> Y for maximum CPU Cache speed
+        for (const auto& offset : rings[r]) 
         {
-            // Linear interpolation: C_r[r] = m * x + b
-            double slope = C_r[r+1] - C_r[r];
-            if (slope != 0.0) {
-                R_t = r - (C_r[r] / slope); 
-            } else {
-                R_t = r;
+            int dx = offset.first;
+            int dy = offset.second;
+            
+            for (int x = 1; x <= sx_inner; x += stride) 
+            {
+                int tx = x + dx;
+                
+                // X-boundary evaluated OUTSIDE the y-loop!
+                if (par.periodic_boundaries) {
+                    if (tx <= 0) tx += sx_inner;
+                    else if (tx >= sizex - 1) tx -= sx_inner;
+                } else {
+                    if (tx <= 0 || tx >= sizex - 1) continue; 
+                }
+                
+                // Y-loop accesses sequential memory in C++ vectors
+                for (int y = 1; y <= sy_inner; y += stride) 
+                {
+                    if (!valid_grid[x][y]) continue;
+
+                    int ty = y + dy;
+                    if (par.periodic_boundaries) {
+                        if (ty <= 0) ty += sy_inner;
+                        else if (ty >= sizey - 1) ty -= sy_inner;
+                    } else {
+                        if (ty <= 0 || ty >= sizey - 1) continue; 
+                    }
+                    
+                    if (valid_grid[tx][ty]) {
+                        current_sum += tau_grid[x][y] * tau_grid[tx][ty];
+                        current_count++;
+                    }
+                }
             }
-            break; // Found the FIRST zero-crossing point
         }
-      }
+
+        if (current_count > 0) 
+        {
+            double C_r = (current_sum / current_count) - mean_tau_sq;
+            
+            if (out_C_r) {
+                (*out_C_r)[r] = C_r;
+            }
+
+            // Check for zero-crossing
+            if (!found_Rt && has_prev && prev_C >= 0.0 && C_r < 0.0) 
+            {
+                double slope = C_r - prev_C;
+                R_t = (slope != 0.0) ? ((r - 1) - (prev_C / slope)) : (double)r;
+                found_Rt = true;
+                
+                // EARLY EXIT: If they didn't ask for the full curve, stop calculating!
+                if (!out_C_r) {
+                    return R_t;
+                }
+            }
+            prev_C = C_r;
+            has_prev = true;
+        }
     }
     
     return R_t;
@@ -2060,10 +2061,10 @@ bool containsTargetVector(const vector<int>& target, const vector<std::vector<in
   return false;  // No such vector found
 }
 
-
-int CellularPotts::CalculateABBoundaryLength()
+double CellularPotts::CalculateABBoundaryLength()
 {
     int total_ab_boundary = 0;
+    int total_boundary = 0; // Track the total cell-cell boundary length
 
     // Iterate through the entire grid
     for (int i = 0; i < sizex; i++) {
@@ -2083,6 +2084,8 @@ int CellularPotts::CalculateABBoundaryLength()
                 
                 // Check if right pixel is a valid cell and is a different cell
                 if (right_id > 0 && current_id != right_id) {
+                    total_boundary++; // It's a cell-cell boundary
+                    
                     bool right_type = (*cell)[right_id].GetSortingType();
                     
                     // If the types are different (one is A, one is B)
@@ -2098,6 +2101,8 @@ int CellularPotts::CalculateABBoundaryLength()
                 
                 // Check if bottom pixel is a valid cell and is a different cell
                 if (bottom_id > 0 && current_id != bottom_id) {
+                    total_boundary++; // It's a cell-cell boundary
+                    
                     bool bottom_type = (*cell)[bottom_id].GetSortingType();
                     
                     // If the types are different (one is A, one is B)
@@ -2110,7 +2115,13 @@ int CellularPotts::CalculateABBoundaryLength()
         }
     }
 
-    return total_ab_boundary;
+    // Prevent division by zero if there are no cell boundaries at all
+    if (total_boundary == 0) {
+        return 0.0;
+    }
+
+    // Return the relative boundary length as a double between 0.0 and 1.0
+    return static_cast<double>(total_ab_boundary) / total_boundary;
 }
 
 

@@ -142,10 +142,19 @@ void process_population()
   omp_set_num_threads(par.n_orgs);
 
   vector<vector<double>> boundary_lengths(par.n_orgs);
+  vector<vector<double>> Rt(par.n_orgs);
+  vector<vector<vector<double>>> CRt(par.n_orgs);
+
+  int bdry_step=20;
+  int Rt_step=500;
+  // crt_step must be a multiple of rt_step.
+  int CRt_step=1000;
 
   #pragma omp parallel for
   for (int i = 0; i < par.n_orgs; ++i)
   { 
+    vector<vector<double>> org_CRt{};
+    vector<double> org_Rt{};
     vector<double> bound_lengths{};
     dishes[i].CPM->set_num(i+1);
     dishes[i].Init();
@@ -191,14 +200,26 @@ void process_population()
       // {
       //   cout << dish->CPM->CalculateABBoundaryLength() << endl;
       // }
-      if (t%10==0)
+      if (t%bdry_step==0)
       {
         bound_lengths.push_back(dishes[i].CPM->CalculateABBoundaryLength());
       }
+      if (t%Rt_step==0)
+      {
+        vector<double> tmp_crt;
+        double rt = dishes[i].CPM->MeasureDomainSizeR(&tmp_crt);
+        org_Rt.push_back(rt);
+        if (t % CRt_step==0)
+          org_CRt.push_back(tmp_crt);
+      }
+      cout << t << endl;
+
       if (t%10000==0)
-        cout << i << "  reached time step: " << t << endl;
+        cout << i << " reached time step: " << t << endl;
     }
     boundary_lengths[i]=bound_lengths;
+    Rt[i]=org_Rt;
+    CRt[i]=org_CRt;
   }
   // do stuff here
 
@@ -216,9 +237,48 @@ void process_population()
       avg_bound_length += boundary_lengths[i][j];
     }
     avg_bound_length /= par.n_orgs;
-    outfile << j*10 << '\t' << avg_bound_length << endl;
+    outfile << j*bdry_step << '\t' << avg_bound_length << endl;
   }
   outfile.close();
+
+  oname = par.data_file + "/rt.dat";
+  outfile.open(oname, ios::app);  // Append mode
+  timelength = Rt[0].size();
+  for (int j = 0; j < timelength; ++j)
+  {
+    double avg_rt{};
+    for (int i = 0; i < par.n_orgs; ++i)
+    {
+      avg_rt += Rt[i][j];
+    }
+    avg_rt /= par.n_orgs;
+    outfile << j*Rt_step << '\t' << avg_rt << endl;
+  }
+  outfile.close();
+
+
+  oname = par.data_file + "/crt.dat";
+  outfile.open(oname, ios::app);  // Append mode
+  timelength = CRt[0].size();
+  int arr_length = CRt[0][0].size();
+  for (int j = 0; j < timelength; ++j)
+  {
+    outfile << j*CRt_step << '\t';
+
+    for (int k = 0; k < arr_length; ++k)
+    {
+      double avg_rt_given{};
+      for (int i = 0; i < par.n_orgs; ++i)
+      {
+        avg_rt_given += CRt[i][j][k];
+      }
+      avg_rt_given /= par.n_orgs;
+      outfile << avg_rt_given << '\t';
+    }
+    outfile << endl;
+  }
+  outfile.close();
+
 
 }
 

@@ -87,16 +87,16 @@
 
 
 /* Cellular Potts parameters */
-    sizex = 1000;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 1000;
-    mcs = 100001;
+    sizex = 2000;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 2000;
+    mcs = 300001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
     // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
-    adhesion_neighbourhood=5;
+    adhesion_neighbourhood=1;
     perimeter_neighbourhood=adhesion_neighbourhood;
     copy_neighbourhood=1;
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
@@ -120,9 +120,10 @@
     // detailed balance is not ensured.
     conn_diss = 2000;
     
-    n_orgs = 20;
+    n_orgs = 10;
 
     // sorting parameters
+    startingAproportion=0.5; // A=0(false), B=1(true)
     init_J=-0.;
     dynJmed=0.;
     Jdyndiff=-0.1 / neigh_multiplier;

@@ -1,9 +1,9 @@
 #!/bin/bash -e
 #SBATCH --job-name=CPM_evolution  
-#SBATCH --time=20:00:00      # Walltime (HH:MM:SS)
+#SBATCH --time=160:00:00      # Walltime (HH:MM:SS)
 #SBATCH --mem=10GB 
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10  
+#SBATCH --cpus-per-task=5  
 #SBATCH --account=uoa02799         
 #SBATCH --output=ev_sim_out-%j.out 
 #SBATCH --error=ev_sim_err-%j.out 

@@ -176,8 +176,27 @@ TIMESTEP {
     if (t % 1000 == 0)
     {
       // cout << dish->CPM->CalculateABBoundaryLength() << endl;
-      // cout << dish->CPM->MeasureDomainSizeR() << endl;
+      cout << dish->CPM->MeasureDomainSizeR() << endl;
     }
+
+    if (t % 2000 == 0)
+    {
+      vector<double> CrCurve;
+      double domain_size = dish->CPM->MeasureDomainSizeR(&CrCurve);
+
+      string oname = par.data_file + "/Cr-" + to_string(t) + ".dat";
+      ofstream outfile;
+      outfile.open(oname, ios::app);  // Append mode
+      outfile << fixed << setprecision(3);
+      for (int j = 0; j < CrCurve.size(); ++j)
+      {
+        
+        outfile << CrCurve[j] << endl;
+      }
+      outfile.close();
+
+    }
+    
 
 
     static Info *info=new Info(*dish, *this);

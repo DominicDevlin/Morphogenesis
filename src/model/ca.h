@@ -604,7 +604,7 @@ public:
 
   void ClearGrid();
 
-  double MeasureDomainSizeR();
+  double MeasureDomainSizeR(vector<double>* out_C_r = nullptr);
 
   // dynamic adhesion project methods
   void UpdateDynamicAdhesion();
@@ -650,7 +650,7 @@ public:
 
   void SetSortingTypesRandomly();
 
-  int CalculateABBoundaryLength();
+  double CalculateABBoundaryLength();
 
 
 
