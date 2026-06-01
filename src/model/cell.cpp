@@ -60,8 +60,6 @@ using namespace std;
 
 Cell::~Cell(void) 
 {
-  delete[] chem;
-  delete[] diffs;
 }
 
 void Cell::CellBirth(Cell &mother_cell) {
@@ -87,77 +85,25 @@ void Cell::CellBirth(Cell &mother_cell) {
   tau=mother_cell.tau;
   target_length = mother_cell.target_length;
 
-  fitness=mother_cell.fitness;
-  genes=mother_cell.genes;
-  diff_genes=mother_cell.diff_genes;
-  lambda_2 = mother_cell.lambda_2;
-  lambda = mother_cell.lambda;
-
-  locks=mother_cell.locks;
-  locks_bool=mother_cell.locks_bool;
-  keys=mother_cell.keys;
-  keys_bool=mother_cell.keys_bool;
-  medp=mother_cell.medp;
-  medp_bool=mother_cell.medp_bool;
-  full_set=mother_cell.full_set;
-  cycles=mother_cell.cycles;
-  gene_recordings=mother_cell.gene_recordings;
   shrinker = mother_cell.shrinker;
 
-  div_time = mother_cell.div_time;
-  div_phen = mother_cell.div_phen;
-  phenotype_history = mother_cell.phenotype_history;
-  phentime = mother_cell.phentime;
-  adulttime = mother_cell.adulttime;
+
   phenotype = mother_cell.phenotype;
-  switches = mother_cell.switches;
-  long_switches = mother_cell.long_switches;
 
   xcen = mother_cell.xcen;
   ycen = mother_cell.ycen;
-  xcens = mother_cell.xcens;
-  ycens = mother_cell.ycens;
-  vel_phens = mother_cell.vel_phens;
 
-  gamma_list = mother_cell.gamma_list;
-  mass_list = mother_cell.mass_list;
-  time_created = mother_cell.time_created;
+
 
   phase_protein_conc = mother_cell.phase_protein_conc;
   phase_state = mother_cell.phase_state;
   medium_protein_conc = mother_cell.medium_protein_conc;
   medium_state = mother_cell.medium_state;
 
-  temp_hexes = mother_cell.temp_hexes;
-  temp_shapes = mother_cell.temp_shapes;
 
   epithelial = mother_cell.epithelial;
 
-  synNotch_bound = mother_cell.synNotch_bound;
-  synNotch_unbound = mother_cell.synNotch_unbound;
-  synNotch_intra = mother_cell.synNotch_intra;
-  E_cadherin = mother_cell.E_cadherin;
-  CD19 = mother_cell.CD19;
-  opposing_CD19 = mother_cell.opposing_CD19;
-  opposing_E_cadherin = mother_cell.opposing_E_cadherin;
-  random_binding_proteins = mother_cell.random_binding_proteins;
-  touching_med = mother_cell.touching_med;
-  mCherry=mother_cell.mCherry;
-  GFP=mother_cell.GFP;
-  opposing_GFP=mother_cell.opposing_GFP;
-  P_cadherin=mother_cell.P_cadherin;
-  N_cadherin=mother_cell.N_cadherin;
-  spheroid_cell=mother_cell.spheroid_cell;
 
-  constitutives=mother_cell.constitutives;
-  GFP_induced=mother_cell.GFP_induced;
-  mCherry_induced=mother_cell.mCherry_induced;
-  CD19_induced=mother_cell.CD19_induced;  
-
-  for (int i=0;i<par.n_diffusers;i++)
-  {
-    diffs[i]=mother_cell.diffs[i];
-  }
 
   velocity_histories_x = mother_cell.velocity_histories_x;
   velocity_histories_y = mother_cell.velocity_histories_y;
@@ -171,13 +117,8 @@ void Cell::CellBirth(Cell &mother_cell) {
   perimeter = mother_cell.perimeter;
   target_perimeter = mother_cell.target_perimeter;
   
-  for (int ch=0;ch<par.n_chem;ch++)
-    chem[ch]=mother_cell.chem[ch];
   
   n_copies=0;
-
-  grad[0]=mother_cell.grad[0];
-  grad[1]=mother_cell.grad[1];
 
   centerx = mother_cell.centerx;
   centery=mother_cell.centery;
@@ -225,12 +166,9 @@ void Cell::ConstructorBody(int settau) {
 
   lambda = par.lambda;
 
-  diffs = new double[par.n_diffusers];
 
   v[0]=0.; v[1]=0.;
   n_copies=0;
-
-  chem = new double[par.n_chem];
 
   if (par.active_motion)
   {
@@ -309,27 +247,6 @@ double Cell::SheetDif(Cell &cell2, double &sJ, double &sheetmixJ)
 
 }
 
-
-double Cell::SyntheticEnergy(Cell &cell2)
-{
-  if (sigma==cell2.sigma)
-    return 0;
-  else if (sigma == 0)
-    return (par.synthetic_Jm)/par.neigh_multiplier;// + par.Jmed_scaling * cell2.getE_cadherin()) / par.neigh_multiplier;
-  else if (cell2.sigma==0)
-    return (par.synthetic_Jm)/par.neigh_multiplier;// + par.Jmed_scaling * E_cadherin) / par.neigh_multiplier;
-  else
-  {
-    return (par.synthetic_Jcell_baseline 
-     - par.JEcadherin_scaling * (E_cadherin * cell2.getE_cadherin())
-     - par.Jrandom_scaling_E * ((E_cadherin*cell2.getRandomBindingProteins()) + (random_binding_proteins*cell2.getE_cadherin()))
-     - par.JPcadherin_scaling * (P_cadherin * cell2.getP_cadherin()) 
-     - par.JNcadherin_scaling * (N_cadherin * cell2.getN_cadherin())
-     - par.Jrandom_scaling_N * (N_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getN_cadherin())
-     - par.Jrandom_scaling_P * (P_cadherin * cell2.getRandomBindingProteins() + random_binding_proteins*cell2.getP_cadherin())
-    ) * 2 / par.neigh_multiplier;
-  }
-}
 
 
 
@@ -439,22 +356,6 @@ double Cell::J_equation(int x)
 }
 
 
-// return energies by calculating lock & key products switched on by cells. 
-double Cell::EnergyDifference(Cell &cell2)
-{ 
-  if (sigma==cell2.sigma) 
-    return 0;
-  else if (sigma==0)
-    return CalculateJfromMed(cell2.get_medp_bool()) / par.neigh_multiplier; // (cell2.get_medp_bool()); && (cell2.get_keys_bool());
-  else if (cell2.sigma == 0)
-    return CalculateJwithMed() / par.neigh_multiplier;
-  else
-    return CalculateJfromKeyLock(cell2.get_keys_bool(), cell2.get_locks_bool()) * 2 / par.neigh_multiplier;
-
-
-  // return J[tau][cell2.tau];
-  
-}
 
 // void Cell::ClearJ(void) {
 
@@ -475,229 +376,3 @@ double Cell::CalculateJfromMed(vector<bool>& medp2)
   Jval += par.minM; // += 6 offset so interaction with medium is not 0
   return Jval;
 }
-
-// higher J means less binding with medium
-double Cell::CalculateJwithMed()
-{
-  double Jval = 0;
-  for (int i = 0; i < par.n_mediums; ++i)
-  {
-    
-    Jval += medp_bool[i]*par.med_table[i]; // medp_bool[i]*4;
-  }
-  Jval += par.minM; //  += 6 offset so interaction with medium is not 0     
-  return Jval;
-}
-
-
-double Cell::CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 )
-{
-  int score=0;
-
-  for (int i=0; i < par.n_locks; ++i)
-  {
-    score += ( keys_bool[i] != lock2[i] )?1:0; // (( keys_bool[i] == lock2[i] )?1:0) * par.med_table[i];
-    score += ( key2[i] != locks_bool[i] )?1:0; // (( key2[i] == locks_bool[i] )?1:0) * par.med_table[i];
-  }
-  double J = par.maxJ - par.interval2 * score; 
-  // perfect score is 10 (all locks and keys match). 
-  //  int J = 4 + (int)( 8. - 8 * ((double)score / par.n_lockandkey)); //4 10 10     20-16 
-  return J; 
-}
-
-bool Cell::checkforcycles(int max)
-{ 
-  auto it = cycles.begin();
-
-  unordered_map<vector<bool>, int> mapIt{};
-
-  for (vector<bool> i : cycles)
-    ++mapIt[i];
-
-  if (mapIt.size() > max)
-    return true;
-  else
-    return false;
-
-}
-
-//set a specific phenotype code. 
-void Cell::Phenotype()
-{
-  int pcode{};
-  int tot = full_set.size();
-  for (int i=0;i<tot;++i)
-  {
-    int x = tot - 1 - i;
-    pcode += full_set[i] * pow(2,x);
-  }
-  phenotype = pcode;
-}
-
-int Cell::RegPhenotype()
-{
-
-  int code{};
-  for (int i=0;i<par.n_activators;++i)
-  {
-    bool val;
-    if (genes[i] > 0.5)
-      val = 1;
-    else
-      val = 0;
-    int x = par.n_activators - 1 - i;
-    code += val * pow(2,x);
-  }
-  return code;
-}
-
-
-
-
-void Cell::RecordLongSwitch(vector<bool> &v1, uint64_t rndm)
-{
-  int p1{};
-  int p2{};
-  int tot = full_set.size();
-
-  for (int i=0;i<tot;++i)
-  {
-    int x = tot - 1 - i;
-    p1 += v1[i] * pow(2,x);
-    p2 += full_set[i] * pow(2,x);
-  }
-
-  if (p1 != p2)
-  {
-    //
-    tuple<int,int, int> sch = {p1, p2, rndm};
-    long_switches.push_back(sch);
-    
-  }
-}
-
-
-void Cell::RecordSwitch(vector<bool> &v1, uint64_t rndm)
-{
-  int p1{};
-  int p2{};
-  int tot = full_set.size();
-
-  for (int i=0;i<tot;++i)
-  {
-    int x = tot - 1 - i;
-    p1 += v1[i] * pow(2,x);
-    p2 += full_set[i] * pow(2,x);
-  }
-
-  if (p1 != p2)
-  {
-    //
-    tuple<int,int, int> sch = {p1, p2, rndm};
-    switches.push_back(sch);
-  }
-}
-
-
-
-void Cell::add_to_vectors()
-{
-  int j=0;
-  int k=0;
-  int m=0;
-  for (int i=0;i<par.n_genes;++i)
-  {
-    // push back the concentration from respective vector:
-    if (i < par.n_diffusers)
-    {
-      gene_recordings.at(i).push_back(diff_genes.at(i));
-    }
-    else if (i < par.n_genes - par.n_lockandkey - par.n_mediums)
-    {
-      gene_recordings.at(i).push_back(genes.at(i));
-
-    }
-    else if (i < par.n_genes - par.n_locks - par.n_mediums)
-    {
-      gene_recordings.at(i).push_back(locks.at(j));
-      ++j; 
-    }
-    else if (i < par.n_genes - par.n_mediums) 
-    {
-      gene_recordings.at(i).push_back(keys.at(k));
-      ++k;
-    }      
-    else 
-    {
-      gene_recordings.at(i).push_back(medp[m]);
-      ++m;
-    }
-  }
-  for (int i=0;i<par.n_diffusers;++i)
-  {
-    gene_recordings.at(par.n_genes + i).push_back(genes.at(i));
-  }
-  // get a specific phenotype code
-  phenotype_history.push_back(phenotype);
-
-}
-
-int Cell::LocksKeysScore(vector<bool>& locks, vector<bool>& keys)
-{
-  int score{};
-  for (int i =0; i < par.n_locks; ++i)
-  {
-    score += ( keys_bool[i] != locks[i] )?1:0; // (( keys_bool[i] == lock2[i] )?1:0) * par.med_table[i];
-    score += ( keys[i] != locks_bool[i] )?1:0; // (( key2[i] == locks_bool[i] )?1:0) * par.med_table[i];
-  }
-  return score;
-}
-
-int Cell::CheckMedsOn()
-{
-  int n{};
-  for (int i=0; i < par.n_locks; ++i)
-  {
-    n += medp_bool[i]; // medp_bool[i]; && keys_bool[i];
-  }
-  return n;
-}
-
-
-  bool Cell::limit_cycle()
-  {
-    vector<int> temp{};
-    temp.push_back(0);
-    int n_cycles=0;
-    for (auto &i : phenotype_history)
-    {
-      if (temp.back() == i)
-      {
-        continue;
-      }
-      else 
-      {
-        int count = 0;
-        for (int x = temp.size()-1; x >= 0; x--)
-        {
-          // cout << i << " " << temp[x] << endl;
-          if (i == temp[x])
-          {
-            if (count > 12)
-            {
-              ++n_cycles;
-            }
-            break;
-          } 
-
-          ++count;
-        }
-        temp.push_back(i);
-      }
-    }
-    // cout << "TOTAL CYCLES: " << n_cycles << endl;
-    if (n_cycles > 10)
-      return true;
-    else
-      return false;
-  }

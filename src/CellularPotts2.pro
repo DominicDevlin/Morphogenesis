@@ -14,7 +14,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-TARGET = multisort
+TARGET = sorting
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 PARAMFILE = parameter-files/parameter_$${TARGET}.cpp
 
@@ -32,7 +32,6 @@ HEADERS += model/ca.h \
            model/output.h \
            model/parameter.h \
            model/parse.h \
-           model/pde.h \
            model/random.h \
            model/sqr.h \
            model/sticky.h \
@@ -52,7 +51,6 @@ SOURCES += model/ca.cpp \
            model/misc.cpp \
            model/output.cpp \
            model/parse.cpp \
-           model/pde.cpp \
            model/random.cpp \
            model/crash.cpp \
            model/warning.cpp \

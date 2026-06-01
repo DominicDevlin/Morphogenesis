@@ -32,7 +32,6 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include "parameter.h"
 #include "info.h"
 #include "crash.h"
-#include "pde.h"
 
 #define EXTERNAL_OFF
 
@@ -45,8 +44,7 @@ Dish::Dish()
   ConstructorBody();
   
   CPM=new CellularPotts(&cell, par.sizex, par.sizey);
-  if (par.n_diffusers)
-    PDEfield=new PDE(par.n_diffusers,par.sizex, par.sizey);
+
   
   // Initial cell distribution is defined by user in INIT {} block
   // Init();
@@ -66,7 +64,6 @@ Dish::~Dish() {
     cell.clear();
     
     delete CPM;
-    delete PDEfield;
 	
  }
 
@@ -90,7 +87,6 @@ void Dish::ConstructorBody() {
   cell.front().tau=0;
   
   CPM=0;
-  PDEfield=0;
 
 }
 
@@ -167,14 +163,6 @@ void Dish::SetCellOwner(Cell &which_cell) {
 
 
 
-void Dish::ClearGrads(void) {
-
-  vector<Cell>::iterator i;
-  for ( (i=cell.begin(), i++); i!=cell.end(); i++) {
-    i->ClearGrad();
-  }
-}
-
 
 int Dish::ZygoteArea(void) const {
     return CPM->ZygoteArea();
@@ -185,34 +173,6 @@ int Dish::Time(void) const {
 }
 
 
-void Dish::MeasureChemConcentrations(void) {
- 
-  // clear chemical concentrations
-  for (vector<Cell>::iterator c=cell.begin();
-       c!=cell.end();
-       c++) {
-    for (int ch=0;ch<par.n_chem;ch++) 
-      c->chem[ch]=0.;
-  }
-
-  // calculate current ones
-  for (int ch=0;ch<par.n_chem;ch++)
-    for (int i=0;i<SizeX()*SizeY();i++) {
-      
-      int cn=CPM->Sigma(0,i);
-      if (cn>=0) 
-	cell[cn].chem[ch]+=PDEfield->Sigma(ch,0,i);
-	
-    }
-
-    for (vector<Cell>::iterator c=cell.begin();
-       c!=cell.end();
-       c++) {
-      for (int ch=0;ch<par.n_chem;ch++) 
-	c->chem[ch]/=(double)c->Area();
-    }
-
-}
 
 int Dish::SizeX(void) { return CPM->SizeX(); }
 int Dish::SizeY(void) { return CPM->SizeY(); }	
@@ -231,119 +191,5 @@ int Dish::get_maxsigma(void)
 void Dish::set_maxsigma(int max)
 {
   maxsigma = max;
-}
-
-
-
-void Dish::AverageChemCell() // d is number of diffusers (2?)
-{
-
-  const int sizex = par.sizex;
-  const int sizey = par.sizey;
-
-  for (vector<Cell>::iterator c=cell.begin();c!=cell.end();c++) 
-  {
-    for (int ch=0;ch<par.n_diffusers;ch++) 
-      c->diffs[ch]=0.;
-  }
-
-  for (int i=0; i<par.n_diffusers; ++i)
-    for (int x=0; x<sizex; ++x)
-      for (int y=0; y<sizey; ++y)
-      {
-        int cn = CPM->Sigma(x,y);
-        if (cn > 0)
-        {
-          (cell)[cn].diffs[i] += PDEfield->Sigma(i,x,y);
-        }
-      }
-  
-  // printing and debugging is rife below
-
-  // double max_conc=0;
-  // double max_conc1=0;
-  // double average_conc;
-  // double average_conc1;
-
-  vector<Cell>::iterator c;
-  for ( (c=cell.begin(),c++); c!=cell.end(); c++) 
-    if (c->AliveP())
-    {
-      c->average_chem();
-      // if (c->chem_conc(0) > max_conc)
-      //   max_conc = c->chem_conc(0);
-      // if (c->chem_conc(1) > max_conc1)
-      //   max_conc1 = c->chem_conc(1);
-
-      // average_conc += c->chem_conc(0);
-      // average_conc1 += c->chem_conc(1);
-
-    }
-
-  // int tc = CPM->CountCells();
-
-  // cout << "Max for diff 1: " << max_conc << ". Average: " << average_conc/(double)(tc) 
-  // << ". Max for diff 2: " << max_conc1 << ". Average: " << average_conc1/(double)(tc) << endl;
-}
-
-
-void Dish::SyntheticAverageChemCell() // d is number of diffusers (2?)
-{
-  const int sizex = par.sizex;
-  const int sizey = par.sizey;
-
-  for (vector<Cell>::iterator c=cell.begin();c!=cell.end();c++) 
-  {
-    if (par.morph_or_surface[0]==true)
-      c->opposing_GFP = 0.;
-    if (par.morph_or_surface[1]==true)
-      c->opposing_mCherry = 0.;
-    if (par.morph_or_surface[2]==true)
-      c->opposing_CD19 = 0.;
-  }
-
-    for (int x=0; x<sizex; ++x)
-      for (int y=0; y<sizey; ++y)
-      {
-        int cn = CPM->Sigma(x,y);
-        if (cn > 0)
-        {
-          if (par.morph_or_surface[0]==true)
-            (cell)[cn].opposing_GFP += PDEfield->Sigma(0,x,y);
-          if (par.morph_or_surface[1]==true)
-            (cell)[cn].opposing_mCherry += PDEfield->Sigma(1,x,y);
-          if (par.morph_or_surface[2]==true)
-            (cell)[cn].opposing_CD19 += PDEfield->Sigma(2,x,y);
-
-
-        }
-      }
-  vector<Cell>::iterator c;
-  for ( (c=cell.begin(),c++); c!=cell.end(); c++) 
-    if (c->AliveP())
-    {
-      c->average_chem_synthetic();
-
-    }
-}
-
-
-
-
-// Goal is to introduce morphogen into a target are and see how it affects cells. 
-// Need to make the morphogen at a high concentration and a lot of grid locations so it can move
-// Currently the concentration is only introduced at 25 points around a focal area. 
-void Dish::IntroduceMorphogen(int num, int xloc, int yloc)
-{
-  const int nx[25] = {0, 0, 1, 0,-1, 1, 1,-1,-1, 0, 2, 0, -2, 1, 2, 2, 1,-1,-2,-2,-1, 0, 2, 0,-2 };
-  const int ny[25] = {0,-1, 0, 1, 0,-1, 1, 1,-1,-2, 0, 2,  0,-2,-1, 1, 2, 2, 1,-1,-2,-2, 0, 2, 0 };
-
-  int xp, yp;
-  for (int i = 0;i<25;++i)
-  {
-    xp = xloc + nx[i];
-    yp = yloc + ny[i];
-    PDEfield->manipulate_conc(xp, yp, num);
-  }
 }
 

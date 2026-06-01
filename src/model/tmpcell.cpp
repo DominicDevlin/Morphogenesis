@@ -56,6 +56,8 @@ public:
   }
 
   Cell(void) {
+    chem = new double[par.n_chem];
+    diffs = new double[par.n_diffusers];
   };
   
   ~Cell(void);
@@ -95,23 +97,95 @@ public:
     avg_vy= src.avg_vy;
 
 
+    fitness=src.fitness;
+    genes=src.genes;
+    diff_genes=src.diff_genes;
+    lambda_2 = src.lambda_2;
+    lambda = src.lambda;
+    c_type=src.c_type;
+
+    // more network things
+    locks=src.locks;
+    locks_bool=src.locks_bool;
+    keys=src.keys;
+    keys_bool=src.keys_bool;
+    medp=src.medp;
+    medp_bool=src.medp_bool;
+    full_set=src.full_set;
+    cycles=src.cycles;
+    gene_recordings=src.gene_recordings;
+
     shrinker = src.shrinker;
 
-
+    div_time = src.div_time;
+    div_phen = src.div_phen;
+    phenotype_history = src.phenotype_history;
+    phentime = src.phentime;
+    adulttime = src.adulttime;
     phenotype = src.phenotype;
+    switches = src.switches;
+    long_switches = src.switches;
+
+    xcen = src.xcen;
+    ycen = src.ycen;
+
+    xcens = src.xcens;
+    ycens = src.ycens;
+    vel_phens = src.vel_phens;
+
+    time_created = src.time_created;
+
 
     perimeter = src.perimeter;
     target_perimeter = src.target_perimeter;
+
+    gamma_list = src.gamma_list;
+    mass_list = src.mass_list;
 
     phase_protein_conc = src.phase_protein_conc;
     phase_state = src.phase_state;
     medium_protein_conc = src.medium_protein_conc;
     medium_state = src.medium_state;
 
+    temp_hexes = src.temp_hexes;
+    temp_shapes = src.temp_shapes;
 
-  
+    diffs = new double[par.n_diffusers];
+
+    for (int i=0;i<par.n_diffusers;i++)
+    {
+      diffs[i]=src.diffs[i];
+    }
+
+    
+    chem = new double[par.n_chem];
+    for (int ch=0;ch<par.n_chem;ch++)
+      chem[ch]=src.chem[ch];
 
     epithelial = src.epithelial;
+
+    synNotch_bound = src.synNotch_bound;
+    synNotch_unbound = src.synNotch_unbound;
+    synNotch_intra = src.synNotch_intra;
+    E_cadherin = src.E_cadherin;
+    CD19 = src.CD19;
+    opposing_CD19 = src.opposing_CD19;
+    opposing_E_cadherin = src.opposing_E_cadherin;
+    random_binding_proteins = src.random_binding_proteins;
+    touching_med = src.touching_med;
+    mCherry=src.mCherry;
+    GFP=src.GFP;
+    opposing_GFP=src.opposing_GFP;
+    P_cadherin=src.P_cadherin;
+    N_cadherin=src.N_cadherin;
+    opposing_P_cadherin=src.opposing_P_cadherin;
+    opposing_N_cadherin=src.opposing_N_cadherin;
+    spheroid_cell=src.spheroid_cell;
+
+    constitutives=src.constitutives;
+    GFP_induced=src.GFP_induced;
+    mCherry_induced=src.mCherry_induced;
+    CD19_induced=src.CD19_induced;
 
     centerx = src.centerx;
     centery = src.centery;
@@ -162,30 +236,94 @@ public:
     target_length=src.target_length;
     owner=src.owner;
 
-
+    fitness=src.fitness;
+    genes=src.genes;
+    diff_genes=src.diff_genes;
     lambda_2 = src.lambda_2;
     lambda = src.lambda;
     c_type=src.c_type;
 
-    phenotype = src.phenotype;
 
+    locks=src.locks;
+    locks_bool=src.locks_bool;
+    keys=src.keys;
+    keys_bool=src.keys_bool;
+    medp=src.medp;
+    medp_bool=src.medp_bool;
+    full_set=src.full_set;
+    cycles=src.cycles;
+    gene_recordings=src.gene_recordings;
+
+    div_time = src.div_time;
+    div_phen = src.div_phen;
+    phenotype_history = src.phenotype_history;
+    phentime = src.phentime;
+    adulttime = src.adulttime;
+    phenotype = src.phenotype;
+    switches = src.switches;
+    long_switches = src.switches;
+
+    time_created = src.time_created;
 
     shrinker = src.shrinker;
 
     xcen = src.xcen;
     ycen = src.ycen;
+    xcens = src.xcens;
+    ycens = src.ycens;
+    vel_phens = src.vel_phens;
 
+    gamma_list = src.gamma_list;
+    mass_list = src.mass_list;
 
     phase_protein_conc = src.phase_protein_conc;
     phase_state = src.phase_state;
     medium_protein_conc = src.medium_protein_conc;
     medium_state = src.medium_state;
 
+    temp_hexes = src.temp_hexes;
+    temp_shapes = src.temp_shapes;
 
     perimeter = src.perimeter;
     target_perimeter = src.target_perimeter;
 
     epithelial = src.epithelial;
+
+
+    synNotch_bound = src.synNotch_bound;
+    synNotch_unbound = src.synNotch_unbound;
+    synNotch_intra = src.synNotch_intra;
+    E_cadherin = src.E_cadherin;
+    CD19 = src.CD19;
+    opposing_CD19 = src.opposing_CD19;
+    opposing_E_cadherin = src.opposing_E_cadherin;
+    random_binding_proteins = src.random_binding_proteins;
+    touching_med = src.touching_med;
+    mCherry=src.mCherry;
+    GFP=src.GFP;
+    opposing_GFP=src.opposing_GFP;
+    P_cadherin=src.P_cadherin;
+    N_cadherin=src.N_cadherin;
+    opposing_P_cadherin=src.opposing_P_cadherin;
+    opposing_N_cadherin=src.opposing_N_cadherin;
+    spheroid_cell=src.spheroid_cell;
+
+    constitutives=src.constitutives;
+    GFP_induced=src.GFP_induced;
+    mCherry_induced=src.mCherry_induced;
+    CD19_induced=src.CD19_induced;
+
+    diffs = new double[par.n_diffusers];
+
+    for (int i=0;i<par.n_diffusers;i++)
+    {
+      diffs[i]=src.diffs[i];
+    }
+
+
+    chem = new double[par.n_chem];
+    for (int ch=0;ch<par.n_chem;ch++)
+      chem[ch]=src.chem[ch];
     
     return *this;
 
@@ -378,6 +516,43 @@ al. 2000). The current version of TST does not include such functionality.
   //   return J[t2][t1]=J[t1][t2]=val;
   // }
 
+
+  // Deal with gradient measurements:
+
+  //! Set the current gradient of the cell to g. Currently not in use.
+  inline double* SetGrad(double *g) {
+    grad[0]=g[0];
+    grad[1]=g[1];
+    return grad;
+  }
+  
+  //! Returns the cell's measured gradient. Currently not in use.
+  inline const double* GetGrad(void) const {
+    return grad;
+  } 
+  
+  //! Returns the cell's measured gradient. Currently not in use.
+  inline double GradX() const {
+    return grad[0];
+  }
+
+  //! Returns the cell's measured gradient. Currently not in use.
+  inline double GradY() const {
+    return grad[1];
+  }
+
+  //! Currently not in use (remove?)
+  inline double* AddToGrad(double *g) {
+    grad[0]+=g[0];
+    grad[1]+=g[1];
+    return grad;
+  }
+   
+  //! Currently not in use (remove?)
+  inline void ClearGrad(void) {
+    grad[0]=0.;
+    grad[1]=0.;
+  }  
   
   /*! After introducing a new Cell (e.g. with GrowInCell)
     call this function to set the moments and areas right.
@@ -535,6 +710,57 @@ private:
 
   }
 
+  inline double get_fitness(void)
+  {
+    return fitness;
+  }
+
+  inline void set_fitness(double fit)
+  {
+    fitness = fit;
+  }
+
+  inline void set_genes(vector<double> new_g)
+  {
+    genes = new_g;
+  }
+
+  inline vector<double>& get_genes(void)
+  {
+    return genes;
+  }
+
+  inline void print_genes(void)
+  {
+    cout << "Concentrations: ";
+    for (int i = 0; i < genes.size(); ++i)
+    {
+      if (i < par.n_diffusers)
+        cout << " - Gene " << i+1 << " is: " << diff_genes.at(i);
+      else
+        cout << " - Gene " << i+1 << " is: " << genes.at(i);
+    }
+    cout << endl << "Diffuser proteins: ";
+    for (int i = 0; i < par.n_diffusers; ++i)
+      cout << " - Diffuser " << i+1 << " is: " << genes.at(i);
+    cout << endl;
+    cout << "lock bools: ";
+    for (int i = 0; i < par.n_locks; ++i) 
+      cout << locks_bool.at(i) << "  ";
+    cout << "key bools: ";
+    for (int i = 0; i < par.n_locks; ++i) 
+      cout << keys_bool.at(i) << "  ";
+
+    cout << "medp bools: ";
+    for (int i = 0; i < par.n_mediums; ++i) 
+      cout << medp_bool.at(i) << "  ";
+    cout << endl; 
+
+
+    cout << "Target length is: " << target_length << endl;
+
+  }
+
   // ! Return Cell's perimeter
   inline int Perimeter() 
   { 
@@ -563,6 +789,28 @@ private:
   inline int DecrementTargetPerimeter() { return --target_perimeter; }
 
 
+  inline vector<double>& get_diffusers(void)
+  {
+    return diff_genes;
+  }
+
+  inline void set_diffusers(vector<double> new_diff)
+  {
+    diff_genes = new_diff;
+  }
+
+  inline void set_phase_state(int &t)
+  {
+    if (phase_protein_conc > 0.5)
+      phase_state = true;
+    else if (phase_state == true)
+    {
+      phase_state = false;
+      phase_change_time = t;
+    }
+
+  }
+
   inline void TransformPhase(bool ptype)
   {
     if (ptype)
@@ -587,6 +835,15 @@ private:
     return medium_protein_conc;
   }
 
+  inline void SetEpithelial(bool setter)
+  {
+    epithelial = setter;
+    for (auto &cc : diff_genes)
+    {
+      cc = 0;
+    }
+  }
+
   inline bool IsEpithelia(void)
   {
     return epithelial;
@@ -597,6 +854,107 @@ private:
     return medium_state;
   }  
 
+  inline void set_locks(vector<double>& nlock)
+  {
+    locks = nlock;
+  }
+  inline void set_keys(vector<double>& nkeys)
+  {
+    keys = nkeys;
+  }
+
+  inline vector<double>& get_locks(void)
+  {
+    return locks;
+  }
+  inline vector<double>& get_keys(void)
+  {
+    return keys;
+  }
+  inline vector<bool>& get_locks_bool(void)
+  {
+    return locks_bool;
+  }
+  inline vector<bool>& get_keys_bool(void)
+  {
+    return keys_bool;
+  }
+
+  inline void set_meds(vector<double>& nmeds)
+  {
+    medp = nmeds;
+  }
+  inline vector<double>& get_medp(void)
+  {
+    return medp;
+  }
+  inline vector<bool>& get_medp_bool(void)
+  {
+    return medp_bool;
+  }
+
+
+  inline vector<bool>& get_set(void)
+  {
+    return full_set;
+  }
+
+  inline void set_lists(void)
+  {
+    if (par.phase_evolution)
+    {
+      full_set.resize(1);
+      gene_recordings.resize(par.n_genes+par.n_diffusers);
+      cycles.resize(par.cycle_size);
+      phase_protein_conc=0.;
+      medium_protein_conc=0.;
+    }
+    else
+    {
+      locks.resize(par.n_locks);
+      keys.resize(par.n_locks);
+      locks_bool.resize(par.n_locks);
+      keys_bool.resize(par.n_locks);
+      medp.resize(par.n_mediums);
+      medp_bool.resize(par.n_mediums);
+      full_set.resize(par.n_lockandkey + par.n_length_genes + par.n_mediums);
+      cycles.resize(par.cycle_size);
+      gene_recordings.resize(par.n_genes+par.n_diffusers);
+    }
+  }
+
+  
+
+  inline void average_chem()
+  {
+    for (int i=0; i<par.n_diffusers;++i)
+    {
+      diffs[i] = diffs[i] / (double)(area);
+      if (par.limit_morph)
+      {
+        if (diffs[i] > par.limit_amount)
+          diffs[i] = par.limit_amount;
+        
+      }
+      genes[i] = diffs[i];
+    }
+  }
+
+  inline void average_chem_synthetic()
+  {
+    if (par.morph_or_surface[0]==true)
+      opposing_GFP = opposing_GFP / (double)(area);
+    if (par.morph_or_surface[1]==true)
+      opposing_mCherry = opposing_mCherry / (double)(area);
+    if (par.morph_or_surface[2]==true)
+      opposing_CD19 = opposing_CD19 / (double)(area);
+  }
+
+
+  inline double chem_conc(int d)
+  {
+    return diffs[d];
+  }
 
 
 
@@ -635,6 +993,27 @@ private:
   {
     return lambda;
   }
+
+  // used for checking cycles in network. Holds the booleanised network from the last 4 update steps. Depracated.
+  inline void add_to_cycle()
+  {
+    if (cycles.size() > par.cycle_size - 1)
+      cycles.erase(cycles.begin());
+    
+    cycles.push_back(full_set);
+  }
+
+  bool checkforcycles(int max);
+
+
+  void add_to_vectors();
+
+
+  inline vector<vector<double>>& get_history(void)
+  {
+    return gene_recordings;
+  }
+
 
 
 
@@ -680,6 +1059,70 @@ private:
     return ycen;
   }
 
+  inline void RecordMass()
+  {
+    xcens.push_back(xcen);
+    ycens.push_back(ycen);
+    cout << xcen << '\t' << ycen << '\t' << double(sum_x) / area << '\t' << double(sum_y) / area << endl;
+
+  }
+
+
+  inline vector<double>& get_xcens()
+  {
+    return xcens;
+  }
+
+  inline vector<double>& get_ycens()
+  {
+    return ycens;
+  }
+
+  inline vector<int>& get_velphens()
+  {
+    return vel_phens;
+  }
+
+  inline void AddPressure()
+  {
+      double cpressure = - par.lambda * 2 * (area - target_area);
+      pressure.push_front(cpressure);
+      if (pressure.size() > par.pressure_time_length)
+      {
+        pressure.pop_back();
+      }
+  }
+
+  inline double GetCellPressure()
+  {
+    double avgpressure{};
+    for (double &i : pressure)
+    {
+      avgpressure+=i;
+    }
+    avgpressure = avgpressure / double(pressure.size());
+    return avgpressure;
+  }
+
+  inline void AddAdhesionStress(double stress)
+  {
+    adhesion_stress.push_front(stress);
+    if (adhesion_stress.size() > par.pressure_time_length)
+    {
+      adhesion_stress.pop_back();
+    } 
+  }
+
+  inline double GetAdhesionStress()
+  {
+    double avg_adhstress{};
+    for (double &i : adhesion_stress)
+    {
+      avg_adhstress+=i;
+    }
+    avg_adhstress = avg_adhstress / double(adhesion_stress.size());
+    return avg_adhstress;
+  }
 
 
   inline void cellmed()
@@ -719,6 +1162,88 @@ private:
 
 
 
+  inline vector<tuple<int,int,uint64_t>>& get_switches()
+  {
+    return switches; 
+  }
+
+  inline vector<tuple<int,int,uint64_t>>& get_long_switches()
+  {
+    return long_switches; 
+  }
+
+
+
+  inline void AddPhenotype() // how long each cell spends in each phentoype
+  {
+    phentime[phenotype] += 1;
+  }
+
+  inline unordered_map<int,int>& PhenTime()
+  {
+    return phentime;
+  }
+
+  inline void reset_recordings()
+  {
+    phentime.clear();
+    adulttime.clear();
+  }
+
+  inline void ClearStacks()
+  {
+    mass_list.clear();
+    gamma_list.clear();
+    xcens.clear();
+    ycens.clear();
+    vel_phens.clear();
+    mass_list.clear();
+    div_x_cen.clear();
+    div_y_cen.clear();
+    mass_div_time.clear();
+    switches.clear();
+    long_switches.clear();
+    div_time.clear();
+    div_phen.clear();
+    phenotype_history.clear();
+    temp_hexes.clear();
+    temp_shapes.clear();
+
+
+  }
+
+  inline void AddType()
+  {
+    adulttime[phenotype] += 1;
+  }
+
+  inline unordered_map<int,int>& AdultTime()
+  {
+    return adulttime;
+  }
+
+  bool limit_cycle();
+
+  inline int get_time_created()
+  {
+    return time_created;
+  }
+
+
+  inline vector<double>& get_div_x()
+  {
+    return div_x_cen;
+  }
+
+  inline vector<double>& get_div_y()
+  {
+    return div_y_cen;
+  }
+
+  inline vector<int>& get_mass_div_time()
+  {
+    return mass_div_time;
+  }
 
   inline void SetShapeIndex(double ind)
   {
@@ -730,31 +1255,216 @@ private:
     return shape_index;
   }
 
-
-  inline bool& GetSortingType()
+  inline void AddShapeIndex(double ind)
   {
-    return sorting_type;
+    shape_indices.push_back(ind);
   }
 
-  inline void SetSortingType(bool t)
+  inline double& GetShapeIndices()
   {
-    sorting_type = t;
-    if (sorting_type)
-      c_type = 4;
-    else
-      c_type = 90;
+    double avg_ind=-1;
+    if (shape_indices.size() == 0)
+    {
+      cerr << "error in shape counting";
+      return avg_ind;
+    }
+    avg_ind = accumulate(shape_indices.begin(), shape_indices.end(), 0.0);
+    avg_ind = avg_ind / double(shape_indices.size());
+    shape_indices.clear();
+    return avg_ind;
   }
 
 
+  inline void SetTimeCreated(int &time)
+  {
+    time_created = time;
+  }
+
+
+  inline void RecordDivision(int time)
+  {
+    if (time > par.end_program)
+    {
+      pair<int, int> newp = {time, sigma};
+      pair<int, int> newt = {phenotype, time};
+      div_time.push_back(newp);
+      div_phen.push_back(newt);
+      // cout << "division recorded with phenotype: " << phenotype << endl;
+    }
+    
+    
+    if (par.division_anisotropy && time > par.end_program)
+    {
+      div_x_cen.push_back(xcens.back());
+      div_y_cen.push_back(ycens.back());
+      mass_div_time.push_back(xcens.size());
+    }
+
+  }
+
+
+  inline vector<pair<int, int>>& get_divisions()
+  {
+    return div_time;
+  }
+
+  inline vector<int>& TypeHistory()
+  {
+    return phenotype_history;
+  }
+
+  inline vector<pair<int,int>>& DivisionPhenotype()
+  {
+    return div_phen;
+  }
+
+  inline void set_death_tag(bool n)
+  {
+    death_tag = n;
+  }
+
+  inline bool get_death_tag()
+  {
+    return death_tag;
+  }
+
+
+  inline double return_enzyme(int loc)
+  {
+    return genes[loc];
+  }
 
   int LocksKeysScore(vector<bool>& locks, vector<bool>& keys);
 
   int CheckMedsOn();
 
-  
+  inline void AddGamma(double g)
+  {
+    gamma_list.push_back(g);
+  }
+
+  inline vector<double>& GetGamma()
+  {
+    return gamma_list;
+  }
+
+  inline void MassToList()
+  {
+    mass_list.push_back(area);
+  }
+
+  inline vector<double>& GetMassList()
+  {
+    return mass_list;
+  }
+
+  inline void MaxSet()
+  {
+    if (par.phase_evolution)
+      full_set.resize(par.n_genes,0);
+    else
+      full_set.resize(par.n_functional+par.n_activators, 0);
+  }
+
   inline bool& GetPhase()
   {
     return phase_state;
+  }
+
+  inline void AddHex(double &h, int &t)
+  {
+    temp_hexes.push_back(h);
+  }
+
+  inline double GetTempHexes()
+  {
+    double ret_hex{};
+    if (temp_hexes.size() % 2 == 0)
+    {
+      // If even, average the two middle elements
+      ret_hex = (temp_hexes[temp_hexes.size() / 2 - 1] + temp_hexes[temp_hexes.size() / 2]) / 2.0;
+    }
+    else
+    {
+      // If odd, take the middle element
+      ret_hex = temp_hexes[temp_hexes.size() / 2];
+    }
+    temp_hexes.clear();
+    return ret_hex;
+
+
+    // double ret_hex{};
+    // vector<double> hex_values{};
+    // for (auto &i : temp_hexes)
+    // {
+    //   hex_values.push_back(i.second);
+    // }
+    // if (hex_values.size() % 2 == 0)
+    // {
+    //   // If even, average the two middle elements
+    //   ret_hex = (hex_values[hex_values.size() / 2 - 1] + hex_values[hex_values.size() / 2]) / 2.0;
+    // }
+    // else
+    // {
+    //   // If odd, take the middle element
+    //   ret_hex = hex_values[hex_values.size() / 2];
+    // }
+    // temp_hexes.clear();
+    // return ret_hex;
+  }
+
+  inline int GetShapeHexStartTime()
+  {
+    return phase_change_time;
+  }
+
+
+  inline void AddShape(double &s, int &t)
+  {
+    temp_shapes.push_back(s);
+    // int back_time = t-100;
+    // temp_shapes[t] = s;
+    // if (!temp_shapes.empty() && temp_shapes.begin()->first == back_time)
+    // {
+    //   temp_shapes.erase(temp_shapes.begin());
+    // }
+  }
+
+  inline double GetTempShape()
+  {
+    double ret_shape{};
+    if (temp_shapes.size() % 2 == 0)
+    {
+      // If even, average the two middle elements
+      ret_shape = (temp_shapes[temp_shapes.size() / 2 - 1] + temp_shapes[temp_shapes.size() / 2]) / 2.0;
+    }
+    else
+    {
+      // If odd, take the middle element
+      ret_shape = temp_shapes[temp_shapes.size() / 2];
+    }
+    temp_shapes.clear();
+    return ret_shape;
+
+
+    // double ret_shape{};
+    // vector<double> shape_values{};
+    // for (auto &i : temp_shapes)
+    // {
+    //   shape_values.push_back(i.second);
+    // }
+    // if (shape_values.size() % 2 == 0)
+    // {
+    //   // If even, average the two middle elements
+    //   ret_shape = (shape_values[shape_values.size() / 2 - 1] + shape_values[shape_values.size() / 2]) / 2.0;
+    // }
+    // else
+    // {
+    //   // If odd, take the middle element
+    //   ret_shape = shape_values[shape_values.size() / 2];
+    // }
+    // temp_shapes.clear();
+    // return ret_shape;
   }
 
   void SetSheetType(bool tp)
@@ -966,6 +1676,284 @@ private:
   }
 
 
+/* synthetic structure methods */
+
+
+void setsynNotch_bound(double new_value)
+{
+  synNotch_bound = new_value;
+}
+double& getsynNotch_bound()
+{
+  return synNotch_bound;
+}
+
+void setsynNotch_unbound(double new_value)
+{
+  synNotch_unbound = new_value;
+}
+double& getsynNotch_unbound()
+{
+  return synNotch_unbound;
+}
+
+void setsynNotch_intra(double new_value)
+{
+  synNotch_intra = new_value;
+}
+double& getsynNotch_intra()
+{
+  return synNotch_intra;
+}
+
+void setE_cadherin(double new_value)
+{
+  E_cadherin = new_value;
+}
+double& getE_cadherin()
+{
+  return E_cadherin;
+}
+
+void setRandomBindingProteins(double new_value)
+{
+  random_binding_proteins = new_value;
+}
+double& getRandomBindingProteins()
+{
+  return random_binding_proteins;
+}
+
+void setmCherry(double new_value)
+{
+  mCherry = new_value;
+}
+double& getmCherry()
+{
+  return mCherry;
+}
+void setGFP(double new_value)
+{
+  GFP = new_value;
+}
+double& getGFP()
+{
+  return GFP;
+}
+
+double& getOppositeGFP()
+{
+  return opposing_GFP;
+}
+
+double& getN_cadherin()
+{
+  return N_cadherin;
+}
+
+void setN_cadherin(double new_value)
+{
+  N_cadherin = new_value;
+}
+double& getP_cadherin()
+{
+  return P_cadherin;
+}
+
+void setP_cadherin(double new_value)
+{
+  P_cadherin = new_value;
+}
+
+double& getOpposingN_cadherin()
+{
+  return opposing_N_cadherin;
+}
+
+void setOpposingN_cadherin(double new_value)
+{
+  opposing_N_cadherin = new_value;
+}
+double& getOpposingP_cadherin()
+{
+  return opposing_N_cadherin;
+}
+
+void setOpposingP_cadherin(double new_value)
+{
+  opposing_P_cadherin = new_value;
+}
+
+
+
+void setCD19(double new_value)
+{
+  CD19 = new_value;
+}
+double& getCD19()
+{
+  return CD19;
+}
+
+double& getOpposingCD19()
+{
+  return opposing_CD19;
+}
+
+double& getOpposing_E_cadherin()
+{
+  return opposing_E_cadherin;
+}
+
+void ResetSurfaceBindings()
+{
+  if (!par.morph_or_surface[0])
+    opposing_GFP=0;
+  if (!par.morph_or_surface[2])
+    opposing_CD19=0;
+  opposing_E_cadherin=0;
+  
+}
+
+void AddtoSurfaces(bool bcd19, double bE_cad, double bGFP, double bP_cad, double bN_cad)
+{
+  if (!par.morph_or_surface[0])
+  {
+    if (bGFP > 1)
+      opposing_GFP = opposing_GFP + 1.;
+    else
+      opposing_GFP = opposing_GFP + bGFP;
+  }
+  if (!par.morph_or_surface[2])
+  {
+    opposing_CD19=opposing_CD19 + bcd19;
+  }
+
+  if (bE_cad > 1)
+    opposing_E_cadherin = opposing_E_cadherin + 1.;
+  else
+    opposing_E_cadherin = opposing_E_cadherin + bE_cad;
+
+  if (bP_cad > 1)
+    opposing_P_cadherin = opposing_P_cadherin + 1.;
+  else
+    opposing_P_cadherin = opposing_P_cadherin + bP_cad;
+  
+  if (bN_cad)
+    opposing_N_cadherin = opposing_N_cadherin + 1.;
+  else
+    opposing_N_cadherin = opposing_N_cadherin + bN_cad;
+  // cout << "ADDING:" << opposing_CD19 << '\t' << opposing_E_cadherin << endl;
+}
+
+void AverageSurfaceBindings()
+{
+  // cout << opposing_CD19 << '\t' << perimeter << endl;
+  if (!par.morph_or_surface[0])
+    opposing_GFP = opposing_GFP / double(perimeter);
+  if (!par.morph_or_surface[2])
+    opposing_CD19 = opposing_CD19 / double(perimeter);
+
+  opposing_E_cadherin = opposing_E_cadherin / double(perimeter);
+  opposing_N_cadherin = opposing_N_cadherin / double(perimeter);
+  opposing_P_cadherin = opposing_P_cadherin / double(perimeter);
+  
+  
+}
+
+bool& isSpheroid()
+{
+  return spheroid_cell;
+}
+
+void setSpheroid(bool S)
+{
+  spheroid_cell = S;
+}
+
+vector<bool> GetConstitutives()
+{
+  return constitutives;
+}
+vector<bool>GetGFP_induced()
+{
+  return GFP_induced;
+}
+vector<bool>GetMcherry_induced()
+{
+  return mCherry_induced;
+}
+vector<bool>GetCD19_induced()
+{
+  return CD19_induced;
+}
+
+void SetConstitutives(vector<bool> incoming)
+{
+  constitutives=incoming;
+}
+void SetGFP_induced(vector<bool> incoming)
+{
+  GFP_induced=incoming;
+}
+void SetMcherry_induced(vector<bool> incoming)
+{
+  mCherry_induced=incoming;
+}
+void SetCD19_induced(vector<bool> incoming)
+{
+  CD19_induced=incoming;
+}
+
+
+
+inline bool& GetSortingType()
+{
+  return sorting_type;
+}
+
+inline void SetSortingType(bool t)
+{
+  sorting_type = t;
+  if (sorting_type)
+    c_type = 4;
+  else
+    c_type = 90;
+}
+
+
+
+void setTouchingMed(bool is)
+{
+  touching_med = is;
+}
+
+bool& getTouchingMed()
+{
+  return touching_med;
+}
+
+void setPerimConstraint(double is)
+{
+  cell_perim_constraint = is;
+}
+
+double& getPerimConstraint()
+{
+  return cell_perim_constraint;
+}
+
+
+void setAreaConstraint(double is)
+{
+  cell_area_constraint = is;
+}
+
+double& getAreaConstraint()
+{
+  return cell_area_constraint;
+}
+
 private:
 //! Increments the cell's actual area by 1 unit.
   inline int IncrementArea() {
@@ -1021,8 +2009,19 @@ protected:
   //current state of the cell
   int phenotype;
 
+  vector<pair<int,int>> div_time;
+  vector<pair<int,int>> div_phen;
 
+  vector<int> phenotype_history;
 
+  unordered_map<int, int> phentime;
+  unordered_map<int, int> adulttime;
+
+  vector<double> gamma_list; 
+  vector<double> mass_list;
+
+  deque<double> pressure;
+  deque<double> adhesion_stress;
 
   double phase_protein_conc;
   bool phase_state=false;
@@ -1043,10 +2042,90 @@ protected:
 
   double SyntheticEnergy(Cell &cell2);
 
+
+
+  /* parameters for synthetic structures */
+  double synNotch_bound{};
+  double synNotch_unbound{};
+  double synNotch_intra{};
+  double E_cadherin{};
+  double N_cadherin{};
+  double P_cadherin{};  
+  double CD19{};
+  double opposing_CD19{};
+  double opposing_E_cadherin{};
+  double opposing_mCherry{};
+
+  double random_binding_proteins{};
+  double GFP{};
+  double mCherry{};
+  double opposing_GFP{};
+  double opposing_N_cadherin{};
+  double opposing_P_cadherin{};
+  bool spheroid_cell{};
+
+  vector<bool>constitutives;
+  vector<bool>GFP_induced;
+  vector<bool>mCherry_induced;
+  vector<bool>CD19_induced;
+  
+  bool touching_med{};
+
+  double cell_perim_constraint;
+  double cell_area_constraint;
+
+
+  // static int maxsigma; // the last cell identity number given out, Dom removed
+  double fitness{};
+
+  // I will make the gene network I vector for now.
+  vector<double> genes; // should initialise to appropriate value
+
+  vector<double> diff_genes{};
+
+  bool sorting_type{};
+
+
+  vector<double> locks{};
+  vector<bool> locks_bool{};
+
+  vector<double> keys{};
+  vector<bool> keys_bool{};
+
+  vector<double> medp{};
+  vector<bool> medp_bool{};
+
+  vector<bool> full_set{};
+
+  vector<vector<bool>> cycles; 
+
+  vector<vector<double>> gene_recordings;
+
+  vector<double> temp_hexes;
+  vector<double> temp_shapes;
+  int phase_change_time=0;
+
+
+  bool death_tag=false;
+
+  vector<double> xcens;
+  vector<double> ycens;
+  vector<int> vel_phens;
+  int time_created=0;
+
+  vector<double> div_x_cen;
+  vector<double> div_y_cen;
+  vector<int> mass_div_time;
+
+
+  vector<tuple<int,int, uint64_t>> switches;
+  vector<tuple<int,int, uint64_t>> long_switches;
+
+
   // if cell shrinks more easily
   bool shrinker{false};
 
-  bool sorting_type{};
+
   // determine energy change to reach target length
   double lambda_2{};
 
@@ -1087,9 +2166,11 @@ protected:
   double v[2];
   int n_copies; // number of expansions of this cell
   // gradient of a chemical (to be extended to the total number chemicals)
+  double grad[2];
   
   bool sheet_type=false;
 
+  double *diffs; // concentration of diffusers based on PDE field. 
 
   double *chem;
   // Raw moments of the cells
@@ -1110,6 +2191,7 @@ protected:
   
   // N.B: N is area!
   double shape_index;
+  vector<double> shape_indices;
   
   long int sum_x;
   long int sum_y;

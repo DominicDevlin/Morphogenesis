@@ -93,10 +93,6 @@ INIT
     CPM->SetRandomTypes();
 
 
-    if (par.set_colours)
-    {
-      CPM->SetColours();
-    }
     par.end_program=0;
     if (par.store)
     {
@@ -173,29 +169,25 @@ TIMESTEP {
       dish->CPM->update_cell_velocities_MCS();
     }
     
-    if (t % 1000 == 0)
-    {
-      // cout << dish->CPM->CalculateABBoundaryLength() << endl;
-      cout << dish->CPM->MeasureDomainSizeR() << endl;
-    }
 
-    if (t % 2000 == 0)
-    {
-      vector<double> CrCurve;
-      double domain_size = dish->CPM->MeasureDomainSizeR(&CrCurve);
+    // if (t % 2000 == 0)
+    // {
+    //   vector<double> CrCurve;
+    //   double domain_size = dish->CPM->MeasureDomainSizeR(&CrCurve);
 
-      string oname = par.data_file + "/Cr-" + to_string(t) + ".dat";
-      ofstream outfile;
-      outfile.open(oname, ios::app);  // Append mode
-      outfile << fixed << setprecision(3);
-      for (int j = 0; j < CrCurve.size(); ++j)
-      {
+    //   string oname = par.data_file + "/Cr-" + to_string(t) + ".dat";
+    //   ofstream outfile;
+    //   outfile.open(oname, ios::app);  // Append mode
+    //   outfile << fixed << setprecision(3);
+    //   for (int j = 0; j < CrCurve.size(); ++j)
+    //   {
         
-        outfile << CrCurve[j] << endl;
-      }
-      outfile.close();
+    //     outfile << CrCurve[j] << endl;
+    //   }
+    //   outfile.close();
 
-    }
+    // }
+
     
 
 
@@ -215,14 +207,10 @@ TIMESTEP {
       BeginScene();
       ClearImage();
 
-      // Plot the dish. 
-      if (par.draw_paths && t > 600)
-        dish->CPM->DrawDisplacement(this);
-      else 
-        dish->Plot(this);
+
+      dish->Plot(this);
     
       char title[400];
-      snprintf(title,399,"CellularPotts: %.2f hr",dish->PDEfield->TheTime()/3600);      
 
 
       //char title[400];
@@ -242,11 +230,8 @@ TIMESTEP {
       BeginScene();
       ClearImage();    
 
-      // Plot the dish. 
-      if (par.draw_paths && t > 600)
-        dish->CPM->DrawDisplacement(this);
-      else 
-        dish->Plot(this);
+
+      dish->Plot(this);
 
       
       EndScene();
@@ -269,10 +254,7 @@ TIMESTEP {
 
 
 
-int PDE::MapColour(double val) {
-  
-  return (((int)((val/((val)+1.))*100))%100)+155;
-}
+
 
 
 

@@ -31,7 +31,6 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <vector>
 #include <stdio.h>
 #include "graph.h"
-#include "pde.h"
 //#include "dish.h"
 #include "cell.h"
 #include <array>
@@ -118,8 +117,7 @@ public:
 
   void set_long_switches(map<pair<int,int>,int>& tally);
 
-  // Function to get new colour==c_type 
-  int set_type(int& setv);
+
 
   void PrintColourList();
 
@@ -166,9 +164,7 @@ public:
 
   void get_center(double* center);
 
-  double OldDeviationFromCircle();
 
-  double NewDeviationFromCircle();
 
   double BresenhamForCircle(int x1, int y1, int x2, int y2, int dx, int dy, int decide, double *center, double rad);
 
@@ -209,7 +205,6 @@ public:
 
   bool SoloCheck();
 
-  double diffuser_check(int n, int x, int y);
 
   double get_enzyme_conc(int n, int x, int y);
 
@@ -281,7 +276,6 @@ public:
 
   void DestroyCellsByRadius(double rad);
 
-  int ConvertToStem(int xloc, int yloc, int rad, int type, PDE *field, bool clear=false, int clear_rad=0);
 
   void IntroduceMorphogen(int num);
 
@@ -292,9 +286,7 @@ public:
 
   int HorizontalLine(int id);
 
-  double TraverseFitness();
 
-  void IntroduceMorphogen(int num, int xloc, int yloc, PDE *field);
 
   double AverageBinding();
 
@@ -394,12 +386,7 @@ public:
 
   void addVolume(int i, int j, int celln);
 
-  // must be done after adjusting volumes
-  void adjustPerimeters();
 
-  vector<double> TruePerimeters();
-
-  map<int, double> TruePerimetersMap();
 
   void ShapeIndexByState();
 
@@ -441,7 +428,6 @@ public:
 
   bool EndOptimizer(int time);
 
-  int CountPhaseOnCells();
 
   pair<double,double> LengthWidth(bool do_coeff);
 
@@ -449,7 +435,6 @@ public:
 
   void DiscreteGrowthAndDivision(int time);
 
-  void ComputeShapeAlignment();
 
   pair<double,double> ShapeAlignmentByPhase();
 
@@ -770,9 +755,9 @@ public:
     /*! Implements the core CPM algorithm. Carries out one MCS.
       \return Total energy change during MCS.
     */
-    int AmoebaeMove(long tsteps, PDE *PDEfield=0);
+    int AmoebaeMove(long tsteps);
 
-    int AmoebaeMoveLegacy(long tsteps, PDE *PDEfield=0);
+    int AmoebaeMoveLegacy(long tsteps);
   
     /*! \brief Read initial cell shape from XPM file.
       Reads the initial cell shape from an 
@@ -906,7 +891,7 @@ public:
 private:
   void IndexShuffle(void);
   // double DeltaH(int x,int y, int sxyp, int tsteps, PDE *PDEfield=0);
-  double DeltaH(int x,int y, int sxyp, int tsteps, const int* neighbor_spins, PDE *PDEfield=0);
+  double DeltaH(int x,int y, int sxyp, int tsteps, const int* neighbor_spins);
   bool Probability(int DH);
   void ConvertSpin(int x,int y,int kp);
   void ConvertSpinPerim(int x, int y, int kp, const int* neighbor_spins);
@@ -985,20 +970,6 @@ private:
 
   double evo_J;
 
-  map<int,vector<double>> state_shape_index;
-
-  map<int,vector<double>> state_hexatic_order;
-
-  map<int, vector<pair<int,double>>> time_hexatic_order;
-
-  map<int, vector<pair<int,double>>> time_shape_index;
-
-  vector<pair<int,double>> sheet_hexatic_order;
-
-  vector<pair<int,double>> sheet_shape_order;
-
-  map<int,vector<double>> state_adhesion;
-
   double tmp_hex_order;
   double transition_point;
   double tmp_avg_shape=0;
@@ -1020,24 +991,11 @@ private:
   int rows;
   int cols;
 
-  double n_grads[5] = {tan(-(M_PI)/12.), tan(-(2*M_PI)/12.), tan(-(3*M_PI)/12.), tan(-(4*M_PI)/12.), tan(-(5*M_PI)/12.)};
-  double p_grads[5] = {tan((M_PI)/12.), tan((2*M_PI)/12.), tan((3*M_PI)/12.), tan((4*M_PI)/12.), tan((5*M_PI)/12.)};
 
   // used for calculating the shane in shape over time in the lattice. 
   // int ***Shape;
   // int scount=0;
   bool ShapeMaintained=true;
-
-  //for calculating organism fitness.
-  vector<int> som_cell_list;
-  vector<double> type_fitness_list;
-  vector<double> shape_fitness_list;
-
-  map<int, bool> touching_medium;
-  // long flip_true{};
-  // long flip_false{};
-  // double dH_tally{};
-  // double dH_neg{};
 
   double leftover_mass_stem{};
   double leftover_mass_diff{};

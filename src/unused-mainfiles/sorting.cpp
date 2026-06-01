@@ -92,11 +92,6 @@ INIT
     par.print_fitness = true;
     par.node_threshold = 0;// int(floor((par.mcs - par.adult_begins) / 40) * 2 * 10);
 
-    if (par.set_colours)
-    {
-      CPM->SetColours();
-    }
-
 
     if (par.store)
     {
@@ -598,7 +593,6 @@ TIMESTEP {
       cout << t << " TIME STEPS HAVE PASSED." << endl;
 
       dish->CPM->PrintPhenotypes();
-      // dish->CPM->WhiteSpace();
       // dish->CPM->DeviationFromCircle();
       cout << "AVG BINDING: " << dish->CPM->AverageBinding() << endl;
       cout << "NUMBER OF MEDIUM PROTEINS ON AVG: " << dish->CPM->AvgMedsOn() << endl;

@@ -32,7 +32,6 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <vector>
 #include "graph.h"
 #include "random.h"
-#include "pde.h"
 #include "cell.h"
 #include "ca.h"
 
@@ -121,11 +120,8 @@ public:
   int get_maxsigma(void);
   void set_maxsigma(int);
   
-  PDE *PDEfield;
   CellularPotts *CPM;
 
-  // Was used for gradient measurements, not functional now.
-  void ClearGrads(void);
 
   void MeasureChemConcentrations(void);
 protected:
