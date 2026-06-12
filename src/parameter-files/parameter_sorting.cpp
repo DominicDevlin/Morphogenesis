@@ -96,20 +96,20 @@
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
     // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
-    adhesion_neighbourhood=1;
+    adhesion_neighbourhood=5;
     perimeter_neighbourhood=adhesion_neighbourhood;
     copy_neighbourhood=1;
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     bulk_modulus = 13;
-    cell_target_area = 100;
+    cell_target_area = 50;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 100;
 
     H_perim = true;
     elastic_modulus = 2;
-    ptarget_perimeter = 40;
+    ptarget_perimeter = 1;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter =( elastic_modulus) / (ptarget_perimeter );// 8;
@@ -122,12 +122,12 @@
     
 
     // sorting parameters
-    startingAproportion=0.5; // A=0(false), B=1(true)
+    startingAproportion=1; // A=0(false), B=1(true)
     init_J=-0.;
     dynJmed=0.;
-    Jdyndiff=-0.1 / neigh_multiplier;
-    AstaticJ=-1.5 / neigh_multiplier;
-    BstaticJ=-1.5 / neigh_multiplier;
+    Jdyndiff=0;//-0.1 / neigh_multiplier;
+    AstaticJ=0;//-1.5 / neigh_multiplier;
+    BstaticJ=0;//-1.5 / neigh_multiplier;
     
     // timescaler=0.000001;
     // //note this needs to be half (there are two meetings each recording)
