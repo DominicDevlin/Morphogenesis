@@ -145,7 +145,7 @@ void process_population()
   vector<vector<double>> Rt(par.n_orgs);
   vector<vector<vector<double>>> CRt(par.n_orgs);
 
-  int bdry_step=20;
+  int bdry_step=100;
   int Rt_step=500;
   // crt_step must be a multiple of rt_step.
   int CRt_step=1000;
@@ -153,6 +153,7 @@ void process_population()
   #pragma omp parallel for
   for (int i = 0; i < par.n_orgs; ++i)
   { 
+  
     vector<vector<double>> org_CRt{};
     vector<double> org_Rt{};
     vector<double> bound_lengths{};
@@ -178,6 +179,19 @@ void process_population()
     // dishes[i].CPM->StartDynamicAdhesion();
     dishes[i].CPM->SetSortingTypesRandomly();
       
+    // Create unique filenames for this specific organism/thread
+    string bdry_fname = par.data_file + "/boundary-length_org_" + to_string(i) + ".dat";
+    string rt_fname = par.data_file + "/rt_org_" + to_string(i) + ".dat";
+    string crt_fname = par.data_file + "/crt_org_" + to_string(i) + ".dat";
+    // Open files for this organism
+    ofstream f_bdry(bdry_fname);
+    ofstream f_rt(rt_fname);
+    ofstream f_crt(crt_fname);
+    f_bdry << fixed << setprecision(3);
+    f_rt << fixed << setprecision(3);
+    f_crt << fixed << setprecision(3);
+
+
     int t;
     for (t = 0; t < par.mcs; t++)
     {
@@ -185,6 +199,7 @@ void process_population()
       {
         dishes[i].CPM->CopyProb(par.T);
       }
+
 
       // if (t % 10 == 0)
       // {
@@ -196,23 +211,32 @@ void process_population()
       {
         dishes[i].CPM->update_cell_velocities_MCS();
       }
-      // if (t % 100 == 0)
-      // {
-      //   cout << dish->CPM->CalculateABBoundaryLength() << endl;
-      // }
-      if (t%bdry_step==0)
+
+      // Write Boundary length directly to disk
+      if (t % bdry_step == 0)
       {
-        bound_lengths.push_back(dishes[i].CPM->CalculateABBoundaryLength());
+        f_bdry << t << '\t' << dishes[i].CPM->CalculateABBoundaryLength() << endl;
+
       }
-      if (t%Rt_step==0)
+
+      // Write RT and CRT directly to disk
+      if (t % Rt_step == 0)
       {
         vector<double> tmp_crt;
         double rt = dishes[i].CPM->MeasureDomainSizeR(&tmp_crt);
-        org_Rt.push_back(rt);
-        if (t % CRt_step==0)
-          org_CRt.push_back(tmp_crt);
+        
+        f_rt << t << '\t' << rt << endl;
+
+        if (t % CRt_step == 0)
+        {
+          f_crt << t;
+          for (double val : tmp_crt) {
+            f_crt << '\t' << val;
+          }
+          f_crt << endl;
+        }
       }
-      cout << t << endl;
+
 
       if (t%10000==0)
         cout << i << " reached time step: " << t << endl;
@@ -221,63 +245,6 @@ void process_population()
     Rt[i]=org_Rt;
     CRt[i]=org_CRt;
   }
-  // do stuff here
-
-
-  string oname = par.data_file + "/boundary-length.dat";
-  ofstream outfile;
-  outfile.open(oname, ios::app);  // Append mode
-  outfile << fixed << setprecision(3);
-  int timelength = boundary_lengths[0].size();
-  for (int j = 0; j < timelength; ++j)
-  {
-    double avg_bound_length{};
-    for (int i = 0; i < par.n_orgs; ++i)
-    {
-      avg_bound_length += boundary_lengths[i][j];
-    }
-    avg_bound_length /= par.n_orgs;
-    outfile << j*bdry_step << '\t' << avg_bound_length << endl;
-  }
-  outfile.close();
-
-  oname = par.data_file + "/rt.dat";
-  outfile.open(oname, ios::app);  // Append mode
-  timelength = Rt[0].size();
-  for (int j = 0; j < timelength; ++j)
-  {
-    double avg_rt{};
-    for (int i = 0; i < par.n_orgs; ++i)
-    {
-      avg_rt += Rt[i][j];
-    }
-    avg_rt /= par.n_orgs;
-    outfile << j*Rt_step << '\t' << avg_rt << endl;
-  }
-  outfile.close();
-
-
-  oname = par.data_file + "/crt.dat";
-  outfile.open(oname, ios::app);  // Append mode
-  timelength = CRt[0].size();
-  int arr_length = CRt[0][0].size();
-  for (int j = 0; j < timelength; ++j)
-  {
-    outfile << j*CRt_step << '\t';
-
-    for (int k = 0; k < arr_length; ++k)
-    {
-      double avg_rt_given{};
-      for (int i = 0; i < par.n_orgs; ++i)
-      {
-        avg_rt_given += CRt[i][j][k];
-      }
-      avg_rt_given /= par.n_orgs;
-      outfile << avg_rt_given << '\t';
-    }
-    outfile << endl;
-  }
-  outfile.close();
 
 
 }

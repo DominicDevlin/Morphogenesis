@@ -87,8 +87,8 @@
 
 
 /* Cellular Potts parameters */
-    sizex = 2000;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 2000;
+    sizex = 1500;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 1500;
     mcs = 300001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
