@@ -107,13 +107,12 @@
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 100;
 
-    H_perim = true;
+    H_perim = false;
     elastic_modulus = 3;
-    ptarget_perimeter = 20;//round(20*sqrt(double(cell_target_area) / 25.));;
+    ptarget_perimeter = round(20*sqrt(double(cell_target_area) / 25.));
+    ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / (ptarget_perimeter );
-    ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
-    
     
 
     // high value ensures cells are never broken apart by copy attempts.
@@ -126,9 +125,9 @@
     startingAproportion=0.5; // A=0(false), B=1(true)
     init_J=-0.;
     dynJmed=0.;
-    Jdyndiff=0 / neigh_multiplier;
-    AstaticJ=-0.25 / neigh_multiplier;
-    BstaticJ=-0.25 / neigh_multiplier;
+    Jdyndiff=4. / neigh_multiplier;
+    AstaticJ=2. / neigh_multiplier;
+    BstaticJ=2. / neigh_multiplier;
     
     // timescaler=0.000001;
     // //note this needs to be half (there are two meetings each recording)

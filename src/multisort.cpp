@@ -171,7 +171,6 @@ void process_population()
     dishes[i].CPM->SetAreas(par.cell_target_area);
     if (par.H_perim == true)
     {
-      par.H_perim = true; 
       dishes[i].CPM->MeasureCellPerimeters();
       dishes[i].CPM->SetPerims(par.ptarget_perimeter);
     }

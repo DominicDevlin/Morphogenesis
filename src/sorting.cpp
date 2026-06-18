@@ -146,7 +146,6 @@ TIMESTEP {
       dish->CPM->SetAreas(par.cell_target_area);
       if (par.H_perim == true)
       {
-        par.H_perim = true; 
         dish->CPM->MeasureCellPerimeters();
         dish->CPM->SetPerims(par.ptarget_perimeter);
       }
