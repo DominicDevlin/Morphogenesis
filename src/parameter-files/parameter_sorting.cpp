@@ -91,7 +91,7 @@
     sizey = 250;
     mcs = 2000001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
-    T = 1;
+    T = 0.8;
     // NOTE: lambda must be divided by A_0 to maintain constant force
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
