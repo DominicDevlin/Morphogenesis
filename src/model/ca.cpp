@@ -1103,9 +1103,17 @@ int CellularPotts::AmoebaeMove(long tsteps)
     // 3. Randomly select a TARGET STATE from the unique list
     if (distinct_count == 0) 
       continue; // Should not happen unless isolated
+
+    if (distinct_count == 1 && present_states[0] == k)
+      continue; 
+
     
     int rand_idx = (int)(distinct_count * RANDOM(s_val));
     int kp = present_states[rand_idx];
+
+    if (k == kp)
+      continue;
+
 
     // =============================================================
     // 4. CONNECTIVITY CHECK (Kept separate because it relies on 

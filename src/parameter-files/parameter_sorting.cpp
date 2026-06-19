@@ -36,7 +36,7 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = true;
+    graphics = false;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
