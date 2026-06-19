@@ -585,35 +585,7 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
   // ==========================================
   // ADHESION ENERGY CALCULATION
   // ==========================================
-  if (par.dynamic_sorting)
-  {
-    int type_sxy  = (sxy == 0)  ? 0 : cell_sxy.GetSortingType();
-    int type_sxyp = (sxyp == 0) ? 0 : cell_sxyp.GetSortingType();
-
-    for (i = 1; i <= n_nb_adh; i++) 
-    {
-      neighsite = neighbor_spins[i];
-      
-      if (neighsite == -1) 
-      { // out-of-bounds border 
-        Jen += (sxyp == 0 ? 0 : par.border_energy) - (sxy == 0 ? 0 : par.border_energy);
-      } 
-      else 
-      {
-        int type_neigh = (neighsite == 0) ? 0 : (*cell)[neighsite].GetSortingType();
-        
-        // Only calculate adhesion if the neighbor belongs to a DIFFERENT cell.
-        // If neighsite == sxyp (proposed state), the boundary is internal to the cell, so energy is 0.
-        double E_final = (sxyp == neighsite) ? 0.0 : DynamicAdhesionDiff(type_sxyp, type_neigh);
-        
-        // If neighsite == sxy (initial state), the boundary was internal to the cell, so energy was 0.
-        double E_initial = (sxy == neighsite) ? 0.0 : DynamicAdhesionDiff(type_sxy, type_neigh);
-
-        Jen += (E_final - E_initial);
-      }
-    }
-  }
-  else if (par.make_synthetic)
+  if (par.make_synthetic)
   {
     for (i = 1; i <= n_nb_adh; i++) 
     {
@@ -737,8 +709,6 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
   
   return DH;
 }
-
-
 
 
 
@@ -1138,9 +1108,17 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     // 3. Randomly select a TARGET STATE from the unique list
     if (distinct_count == 0) 
       continue; // Should not happen unless isolated
+
+    if (distinct_count == 1 && present_states[0] == k)
+      continue; 
+
     
     int rand_idx = (int)(distinct_count * RANDOM(s_val));
     int kp = present_states[rand_idx];
+
+    if (k == kp)
+      continue;
+
 
     // =============================================================
     // 4. CONNECTIVITY CHECK (Kept separate because it relies on 
@@ -1192,123 +1170,151 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
   return SumDH;
 }
 
-// int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
-// {
-//   int loop,p;
-//   //int updated=0;
-//   thetime++;
-//   int SumDH=0;
+int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
+{
+  int loop,p;
+  //int updated=0;
+  thetime++;
+  int SumDH=0;
   
-//   if (frozen) 
-//     return 0;
+  if (frozen) 
+    return 0;
 
-//   loop=(sizex-2)*(sizey-2);
+  const int sx_inner = sizex - 2;
+  const int sy_inner = sizey - 2;
+
+  int max_nb = n_nb_adh;
+  int neighbor_spins[64];
+
+  loop=(sizex-2)*(sizey-2);
  
-//   for (int i=0;i<loop;i++) 
-//   {  
-//     // take a random site
-//     int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
-//     int x = xy%(sizex-2)+1;
-//     int y = xy/(sizex-2)+1; 
+  for (int i=0;i<loop;i++) 
+  {  
+    // take a random site
+    int xy = (int)(RANDOM(s_val)*(sizex-2)*(sizey-2));
+    int x = xy%(sizex-2)+1;
+    int y = xy/(sizex-2)+1; 
+    int k=sigma[x][y];
     
-//     // take a random neighbour
-//     int xyp=(int)(n_nb*RANDOM(s_val)+1);
-//     int xp = nx[xyp]+x;
-//     int yp = ny[xyp]+y;
-    
-//     int k=sigma[x][y];
-    
-//     int kp;
-//     if (par.periodic_boundaries) 
-//     {
-//       // since we are asynchronic, we cannot just copy the borders once 
-//       // every MCS
-//       if (xp<=0)
-// 	      xp=sizex-2+xp;
-//       if (yp<=0)
-// 	      yp=sizey-2+yp;
-//       if (xp>=sizex-1)
-// 	      xp=xp-sizex+2;
-//       if (yp>=sizey-1)
-// 	      yp=yp-sizey+2;
-      
-//       kp=sigma[xp][yp];
-      
-//     } 
-//     else 
-//     {
-//       if (xp<=0 || yp<=0 || xp>=sizex-1 || yp>=sizey-1)
-// 	      kp=-1;
-//       else
-// 	      kp=sigma[xp][yp];
-//     }
-//     // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
-//     // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+    for (int j = 1; j <= max_nb; j++) 
+    {
+      int tx = nx[j] + x;
+      int ty = ny[j] + y;
 
-//     // test for border state (relevant only if we do not use 
-//     // periodic boundaries)
-//     if (kp!=-1) 
-//     {  
-//       // Don't even think of copying the special border state into you!
-    
-//       if ( k  != kp ) 
-//       {
-//         /* Try to copy if sites do not belong to the same cell */
-//         // connectivity dissipation:
-//         int H_diss=0;
-//         if (!ConnectivityPreservedP(x,y)) 
-//           H_diss=par.conn_diss;
-        
-//         double D_H=DeltaH(x,y,kp, tsteps, PDEfield);
-        
-//         // dH_tally += D_H;
-//         // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
-//         //   cout << D_H << endl;
-//         // bool is_med_attempt = false;
-//         // if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
-//         // {
-//         //   is_med_attempt = true;
-//         //   ++medp_count;
-//         // }
-//         if ((p=CopyvProb(D_H,H_diss))>0) 
-//         {
-//           if (par.H_perim)
-//             ConvertSpinPerim( x,y,kp );
-//           else
-//           {
-//             ConvertSpin( x,y,kp );
-//           }  
-//         }
-//         //   if (par.recordcopies)
-//         //   {
-//         //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
-//         //     {
-//         //       ++flip_true;
-//         //       SumDH+=D_H;
-//         //       dH_neg+=D_H;
-//         //     }
-//         //   }
+      if (par.periodic_boundaries) {
+          if (tx <= 0) tx += sx_inner;
+          else if (tx >= sizex - 1) tx -= sx_inner;
+          if (ty <= 0) ty += sy_inner;
+          else if (ty >= sizey - 1) ty -= sy_inner;
           
-//         // }
-//         // else
-//         // {
-//         //   if (par.recordcopies)
-//         //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
-//         //     {
-//         //       ++flip_false;
-//         //     }
-//         // }
-//         // if (Probability(D_H)) 
-//         // {
-//         //   ConvertSpin( x,y,xp,yp );
-//         //   SumDH+=D_H;
-//         // }
-//       }
-//     } 
-//   }
-//   return SumDH;
+          neighbor_spins[j] = sigma[tx][ty];
+      } 
+      else 
+      {
+          if (tx <= 0 || ty <= 0 || tx >= sizex - 1 || ty >= sizey - 1) {
+              neighbor_spins[j] = -1; // -1 means out-of-bounds border
+          } else {
+              neighbor_spins[j] = sigma[tx][ty];
+          }
+      }
+    }
+
+    // take a random neighbour
+    int xyp=(int)(n_nb*RANDOM(s_val)+1);
+    int xp = nx[xyp]+x;
+    int yp = ny[xyp]+y;    
+    
+    int kp;
+    if (par.periodic_boundaries) 
+    {
+      // since we are asynchronic, we cannot just copy the borders once 
+      // every MCS
+      if (xp<=0)
+	      xp=sizex-2+xp;
+      if (yp<=0)
+	      yp=sizey-2+yp;
+      if (xp>=sizex-1)
+	      xp=xp-sizex+2;
+      if (yp>=sizey-1)
+	      yp=yp-sizey+2;
+      
+      kp=sigma[xp][yp];
+      
+    } 
+    else 
+    {
+      if (xp<=0 || yp<=0 || xp>=sizex-1 || yp>=sizey-1)
+	      kp=-1;
+      else
+	      kp=sigma[xp][yp];
+    }
+    // int type1 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+    // int type2 = (*cell)[sigma[xp][yp]].GetPhenotype();    
+
+    // test for border state (relevant only if we do not use 
+    // periodic boundaries)
+    if (kp!=-1) 
+    {  
+      // Don't even think of copying the special border state into you!
+    
+      if ( k  != kp ) 
+      {
+        /* Try to copy if sites do not belong to the same cell */
+        // connectivity dissipation:
+        int H_diss=0;
+        if (!ConnectivityPreservedP(x,y)) 
+          H_diss=par.conn_diss;
+        
+        double D_H=DeltaH(x,y,kp);
+        
+        // dH_tally += D_H;
+        // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+        //   cout << D_H << endl;
+        // bool is_med_attempt = false;
+        // if (sigma[x][y] == 0 && (*cell)[sigma[xp][yp]].GetPhase() == true || sigma[xp][yp] == 0 && (*cell)[sigma[x][y]].GetPhase() == true)
+        // {
+        //   is_med_attempt = true;
+        //   ++medp_count;
+        // }
+        if ((p=CopyvProb(D_H,H_diss))>0) 
+        {
+          if (par.H_perim)
+            ConvertSpinPerim( x,y,kp );
+          else
+          {
+            ConvertSpin( x,y,kp );
+          }  
+        }
+        //   if (par.recordcopies)
+        //   {
+        //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+        //     {
+        //       ++flip_true;
+        //       SumDH+=D_H;
+        //       dH_neg+=D_H;
+        //     }
+        //   }
+          
+        // }
+        // else
+        // {
+        //   if (par.recordcopies)
+        //     if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
+        //     {
+        //       ++flip_false;
+        //     }
+        // }
+        // if (Probability(D_H)) 
+        // {
+        //   ConvertSpin( x,y,xp,yp );
+        //   SumDH+=D_H;
+        // }
+      }
+    } 
+  }
+  return SumDH;
   
-// }
+}
 
 
 
