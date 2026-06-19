@@ -1196,6 +1196,8 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
     int y = xy/(sizex-2)+1; 
     int k=sigma[x][y];
     
+
+    // get all neighbours for adhesion/perim etc.
     for (int j = 1; j <= max_nb; j++) 
     {
       int tx = nx[j] + x;
@@ -1265,7 +1267,7 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
         if (!ConnectivityPreservedP(x,y)) 
           H_diss=par.conn_diss;
         
-        double D_H=DeltaH(x,y,kp);
+        double D_H=DeltaH(x,y,kp, tsteps, neighbor_spins);
         
         // dH_tally += D_H;
         // if ((type1 > par.mintype && type1 < par.maxtype) || (type2 > par.mintype && type2 < par.maxtype))
@@ -1279,7 +1281,7 @@ int CellularPotts::AmoebaeMoveLegacy(long tsteps, PDE *PDEfield)
         if ((p=CopyvProb(D_H,H_diss))>0) 
         {
           if (par.H_perim)
-            ConvertSpinPerim( x,y,kp );
+            ConvertSpinPerim( x,y,kp, neighbor_spins );
           else
           {
             ConvertSpin( x,y,kp );

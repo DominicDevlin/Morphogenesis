@@ -200,7 +200,7 @@ TIMESTEP {
     }
   
     // dish->CPM->ColourCells(true);
-    dish->CPM->AmoebaeMove(t);
+    dish->CPM->AmoebaeMoveLegacy(t);
     if (par.active_motion)
     {
       dish->CPM->update_cell_velocities_MCS();

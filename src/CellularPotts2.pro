@@ -14,7 +14,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-TARGET = multisort
+TARGET = organoid
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 PARAMFILE = parameter-files/parameter_$${TARGET}.cpp
 
