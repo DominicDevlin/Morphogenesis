@@ -87,9 +87,9 @@
 
 
 /* Cellular Potts parameters */
-    sizex = 2000;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 2000;
-    mcs = 300001;
+    sizex = 1500;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 1500;
+    mcs = 500001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
@@ -102,17 +102,19 @@
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
-    bulk_modulus = 13;
+    bulk_modulus = 6;
     cell_target_area = 25;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 100;
 
-    H_perim = true;
+    H_perim = false;
     elastic_modulus = 2;
-    ptarget_perimeter = 20;
-    ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
+    ptarget_perimeter = round(20*sqrt(double(cell_target_area) / 25.));
+
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
+    ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
+
       
 
     // high value ensures cells are never broken apart by copy attempts.
@@ -126,9 +128,9 @@
     startingAproportion=0.5; // A=0(false), B=1(true)
     init_J=-0.;
     dynJmed=0.;
-    Jdyndiff=-0.1 / neigh_multiplier;
-    AstaticJ=-1.5 / neigh_multiplier;
-    BstaticJ=-1.5 / neigh_multiplier;
+    Jdyndiff=4. / neigh_multiplier;
+    AstaticJ=2. / neigh_multiplier;
+    BstaticJ=2. / neigh_multiplier;
     
     // timescaler=0.000001;
     // //note this needs to be half (there are two meetings each recording)
