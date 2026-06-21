@@ -640,18 +640,20 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
   // ==========================================
   if (par.active_motion)
   {
+    double &mot_strength_sxy = cell_sxy.GetMotilityStrength();
+    double &mot_strength_sxyp = cell_sxyp.GetMotilityStrength();
     if (sxyp == MEDIUM)
     {
-      DH -= par.motility_strength * cell_sxy.ActiveDotProduct_removed(x, y);
+      DH -= cell_sxy.GetMotilityStrength() * cell_sxy.ActiveDotProduct_removed(x, y);
     }
     else if (sxy == MEDIUM)
     {
-      DH -= par.motility_strength * cell_sxyp.ActiveDotProduct_added(x, y);
+      DH -= cell_sxyp.GetMotilityStrength() * cell_sxyp.ActiveDotProduct_added(x, y);
     }
     else
     {
-      DH -= par.motility_strength * cell_sxyp.ActiveDotProduct_added(x, y);
-      DH -= par.motility_strength * cell_sxy.ActiveDotProduct_removed(x, y);
+      DH -= cell_sxyp.GetMotilityStrength() * cell_sxyp.ActiveDotProduct_added(x, y);
+      DH -= cell_sxy.GetMotilityStrength() * cell_sxy.ActiveDotProduct_removed(x, y);
     }
   }
 
@@ -7469,6 +7471,50 @@ double GFP_rk4(double dt, double c, double I)
 }
 
 
+void CellularPotts::UpdateActiveMotion()
+{
+
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+
+        double Ecad_conc = (*cell)[i].getE_cadherin();
+        double avg_of_neighbours{};
+        int nbh_count{};
+        int j=0;
+        while (ns[i][j] >= 0)
+        {
+          ++nbh_count;
+          if (ns[i][j] == 0)
+          {
+            continue;
+          }
+          
+          avg_of_neighbours += (*cell)[j].getE_cadherin();
+      }
+      avg_of_neighbours/=double(nbh_count);
+
+      // We assume that concentrations max out at 1.. hope this is okay...
+      double part1 = pow(Ecad_conc, 4);
+      double part2 = pow(Ecad_conc, 4);
+      if (part1 > 1)
+        part1=1;
+      if (part2 > 1)
+        part2=1;
+      double mot_strength = par.motility_strength - par.motility_strength * (part1 * part2);
+      (*cell)[i].SetMotilityStrength(mot_strength);
+      if (mot_strength < 0.3)
+        cout << mot_strength << endl; 
+    }
+  }
+  free(ns[0]);
+  free(ns);
+}
+
+
 void CellularPotts::SurfaceBindings()
 {
   // reset values
@@ -7538,7 +7584,7 @@ void CellularPotts::StartSyntheticNetwork(int start_point)
   {
     if (c->AliveP())
     {
-
+      c->SetMotilityStrength(par.motility_strength);
       double init_synNotch_bound = 1.0;
       double init_synNotch_unbound = 0.0;
       double init_synNotch_intra = 0.0;

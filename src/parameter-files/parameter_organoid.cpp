@@ -117,6 +117,9 @@
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
       
 
+    // active motion should depend on E/P/N cadherin
+    // P/N cadherin binding shoudlnt change active motion. 
+    // E cadherin should decrease with E cadherin binding
     active_motion = true;
     motility_strength = 0.4;
     persistence_time = 200.;
@@ -207,15 +210,26 @@
     // c1_CD19_induced={1,0,0,0,0,1,0};
     // c2_CD19_induced={0,0,0,0,0,0,0};
 
-    // asymmetric
+
+    // two layered structure CD19 + Ecad
     c1_const={0,0,0,0,0,0,0};
-    c2_const={0,0,0,0,0,0,0};
+    c2_const={0,0,0,0,1,0,0};
     c1_GFP_induced={0,0,0,0,0,0,0};
-    c2_GFP_induced={0,0,1,0,0,0,1};
+    c2_GFP_induced={0,0,0,0,0,0,0};
     c1_mCherry_induced={0,0,0,0,0,0,0};
     c2_mCherry_induced={0,0,0,0,0,0,0};
-    c1_CD19_induced={0,0,0,1,0,1,0};
+    c1_CD19_induced={1,0,0,0,0,1,0};
     c2_CD19_induced={0,0,0,0,0,0,0};
+
+    // asymmetric
+    // c1_const={0,0,0,0,0,0,0};
+    // c2_const={0,0,0,0,0,0,0};
+    // c1_GFP_induced={0,0,0,0,0,0,0};
+    // c2_GFP_induced={0,0,1,0,0,0,1};
+    // c1_mCherry_induced={0,0,0,0,0,0,0};
+    // c2_mCherry_induced={0,0,0,0,0,0,0};
+    // c1_CD19_induced={0,0,0,1,0,1,0};
+    // c2_CD19_induced={0,0,0,0,0,0,0};
 
     // for spheroid stuff
     // c1_const={0,0,0,0,0,0,0};
@@ -327,10 +341,9 @@
     program_its = 1; // we are doing more PDE iterations during the program. 
     div_end = 6;
 
-
     /* colours */
     set_colours = true;
-    use_colour_index = true;
+    use_colour_index = false;
     colour_index = { {0, 10}, {1, 11},};
 
     //record location of cell divisions

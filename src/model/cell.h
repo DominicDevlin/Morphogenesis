@@ -1905,6 +1905,16 @@ void SetCD19_induced(vector<bool> incoming)
   CD19_induced=incoming;
 }
 
+void SetMotilityStrength(double mots)
+{
+  motility_strength=mots;
+}
+
+double& GetMotilityStrength()
+{
+  return motility_strength;
+}
+
 
 
 inline bool& GetSortingType()
@@ -2045,6 +2055,7 @@ protected:
 
 
   /* parameters for synthetic structures */
+  // we are going to change this so that concentrations depend on cell size
   double synNotch_bound{};
   double synNotch_unbound{};
   double synNotch_intra{};
@@ -2073,6 +2084,8 @@ protected:
 
   double cell_perim_constraint;
   double cell_area_constraint;
+
+  double motility_strength;
 
 
   // static int maxsigma; // the last cell identity number given out, Dom removed

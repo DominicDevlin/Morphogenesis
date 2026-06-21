@@ -153,6 +153,7 @@ TIMESTEP {
     {
       dish->SyntheticAverageChemCell();
       dish->CPM->SyntheticNetwork();
+      dish->CPM->UpdateActiveMotion();
       dish->CPM->OutputSyntheticNetwork(t);
     }
     if (t % 5000==0 && t > 0)

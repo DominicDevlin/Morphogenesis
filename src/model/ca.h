@@ -598,6 +598,8 @@ public:
 
   void UpdateSyntheticCellConstraints();
 
+  void UpdateActiveMotion();
+
   void MakeSpheroid(int centerx, int centery, int radius);
 
   void DivideCellsNoGrid(vector<bool> which_cells);
