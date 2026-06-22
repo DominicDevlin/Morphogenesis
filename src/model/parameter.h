@@ -165,7 +165,7 @@ class Parameter {
   bool jamming;
 
 
-  double proportion_starting_CD19;
+  double proportion_celltype2;
 
 
   bool convert_cells;

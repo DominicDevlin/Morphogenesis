@@ -7480,33 +7480,33 @@ void CellularPotts::UpdateActiveMotion()
   {
     if (cell->at(i).AliveP())
     {
-
-        double Ecad_conc = (*cell)[i].getE_cadherin();
-        double avg_of_neighbours{};
-        int nbh_count{};
-        int j=0;
-        while (ns[i][j] >= 0)
+      double Ecad_conc = (*cell)[i].getE_cadherin();
+      double avg_of_neighbours{};
+      int nbh_count{};
+      int j=0;
+      while (ns[i][j] >= 0)
+      {
+        ++nbh_count;
+        if (ns[i][j] == 0)
         {
-          ++nbh_count;
-          if (ns[i][j] == 0)
-          {
-            continue;
-          }
-          
-          avg_of_neighbours += (*cell)[j].getE_cadherin();
+          continue;
+        }
+        avg_of_neighbours += (*cell)[j].getE_cadherin();
       }
       avg_of_neighbours/=double(nbh_count);
 
       // We assume that concentrations max out at 1.. hope this is okay...
-      double part1 = pow(Ecad_conc, 4);
-      double part2 = pow(Ecad_conc, 4);
+      double part1 = Ecad_conc;
+      double part2 = Ecad_conc;
       if (part1 > 1)
         part1=1;
       if (part2 > 1)
         part2=1;
       double mot_strength = par.motility_strength - par.motility_strength * (part1 * part2);
+      // motility should also go up if a cell does not express E-cad and is not bound to E-cad
+
       (*cell)[i].SetMotilityStrength(mot_strength);
-      if (mot_strength < 0.3)
+      if (mot_strength < 0.25)
         cout << mot_strength << endl; 
     }
   }
@@ -7629,10 +7629,9 @@ void CellularPotts::StartSyntheticNetwork(int start_point)
         c->set_diffusers(init_diffusers);
         // randomly make cell CD19 or not (move to different method eventually)
         double rand = RANDOM(s_val);
-        if (rand < par.proportion_starting_CD19)
+        if (rand < par.proportion_celltype2)
         {
-          c->setCD19(1.);
-          // assuming c1
+          // assuming c2
           c->SetConstitutives(par.c2_const);
           c->SetGFP_induced(par.c2_GFP_induced);
           c->SetMcherry_induced(par.c2_mCherry_induced);
@@ -7640,8 +7639,7 @@ void CellularPotts::StartSyntheticNetwork(int start_point)
         }
         else 
         {
-          c->setCD19(0.);
-          // assuming c2
+          // assuming c1
           c->SetConstitutives(par.c1_const);
           c->SetGFP_induced(par.c1_GFP_induced);
           c->SetMcherry_induced(par.c1_mCherry_induced);
@@ -7692,17 +7690,6 @@ void CellularPotts::StartSyntheticNetwork(Cell &newcell)
 
       vector<double> init_diffusers{0.0};
       newcell.set_diffusers(init_diffusers);
-
-      // randomly make cell CD19 or not (move to different method eventually)
-      double rand = RANDOM(s_val);
-      if (rand < par.proportion_starting_CD19)
-      {
-        newcell.setCD19(true);
-      }
-      else 
-      {
-        newcell.setCD19(false);
-      }
     }
 
   } 

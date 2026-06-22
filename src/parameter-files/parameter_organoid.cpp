@@ -126,7 +126,7 @@
 
     // note - currently active motion must be on for gravity.
     add_gravity=true;
-    lambda_gravity=0.001;
+    lambda_gravity=0.002;
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
@@ -174,11 +174,11 @@
     Jmed_scaling=0;
 
     synthetic_Jcell_baseline = 1;
-    JEcadherin_scaling=2;//5.2;
+    JEcadherin_scaling=1.5;//5.2;
     JPcadherin_scaling=1.5;//2.6;
     JNcadherin_scaling=1.5;//2.6;
 
-    Jrandom_scaling_E=0.;
+    Jrandom_scaling_E=0.5;
     Jrandom_scaling_N=0.5;
     Jrandom_scaling_P=0.5;
     
@@ -188,7 +188,7 @@
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
 
-    proportion_starting_CD19 =0.47; // i used 0.68 for 3 layer and 0.47? for asymmetric
+    proportion_celltype2 =0.7; // i used 0.68 for 3 layer and 0.47? for asymmetric
 
     // Here we decide the genes of c1 and c2.
     // first = E_cadherin high, second = E_cadherin low, third = P_cadherin, fourth = N_cadherin, 5 = CD19, 6=GFP, 7=mCherry
@@ -201,25 +201,25 @@
     make_sparse_cells=true;
 
     // three layered structure
+    c1_const={0,0,0,0,0,0,0};
+    c2_const={0,0,0,0,1,0,0};
+    c1_GFP_induced={0,0,0,0,0,0,0};
+    c2_GFP_induced={0,1,0,0,0,0,1};
+    c1_mCherry_induced={0,0,0,0,0,0,0};
+    c2_mCherry_induced={0,0,0,0,0,0,0};
+    c1_CD19_induced={1,0,0,0,0,1,0};
+    c2_CD19_induced={0,0,0,0,0,0,0};
+
+
+    // two layered structure CD19 + Ecad
     // c1_const={0,0,0,0,0,0,0};
-    // c2_const={0,0,0,0,0,0,0};
+    // c2_const={0,0,0,0,1,0,0};
     // c1_GFP_induced={0,0,0,0,0,0,0};
     // c2_GFP_induced={0,0,0,0,0,0,0};
     // c1_mCherry_induced={0,0,0,0,0,0,0};
     // c2_mCherry_induced={0,0,0,0,0,0,0};
     // c1_CD19_induced={1,0,0,0,0,1,0};
     // c2_CD19_induced={0,0,0,0,0,0,0};
-
-
-    // two layered structure CD19 + Ecad
-    c1_const={0,0,0,0,0,0,0};
-    c2_const={0,0,0,0,1,0,0};
-    c1_GFP_induced={0,0,0,0,0,0,0};
-    c2_GFP_induced={0,0,0,0,0,0,0};
-    c1_mCherry_induced={0,0,0,0,0,0,0};
-    c2_mCherry_induced={0,0,0,0,0,0,0};
-    c1_CD19_induced={1,0,0,0,0,1,0};
-    c2_CD19_induced={0,0,0,0,0,0,0};
 
     // asymmetric
     // c1_const={0,0,0,0,0,0,0};
