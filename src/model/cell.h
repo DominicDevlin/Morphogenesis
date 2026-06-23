@@ -1915,6 +1915,15 @@ double& GetMotilityStrength()
   return motility_strength;
 }
 
+void SetElasticMod(double emod)
+{
+  cell_elastic_mod=emod;
+}
+
+double& GetElasticMod()
+{
+  return cell_elastic_mod;
+}
 
 
 inline bool& GetSortingType()
@@ -2173,7 +2182,7 @@ protected:
   double centery;
 
   double lambda_perim;
-
+  double cell_elastic_mod;
   
 
   double v[2];

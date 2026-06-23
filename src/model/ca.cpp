@@ -7503,11 +7503,11 @@ void CellularPotts::UpdateActiveMotion()
       if (part2 > 1)
         part2=1;
       double mot_strength = par.motility_strength - par.motility_strength * (part1 * part2);
-      // motility should also go up if a cell does not express E-cad and is not bound to E-cad
 
       (*cell)[i].SetMotilityStrength(mot_strength);
-      if (mot_strength < 0.25)
-        cout << mot_strength << endl; 
+
+      double new_elastic = par.elastic_modulus + par.Ecad_elastic_change * part1 * part2;
+      (*cell)[i].SetElasticMod(new_elastic);
     }
   }
   free(ns[0]);
@@ -7585,6 +7585,7 @@ void CellularPotts::StartSyntheticNetwork(int start_point)
     if (c->AliveP())
     {
       c->SetMotilityStrength(par.motility_strength);
+      c->SetElasticMod(par.elastic_modulus);
       double init_synNotch_bound = 1.0;
       double init_synNotch_unbound = 0.0;
       double init_synNotch_intra = 0.0;
@@ -7726,7 +7727,8 @@ void CellularPotts::UpdateSyntheticCellConstraints()
       int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
       target_perim+= round(target_perim*(par.Ecadherin_tension_multiple*c->getE_cadherin() + par.Ncadherin_tension_multiple*c->getN_cadherin() + par.Pcadherin_tension_multiple*c->getP_cadherin() ));
       c->SetTargetPerimeter(target_perim);
-      double perim_constraint = (par.elastic_modulus / double(target_perim));
+      
+      double perim_constraint = (c->GetElasticMod() / double(target_perim));
       c->setPerimConstraint(perim_constraint);
       // cout << target_perim << '\t' << area_constraint << '\t' << perim_constraint << endl;
 

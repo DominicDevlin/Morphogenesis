@@ -107,22 +107,23 @@
     bulk_modulus = 13;
     cell_target_area = 100;
     lambda = bulk_modulus / cell_target_area;// 130;
-    div_threshold = 100;
+    div_threshold = 150;
 
     H_perim = true;
-    elastic_modulus = 2;
+    elastic_modulus = 1;
     ptarget_perimeter = 42;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
+    Ecad_elastic_change=3;
       
 
     // active motion should depend on E/P/N cadherin
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.4;
-    persistence_time = 200.;
+    motility_strength = 0.2;
+    persistence_time = 40.;
 
     // note - currently active motion must be on for gravity.
     add_gravity=true;
@@ -248,7 +249,6 @@
     else
       morph_or_surface={0,0,0};
 
-    div_threshold = 150;
 
 
     // morphogen stuff.

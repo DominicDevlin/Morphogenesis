@@ -122,6 +122,8 @@ class Parameter {
 
   double bulk_modulus;
   double elastic_modulus;
+  double Ecad_elastic_change;
+
 
   /* synthetic params*/
   bool make_synthetic;

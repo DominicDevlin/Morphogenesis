@@ -85,7 +85,7 @@ INIT
       if (par.make_spheroid)
         CPM->PopulateSparseCells(0.8, 80, 0, 0);
       else
-        CPM->PopulateSparseCells(0.3, 110, 0, 0);
+        CPM->PopulateSparseCells(0.2, 110, 0, 0);
 
     }
       
