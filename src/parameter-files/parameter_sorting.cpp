@@ -36,7 +36,7 @@
   Parameter::Parameter()
   {
     // show on screen
-    graphics = false;
+    graphics = true;
     // show morphogen gradients
     contours = false;
     // draw cell displacement paths
@@ -91,19 +91,19 @@
     sizey = 250;
     mcs = 2000001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
-    T = 1;
+    T = 0.01;
     // NOTE: lambda must be divided by A_0 to maintain constant force
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
     // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
-    adhesion_neighbourhood=1;
+    adhesion_neighbourhood=4;
     perimeter_neighbourhood=adhesion_neighbourhood;
     copy_neighbourhood=1;
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     bulk_modulus = 6;
-    cell_target_area = 25;
+    cell_target_area = 100;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 100;
 
@@ -122,7 +122,7 @@
     
 
     // sorting parameters
-    startingAproportion=0.5; // A=0(false), B=1(true)
+    startingAproportion=1; // A=0(false), B=1(true)
     init_J=-0.;
     dynJmed=0.;
     Jdyndiff=4. / neigh_multiplier;
