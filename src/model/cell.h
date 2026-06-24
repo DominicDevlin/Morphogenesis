@@ -189,6 +189,9 @@ public:
 
     centerx = src.centerx;
     centery = src.centery;
+
+    cell_elastic_mod=src.cell_elastic_mod;
+    motility_strength=src.motility_strength;
     
   }
   
@@ -312,6 +315,10 @@ public:
     GFP_induced=src.GFP_induced;
     mCherry_induced=src.mCherry_induced;
     CD19_induced=src.CD19_induced;
+
+    cell_elastic_mod=src.cell_elastic_mod;
+    motility_strength=src.motility_strength;
+
 
     diffs = new double[par.n_diffusers];
 
@@ -2181,7 +2188,6 @@ protected:
   double centerx;
   double centery;
 
-  double lambda_perim;
   double cell_elastic_mod;
   
 

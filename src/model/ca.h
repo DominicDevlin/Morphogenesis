@@ -594,7 +594,7 @@ public:
 
   void OutputSyntheticNetwork(int thetime);
 
-  void SyntheticGrowth();
+  void SyntheticGrowth(int t=0);
 
   void UpdateSyntheticCellConstraints();
 

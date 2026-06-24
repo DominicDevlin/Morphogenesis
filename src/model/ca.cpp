@@ -3177,6 +3177,7 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 
             }
             daughterp->SetTimeCreated(t);
+            motherp->SetTimeCreated(t);
             if (par.gene_record)
             {
               daughterp->RecordDivision(t); // record division only in daughter cell.
@@ -7725,7 +7726,7 @@ void CellularPotts::UpdateSyntheticCellConstraints()
       double area_constraint = par.bulk_modulus / double(c->TargetArea());
       c->setAreaConstraint(area_constraint);
       int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
-      target_perim+= round(target_perim*(par.Ecadherin_tension_multiple*c->getE_cadherin() + par.Ncadherin_tension_multiple*c->getN_cadherin() + par.Pcadherin_tension_multiple*c->getP_cadherin() ));
+      //target_perim+= round(target_perim*(par.Ecadherin_tension_multiple*c->getE_cadherin() + par.Ncadherin_tension_multiple*c->getN_cadherin() + par.Pcadherin_tension_multiple*c->getP_cadherin() ));
       c->SetTargetPerimeter(target_perim);
       
       double perim_constraint = (c->GetElasticMod() / double(target_perim));
@@ -7883,7 +7884,7 @@ void CellularPotts::SyntheticNetwork()
   UpdateSyntheticCellConstraints();
 }
 
-void CellularPotts::SyntheticGrowth()
+void CellularPotts::SyntheticGrowth(int t)
 {
 
   vector<bool> which_cells(cell->size());
@@ -7896,28 +7897,24 @@ void CellularPotts::SyntheticGrowth()
   {
     if (c->AliveP())
     {
-      double outside_growth_rate=10;
-      double inside_growth_rate=5;
+      double max_growth_rate=5;
       
       double rand = RANDOM(s_val);
-      bool istouching = c->getTouchingMed();
 
       int targetarea=c->TargetArea();
       int area=c->Area();
 
-      if (istouching)
-      {
-        int growth_rate = int(round(outside_growth_rate * rand));
-        c->SetTargetArea(targetarea + growth_rate);
-      }
-      else
-      {
-        int growth_rate = int(round(inside_growth_rate * rand));
-        c->SetTargetArea(targetarea + growth_rate);
-      }
+      int growth_rate = int(round(max_growth_rate * rand));
+      c->SetTargetArea(targetarea + growth_rate);
+
       if (area>par.div_threshold) 
       {
-        
+        ofstream outfile;
+        string out = data_file + "/division-times.dat";
+        outfile.open(out, ios::app);
+        int tc = t - c->get_time_created();
+        outfile << tc << endl;
+        outfile.close();
         which_cells[c->Sigma()]=true;
         cell_division++;
       }
@@ -7925,7 +7922,7 @@ void CellularPotts::SyntheticGrowth()
   }
   if (cell_division) 
   {
-    DivideCells(which_cells);
+    DivideCells(which_cells, t);
   }
 
   // adjust constraints!

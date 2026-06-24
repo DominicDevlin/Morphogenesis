@@ -152,7 +152,10 @@ void Cell::CellBirth(Cell &mother_cell) {
   constitutives=mother_cell.constitutives;
   GFP_induced=mother_cell.GFP_induced;
   mCherry_induced=mother_cell.mCherry_induced;
-  CD19_induced=mother_cell.CD19_induced;  
+  CD19_induced=mother_cell.CD19_induced;
+  
+  cell_elastic_mod=mother_cell.cell_elastic_mod;
+  motility_strength=mother_cell.motility_strength;
 
   for (int i=0;i<par.n_diffusers;i++)
   {

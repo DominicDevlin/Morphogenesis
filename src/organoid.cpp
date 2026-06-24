@@ -156,9 +156,9 @@ TIMESTEP {
       dish->CPM->UpdateActiveMotion();
       dish->CPM->OutputSyntheticNetwork(t);
     }
-    if (t % 5000==0 && t > 0)
+    if (t % 1000==0 && t > 0)
     {
-      dish->CPM->SyntheticGrowth();
+      dish->CPM->SyntheticGrowth(t);
     }
 
     if (t==3000 && par.make_spheroid)
