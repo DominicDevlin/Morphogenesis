@@ -181,6 +181,7 @@ public:
     opposing_P_cadherin=src.opposing_P_cadherin;
     opposing_N_cadherin=src.opposing_N_cadherin;
     spheroid_cell=src.spheroid_cell;
+    leftover_area=src.leftover_area;
 
     constitutives=src.constitutives;
     GFP_induced=src.GFP_induced;
@@ -318,6 +319,9 @@ public:
 
     cell_elastic_mod=src.cell_elastic_mod;
     motility_strength=src.motility_strength;
+
+    leftover_area=src.leftover_area;
+
 
 
     diffs = new double[par.n_diffusers];
@@ -478,7 +482,8 @@ al. 2000). The current version of TST does not include such functionality.
   }
   
   //! Sets the target area of the cell.
-  inline int SetTargetArea(const int new_area) {
+  inline int SetTargetArea(const int new_area) 
+  {
     return target_area=new_area;
   }
   
@@ -1932,6 +1937,20 @@ double& GetElasticMod()
   return cell_elastic_mod;
 }
 
+void LeftoverTargetArea(double fta)
+{
+  leftover_area+=fta;
+  while (leftover_area > 1)
+  {
+    ++target_area;
+    leftover_area-=1;
+  }
+}
+
+double& GetFauxTargetArea()
+{
+  return leftover_area;
+}
 
 inline bool& GetSortingType()
 {
@@ -2102,6 +2121,7 @@ protected:
   double cell_area_constraint;
 
   double motility_strength;
+  double leftover_area;
 
 
   // static int maxsigma; // the last cell identity number given out, Dom removed

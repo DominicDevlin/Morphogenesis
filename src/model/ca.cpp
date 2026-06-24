@@ -7897,15 +7897,15 @@ void CellularPotts::SyntheticGrowth(int t)
   {
     if (c->AliveP())
     {
-      double max_growth_rate=5;
+      double min_growth_rate=0.1;
+      double max_growth_rate=0.2;
       
       double rand = RANDOM(s_val);
 
-      int targetarea=c->TargetArea();
       int area=c->Area();
 
-      int growth_rate = int(round(max_growth_rate * rand));
-      c->SetTargetArea(targetarea + growth_rate);
+      double growth_rate = max_growth_rate-min_growth_rate * rand + min_growth_rate;
+      c->LeftoverTargetArea(growth_rate);
 
       if (area>par.div_threshold) 
       {

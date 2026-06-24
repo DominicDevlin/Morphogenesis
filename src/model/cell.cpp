@@ -156,6 +156,8 @@ void Cell::CellBirth(Cell &mother_cell) {
   
   cell_elastic_mod=mother_cell.cell_elastic_mod;
   motility_strength=mother_cell.motility_strength;
+  leftover_area=mother_cell.leftover_area;
+
 
   for (int i=0;i<par.n_diffusers;i++)
   {

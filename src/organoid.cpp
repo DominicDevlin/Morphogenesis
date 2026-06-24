@@ -156,7 +156,7 @@ TIMESTEP {
       dish->CPM->UpdateActiveMotion();
       dish->CPM->OutputSyntheticNetwork(t);
     }
-    if (t % 1000==0 && t > 0)
+    if (t % 50==0 && t > 0)
     {
       dish->CPM->SyntheticGrowth(t);
     }
