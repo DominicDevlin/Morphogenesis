@@ -4035,14 +4035,16 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
   int W = sizex - 2;
   int H = sizey - 2;
   
-  double target_area = static_cast<double>(par.cell_target_area);
+  double max_area = par.synthetic_max_area;
+  double min_area = par.synthetic_min_area;
+  double average_area = (max_area - min_area)/2. + min_area;
   
   // Guard against invalid parameters
-  if (target_area <= 0 || density <= 0.0 || R <= 0.0) return;
+  if (max_area <= 0 || density <= 0.0 || R <= 0.0) return;
   
   // 2. Calculate lattice spacing directly from density and target area.
   // This ensures the density inside the radius is exactly what was requested.
-  double area_per_center = target_area / density;
+  double area_per_center = average_area / density;
   
   // Hexagonal area per center = 2 * sqrt(3) * r^2
   double r = std::sqrt(area_per_center / (2.0 * std::sqrt(3.0)));
@@ -4075,7 +4077,12 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
   double grid_center_y = sizey / 2.0 + shifty;
 
   // 5. Generate the centers, filtering by distance to grid center <= R
-  struct VPoint { double x, y; int id; };
+  struct VPoint 
+  { double x, y; 
+    int id; 
+    double target_area;
+    double radius_limit;
+  };
   std::vector<VPoint> centers;
 
   for (int row = 0; row < num_rows; ++row) {
@@ -4091,8 +4098,12 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
       // Re-using your euclideanDistance function ensures periodic boundaries are respected if applicable.
       double dist = euclideanDistance(final_cx, final_cy, grid_center_x, grid_center_y, sizex, sizey);
       
-      if (dist <= R) {
-          centers.push_back({final_cx, final_cy, -1});
+      if (dist <= R) 
+      {
+        double rnd = RANDOM(s_val) * (max_area - min_area) + min_area;
+        cout << rnd << endl;
+        double r_limit = std::sqrt(rnd / M_PI) * 1.05; // 5% buffer applied individually
+        centers.push_back({final_cx, final_cy, -1, rnd, r_limit});
       }
       if (final_cx < 5 || final_cx > sizex-5 || final_cy < 5 || final_cy > sizey-5)
         cerr << "warning: some centers are outside of domain\n";
@@ -4127,12 +4138,12 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
   // 8. Draw the Voronoi domains, strictly bounded to achieve `par.cell_target_area` size.
   // Formula for circle radius: R = sqrt(A / pi). 
   // We apply a slight 5% buffer to account for discrete pixelation artifacts cutting areas short.
-  double radius_limit = std::sqrt(target_area / M_PI) * 1.05; 
 
   for (int x = 1; x < sizex - 1; ++x) {
       for (int y = 1; y < sizey - 1; ++y) {
         double minDistance = std::numeric_limits<double>::max();
         int closestCenter = -1;
+        double closestRadiusLimit=0.;
         
         for (const auto& center : centers) {
           if (center.id == -1) continue;
@@ -4141,11 +4152,13 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
           if (dist < minDistance) {
               minDistance = dist;
               closestCenter = center.id;
+              closestRadiusLimit=center.radius_limit;
           }
         }
           
-        if (minDistance < radius_limit) {
-            sigma[x][y] = closestCenter;
+        if (minDistance < closestRadiusLimit) 
+        {
+          sigma[x][y] = closestCenter;
         }
       }
   }
@@ -7482,7 +7495,13 @@ void CellularPotts::UpdateActiveMotion()
     if (cell->at(i).AliveP())
     {
       double Ecad_conc = (*cell)[i].getE_cadherin();
-      double avg_of_neighbours{};
+      double Ncad_conc = (*cell)[i].getN_cadherin();
+      double Pcad_conc = (*cell)[i].getP_cadherin();
+
+      double E_avg_of_neighbours{};
+      double N_avg_of_neighbours{};
+      double P_avg_of_neighbours{};
+
       int nbh_count{};
       int j=0;
       while (ns[i][j] >= 0)
@@ -7490,25 +7509,62 @@ void CellularPotts::UpdateActiveMotion()
         ++nbh_count;
         if (ns[i][j] == 0)
         {
+          ++j;
           continue;
         }
-        avg_of_neighbours += (*cell)[j].getE_cadherin();
+        E_avg_of_neighbours += (*cell)[j].getE_cadherin();
+        N_avg_of_neighbours += (*cell)[j].getN_cadherin();
+        P_avg_of_neighbours += (*cell)[j].getP_cadherin();
+        ++j;
       }
-      avg_of_neighbours/=double(nbh_count);
+      if (E_avg_of_neighbours > 0)
+        E_avg_of_neighbours/=double(nbh_count);
+      if (N_avg_of_neighbours > 0)
+        N_avg_of_neighbours/=double(nbh_count);
+      if (P_avg_of_neighbours > 0)
+        P_avg_of_neighbours/=double(nbh_count);
 
       // We assume that concentrations max out at 1.. hope this is okay...
-      double part1 = Ecad_conc;
-      double part2 = Ecad_conc;
-      if (part1 > 1)
-        part1=1;
-      if (part2 > 1)
-        part2=1;
-      double mot_strength = par.motility_strength - par.motility_strength * (part1 * part2);
+      double Epart1 = Ecad_conc;
+      double Epart2 = E_avg_of_neighbours;
+      if (Epart1 > 1)
+        Epart1=1;
+      if (Epart2 > 1)
+        Epart2=1;
+      double Emot_strength = par.motility_strength - par.Ecadherin_bound_motility_loss * (Epart1 * Epart2);
+      double Enew_elastic = par.elastic_modulus + par.Ecad_elastic_change * Epart1 * Epart2;
+
+
+      double Npart1 = Ncad_conc;
+      double Npart2 = N_avg_of_neighbours;
+      if (Npart1 > 1)
+        Npart1=1;
+      if (Npart2 > 1)
+        Npart2=1;
+      double Nmot_strength = par.motility_strength - par.Ncadherin_bound_motility_loss * (Npart1 * Npart2);
+      double Nnew_elastic = par.elastic_modulus + par.Ncad_elastic_change * Npart1 * Npart2;
+
+      double Ppart1 = Pcad_conc;
+      double Ppart2 = P_avg_of_neighbours;
+      if (Ppart1 > 1)
+        Ppart1=1;
+      if (Ppart2 > 1)
+        Ppart2=1;
+      double Pmot_strength = par.motility_strength - par.Pcadherin_bound_motility_loss * (Ppart1 * Ppart2);
+      double Pnew_elastic = par.elastic_modulus + par.Pcad_elastic_change * Ppart1 * Ppart2;
+
+
+
+      double mot_strength = std::min({Nmot_strength, Emot_strength, Pmot_strength});
+      double new_elastic = std::max({Enew_elastic, Nnew_elastic, Pnew_elastic});
+      
+      // if (mot_strength < 0.3)
+      //   cout << Ecad_conc << '\t' << mot_strength << '\t' << new_elastic << endl;
 
       (*cell)[i].SetMotilityStrength(mot_strength);
 
-      double new_elastic = par.elastic_modulus + par.Ecad_elastic_change * part1 * part2;
       (*cell)[i].SetElasticMod(new_elastic);
+      nbh_count=0;
     }
   }
   free(ns[0]);

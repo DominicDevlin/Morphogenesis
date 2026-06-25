@@ -142,7 +142,6 @@ TIMESTEP {
       cout << "calling init" << endl;
       dish->Init();
       dish->CPM->CopyProb(par.T);
-      dish->CPM->SetAreas(par.cell_target_area);
       dish->CPM->MeasureCellPerimeters();
       dish->CPM->SetPerims(par.ptarget_perimeter);
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
@@ -156,7 +155,7 @@ TIMESTEP {
       dish->CPM->UpdateActiveMotion();
       dish->CPM->OutputSyntheticNetwork(t);
     }
-    if (t % 50==0 && t > 0)
+    if (t % 150==0 && t > 0)
     {
       dish->CPM->SyntheticGrowth(t);
     }

@@ -123,6 +123,8 @@ class Parameter {
   double bulk_modulus;
   double elastic_modulus;
   double Ecad_elastic_change;
+  double Ncad_elastic_change;
+  double Pcad_elastic_change;
 
 
   /* synthetic params*/
@@ -420,7 +422,13 @@ class Parameter {
   //active terms
   bool active_motion;
   double motility_strength;
+  double Ecadherin_bound_motility_loss;
+  double Ncadherin_bound_motility_loss;
+  double Pcadherin_bound_motility_loss;
   int persistence_time;
+
+  double synthetic_max_area;
+  double synthetic_min_area;
 
   bool melting_adhesion;  
   int tip_max;
