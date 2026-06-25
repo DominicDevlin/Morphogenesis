@@ -124,7 +124,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.25;
+    motility_strength = 0.2;
     Ecadherin_bound_motility_loss=0.15;
     Ncadherin_bound_motility_loss=0.15;
     Pcadherin_bound_motility_loss=0.15;
@@ -165,10 +165,6 @@
     decay_E_cadherin_bound=0.005;
     c_max = 1.5;
 
-    Ecadherin_tension_multiple=-0.08;
-    Ncadherin_tension_multiple=-0.04;
-    Pcadherin_tension_multiple=-0.04;
-
     // this concentration is too high, needs to come down i think (and get scaling right)
     random_binding_protein_production=0.003;
     decay_random_binding_protein_bound=0.001;
@@ -176,7 +172,7 @@
 
     synthetic_dt=0.3;
 
-    synthetic_Jm=1;
+    synthetic_Jm=0.95;
 
     // not using atm
     Jmed_scaling=0;
@@ -195,6 +191,7 @@
     // CORTICAL TENSION SHOULD GO DOWN FOR ALL CELLS!!! AS THEY BIND MORE TO OTHER CELLS
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
+    // Note - i changed this to simply change lambdaP
 
     proportion_celltype2 =0.7; // i used 0.68 for 3 layer and 0.47? for asymmetric
 

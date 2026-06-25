@@ -169,8 +169,9 @@ public:
     synNotch_intra = src.synNotch_intra;
     E_cadherin = src.E_cadherin;
     CD19 = src.CD19;
-    opposing_CD19 = src.opposing_CD19;
-    opposing_E_cadherin = src.opposing_E_cadherin;
+
+
+
     random_binding_proteins = src.random_binding_proteins;
     touching_med = src.touching_med;
     mCherry=src.mCherry;
@@ -182,6 +183,19 @@ public:
     opposing_N_cadherin=src.opposing_N_cadherin;
     spheroid_cell=src.spheroid_cell;
     leftover_area=src.leftover_area;
+
+    opposing_CD19 = src.opposing_CD19;
+    opposing_E_cadherin = src.opposing_E_cadherin;
+    opposing_mCherry=src.opposing_mCherry;efrerfefrf
+    opposing_GFP=src.opposing_GFP;
+    opposing_N_cadherin=src.opposing_N_cadherin;
+    opposing_P_cadherin=src.opposing_P_cadherin;
+
+    f_opposing_GFP = src.f_opposing_GFP;
+    f_opposing_CD19 = src.f_opposing_CD19;
+    f_opposing_E_cad = src.f_opposing_E_cad;
+    f_opposing_N_cad = src.f_opposing_N_cad;
+    f_opposing_P_cad = src.f_opposing_P_cad;
 
     constitutives=src.constitutives;
     GFP_induced=src.GFP_induced;
@@ -322,7 +336,11 @@ public:
 
     leftover_area=src.leftover_area;
 
-
+    f_opposing_GFP = src.f_opposing_GFP;
+    f_opposing_CD19 = src.f_opposing_CD19;
+    f_opposing_E_cad = src.f_opposing_E_cad;
+    f_opposing_N_cad = src.f_opposing_N_cad;
+    f_opposing_P_cad = src.f_opposing_P_cad;
 
     diffs = new double[par.n_diffusers];
 
@@ -1870,7 +1888,16 @@ void AverageSurfaceBindings()
   opposing_N_cadherin = opposing_N_cadherin / double(perimeter);
   opposing_P_cadherin = opposing_P_cadherin / double(perimeter);
   
-  
+  if (opposing_GFP > f_opposing_GFP) f_opposing_GFP=opposing_GFP;
+  if (opposing_CD19 > f_opposing_CD19) f_opposing_CD19=opposing_CD19;
+  if (opposing_E_cadherin > f_opposing_E_cad) f_opposing_E_cad=opposing_E_cadherin;
+  if (opposing_N_cadherin > f_opposing_N_cad) f_opposing_N_cad=opposing_N_cadherin;
+  if (opposing_P_cadherin > f_opposing_P_cad) f_opposing_P_cad=opposing_P_cadherin;
+}
+
+void ResetBindings()
+{
+  opposing_GFP=0;
 }
 
 bool& isSpheroid()
@@ -2098,17 +2125,28 @@ protected:
   double N_cadherin{};
   double P_cadherin{};  
   double CD19{};
+
   double opposing_CD19{};
   double opposing_E_cadherin{};
   double opposing_mCherry{};
+  double opposing_GFP{};
+  double opposing_N_cadherin{};
+  double opposing_P_cadherin{};
+
+
 
   double random_binding_proteins{};
   double GFP{};
   double mCherry{};
-  double opposing_GFP{};
-  double opposing_N_cadherin{};
-  double opposing_P_cadherin{};
+
   bool spheroid_cell{};
+
+  double f_opposing_GFP;
+  double f_opposing_CD19;
+  double f_opposing_E_cad;
+  double f_opposing_N_cad;
+  double f_opposing_P_cad;
+
 
   vector<bool>constitutives;
   vector<bool>GFP_induced;

@@ -7782,7 +7782,6 @@ void CellularPotts::UpdateSyntheticCellConstraints()
       double area_constraint = par.bulk_modulus / double(c->TargetArea());
       c->setAreaConstraint(area_constraint);
       int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
-      //target_perim+= round(target_perim*(par.Ecadherin_tension_multiple*c->getE_cadherin() + par.Ncadherin_tension_multiple*c->getN_cadherin() + par.Pcadherin_tension_multiple*c->getP_cadherin() ));
       c->SetTargetPerimeter(target_perim);
       
       double perim_constraint = (c->GetElasticMod() / double(target_perim));
