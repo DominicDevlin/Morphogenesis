@@ -87,8 +87,8 @@
 
 
 /* Cellular Potts parameters */
-    sizex = 250;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 250;
+    sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 300;
     mcs = 2000001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
@@ -124,7 +124,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.2;
+    motility_strength = 0.25;
     Ecadherin_bound_motility_loss=0.15;
     Ncadherin_bound_motility_loss=0.15;
     Pcadherin_bound_motility_loss=0.15;
@@ -134,7 +134,7 @@
 
     // note - currently active motion must be on for gravity.
     add_gravity=true;
-    lambda_gravity=0.002;
+    lambda_gravity=0.4/sizex;
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
@@ -144,7 +144,8 @@
 
 /* synthetic params */
     make_synthetic = true;
-    synthetic_update_step=160;
+    synthetic_update_step=100;
+    check_cell_bindings_step=25;
 
     production_rate_synNotch=0.02;
     decay_synNotch_bound=0.02;
@@ -172,7 +173,7 @@
 
     synthetic_dt=0.3;
 
-    synthetic_Jm=0.95;
+    synthetic_Jm=1.3;
 
     // not using atm
     Jmed_scaling=0;
@@ -193,7 +194,10 @@
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
     // Note - i changed this to simply change lambdaP
 
-    proportion_celltype2 =0.7; // i used 0.68 for 3 layer and 0.47? for asymmetric
+    proportion_celltype2 =0.43; // i used 0.7 for 3 layer and 0.47? for asymmetric
+    start_radius=150;
+    start_density=0.2;
+    
 
     // Here we decide the genes of c1 and c2.
     // first = E_cadherin high, second = E_cadherin low, third = P_cadherin, fourth = N_cadherin, 5 = CD19, 6=GFP, 7=mCherry
@@ -206,14 +210,14 @@
     make_sparse_cells=true;
 
     // three layered structure
-    c1_const={0,0,0,0,0,0,0};
-    c2_const={0,0,0,0,1,0,0};
-    c1_GFP_induced={0,0,0,0,0,0,0};
-    c2_GFP_induced={0,1,0,0,0,0,1};
-    c1_mCherry_induced={0,0,0,0,0,0,0};
-    c2_mCherry_induced={0,0,0,0,0,0,0};
-    c1_CD19_induced={1,0,0,0,0,1,0};
-    c2_CD19_induced={0,0,0,0,0,0,0};
+    // c1_const={0,0,0,0,0,0,0};
+    // c2_const={0,0,0,0,1,0,0};
+    // c1_GFP_induced={0,0,0,0,0,0,0};
+    // c2_GFP_induced={0,1,0,0,0,0,1};
+    // c1_mCherry_induced={0,0,0,0,0,0,0};
+    // c2_mCherry_induced={0,0,0,0,0,0,0};
+    // c1_CD19_induced={1,0,0,0,0,1,0};
+    // c2_CD19_induced={0,0,0,0,0,0,0};
 
 
     // two layered structure CD19 + Ecad
@@ -227,14 +231,14 @@
     // c2_CD19_induced={0,0,0,0,0,0,0};
 
     // asymmetric
-    // c1_const={0,0,0,0,0,0,0};
-    // c2_const={0,0,0,0,0,0,0};
-    // c1_GFP_induced={0,0,0,0,0,0,0};
-    // c2_GFP_induced={0,0,1,0,0,0,1};
-    // c1_mCherry_induced={0,0,0,0,0,0,0};
-    // c2_mCherry_induced={0,0,0,0,0,0,0};
-    // c1_CD19_induced={0,0,0,1,0,1,0};
-    // c2_CD19_induced={0,0,0,0,0,0,0};
+    c1_const={0,0,0,0,0,0,0};
+    c2_const={0,0,0,0,1,0,0};
+    c1_GFP_induced={0,0,0,0,0,0,0};
+    c2_GFP_induced={0,0,1,0,0,0,1};
+    c1_mCherry_induced={0,0,0,0,0,0,0};
+    c2_mCherry_induced={0,0,0,0,0,0,0};
+    c1_CD19_induced={0,0,0,1,0,1,0};
+    c2_CD19_induced={0,0,0,0,0,0,0};
 
     // for spheroid stuff
     // c1_const={0,0,0,0,0,0,0};
@@ -246,7 +250,7 @@
     // c1_CD19_induced={0,0,0,0,0,0,0};
     // c2_CD19_induced={0,0,0,0,0,0,0};
 
-    // we have GFP, mcherry and cd19. This vector decides whether
+    // we have GFP, mcherry and cd19 (in that order). This vector decides whether
     // they are morphogens or not. 1=morph, 2=surface.
     if (make_spheroid)
       morph_or_surface={1,0,0};

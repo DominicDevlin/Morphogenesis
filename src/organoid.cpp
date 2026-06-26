@@ -85,7 +85,7 @@ INIT
       if (par.make_spheroid)
         CPM->PopulateSparseCells(0.8, 80, 0, 0);
       else
-        CPM->PopulateSparseCells(0.2, 110, 0, 0);
+        CPM->PopulateSparseCells(par.start_density, par.start_radius, 0, 0);
 
     }
       
@@ -148,6 +148,10 @@ TIMESTEP {
       dish->CPM->StartSyntheticNetwork();
     }
 
+    if (t % par.check_cell_bindings_step == 0 && t > 0)
+    {
+      dish->CPM->SurfaceBindings();
+    }
     if (t % par.synthetic_update_step == 0 && t > 0)
     {
       dish->SyntheticAverageChemCell();
@@ -200,7 +204,7 @@ TIMESTEP {
     }
   
     // dish->CPM->ColourCells(true);
-    dish->CPM->AmoebaeMoveLegacy(t);
+    dish->CPM->AmoebaeMove(t);
     if (par.active_motion)
     {
       dish->CPM->update_cell_velocities_MCS();

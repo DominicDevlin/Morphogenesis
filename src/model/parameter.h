@@ -148,6 +148,7 @@ class Parameter {
   double lo_cadherin_production_rate;
 
   int synthetic_update_step;
+  int check_cell_bindings_step;
   double synthetic_dt;
 
   double synthetic_Jm;
@@ -170,6 +171,8 @@ class Parameter {
 
 
   double proportion_celltype2;
+  double start_radius;
+  double start_density;
 
 
   bool convert_cells;

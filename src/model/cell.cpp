@@ -149,8 +149,16 @@ void Cell::CellBirth(Cell &mother_cell) {
   N_cadherin=mother_cell.N_cadherin;
   spheroid_cell=mother_cell.spheroid_cell;
 
+  opposing_CD19 = mother_cell.opposing_CD19;
+  opposing_E_cadherin = mother_cell.opposing_E_cadherin;
+  opposing_mCherry=mother_cell.opposing_mCherry;
+  opposing_GFP=mother_cell.opposing_GFP;
+  opposing_N_cadherin=mother_cell.opposing_N_cadherin;
+  opposing_P_cadherin=mother_cell.opposing_P_cadherin;
+
   f_opposing_GFP = mother_cell.f_opposing_GFP;
   f_opposing_CD19 = mother_cell.f_opposing_CD19;
+  f_opposing_mCherry=mother_cell.f_opposing_mCherry;
   f_opposing_E_cad = mother_cell.f_opposing_E_cad;
   f_opposing_N_cad = mother_cell.f_opposing_N_cad;
   f_opposing_P_cad = mother_cell.f_opposing_P_cad;

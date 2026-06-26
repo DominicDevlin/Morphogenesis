@@ -186,13 +186,14 @@ public:
 
     opposing_CD19 = src.opposing_CD19;
     opposing_E_cadherin = src.opposing_E_cadherin;
-    opposing_mCherry=src.opposing_mCherry;efrerfefrf
+    opposing_mCherry=src.opposing_mCherry;
     opposing_GFP=src.opposing_GFP;
     opposing_N_cadherin=src.opposing_N_cadherin;
     opposing_P_cadherin=src.opposing_P_cadherin;
 
     f_opposing_GFP = src.f_opposing_GFP;
     f_opposing_CD19 = src.f_opposing_CD19;
+    f_opposing_mCherry=src.f_opposing_mCherry;
     f_opposing_E_cad = src.f_opposing_E_cad;
     f_opposing_N_cad = src.f_opposing_N_cad;
     f_opposing_P_cad = src.f_opposing_P_cad;
@@ -314,7 +315,6 @@ public:
     E_cadherin = src.E_cadherin;
     CD19 = src.CD19;
     opposing_CD19 = src.opposing_CD19;
-    opposing_E_cadherin = src.opposing_E_cadherin;
     random_binding_proteins = src.random_binding_proteins;
     touching_med = src.touching_med;
     mCherry=src.mCherry;
@@ -322,10 +322,15 @@ public:
     opposing_GFP=src.opposing_GFP;
     P_cadherin=src.P_cadherin;
     N_cadherin=src.N_cadherin;
-    opposing_P_cadherin=src.opposing_P_cadherin;
-    opposing_N_cadherin=src.opposing_N_cadherin;
-    spheroid_cell=src.spheroid_cell;
 
+    opposing_CD19 = src.opposing_CD19;
+    opposing_E_cadherin = src.opposing_E_cadherin;
+    opposing_mCherry=src.opposing_mCherry;
+    opposing_GFP=src.opposing_GFP;
+    opposing_N_cadherin=src.opposing_N_cadherin;
+    opposing_P_cadherin=src.opposing_P_cadherin;
+
+    spheroid_cell=src.spheroid_cell;
     constitutives=src.constitutives;
     GFP_induced=src.GFP_induced;
     mCherry_induced=src.mCherry_induced;
@@ -338,6 +343,7 @@ public:
 
     f_opposing_GFP = src.f_opposing_GFP;
     f_opposing_CD19 = src.f_opposing_CD19;
+    f_opposing_mCherry=src.f_opposing_mCherry;
     f_opposing_E_cad = src.f_opposing_E_cad;
     f_opposing_N_cad = src.f_opposing_N_cad;
     f_opposing_P_cad = src.f_opposing_P_cad;
@@ -1773,7 +1779,7 @@ double& getGFP()
 
 double& getOppositeGFP()
 {
-  return opposing_GFP;
+  return f_opposing_GFP;
 }
 
 double& getN_cadherin()
@@ -1797,7 +1803,7 @@ void setP_cadherin(double new_value)
 
 double& getOpposingN_cadherin()
 {
-  return opposing_N_cadherin;
+  return f_opposing_N_cad;
 }
 
 void setOpposingN_cadherin(double new_value)
@@ -1806,7 +1812,7 @@ void setOpposingN_cadherin(double new_value)
 }
 double& getOpposingP_cadherin()
 {
-  return opposing_N_cadherin;
+  return f_opposing_P_cad;
 }
 
 void setOpposingP_cadherin(double new_value)
@@ -1827,21 +1833,38 @@ double& getCD19()
 
 double& getOpposingCD19()
 {
-  return opposing_CD19;
+  return f_opposing_CD19;
 }
 
 double& getOpposing_E_cadherin()
 {
-  return opposing_E_cadherin;
+  return f_opposing_E_cad;
 }
 
-void ResetSurfaceBindings()
+void ResetTempSurfaceBindings()
 {
   if (!par.morph_or_surface[0])
     opposing_GFP=0;
+  if (!par.morph_or_surface[1])
+    opposing_mCherry=0;    
   if (!par.morph_or_surface[2])
     opposing_CD19=0;
+
   opposing_E_cadherin=0;
+  opposing_N_cadherin=0;
+  opposing_P_cadherin=0;
+  
+}
+
+
+void ResetFinalSurfaceBindings()
+{
+  f_opposing_GFP=0;
+  f_opposing_CD19=0;
+  f_opposing_E_cad=0;
+  f_opposing_N_cad=0;
+  f_opposing_P_cad=0;
+  f_opposing_mCherry=0;
   
 }
 
@@ -1893,12 +1916,11 @@ void AverageSurfaceBindings()
   if (opposing_E_cadherin > f_opposing_E_cad) f_opposing_E_cad=opposing_E_cadherin;
   if (opposing_N_cadherin > f_opposing_N_cad) f_opposing_N_cad=opposing_N_cadherin;
   if (opposing_P_cadherin > f_opposing_P_cad) f_opposing_P_cad=opposing_P_cadherin;
+
+  ResetTempSurfaceBindings();
+
 }
 
-void ResetBindings()
-{
-  opposing_GFP=0;
-}
 
 bool& isSpheroid()
 {
@@ -2146,6 +2168,7 @@ protected:
   double f_opposing_E_cad;
   double f_opposing_N_cad;
   double f_opposing_P_cad;
+  double f_opposing_mCherry;
 
 
   vector<bool>constitutives;

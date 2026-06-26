@@ -7393,94 +7393,94 @@ void CellularPotts::add_noise()
 }
 
 
-double synNotch_bound_derivative(double c, double L)
+double synNotch_bound_derivative(double c, double L, double V)
 {
-  return par.production_rate_synNotch - (par.decay_synNotch_bound*c) - par.binding_rate_CD19_synNotch * L * c;
+  return par.production_rate_synNotch - (par.decay_synNotch_bound*c) - par.binding_rate_CD19_synNotch * L * c - c/(3*V);
 }
 
-double synNotch_bound_rk4(double dt, double c, double L)
+double synNotch_bound_rk4(double dt, double c, double L, double V)
 {
   // the CD19 ligand is incorporated in L
-  double k1 = synNotch_bound_derivative(c, L);
-  double k2 = synNotch_bound_derivative(c + dt * k1/2.0, L);
-  double k3 = synNotch_bound_derivative(c + dt*k2/2.0, L);
-  double k4 = synNotch_bound_derivative(c + dt*k3, L);
+  double k1 = synNotch_bound_derivative(c, L, V);
+  double k2 = synNotch_bound_derivative(c + dt * k1/2.0, L, V);
+  double k3 = synNotch_bound_derivative(c + dt*k2/2.0, L, V);
+  double k4 = synNotch_bound_derivative(c + dt*k3, L, V);
   return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
-double synNotch_unbound_derivative(double c, double cB, double L)
+double synNotch_unbound_derivative(double c, double cB, double L, double V)
 {
-  return par.binding_rate_CD19_synNotch * L * cB - par.decay_synNotch_unbound * c;
+  return par.binding_rate_CD19_synNotch * L * cB - par.decay_synNotch_unbound * c - c/(3*V);
 }
 
-double synNotch_unbound_rk4(double dt, double c, double cB, double L)
+double synNotch_unbound_rk4(double dt, double c, double cB, double L, double V)
 {
-  double k1 = synNotch_unbound_derivative(c, cB, L);
-  double k2 = synNotch_unbound_derivative(c + dt * k1/2.0, cB, L);
-  double k3 = synNotch_unbound_derivative(c + dt*k2/2.0, cB, L);
-  double k4 = synNotch_unbound_derivative(c + dt*k3, cB, L);
+  double k1 = synNotch_unbound_derivative(c, cB, L, V);
+  double k2 = synNotch_unbound_derivative(c + dt * k1/2.0, cB, L, V);
+  double k3 = synNotch_unbound_derivative(c + dt*k2/2.0, cB, L, V);
+  double k4 = synNotch_unbound_derivative(c + dt*k3, cB, L, V);
   return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
-double synNotch_intra_derivative(double c, double cB, double L)
+double synNotch_intra_derivative(double c, double cB, double L, double V)
 {
-  return par.binding_rate_CD19_synNotch * L  * cB - par.decay_synNotch_intra * c;
+  return par.binding_rate_CD19_synNotch * L  * cB - par.decay_synNotch_intra * c - c/(3*V);
 }
 
 
-double synNotch_intra_rk4(double dt, double c, double cB, double L)
+double synNotch_intra_rk4(double dt, double c, double cB, double L, double V)
 {
-  double k1 = synNotch_intra_derivative(c, cB, L);
-  double k2 = synNotch_intra_derivative(c + dt * k1/2.0, cB, L);
-  double k3 = synNotch_intra_derivative(c + dt*k2/2.0, cB, L);
-  double k4 = synNotch_intra_derivative(c + dt*k3, cB, L);
+  double k1 = synNotch_intra_derivative(c, cB, L, V);
+  double k2 = synNotch_intra_derivative(c + dt * k1/2.0, cB, L, V);
+  double k3 = synNotch_intra_derivative(c + dt*k2/2.0, cB, L, V);
+  double k4 = synNotch_intra_derivative(c + dt*k3, cB, L, V);
   return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
 
-double E_cadherin_derivative(double c, double I, double X, double prate)
+double E_cadherin_derivative(double c, double I, double X, double prate, double V)
 {
   // X is the proportion shared surface with cells also expressing E_cadherin (have to normalise to so that peak concentration = 1)
   return prate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient))) * (1. - c/par.c_max)
-  - par.decay_E_cadherin_bound * c * X - par.decay_E_cadherin_unbound * c * (1-X);
+  - par.decay_E_cadherin_bound * c * X - par.decay_E_cadherin_unbound * c * (1-X) - c/(3*V);
 }
 
 
-double E_cadherin_rk4(double dt, double c, double I, double X, double prate)
+double E_cadherin_rk4(double dt, double c, double I, double X, double prate, double V)
 {
-  double k1 = E_cadherin_derivative(c, I, X, prate);
-  double k2 = E_cadherin_derivative(c + dt * k1/2.0, I, X, prate);
-  double k3 = E_cadherin_derivative(c + dt*k2/2.0, I, X, prate);
-  double k4 = E_cadherin_derivative(c + dt*k3, I, X, prate);
+  double k1 = E_cadherin_derivative(c, I, X, prate, V);
+  double k2 = E_cadherin_derivative(c + dt * k1/2.0, I, X, prate, V);
+  double k3 = E_cadherin_derivative(c + dt*k2/2.0, I, X, prate, V);
+  double k4 = E_cadherin_derivative(c + dt*k3, I, X, prate, V);
   return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
-double random_binding_derivative(double c, double X)
+double random_binding_derivative(double c, double X, double V)
 {
   return par.random_binding_protein_production
-  - par.decay_random_binding_protein_bound * c * X - par.decay_random_binding_protein_unbound * c * (1-X);
+  - par.decay_random_binding_protein_bound * c * X - par.decay_random_binding_protein_unbound * c * (1-X) - c/(3*V);
 }
 
-double random_binding_rk4(double dt, double c, double X)
+double random_binding_rk4(double dt, double c, double X, double V)
 {
-  double k1 = random_binding_derivative(c, X);
-  double k2 = random_binding_derivative(c + dt * k1/2.0, X);
-  double k3 = random_binding_derivative(c + dt*k2/2.0, X);
-  double k4 = random_binding_derivative(c + dt*k3, X);
+  double k1 = random_binding_derivative(c, X, V);
+  double k2 = random_binding_derivative(c + dt * k1/2.0, X, V);
+  double k3 = random_binding_derivative(c + dt*k2/2.0, X, V);
+  double k4 = random_binding_derivative(c + dt*k3, X, V);
   return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
-double GFP_derivative(double c, double I)
+double GFP_derivative(double c, double I, double V)
 {
-  return par.GFP_production_rate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient))) * (1. - c/par.c_max) - par.decay_GFP * c;
+  return par.GFP_production_rate * (pow(I, par.hill_coefficient)/ (pow(par.E_cadherin_saturation_constant, par.hill_coefficient) + pow(I, par.hill_coefficient))) * (1. - c/par.c_max) - par.decay_GFP * c - c/(3*V);
 }
 
-double GFP_rk4(double dt, double c, double I)
+double GFP_rk4(double dt, double c, double I, double V)
 {
-  double k1 = GFP_derivative(c, I);
-  double k2 = GFP_derivative(c + dt * k1/2.0, I);
-  double k3 = GFP_derivative(c + dt*k2/2.0, I);
-  double k4 = GFP_derivative(c + dt*k3, I);
+  double k1 = GFP_derivative(c, I, V);
+  double k2 = GFP_derivative(c + dt * k1/2.0, I, V);
+  double k3 = GFP_derivative(c + dt*k2/2.0, I, V);
+  double k4 = GFP_derivative(c + dt*k3, I, V);
   return c + (dt/6.0) * (k1  + 2.0*k2 + 2.0*k3 + k4);
 }
 
@@ -7575,15 +7575,15 @@ void CellularPotts::UpdateActiveMotion()
 void CellularPotts::SurfaceBindings()
 {
   // reset values
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-  {
-    if (c->AliveP())
-    {
-      c->ResetSurfaceBindings();
-      c->setTouchingMed(false);
-    }
-  }
+  // vector<Cell>::iterator c;
+  // for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  // {
+  //   if (c->AliveP())
+  //   {
+  //     c->ResetTempSurfaceBindings();
+  //     c->setTouchingMed(false);
+  //   }
+  // }
 
   for (int x = 1; x < sizex - 1; x++) 
   {
@@ -7628,6 +7628,14 @@ void CellularPotts::SurfaceBindings()
           }
         }
       }
+    }
+  }
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->AverageSurfaceBindings();
     }
   }
 }
@@ -7808,7 +7816,6 @@ void CellularPotts::SyntheticNetwork()
     {
       double dt = par.synthetic_dt;
       // averaging after surface bindings
-      c->AverageSurfaceBindings();
 
       // cells either do or do not have the synethic network. So, we have to get
       // its network type and then decide how to update. For now, we say CD19.
@@ -7822,6 +7829,8 @@ void CellularPotts::SyntheticNetwork()
       double& mCherry = c->getmCherry();
       double& N_cadherin = c->getN_cadherin();
       double& P_cadherin = c->getP_cadherin();
+
+      double c_area = c->TargetArea();
 
       double opposite_Ecad = c->getOpposing_E_cadherin();
       double opposite_Pcad = c->getOpposingP_cadherin();
@@ -7874,40 +7883,40 @@ void CellularPotts::SyntheticNetwork()
       
       if (receptsGFP)
       {
-        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_GFP);
-        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_GFP);
-        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_GFP );
+        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_GFP, c_area);
+        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_GFP, c_area);
+        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_GFP, c_area);
       }
       else if (receptsCD19)
       {
-        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19);
-        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19);
-        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19 );
+        synNotch_bound = synNotch_bound_rk4(dt, synNotch_bound, opposite_CD19, c_area);
+        synNotch_unbound = synNotch_unbound_rk4(dt, synNotch_unbound, synNotch_bound, opposite_CD19, c_area);
+        synNotch_intra = synNotch_intra_rk4(dt, synNotch_intra, synNotch_bound, opposite_CD19, c_area);
       }
 
       if (GFP_induced[0]==true || CD19_induced[0]==true)
       {
-        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate);
+        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.E_cadherin_production_rate, c_area);
       }
       if (GFP_induced[1]==true || CD19_induced[1]==true)
       {
-        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.lo_cadherin_production_rate);
+        E_cadherin = E_cadherin_rk4(dt, E_cadherin, synNotch_intra, opposite_Ecad, par.lo_cadherin_production_rate, c_area);
       }
       if (GFP_induced[2]==true || CD19_induced[2]==true)
       {
-        P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate);
+        P_cadherin = E_cadherin_rk4(dt, P_cadherin, synNotch_intra, opposite_Pcad, par.E_cadherin_production_rate, c_area);
       }
       if (GFP_induced[3]==true || CD19_induced[3]==true)
       {
-        N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate);
+        N_cadherin = E_cadherin_rk4(dt, N_cadherin, synNotch_intra, opposite_Ncad, par.E_cadherin_production_rate, c_area);
       }
       if (GFP_induced[5]==true || CD19_induced[5]==true)
       {
-        GFP = GFP_rk4(dt, GFP, synNotch_intra);
+        GFP = GFP_rk4(dt, GFP, synNotch_intra, c_area);
       }
       if (GFP_induced[6]==true || CD19_induced[6]==true)
       {
-        mCherry = GFP_rk4(dt, mCherry, synNotch_intra);
+        mCherry = GFP_rk4(dt, mCherry, synNotch_intra, c_area);
       }
  
       // for colour output
@@ -7934,6 +7943,7 @@ void CellularPotts::SyntheticNetwork()
       {
         c->set_ctype(203);
       }
+      c->ResetFinalSurfaceBindings();
     }
   }
   UpdateSyntheticCellConstraints();
