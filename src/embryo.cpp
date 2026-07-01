@@ -98,12 +98,6 @@ INIT
 
     par.print_fitness = true;
 
-    if (par.set_colours)
-    {
-      CPM->SetColours();
-    }
-
-
     if (par.store)
     {
       if (mkdir("data_film", 0777) == -1)
@@ -155,11 +149,6 @@ TIMESTEP {
   
 
     static Info *info=new Info(*dish, *this);
-
-    if (par.velocities)
-    {
-      dish->CPM->RecordMasses();
-    }
   
     // dish->CPM->ColourCells(true);
     dish->CPM->AmoebaeMove(t);
@@ -168,17 +157,7 @@ TIMESTEP {
       dish->CPM->update_cell_velocities_MCS();
     }
 
-    // we will use this later
-    // pair<int,int> val = dish->CPM->ChooseAddPoint();
-    // dish->CPM->SpawnCell(val.first, val.second, cnum, t);    
 
-    if (t == par.mcs - 1)
-    {
-      if (par.velocities)
-      {
-        dish->CPM->CellVelocities();
-      }
-    }
 
     // std::cout << "Press Enter to continue..."; // Nice to have a prompt
     // std::cin.get();                            // The actual pause
@@ -192,7 +171,6 @@ TIMESTEP {
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
-      cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;
     }
 

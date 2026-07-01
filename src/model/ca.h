@@ -703,7 +703,6 @@ public:
    determined. */
   int **SearchNandPlot(Graphics *g=0, bool get_neighbours=true);
 
-  int **GetNeighbourArray();
 
   vector<vector<int>> SearchNforVertices();
 

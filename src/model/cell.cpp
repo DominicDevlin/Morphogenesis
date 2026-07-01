@@ -298,19 +298,3 @@ double Cell::EmbryoEnergy(Cell &cell2)
 
   // return J[tau][cell2.tau];
 }
-
-
-
-
-//set a specific phenotype code. 
-void Cell::Phenotype()
-{
-  int pcode{};
-  int tot = full_set.size();
-  for (int i=0;i<tot;++i)
-  {
-    int x = tot - 1 - i;
-    pcode += full_set[i] * pow(2,x);
-  }
-  phenotype = pcode;
-}
