@@ -135,7 +135,6 @@ TIMESTEP {
     static int t=0;
  
     static Dish *dish=new Dish();
-    
     if (t < 1)
     { 
       cout << "calling init" << endl;
@@ -206,10 +205,9 @@ TIMESTEP {
 
       // Plot the dish. 
       dish->Plot(this);
-      
+
 
       char title[400];
-      snprintf(title,399,"CellularPotts: %.2f hr",dish->PDEfield->TheTime()/3600);      
 
       //char title[400];
       //snprintf(title,399,"CellularPotts: %d MCS",i);
@@ -218,12 +216,13 @@ TIMESTEP {
         dish->PDEfield->ContourPlot(this,0,5);
 
       EndScene();
+
       info->Menu();
 
 
      
     }
-  
+
     // storage function. 
     if (par.store && !(t%par.storage_stride))//  || t == 3041) 
     {

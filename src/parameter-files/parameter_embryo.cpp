@@ -78,7 +78,7 @@
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
-    bulk_modulus = 13;
+    bulk_modulus = 5;
     cell_target_area = 100;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 150;
@@ -86,7 +86,7 @@
     synthetic_min_area=75;
 
     H_perim = true;
-    elastic_modulus = 1;
+    elastic_modulus = 0.2;
     ptarget_perimeter = 42;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -98,7 +98,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.25;
+    motility_strength = 0.5;
     Ecadherin_bound_motility_loss=0.15;
     persistence_time = 40.;
 
@@ -113,17 +113,17 @@
 /* adhesion params */
 
     // modulation of sox17 expressing cell to medium
-    sox17_blasto_adhesion=1;
+    sox17_blasto_adhesion=0.05;
     // modulation of sox2 expressing cell to medium
-    sox2_blasto_adhesion=1;
+    sox2_blasto_adhesion=0.05;
     // binding of sox2 to sox2 (will change later to cadherin)
-    sox2binding=1;
+    sox2binding=0.15;
     // binding of sox17 to sox17 (will change later to cadherin)
-    sox17binding=1;
+    sox17binding=0.15;
     // baseline J value for adhesion between cells and blasto
-    Jblasto=0.5;
+    Jblasto=0.3;
     // baseline J value between cells
-    J_cell_baseline=1;
+    J_cell_baseline=0.2;
 
     E_cadherin_production_rate=0.04;
     E_cadherin_saturation_constant=0.25;
@@ -139,9 +139,10 @@
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
     // Note - i changed this to simply change lambdaP
-
-    start_radius=110;
-    start_density=0.5;
+    make_sparse_cells=true;
+    start_radius=50;
+    start_density=0.8;
+    
     
 
 
@@ -160,6 +161,8 @@
     // begin_movement=1200;
     program_its = 1; // we are doing more PDE iterations during the program. 
     div_end = 6;
+
+
 
     /* colours */
     set_colours = true;
@@ -198,9 +201,6 @@
   {
     if (Jtable) 
       free(Jtable);
-    if (diff_coeff) delete[] diff_coeff;
-    if (decay_rate) delete[] decay_rate;
-    if (secr_rate) delete[] secr_rate;
     if (datadir) 
       free(datadir);
 
@@ -289,9 +289,6 @@
     os << " neighbours = " << copy_neighbourhood << endl;
     os << " periodic_boundaries = " << sbool(periodic_boundaries) << endl;
     os << " n_chem = " << n_chem << endl;
-    os << " diff_coeff = "<< diff_coeff[0] << endl;
-    os << " decay_rate = "<< decay_rate[0] << endl;
-    os << " secr_rate = "<< secr_rate[0] << endl;
     os << " saturation = " << saturation << endl;
     os << " dt = " << dt << endl;
     os << " dx = " << dx << endl;

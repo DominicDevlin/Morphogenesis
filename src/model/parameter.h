@@ -56,11 +56,6 @@ class Parameter {
   int copy_neighbourhood;
   bool periodic_boundaries;
   int n_chem;
-  double * diff_coeff; //DIFFUSER CORRECTION NEEDED
-  double * decay_rate;
-  double * secr_rate;
-  double * diff_coeff_cell;
-  double * decay_rate_cell;
 
 
   vector<bool> spheroid_const;
@@ -295,7 +290,6 @@ class Parameter {
 
   int n_diffusers;
   int n_locks;
-  int * med_table;
 
   bool recordcopies;
   int mintype;

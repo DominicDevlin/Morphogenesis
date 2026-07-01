@@ -996,11 +996,8 @@ private:
 
   double CalculateJfromKeyLock(vector<bool>& key2, vector<bool>& lock2 );
 
-  double CalculateJwithMed(void);
 
   // static vector<bool> spare;
-
-  double CalculateJfromMed(vector<bool>& medp2);
 
   double PhaseJ(bool &phase, double &Jstemdiff, bool &epith);
 
