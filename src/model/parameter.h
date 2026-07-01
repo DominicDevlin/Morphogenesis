@@ -126,12 +126,12 @@ class Parameter {
   double Ncad_elastic_change;
   double Pcad_elastic_change;
 
-  double sox17medparam;
-  double sox2medparam;
+  double sox17_blasto_adhesion;
+  double sox2_blasto_adhesion;
   double sox2binding;
   double sox17binding;
-  double Jb;
-  double J_baseline;
+  double Jblasto;
+  double J_cell_baseline;
 
   /* synthetic params*/
   bool make_synthetic;

@@ -408,15 +408,15 @@ double Cell::EmbryoEnergy(Cell &cell2)
     return 0;
   else if (sigma=0)
   {
-    return par.Jb + cell2.Sox17_concentration * par.sox17medparam;
+    return par.Jblasto - cell2.Sox17_concentration * par.sox17_blasto_adhesion;
   }
   else if (cell2.sigma=0)
   {
-    return par.Jb + Sox17_concentration * par.sox17medparam;
+    return par.Jblasto + Sox17_concentration * par.sox17_blasto_adhesion;
   }
   else
   {
-    return par.J_baseline + max( par.sox2binding * (Sox2_concentration > 0.2) * (Sox2_concentration > 0.2), par.sox17binding * (Sox17_concentration > 0.2) * (Sox17_concentration > 0.2));
+    return par.J_cell_baseline - max( par.sox2binding * (Sox2_concentration > 0.2) * (Sox2_concentration > 0.2), par.sox17binding * (Sox17_concentration > 0.2) * (Sox17_concentration > 0.2));
   }
   
   // bool this_has_chem = false, other_has_chem = false;

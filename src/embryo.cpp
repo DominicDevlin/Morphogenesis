@@ -58,7 +58,6 @@ INIT
 {
   try 
   {
-    
     CPM->set_seed();
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
@@ -145,56 +144,16 @@ TIMESTEP {
       dish->CPM->MeasureCellPerimeters();
       dish->CPM->SetPerims(par.ptarget_perimeter);
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
-      dish->CPM->StartSyntheticNetwork();
-    }
-
-    if (t % par.check_cell_bindings_step == 0 && t > 0)
-    {
-      dish->CPM->SurfaceBindings();
-    }
-    if (t % par.synthetic_update_step == 0 && t > 0)
-    {
-      dish->SyntheticAverageChemCell();
-      dish->CPM->SyntheticNetwork();
-      dish->CPM->UpdateActiveMotion();
-      dish->CPM->OutputSyntheticNetwork(t);
-    }
-    if (t % 150==0 && t > 0)
-    {
-      dish->CPM->SyntheticGrowth(t);
-    }
-
-    if (t==3000 && par.make_spheroid)
-    {
-      int n_cells = dish->CPM->CountCells();
-      cout << "Number of cells: " << n_cells << endl; // 1200
-      if (par.make_spheroid)
-        dish->CPM->MakeSpheroid(40,40,40);
-      dish->CPM->SetAreas(par.cell_target_area);
-      dish->CPM->MeasureCellPerimeters();
-      dish->CPM->SetPerims(par.ptarget_perimeter);
-
-      dish->CPM->StartSyntheticNetwork(n_cells);
-      par.contours=false;
-
+      dish->CPM->InitialiseRandomSoxValues();
     }
 
 
-    // morphogen stuff.
-    for (int r=0;r<par.pde_its;r++) 
-    {
-      dish->PDEfield->SyntheticSecretion(dish->CPM);
-      dish->PDEfield->SyntheticDiffusion(1, dish->CPM); // might need to do more diffussion steps ? 
-    }
-
-    // if (t == 6000)
+    // if (t % par.synthetic_update_step == 0 && t > 0)
     // {
-    //   dish->PDEfield->PrintAxisConcentrations(true, 110);
+    //   dish->CPM->UpdateActiveMotion();
     // }
     
-    
-
-    // bool GRN = true;
+  
 
     static Info *info=new Info(*dish, *this);
 
@@ -237,10 +196,6 @@ TIMESTEP {
       cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;
     }
-
-    static bool c1 = false;
-    static bool c2 = false;
-    static bool c3 = false;
 
     //cerr << "Done\n";
     if (par.graphics && t%5==0)// !(t%par.screen_freq)) 
@@ -314,6 +269,7 @@ int main(int argc, char *argv[]) {
 #ifdef QTGRAPHICS
     QApplication a(argc, argv);
 #endif
+    cout << "here" << endl;
     Parameter();
     // Read parameters
     bool read = false;

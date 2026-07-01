@@ -39,32 +39,10 @@
     graphics = true;
     // show morphogen gradients
     contours = false;
-    // draw cell displacement paths
-    draw_paths = false;
-
-    // Generate a random genome
-    randomise = false;
-
-    // ANALYSIS PARAMS: note that there is slow down when these are turned on. 
-    // output data for analysis (connectivity, gene expression, state transitions)
-    gene_output = true;
-    // gene record needs to always be on to test network connectivity. 
-    gene_record = true;
-    // include regulatory proteins in the state space 
-    max_statespace = false;
-
-    //for umap
-    umap = false;
 
     // record momenta for all cells etc
     velocities = false;
     record_directions = false;
-
-    // record cell sizes
-    output_sizes = false;
-
-    // record gamma parameter
-    output_gamma = false;
 
     // read genomes from file
     file_genomes = true;
@@ -72,19 +50,15 @@
     //name of data file
     data_file = "org-data";
 
-    //record shape index of cells
-    record_shape = false;
-
     //for storing images
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;//15120834811895428147//4626157915171642161;//4766666018663198866used seed for tagaki
+    pickseed=0;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
     print_fitness = true; 
-
 
 /* Cellular Potts parameters */
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
@@ -124,17 +98,11 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 10;
+    motility_strength = 0.25;
     Ecadherin_bound_motility_loss=0.15;
-    Ncadherin_bound_motility_loss=0.15;
-    Pcadherin_bound_motility_loss=0.15;
     persistence_time = 40.;
 
-    
-
-    // note - currently active motion must be on for gravity.
-    add_gravity=true;
-    lambda_gravity=0.4/sizex;
+  
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
@@ -142,22 +110,20 @@
     conn_diss = 2000;
 
 
-/* synthetic params */
-    make_synthetic = true;
-    synthetic_update_step=100;
-    check_cell_bindings_step=25;
+/* adhesion params */
 
-    production_rate_synNotch=0.02;
-    decay_synNotch_bound=0.02;
-
-    binding_rate_CD19_synNotch = 0.5;
-    decay_synNotch_unbound=0.02;
-    decay_synNotch_intra=0.04;
-
-    GFP_production_rate=0.01;
-    decay_GFP=0.002;
-    lo_cadherin_production_rate=0.01;
-
+    // modulation of sox17 expressing cell to medium
+    sox17_blasto_adhesion=1;
+    // modulation of sox2 expressing cell to medium
+    sox2_blasto_adhesion=1;
+    // binding of sox2 to sox2 (will change later to cadherin)
+    sox2binding=1;
+    // binding of sox17 to sox17 (will change later to cadherin)
+    sox17binding=1;
+    // baseline J value for adhesion between cells and blasto
+    Jblasto=0.5;
+    // baseline J value between cells
+    J_cell_baseline=1;
 
     E_cadherin_production_rate=0.04;
     E_cadherin_saturation_constant=0.25;
@@ -166,171 +132,17 @@
     decay_E_cadherin_bound=0.005;
     c_max = 1.5;
 
-    // this concentration is too high, needs to come down i think (and get scaling right)
-    random_binding_protein_production=0.003;
-    decay_random_binding_protein_bound=0.001;
-    decay_random_binding_protein_unbound=0.01;
-
-    synthetic_dt=0.3;
-
-    synthetic_Jm=1.3;
-
-    // not using atm
-    Jmed_scaling=0;
-
-    synthetic_Jcell_baseline = 1;
     JEcadherin_scaling=1.5;//5.2;
-    JPcadherin_scaling=1.5;//2.6;
-    JNcadherin_scaling=1.5;//2.6;
-
-    Jrandom_scaling_E=0.5;
-    Jrandom_scaling_N=0.5;
-    Jrandom_scaling_P=0.5;
     
-    init_random_binding=1.;
     // IMPORTANT NOTE!!
     // CORTICAL TENSION SHOULD GO DOWN FOR ALL CELLS!!! AS THEY BIND MORE TO OTHER CELLS
     // = CELLS AT PERIPHERY WILL BE CIRCULAR, CELLS INSIDE WILL BE FLOPPY
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
     // Note - i changed this to simply change lambdaP
 
-    proportion_celltype2 =0.67; // i used 0.7 for 3 layer and 0.47? for asymmetric
     start_radius=110;
-    start_density=0.2;
+    start_density=0.5;
     
-
-    // Here we decide the genes of c1 and c2.
-    // first = E_cadherin high, second = E_cadherin low, third = P_cadherin, fourth = N_cadherin, 5 = CD19, 6=GFP, 7=mCherry
-    spheroid_const={0,0,1,0,0,0,0};
-    spheroid_GFP_induced={0,0,0,0,0,0,0};
-    spheroid_mCherry_induced={0,0,0,0,0,0,0};
-    spheroid_CD19_induced={0,0,0,0,0,0,0};
-
-    make_spheroid=false;
-    make_sparse_cells=true;
-
-    // three layered structure
-    c1_const={0,0,0,0,0,0,0};
-    c2_const={0,0,0,0,1,0,0};
-    c1_GFP_induced={0,0,0,0,0,0,0};
-    c2_GFP_induced={0,1,0,0,0,0,1};
-    c1_mCherry_induced={0,0,0,0,0,0,0};
-    c2_mCherry_induced={0,0,0,0,0,0,0};
-    c1_CD19_induced={1,0,0,0,0,1,0};
-    c2_CD19_induced={0,0,0,0,0,0,0};
-
-
-    // two layered structure CD19 + Ecad
-    // c1_const={0,0,0,0,0,0,0};
-    // c2_const={0,0,0,0,1,0,0};
-    // c1_GFP_induced={0,0,0,0,0,0,0};
-    // c2_GFP_induced={0,0,0,0,0,0,0};
-    // c1_mCherry_induced={0,0,0,0,0,0,0};
-    // c2_mCherry_induced={0,0,0,0,0,0,0};
-    // c1_CD19_induced={1,0,0,0,0,1,0};
-    // c2_CD19_induced={0,0,0,0,0,0,0};
-
-    // asymmetric
-    // c1_const={0,0,0,0,0,0,0};
-    // c2_const={0,0,0,0,1,0,0};
-    // c1_GFP_induced={0,0,0,0,0,0,0};
-    // c2_GFP_induced={0,0,1,0,0,0,1};
-    // c1_mCherry_induced={0,0,0,0,0,0,0};
-    // c2_mCherry_induced={0,0,0,0,0,0,0};
-    // c1_CD19_induced={0,0,0,1,0,1,0};
-    // c2_CD19_induced={0,0,0,0,0,0,0};
-
-    // for spheroid stuff
-    // c1_const={0,0,0,0,0,0,0};
-    // c2_const={0,0,0,0,0,0,0};
-    // c1_GFP_induced={0,0,0,0,0,0,1};
-    // c2_GFP_induced={0,0,0,0,0,0,1};
-    // c1_mCherry_induced={0,0,0,0,0,0,0};
-    // c2_mCherry_induced={0,0,0,0,0,0,0};
-    // c1_CD19_induced={0,0,0,0,0,0,0};
-    // c2_CD19_induced={0,0,0,0,0,0,0};
-
-    // we have GFP, mcherry and cd19 (in that order). This vector decides whether
-    // they are morphogens or not. 1=morph, 2=surface.
-    if (make_spheroid)
-      morph_or_surface={1,0,0};
-    else
-      morph_or_surface={0,0,0};
-
-
-
-    // morphogen stuff.
-    n_diffusers = 3; // morphogens (cant be less than one)
-    secr_rate = new double[n_diffusers];
-    diff_coeff = new double[n_diffusers];
-    diff_coeff_cell = new double [n_diffusers];
-    decay_rate = new double[n_diffusers];
-    decay_rate_cell = new double[n_diffusers];
-    subfield = 1.0;
-    relaxation = 0;
-    saturation = 0;
-    dt = 1.0;
-    dx = double(1)/double(250);// 1/((double)sizex);
-    pde_its = 4;
-    
-    // GFP
-    diff_coeff[0] = 2e-6;
-    diff_coeff_cell[0]=1e-7;
-    decay_rate[0] = 0.03e-3;
-    decay_rate_cell[0]=0.09e-3;
-    secr_rate[0] = 1e-3;
-
-    //mCHERRY
-    diff_coeff[1] = 2e-6;
-    diff_coeff_cell[1]=1e-6;
-    decay_rate[1] = 0.03e-3;
-    decay_rate_cell[1]=0.4e-3;
-    secr_rate[1] = 1e-3;
-
-    //CD19 (probably not needed)
-    diff_coeff[2] = 4e-6;
-    diff_coeff_cell[2]=2e-6;
-    decay_rate[2] = 0.03e-3;
-    decay_rate_cell[2]=0.4e-3;
-    secr_rate[2] = 1e-3;
-
-    // for debugging
-    thetime=0;
-
-
-
-/*Conditions for evolution */
-    // select for movement of cells towards one side of the boundary.
-    asymmetry_selection = true; 
-    asym_only = false;
-    swap_selection = 240.; // the average fitness of population needed to switch from asym_only to asymmetry selection. 
-    // start from a certain network
-    growth_selection=false;
-    elongation_selection = false;
-    starter = false;
-    n_orgs = 60; // should be multiple of 4, 60 used for evolution
-
-    start_n = { { 0, 2, -1 }, { 1, 0, 0 }, { 0, -2, 2 }, { -1, -1, 1 } };
-    evo_pics = false;
-    pic_gen_interval = 1;
-    pic_dir = "images";
-  
-    evs = 10000;
-    insert_randoms = false;
-    n_mutations = 1;
-    // mut rate for gene network
-    mut_rate = 0.25;
-    // mutate for J stem diff (no longer in use)
-    J_mutate_probability=0.1;
-    // mutation rate for polarities
-    polm_rate = 0.2;
-    n_pred = n_orgs / 2;
-    min_contig = 25;
-
-    // when to collect fitness
-    fitness_begin = 0.9;
-    // frequency of time steps fitness is collected
-    fitness_typerate = 100;
 
 
 /* init conditions and so forth */

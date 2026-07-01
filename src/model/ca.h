@@ -656,8 +656,6 @@ public:
 
 
 
-
-
   // inline double prop_success()
   // {
   //   // cout << "Successes: " << flip_true << "  Fails: " << flip_false << endl;
@@ -745,6 +743,16 @@ public:
   {
     evo_J = J;
   }
+
+
+  void InitialiseRandomSoxValues();
+
+
+
+
+
+
+
 
   /*! Plot the cells according to their cell identity, not their type.
     

@@ -366,25 +366,21 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
   // ==========================================
   // ADHESION ENERGY CALCULATION
   // ==========================================
-  if (par.make_synthetic)
+
+  for (i = 1; i <= n_nb_adh; i++) 
   {
-    for (i = 1; i <= n_nb_adh; i++) 
+    neighsite = neighbor_spins[i];
+    
+    if (neighsite == -1) 
+    { // out-of-bounds border 
+      Jen += (sxyp == 0 ? 0 : par.border_energy) - (sxy == 0 ? 0 : par.border_energy);
+    } 
+    else 
     {
-      neighsite = neighbor_spins[i];
-      
-      if (neighsite == -1) 
-      { // out-of-bounds border 
-        Jen += (sxyp == 0 ? 0 : par.border_energy) - (sxy == 0 ? 0 : par.border_energy);
-      } 
-      else 
-      {
-        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite]) - cell_sxy.EmbryoEnergy((*cell)[neighsite]);
-      }
+      Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite]) - cell_sxy.EmbryoEnergy((*cell)[neighsite]);
     }
   }
   
-  // NOTE: If you have other modes (par.sheet, par.melting_adhesion) re-add them 
-  // here following the EXACT SAME pattern (just use neighsite = neighbor_spins[i])!
 
   DH += Jen; // / (par.neigh_multiplier);
 
@@ -3074,7 +3070,73 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
       MeasureSinglePerimeter(cell->back().Sigma());
   }
   return true;
+}\
+
+
+
+
+
+/* putting new methods here */
+
+
+void CellularPotts::InitialiseRandomSoxValues()
+{
+
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      // 1. Get two independent uniform random numbers between 0 and 1
+      double u_a = RANDOM(s_val);
+      double u_b = RANDOM(s_val);
+
+      // Safety check: std::log(0) is undefined/infinity, so ensure u_a is never exactly 0.
+      if (u_a <= 0.0) u_a = 0.0000001; 
+
+      // 2. Box-Muller transform: Convert your uniform numbers into two 
+      // independent Standard Normal (bell-curve) numbers
+      double radius = std::sqrt(-2.0 * std::log(u_a));
+      double theta = 2.0 * M_PI * u_b;
+      
+      double z1 = radius * std::cos(theta);
+      double z2 = radius * std::sin(theta);
+
+      // 3. Define the correlation (rho)
+      // -0.8 means a strong likelihood that a high n1 results in a low n2.
+      // Use -0.95 if you want them almost guaranteed to be opposite.
+      double rho = -0.8; 
+
+      // Create negatively correlated variables using Cholesky decomposition
+      double y1 = z1;
+      double y2 = rho * z1 + std::sqrt(1.0 - rho * rho) * z2;
+
+      // 4. Convert back to Uniform(0, 1) variables using the Normal CDF (std::erfc)
+      const double inv_sqrt2 = 0.7071067811865475; // 1 / sqrt(2)
+      double u1 = 0.5 * std::erfc(-y1 * inv_sqrt2);
+      double u2 = 0.5 * std::erfc(-y2 * inv_sqrt2);
+
+      // 5. Apply the mathematical skew
+      // Squaring a Uniform(0,1) guarantees a Median of 0.25 and a Mean of 0.333
+      double sox2 = u1 * u1;
+      double sox17 = u2 * u2;
+
+      c->setSox2(sox2);
+      c->setSox17(sox17);
+    }
+  }
+
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

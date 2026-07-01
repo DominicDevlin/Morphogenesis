@@ -2020,7 +2020,20 @@ inline double getSox2()
   return Sox2_concentration;
 }
 
+inline void setSox2(double newsox)
+{
+  Sox2_concentration=newsox;
+}
 
+inline double getSox17()
+{
+  return Sox17_concentration;
+}
+
+inline void setSox17(double newsox)
+{
+  Sox17_concentration=newsox;
+}
 
 
 
