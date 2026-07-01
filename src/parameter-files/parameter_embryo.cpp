@@ -124,7 +124,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.25;
+    motility_strength = 10;
     Ecadherin_bound_motility_loss=0.15;
     Ncadherin_bound_motility_loss=0.15;
     Pcadherin_bound_motility_loss=0.15;

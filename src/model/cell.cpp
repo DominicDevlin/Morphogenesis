@@ -400,6 +400,44 @@ double Cell::EnergyDifference(Cell &cell2, bool phase, double Jstemdiff)
   }
 }
 
+
+double Cell::EmbryoEnergy(Cell &cell2)
+{
+  
+  if (sigma==cell2.sigma) 
+    return 0;
+  else if (sigma=0)
+  {
+    return par.Jb + cell2.Sox17_concentration * par.sox17medparam;
+  }
+  else if (cell2.sigma=0)
+  {
+    return par.Jb + Sox17_concentration * par.sox17medparam;
+  }
+  else
+  {
+    return par.J_baseline + max( par.sox2binding * (Sox2_concentration > 0.2) * (Sox2_concentration > 0.2), par.sox17binding * (Sox17_concentration > 0.2) * (Sox17_concentration > 0.2));
+  }
+  
+  // bool this_has_chem = false, other_has_chem = false;
+  // for (int ch = 0; ch < par.n_cell_chem; ch++)
+  //   if (par.getInitChem(tau, ch) >= 0.0) { this_has_chem = true; break; }
+  // for (int ch = 0; ch < par.n_cell_chem; ch++)
+  //   if (par.getInitChem(cell2.tau, ch) >= 0.0) { other_has_chem = true; break; }
+
+  // if (this_has_chem && other_has_chem) {
+  //   double weighted_dist2 = 0.0;
+  //   for (int ch = 0; ch < par.n_cell_chem; ch++) {
+  //     double d = chem[ch] - cell2.chem[ch];
+  //     weighted_dist2 += par.chem_adhesion_weights[ch] * d * d;
+  //   }
+  //   return J[tau][cell2.tau] + (int)weighted_dist2;
+  // }
+
+  // return J[tau][cell2.tau];
+}
+
+
 double Cell::PhaseJ(bool &phase, double &Jstemdiff, bool &epith)
 {
 

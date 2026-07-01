@@ -546,7 +546,7 @@ al. 2000). The current version of TST does not include such functionality.
   //   return J[sigma][c2.sigma];
   // }
 
-  
+  double EmbryoEnergy(Cell &cell2);
   //! Sets bond energy J between cell type t1 and t2 to val
   // inline static int SetJ(int t1,int t2, int val) {
   //   return J[t2][t1]=J[t1][t2]=val;
@@ -2015,6 +2015,14 @@ inline void SetSortingType(bool t)
     c_type = 90;
 }
 
+inline double getSox2()
+{
+  return Sox2_concentration;
+}
+
+
+
+
 
 
 void setTouchingMed(bool is)
@@ -2099,6 +2107,11 @@ protected:
   // static int amount; // Dom removed static
   // static int capacity;
   // static int maxsigma; // the last cell identity number given out
+
+
+  double Sox2_concentration;
+  double Sox17_concentration;
+
 
   //current state of the cell
   int phenotype;
