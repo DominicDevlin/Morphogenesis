@@ -548,7 +548,7 @@ al. 2000). The current version of TST does not include such functionality.
   //   return J[sigma][c2.sigma];
   // }
 
-  double EmbryoEnergy(Cell &cell2);
+  double EmbryoEnergy(Cell &cell2, int zona_sigma);
   //! Sets bond energy J between cell type t1 and t2 to val
   // inline static int SetJ(int t1,int t2, int val) {
   //   return J[t2][t1]=J[t1][t2]=val;
@@ -2064,17 +2064,17 @@ inline bool IsUndifferentiated() const
 //! without a separate manual step.
 inline void UpdatePerimeterConstraint()
 {
-  double lineage_scale = 1.0;
   double stiffness_scale = 1.0;
+  // this needs to be changed
   if (IsEpiblast())
-    lineage_scale = par.epiblast_perimeter_scale;
+    stiffness_scale = par.epiblast_lambda_scale;
   else if (IsHypoblast())
-    lineage_scale = par.hypoblast_perimeter_scale;
+    stiffness_scale = par.hypoblast_lambda_scale;
   else
     // Undifferentiated: fluid behaviour, weak resistance to deformation.
     stiffness_scale = par.undifferentiated_stiffness_scale;
 
-  target_perimeter = static_cast<int>(round(par.ptarget_perimeter * lineage_scale *
+  target_perimeter = static_cast<int>(round(par.ptarget_perimeter *
       sqrt(double(target_area) / double(par.cell_target_area))));
   cell_perim_constraint = par.lambda_perimeter * stiffness_scale;
 }

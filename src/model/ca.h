@@ -654,6 +654,10 @@ public:
 
   double CalculateABBoundaryLength();
 
+  void MakeZonaPellucida(double h, double k, double a, double b, double n);
+
+  void SetMotilityStrengths();
+
 
 
   // inline double prop_success()
@@ -985,6 +989,9 @@ private:
   int stack[8]; // stack to count number of different surrounding cells, CHANGE TO MEMBER FUNCTION
 
   int init_colours=-20;
+
+
+  int zona_sigma;
 
   double internal_T;
 

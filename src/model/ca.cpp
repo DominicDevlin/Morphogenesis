@@ -377,7 +377,7 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
     } 
     else 
     {
-      Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite]) - cell_sxy.EmbryoEnergy((*cell)[neighsite]);
+      Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma);
     }
   }
   
@@ -870,6 +870,11 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
 
     if (k == kp)
       continue;
+
+    if (par.make_zona_pellucida && (k==zona_sigma || kp==zona_sigma))
+    {
+      continue;
+    }
 
 
     // =============================================================
@@ -2535,11 +2540,11 @@ double CellularPotts::MeanCellPerimeter(void) const {
   int sum_perim=0, n=0;
   double sum_length=0.;
   vector<Cell>::iterator c=cell->begin(); ++c;
-  
   for (; 
 	c!=cell->end();
-	c++) {
-    
+	c++) 
+  {
+    cout << c->Perimeter() << " and target is.. " << c->TargetPerimeter() << endl;
     sum_perim+=c->Perimeter();
     n++;    
   }
@@ -2800,6 +2805,75 @@ int CellularPotts::CountCells(void) const
   }
   return amount;
 }
+
+
+// Function to plot a thick ellipse on a 2D grid
+void CellularPotts::MakeZonaPellucida(double h, double k, double a, double b, double n) 
+{                    
+  // Basic bounds checking to ensure the grid exists
+
+  //make room for a new cell!
+  vector<bool> which_cells(cell->size());
+  which_cells.back()=true;
+  DivideCellsNoGrid(which_cells);
+  zona_sigma = (*cell).back().Sigma();
+  (*cell)[zona_sigma].set_ctype(1);
+  
+  double a2 = a * a;
+  double b2 = b * b;
+  int total_area=0;
+  
+  // Step 2: Iterate through the bounding box
+  for (int x = 1; x <= sizex-1; ++x) 
+  {
+    for (int y = 1; y <= sizey-1; ++y) 
+    {
+      double dx = x - h;
+      double dy = y - k;
+      
+      // The Ellipse Equation f(x, y)
+      double f = (dx * dx) / a2 + (dy * dy) / b2 - 1.0;
+      
+      // The Gradient Magnitude |∇f(x,y)|
+      double grad_x = (2.0 * dx) / a2;
+      double grad_y = (2.0 * dy) / b2;
+      double grad_mag = std::sqrt(grad_x * grad_x + grad_y * grad_y);
+      
+      // Step 3: Calculate approximated distance to the ellipse curve
+      double distance;
+      if (grad_mag == 0.0) {
+          // Edge case: if we are exactly at the center (h, k), avoid dividing by zero.
+          // The distance to the ellipse from the center is the minor axis length.
+          distance = std::min(a, b); 
+      } else {
+          distance = std::abs(f) / grad_mag;
+      }
+      
+      // Step 4: If the pixel is within distance 'n', modify its value in sigma
+      if (distance <= n) 
+      {
+        sigma[x][y] = zona_sigma;
+        ++total_area=0;
+      }
+    }
+  }
+(*cell)[zona_sigma].SetTargetArea(total_area);
+}
+
+void CellularPotts::SetMotilityStrengths()
+{
+
+  vector<Cell>::iterator c;
+
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP()) 
+    {
+      c->SetMotilityStrength(par.motility_strength);
+    }
+  }
+}
+
 
 
 

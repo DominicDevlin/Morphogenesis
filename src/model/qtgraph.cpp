@@ -129,10 +129,13 @@ void QtGraphics::Line( int x1, int y1,int x2,int y2,int colour ) {
 
 void QtGraphics::DrawLegend(void) {
 
+  // Anchor to the fixed-size pixmap being drawn on, not the (resizable)
+  // widget: height() tracks window resizes while the pixmap doesn't, which
+  // would push the legend outside the drawing surface after a resize.
   const int legend_x = 8;
   const int legend_w = 260;
   const int legend_h = 50;
-  const int legend_y = height() - legend_h - 8;
+  const int legend_y = pixmap->height() - legend_h - 8;
   const int pad = 6;
   const int bar_x = legend_x + pad;
   const int bar_w = legend_w - 2 * pad;

@@ -264,28 +264,66 @@ void Cell::ConstructorBody(int settau) {
 
 
 
-double Cell::EmbryoEnergy(Cell &cell2)
+// Smooth stand-in for the old hard >0.2 concentration cutoff, so Sox2/Sox17
+// -driven adhesion effects ramp up gradually around par.sox_threshold instead
+// of jumping at it. This runs on every candidate copy attempt in the CPM's
+// inner loop, so it uses a cubic Hermite smoothstep (clamp + multiplies)
+// rather than a logistic sigmoid, which would need a exp() call per pixel.
+static inline double SoxCommitment(double concentration)
 {
-  if (sigma==cell2.sigma) 
+  double t = (concentration - (par.sox_threshold - par.sox_threshold_width))
+             / (2.0 * par.sox_threshold_width);
+  if (t <= 0.0) return 0.0;
+  if (t >= 1.0) return 1.0;
+  return t * t * (3.0 - 2.0 * t);
+}
+
+double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma)
+{
+  if (sigma==cell2.sigma)
     return 0;
   else if (sigma==0)
   {
     // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
     // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
     // that unsorted cells are gradually sorted out of the tissue.
-    return par.Jblasto - (cell2.Sox17_concentration>0.2) * par.sox17_blasto_adhesion
+    return par.Jblasto - SoxCommitment(cell2.Sox17_concentration) * par.sox17_blasto_adhesion
                         - cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
   else if (cell2.sigma==0)
   {
-    return par.Jblasto - (Sox17_concentration>0.2) * par.sox17_blasto_adhesion
+    return par.Jblasto - SoxCommitment(Sox17_concentration) * par.sox17_blasto_adhesion
                         - IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
+  }
+  else if (cell2.sigma=zona_sigma) // 1 is zona pellucida
+  {
+    return par.J_cell_zona;
   }
   else
   {
-    return par.J_cell_baseline - max( par.sox2binding * (Sox2_concentration > 0.2) * (cell2.Sox2_concentration > 0.2), par.sox17binding * (Sox17_concentration > 0.2) * (cell2.Sox17_concentration > 0.2));
+    double t2 = SoxCommitment(Sox2_concentration);
+    double t17 = SoxCommitment(Sox17_concentration);
+    double cell2_t2 = SoxCommitment(cell2.Sox2_concentration);
+    double cell2_t17 = SoxCommitment(cell2.Sox17_concentration);
+
+    // "Looser" = undifferentiated: t2 and t17 are comparable (both big or
+    // both small), so neither lineage clearly dominates; 0.5 if intermediate.
+    double is_looser = max(t2 * t17, (1. - t2) * (1. - t17));
+    double cell2_is_looser = max(cell2_t2 * cell2_t17, (1. - cell2_t2) * (1. - cell2_t17));
+    double one_of_both_loosers = max(is_looser, cell2_is_looser);
+
+    // lambda_epi_epi and lambda_hypo_hypo may be equal. Same for
+    // lambda_epi_hypo and lambda_hypo_epi.
+    return one_of_both_loosers * par.lambda_both_loosers
+         + (1. - one_of_both_loosers) * (
+               t2 * cell2_t2 * par.lambda_epi_epi
+             + t17 * cell2_t17 * par.lambda_hypo_hypo
+             + t2 * cell2_t17 * par.lambda_epi_hypo
+             + t17 * cell2_t2 * par.lambda_hypo_epi
+           );
   }
-  
+
+
   // bool this_has_chem = false, other_has_chem = false;
   // for (int ch = 0; ch < par.n_cell_chem; ch++)
   //   if (par.getInitChem(tau, ch) >= 0.0) { this_has_chem = true; break; }

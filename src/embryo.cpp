@@ -79,16 +79,8 @@ INIT
     // Note - this function will need to have a center of mass somewhere.
     
     CPM->ClearGrid();
-    if (par.make_sparse_cells)
-    {
-      if (par.make_spheroid)
-        CPM->PopulateSparseCells(0.8, 80, 0, 0);
-      else
-        CPM->PopulateSparseCells(par.start_density, par.start_radius, 0, 0);
 
-    }
-      
-  
+    CPM->PopulateSparseCells(par.start_density, par.start_radius, 0, 0);
 
 
     // Assign a random type to each of the cells
@@ -140,14 +132,23 @@ TIMESTEP {
       dish->CPM->InitialiseRandomSoxValues();
       dish->CPM->SetPerims(par.ptarget_perimeter);
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
+      dish->CPM->SetMotilityStrengths();
+      if (par.make_zona_pellucida)
+      {
+        dish->CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 63, 75, 3);
+      }
     }
 
+    if (t==1000)
+    {
+      dish->CPM->MeanCellArea();
+      dish->CPM->MeanCellPerimeter();
+    }
 
-    // if (t % par.synthetic_update_step == 0 && t > 0)
+    // if (t % par.synthetic_update_step == 0 && t > 0))
     // {
     //   dish->CPM->UpdateActiveMotion();
     // }
-    
   
 
     static Info *info=new Info(*dish, *this);
