@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = false;
+    contours = true;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -194,30 +194,30 @@
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
     // Note - i changed this to simply change lambdaP
 
-    proportion_celltype2 =0.67; // i used 0.7 for 3 layer and 0.47? for asymmetric
+    proportion_celltype2 =0.; // i used 0.7 for 3 layer and 0.47? for asymmetric
     start_radius=110;
     start_density=0.2;
     
 
     // Here we decide the genes of c1 and c2.
     // first = E_cadherin high, second = E_cadherin low, third = P_cadherin, fourth = N_cadherin, 5 = CD19, 6=GFP, 7=mCherry
-    spheroid_const={0,0,1,0,0,0,0};
+    spheroid_const={0,0,1,0,0,1,0};
     spheroid_GFP_induced={0,0,0,0,0,0,0};
     spheroid_mCherry_induced={0,0,0,0,0,0,0};
     spheroid_CD19_induced={0,0,0,0,0,0,0};
 
-    make_spheroid=false;
+    make_spheroid=true;
     make_sparse_cells=true;
 
-    // three layered structure
-    c1_const={0,0,0,0,0,0,0};
-    c2_const={0,0,0,0,1,0,0};
-    c1_GFP_induced={0,0,0,0,0,0,0};
-    c2_GFP_induced={0,1,0,0,0,0,1};
-    c1_mCherry_induced={0,0,0,0,0,0,0};
-    c2_mCherry_induced={0,0,0,0,0,0,0};
-    c1_CD19_induced={1,0,0,0,0,1,0};
-    c2_CD19_induced={0,0,0,0,0,0,0};
+    // three layered structure (high E-cad, low E-cad, nothing)
+    // c1_const={0,0,0,0,0,0,0};
+    // c2_const={0,0,0,0,1,0,0};
+    // c1_GFP_induced={0,0,0,0,0,0,0};
+    // c2_GFP_induced={0,1,0,0,0,0,1};
+    // c1_mCherry_induced={0,0,0,0,0,0,0};
+    // c2_mCherry_induced={0,0,0,0,0,0,0};
+    // c1_CD19_induced={1,0,0,0,0,1,0};
+    // c2_CD19_induced={0,0,0,0,0,0,0};
 
 
     // two layered structure CD19 + Ecad
@@ -241,17 +241,17 @@
     // c2_CD19_induced={0,0,0,0,0,0,0};
 
     // for spheroid stuff
-    // c1_const={0,0,0,0,0,0,0};
-    // c2_const={0,0,0,0,0,0,0};
-    // c1_GFP_induced={0,0,0,0,0,0,1};
-    // c2_GFP_induced={0,0,0,0,0,0,1};
-    // c1_mCherry_induced={0,0,0,0,0,0,0};
-    // c2_mCherry_induced={0,0,0,0,0,0,0};
-    // c1_CD19_induced={0,0,0,0,0,0,0};
-    // c2_CD19_induced={0,0,0,0,0,0,0};
+    c1_const={0,0,0,0,0,0,0};
+    c2_const={0,0,0,0,0,0,0};
+    c1_GFP_induced={0,0,0,0,0,0,1};
+    c2_GFP_induced={0,0,0,0,0,0,1};
+    c1_mCherry_induced={0,0,0,0,0,0,0};
+    c2_mCherry_induced={0,0,0,0,0,0,0};
+    c1_CD19_induced={0,0,0,0,0,0,0};
+    c2_CD19_induced={0,0,0,0,0,0,0};
 
     // we have GFP, mcherry and cd19 (in that order). This vector decides whether
-    // they are morphogens or not. 1=morph, 2=surface.
+    // they are morphogens or not. 1=morph, 0=surface.
     if (make_spheroid)
       morph_or_surface={1,0,0};
     else

@@ -83,7 +83,7 @@ INIT
     if (par.make_sparse_cells)
     {
       if (par.make_spheroid)
-        CPM->PopulateSparseCells(0.8, 80, 0, 0);
+        CPM->PopulateSparseCells(par.start_density, par.start_radius, 0, 0);
       else
         CPM->PopulateSparseCells(par.start_density, par.start_radius, 0, 0);
 
@@ -175,7 +175,6 @@ TIMESTEP {
       dish->CPM->SetPerims(par.ptarget_perimeter);
 
       dish->CPM->StartSyntheticNetwork(n_cells);
-      par.contours=false;
 
     }
 
@@ -243,7 +242,7 @@ TIMESTEP {
     static bool c3 = false;
 
     //cerr << "Done\n";
-    if (par.graphics && t%5==0)// !(t%par.screen_freq)) 
+    if (par.graphics && t%10==0)// !(t%par.screen_freq)) 
     {
       
       BeginScene();
@@ -259,7 +258,7 @@ TIMESTEP {
       //char title[400];
       //snprintf(title,399,"CellularPotts: %d MCS",i);
       //ChangeTitle(title);
-      if (par.contours && t > 1000)
+      if (par.contours && t > 3000)
         dish->PDEfield->ContourPlot(this,0,5);
 
       EndScene();
