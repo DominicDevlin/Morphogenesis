@@ -79,7 +79,7 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     bulk_modulus = 5;
-    cell_target_area = 100;
+    cell_target_area = 300;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 150;
     synthetic_max_area=150;
@@ -91,6 +91,15 @@
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
+
+    // Epiblast (Sox2+/Sox17-) is more compact/rounded than baseline; hypoblast
+    // keeps the baseline shape constraint for now. Combined with the area-based
+    // scaling in SetPerims, this keeps the constraint consistent as cells grow.
+    epiblast_perimeter_scale = 0.85;
+    hypoblast_perimeter_scale = 1.0;
+    // Undifferentiated cells (comparable Sox2/Sox17) behave like a fluid:
+    // much weaker perimeter constraint than either committed lineage.
+    undifferentiated_stiffness_scale = 0.2;
     Ecad_elastic_change=5;
       
 
@@ -115,15 +124,18 @@
     // modulation of sox17 expressing cell to medium
     sox17_blasto_adhesion=0.05;
     // modulation of sox2 expressing cell to medium
-    sox2_blasto_adhesion=0.05;
+    sox2_blasto_adhesion=0.55;
     // binding of sox2 to sox2 (will change later to cadherin)
-    sox2binding=0.15;
+    sox2binding=0.05;
     // binding of sox17 to sox17 (will change later to cadherin)
-    sox17binding=0.15;
+    sox17binding=0.05;
     // baseline J value for adhesion between cells and blasto
     Jblasto=0.3;
     // baseline J value between cells
     J_cell_baseline=0.2;
+    // extra pull towards medium for undifferentiated (comparable Sox2/Sox17)
+    // cells, so they get sorted out of the tissue over time.
+    undifferentiated_blasto_adhesion=0.15;
 
     E_cadherin_production_rate=0.04;
     E_cadherin_saturation_constant=0.25;
@@ -151,7 +163,7 @@
     init_area = 10240;
     size_init_cells = 80; // this is equal to the radius(diameter?) of the circle (done by eden growth). 
     eden_growth=false;
-    n_init_cells = 1;
+    n_init_cells = 4;
     divisions = 0;
 
     //programmed division parameters

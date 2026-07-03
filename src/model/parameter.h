@@ -113,6 +113,13 @@ class Parameter {
   double lambda_perimeter_phase;
   double neighbour_multiplier;
   int ptarget_perimeter;
+  // Per-lineage multipliers on ptarget_perimeter (see Cell::IsEpiblast/
+  // IsHypoblast), applied on top of the usual area-based perimeter scaling.
+  double epiblast_perimeter_scale;
+  double hypoblast_perimeter_scale;
+  // Fluidity of undifferentiated cells (comparable Sox2/Sox17): scales down
+  // lambda_perimeter, i.e. weak shape memory (see Cell::IsUndifferentiated).
+  double undifferentiated_stiffness_scale;
   bool H_perim;
 
   double bulk_modulus;
@@ -127,6 +134,9 @@ class Parameter {
   double sox17binding;
   double Jblasto;
   double J_cell_baseline;
+  // Extra pull towards the medium for undifferentiated cells (comparable
+  // Sox2/Sox17), on top of sox17_blasto_adhesion, so they get sorted out.
+  double undifferentiated_blasto_adhesion;
 
   /* synthetic params*/
   bool make_synthetic;

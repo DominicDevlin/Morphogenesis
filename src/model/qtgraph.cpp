@@ -127,6 +127,45 @@ void QtGraphics::Line( int x1, int y1,int x2,int y2,int colour ) {
   picture->drawLine( x1, y1, x2, y2);
 }
 
+void QtGraphics::DrawLegend(void) {
+
+  const int legend_x = 8;
+  const int legend_w = 260;
+  const int legend_h = 50;
+  const int legend_y = height() - legend_h - 8;
+  const int pad = 6;
+  const int bar_x = legend_x + pad;
+  const int bar_w = legend_w - 2 * pad;
+  const int bar_h = 14;
+  const int bar_y = legend_y + 18;
+
+  picture->setPen(QPen(Qt::black));
+  picture->setBrush(QBrush(Qt::white));
+  picture->drawRect(legend_x, legend_y, legend_w, legend_h);
+  picture->setBrush(Qt::NoBrush);
+
+  QFont font = picture->font();
+  font.setPointSize(8);
+  picture->setFont(font);
+  picture->drawText(QRect(bar_x, legend_y + 2, bar_w, 14), Qt::AlignLeft,
+      "Cell identity (Sox2 vs Sox17)");
+
+  // Continuous colour gradient, matching the ctype indices (2..102) set in
+  // CellularPotts::InitialiseRandomSoxValues from the Sox2/Sox17 weight.
+  for (int i = 0; i < bar_w; ++i) {
+    int index = 2 + (i * 100) / bar_w;
+    picture->setPen(pens[index]);
+    picture->drawLine(bar_x + i, bar_y, bar_x + i, bar_y + bar_h);
+  }
+  picture->setPen(QPen(Qt::black));
+  picture->drawRect(bar_x, bar_y, bar_w, bar_h);
+
+  QRect label_rect(bar_x, bar_y + bar_h + 2, bar_w, 14);
+  picture->drawText(label_rect, Qt::AlignLeft, "Hypoblast");
+  picture->drawText(label_rect, Qt::AlignHCenter, "Undiff.");
+  picture->drawText(label_rect, Qt::AlignRight, "Epiblast");
+}
+
 void QtGraphics::ReadColorTable(QPen *pens)
 {
   

@@ -59,7 +59,12 @@ class QtGraphics : public QWidget, public Graphics {
   virtual void Line ( int x1, int y1,int x2,int y2,int colour );
   /*void Field (const int **r, int mag=1);
     void PlotNumber(int number, int x, int y);*/
-  
+
+  //! Draws a legend explaining the cell colour (Sox2/Sox17 identity),
+  //! see CellularPotts::InitialiseRandomSoxValues.
+  void DrawLegend(void);
+
+
   virtual int GetXYCoo(int *X,int *Y);
   /*char *ChangeTitle (const char *message);
   void RecoverTitle(void);*/

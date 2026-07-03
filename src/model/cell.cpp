@@ -270,11 +270,16 @@ double Cell::EmbryoEnergy(Cell &cell2)
     return 0;
   else if (sigma==0)
   {
-    return par.Jblasto - (cell2.Sox17_concentration>0.2) * par.sox17_blasto_adhesion;
+    // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
+    // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
+    // that unsorted cells are gradually sorted out of the tissue.
+    return par.Jblasto - (cell2.Sox17_concentration>0.2) * par.sox17_blasto_adhesion
+                        - cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
   else if (cell2.sigma==0)
   {
-    return par.Jblasto - (Sox17_concentration>0.2) * par.sox17_blasto_adhesion;
+    return par.Jblasto - (Sox17_concentration>0.2) * par.sox17_blasto_adhesion
+                        - IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
   else
   {

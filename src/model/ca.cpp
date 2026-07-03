@@ -1901,11 +1901,15 @@ void CellularPotts::InitialiseRandomSoxValues()
       c->setSox2(sox2);
       c->setSox17(sox17);
 
+      // weight is the Sox2/Sox17 dominance ratio: 0 = pure Sox17, 1 = pure Sox2.
       double weight = 0.5f * (sox2 - sox17 + 1.0f);
 
-      // Map the 0.0 - 1.0 weight to the integer range 2 to 202 (200 steps)
+      // Map the 0.0 - 1.0 weight to the integer range 2 to 102 (100 steps) for
+      // display. This ctype value drives cell colour only (Colour() -> c_type);
+      // it no longer plays any role in adhesion, which is computed directly
+      // from Sox2_concentration/Sox17_concentration in Cell::EmbryoEnergy.
       int index = 2 + static_cast<int>(std::round(weight * 100.0f));
-    
+
       c->set_ctype(index);
     }
   }
@@ -3210,6 +3214,11 @@ void CellularPotts::UpdateSyntheticCellConstraints()
 
 
 
+// NOTE: not called from embryo.cpp. This synNotch/GFP/mCherry/cadherin
+// differentiation network (and the cellcolour it computes below) is legacy/
+// unused in the current sox-driven sorting model, where cell colour comes
+// from InitialiseRandomSoxValues() and adhesion from Cell::EmbryoEnergy().
+// Kept here for reference in case this network is revisited later.
 void CellularPotts::SyntheticNetwork()
 {
 
@@ -3553,12 +3562,14 @@ void CellularPotts::SetAreas(int tarea)
 
 void CellularPotts::SetPerims(int tperim)
 {
+  // tperim is unused: the target perimeter is derived from par.ptarget_perimeter,
+  // each cell's lineage and its *targeted* area (see Cell::UpdatePerimeterConstraint),
+  // which is also kept in sync automatically whenever target area or Sox
+  // concentrations change later on.
+  (void)tperim;
   vector<Cell>::iterator i;
-  for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
-  {
-    i->SetTargetPerimeter(par.ptarget_perimeter);
-    i->setPerimConstraint(par.lambda_perimeter);
-  }
+  for ( (i=cell->begin(),i++); i!=cell->end(); i++)
+    i->UpdatePerimeterConstraint();
 }
 
 
@@ -3707,3 +3718,4 @@ bool CellularPotts::SoloCheck()
   return true;  
 }
 
+  

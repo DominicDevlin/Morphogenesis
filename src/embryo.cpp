@@ -135,9 +135,11 @@ TIMESTEP {
       dish->Init();
       dish->CPM->CopyProb(par.T);
       dish->CPM->MeasureCellPerimeters();
+      // Sox values must be assigned before SetPerims, which sizes the
+      // perimeter constraint per lineage (epiblast/hypoblast).
+      dish->CPM->InitialiseRandomSoxValues();
       dish->CPM->SetPerims(par.ptarget_perimeter);
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
-      dish->CPM->InitialiseRandomSoxValues();
     }
 
 
@@ -181,9 +183,12 @@ TIMESTEP {
       BeginScene();
       ClearImage();
 
-      // Plot the dish. 
+      // Plot the dish.
       dish->Plot(this);
 
+#ifdef QTGRAPHICS
+      DrawLegend();
+#endif
 
       char title[400];
 
@@ -208,12 +213,15 @@ TIMESTEP {
       sprintf(fname,"%s/extend%07d.png",par.datadir,t);
     
       BeginScene();
-      ClearImage();    
+      ClearImage();
       dish->Plot(this);
 
-      
+#ifdef QTGRAPHICS
+      DrawLegend();
+#endif
+
       EndScene();
-    
+
       Write(fname);
         
     }

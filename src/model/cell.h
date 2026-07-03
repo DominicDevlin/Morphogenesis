@@ -506,9 +506,11 @@ al. 2000). The current version of TST does not include such functionality.
   }
   
   //! Sets the target area of the cell.
-  inline int SetTargetArea(const int new_area) 
+  inline int SetTargetArea(const int new_area)
   {
-    return target_area=new_area;
+    target_area=new_area;
+    UpdatePerimeterConstraint();
+    return target_area;
   }
   
   //! Sends the current cell into apoptosis
@@ -2020,6 +2022,7 @@ inline double getSox2()
 inline void setSox2(double newsox)
 {
   Sox2_concentration=newsox;
+  UpdatePerimeterConstraint();
 }
 
 inline double getSox17()
@@ -2030,8 +2033,51 @@ inline double getSox17()
 inline void setSox17(double newsox)
 {
   Sox17_concentration=newsox;
+  UpdatePerimeterConstraint();
 }
 
+// Lineage calls, using the same 0.2 threshold as Cell::EmbryoEnergy.
+inline bool IsEpiblast() const
+{
+  return Sox2_concentration > 0.2 && Sox17_concentration <= 0.2;
+}
+
+inline bool IsHypoblast() const
+{
+  return Sox17_concentration > 0.2 && Sox2_concentration <= 0.2;
+}
+
+//! Neither lineage has committed (Sox2/Sox17 comparable: both low, both
+//! high, or otherwise not clearly one or the other). These cells behave
+//! like a fluid (weak shape memory) and are gradually sorted out towards
+//! the medium (see the undifferentiated_blasto_adhesion term in
+//! Cell::EmbryoEnergy).
+inline bool IsUndifferentiated() const
+{
+  return !IsEpiblast() && !IsHypoblast();
+}
+
+//! (Re)computes the perimeter target and constraint from the cell's
+//! *targeted* area (not its actual, fluctuating pixel-count area) and its
+//! lineage. Called from SetTargetArea/setSox2/setSox17, so later varying
+//! target_area or par.cell_target_area keeps the shape constraint in sync
+//! without a separate manual step.
+inline void UpdatePerimeterConstraint()
+{
+  double lineage_scale = 1.0;
+  double stiffness_scale = 1.0;
+  if (IsEpiblast())
+    lineage_scale = par.epiblast_perimeter_scale;
+  else if (IsHypoblast())
+    lineage_scale = par.hypoblast_perimeter_scale;
+  else
+    // Undifferentiated: fluid behaviour, weak resistance to deformation.
+    stiffness_scale = par.undifferentiated_stiffness_scale;
+
+  target_perimeter = static_cast<int>(round(par.ptarget_perimeter * lineage_scale *
+      sqrt(double(target_area) / double(par.cell_target_area))));
+  cell_perim_constraint = par.lambda_perimeter * stiffness_scale;
+}
 
 
 
