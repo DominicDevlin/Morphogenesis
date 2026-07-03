@@ -370,7 +370,6 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
   for (i = 1; i <= n_nb_adh; i++) 
   {
     neighsite = neighbor_spins[i];
-    
     if (neighsite == -1) 
     { // out-of-bounds border 
       Jen += (sxyp == 0 ? 0 : par.border_energy) - (sxy == 0 ? 0 : par.border_energy);
@@ -821,10 +820,13 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
       } 
       else 
       {
-          if (tx <= 0 || ty <= 0 || tx >= sizex - 1 || ty >= sizey - 1) {
+          if (tx <= 0 || ty <= 0 || tx >= sizex - 1 || ty >= sizey - 1) 
+          {
               neighbor_spins[j] = -1; // -1 means out-of-bounds border
-          } else {
-              neighbor_spins[j] = sigma[tx][ty];
+          } 
+          else 
+          {
+            neighbor_spins[j] = sigma[tx][ty];
           }
       }
     }
@@ -836,6 +838,7 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     for (int j = 1; j <= n_nb; j++)
     {
       int neighbor_val = neighbor_spins[j];
+
       
       if (neighbor_val == -1) 
           continue; // Skip out-of-bounds border states
@@ -875,7 +878,10 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     {
       continue;
     }
-
+    // if (neighbor_spins[15] == zona_sigma)
+    // {
+    //   cout << "zona found: " << zona_sigma << endl;
+    // }
 
     // =============================================================
     // 4. CONNECTIVITY CHECK (Kept separate because it relies on 
@@ -1297,68 +1303,68 @@ int **CellularPotts::SearchNandPlot(Graphics *g, bool get_neighbours)
 }
 
 
-double CellularPotts::CalculateABBoundaryLength()
-{
-    int total_ab_boundary = 0;
-    int total_boundary = 0; // Track the total cell-cell boundary length
+// double CellularPotts::CalculateABBoundaryLength()
+// {
+//     int total_ab_boundary = 0;
+//     int total_boundary = 0; // Track the total cell-cell boundary length
 
-    // Iterate through the entire grid
-    for (int i = 0; i < sizex; i++) {
-        for (int j = 0; j < sizey; j++) {
+//     // Iterate through the entire grid
+//     for (int i = 0; i < sizex; i++) {
+//         for (int j = 0; j < sizey; j++) {
             
-            int current_id = sigma[i][j];
+//             int current_id = sigma[i][j];
             
-            // Skip if the current pixel is empty medium (<= 0)
-            if (current_id <= 0) continue; 
+//             // Skip if the current pixel is empty medium (<= 0)
+//             if (current_id <= 0) continue; 
             
-            // Get the type of the current cell (false = A, true = B)
-            bool current_type = (*cell)[current_id].GetSortingType();
+//             // Get the type of the current cell (false = A, true = B)
+//             bool current_type = (*cell)[current_id].GetSortingType();
 
-            // 1. Check the RIGHT neighbor
-            if (i + 1 < sizex) {
-                int right_id = sigma[i + 1][j];
+//             // 1. Check the RIGHT neighbor
+//             if (i + 1 < sizex) {
+//                 int right_id = sigma[i + 1][j];
                 
-                // Check if right pixel is a valid cell and is a different cell
-                if (right_id > 0 && current_id != right_id) {
-                    total_boundary++; // It's a cell-cell boundary
+//                 // Check if right pixel is a valid cell and is a different cell
+//                 if (right_id > 0 && current_id != right_id) {
+//                     total_boundary++; // It's a cell-cell boundary
                     
-                    bool right_type = (*cell)[right_id].GetSortingType();
+//                     bool right_type = (*cell)[right_id].GetSortingType();
                     
-                    // If the types are different (one is A, one is B)
-                    if (current_type != right_type) {
-                        total_ab_boundary++;
-                    }
-                }
-            }
+//                     // If the types are different (one is A, one is B)
+//                     if (current_type != right_type) {
+//                         total_ab_boundary++;
+//                     }
+//                 }
+//             }
 
-            // 2. Check the BOTTOM neighbor
-            if (j + 1 < sizey) {
-                int bottom_id = sigma[i][j + 1];
+//             // 2. Check the BOTTOM neighbor
+//             if (j + 1 < sizey) {
+//                 int bottom_id = sigma[i][j + 1];
                 
-                // Check if bottom pixel is a valid cell and is a different cell
-                if (bottom_id > 0 && current_id != bottom_id) {
-                    total_boundary++; // It's a cell-cell boundary
+//                 // Check if bottom pixel is a valid cell and is a different cell
+//                 if (bottom_id > 0 && current_id != bottom_id) {
+//                     total_boundary++; // It's a cell-cell boundary
                     
-                    bool bottom_type = (*cell)[bottom_id].GetSortingType();
+//                     bool bottom_type = (*cell)[bottom_id].GetSortingType();
                     
-                    // If the types are different (one is A, one is B)
-                    if (current_type != bottom_type) {
-                        total_ab_boundary++;
-                    }
-                }
-            }
+//                     // If the types are different (one is A, one is B)
+//                     if (current_type != bottom_type) {
+//                         total_ab_boundary++;
+//                     }
+//                 }
+//             }
             
-        }
-    }
+//         }
+//     }
 
-    // Prevent division by zero if there are no cell boundaries at all
-    if (total_boundary == 0) {
-        return 0.0;
-    }
+//     // Prevent division by zero if there are no cell boundaries at all
+//     if (total_boundary == 0) {
+//         return 0.0;
+//     }
 
-    // Return the relative boundary length as a double between 0.0 and 1.0
-    return static_cast<double>(total_ab_boundary) / total_boundary;
-}
+//     // Return the relative boundary length as a double between 0.0 and 1.0
+//     return static_cast<double>(total_ab_boundary) / total_boundary;
+// }
 
 
 
@@ -1708,25 +1714,8 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
             // renew daughter pointers
             daughterp=&(cell->back());
 
-
-            if (par.polarity_on)
-            {
-              vector<double> &TF = daughterp->get_genes();
-              for (int k=0;k<par.n_TF;++k)
-                if (polarity[k])
-                { 
-                  TF[k+par.n_TF] = 0;
-                }
-
-            }
             daughterp->SetTimeCreated(t);
             motherp->SetTimeCreated(t);
-            if (par.gene_record)
-            {
-              daughterp->RecordDivision(t); // record division only in daughter cell.
-              daughterp->reset_recordings(); 
-
-            }
 
             
           /* administration on the onset of mitosis */
@@ -1800,13 +1789,6 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
     // cp = &((*cell)[cp_sigma]);
     // new_cell=&(cell->back());
     cell->back().SetTimeCreated(time);
-    if (par.gene_record)
-    {
-      cell->back().reset_recordings(); 
-    }
-
-    cell->back().ClearStacks();
-    
 
     queue<pair<int, int>> q; // Queue for BFS
     q.push({x, y});
@@ -1872,50 +1854,50 @@ void CellularPotts::InitialiseRandomSoxValues()
       // 1. Get two independent uniform random numbers between 0 and 1
       double u_a = RANDOM(s_val);
       double u_b = RANDOM(s_val);
-
-      // Safety check: std::log(0) is undefined/infinity, so ensure u_a is never exactly 0.
       if (u_a <= 0.0) u_a = 0.0000001; 
 
-      // 2. Box-Muller transform: Convert your uniform numbers into two 
-      // independent Standard Normal (bell-curve) numbers
+      // 2. Box-Muller transform
       double radius = std::sqrt(-2.0 * std::log(u_a));
       double theta = 2.0 * M_PI * u_b;
-      
       double z1 = radius * std::cos(theta);
       double z2 = radius * std::sin(theta);
 
-      // 3. Define the correlation (rho)
-      // -0.8 means a strong likelihood that a high n1 results in a low n2.
-      // Use -0.95 if you want them almost guaranteed to be opposite.
-      double rho = -0.8; 
+      // 3. DEFINE YOUR 'x' HERE (Fraction of cases split across 0.2)
+      // Example: 0.85 means in 85% of cases, one is < 0.2 and the other is > 0.2
+      double x = 0.85; 
 
-      // Create negatively correlated variables using Cholesky decomposition
+      // Calculate the exact correlation (rho) needed to achieve 'x'
+      double rho = std::sin(M_PI * (0.5 - x)); 
+
+      // Create negatively correlated variables
       double y1 = z1;
       double y2 = rho * z1 + std::sqrt(1.0 - rho * rho) * z2;
 
-      // 4. Convert back to Uniform(0, 1) variables using the Normal CDF (std::erfc)
-      const double inv_sqrt2 = 0.7071067811865475; // 1 / sqrt(2)
+      // 4. Convert back to Uniform(0, 1)
+      const double inv_sqrt2 = 0.7071067811865475;
       double u1 = 0.5 * std::erfc(-y1 * inv_sqrt2);
       double u2 = 0.5 * std::erfc(-y2 * inv_sqrt2);
 
-      // 5. Apply the mathematical skew
-      // Squaring a Uniform(0,1) guarantees a Median of 0.25 and a Mean of 0.333
-      double sox2 = u1 * u1;
-      double sox17 = u2 * u2;
-
+      // 5. Apply mathematical skew to set Median exactly to 0.2
+      // 0.5 ^ 2.321928 == 0.2
+      const double p = 2.321928;
+      double sox2 = std::pow(u1, p);
+      double sox17 = std::pow(u2, p);
+      // cout << "sox2 and 17:  " << sox2 << '\t' << sox17 << endl;
       c->setSox2(sox2);
       c->setSox17(sox17);
 
-      // weight is the Sox2/Sox17 dominance ratio: 0 = pure Sox17, 1 = pure Sox2.
-      double weight = 0.5f * (sox2 - sox17 + 1.0f);
+      // // weight is the Sox2/Sox17 dominance ratio: 0 = pure Sox17, 1 = pure Sox2.
+      // double weight = 0.5f * (sox2 - sox17 + 1.0f);
 
-      // Map the 0.0 - 1.0 weight to the integer range 2 to 102 (100 steps) for
-      // display. This ctype value drives cell colour only (Colour() -> c_type);
-      // it no longer plays any role in adhesion, which is computed directly
-      // from Sox2_concentration/Sox17_concentration in Cell::EmbryoEnergy.
-      int index = 2 + static_cast<int>(std::round(weight * 100.0f));
+      // // Map the 0.0 - 1.0 weight to the integer range 2 to 102 (100 steps) for
+      // // display. This ctype value drives cell colour only (Colour() -> c_type);
+      // // it no longer plays any role in adhesion, which is computed directly
+      // // from Sox2_concentration/Sox17_concentration in Cell::EmbryoEnergy.
+      // int index = 2 + static_cast<int>(std::round(weight * 100.0f));
 
-      c->set_ctype(index);
+      // c->set_ctype(index);
+      c->SetSoxColour();
     }
   }
 
@@ -2544,7 +2526,7 @@ double CellularPotts::MeanCellPerimeter(void) const {
 	c!=cell->end();
 	c++) 
   {
-    cout << c->Perimeter() << " and target is.. " << c->TargetPerimeter() << endl;
+    // cout << c->Perimeter() << " and target is.. " << c->TargetPerimeter() << endl;
     sum_perim+=c->Perimeter();
     n++;    
   }
@@ -2561,9 +2543,7 @@ void CellularPotts::SetRandomTypes(void) {
   for (;c!=cell->end();c++) 
   {   
     c->setTau(1);
-    c->set_ctype(2);
-    c->SetTargetLength(0.0);
-    
+    c->set_ctype(2);    
   } 
   
 }
@@ -3165,7 +3145,7 @@ void CellularPotts::StartSyntheticNetwork(int start_point)
         c->setRandomBindingProteins(init_random_binding_proteins);
 
         vector<double> init_diffusers{1.0};
-        c->set_diffusers(init_diffusers);
+        // c->set_diffusers(init_diffusers);
         cout << c->Sigma() << endl;
 
         c->SetConstitutives(par.spheroid_const);
@@ -3178,7 +3158,7 @@ void CellularPotts::StartSyntheticNetwork(int start_point)
       else
       {
         vector<double> init_diffusers{0.0};
-        c->set_diffusers(init_diffusers);
+        // c->set_diffusers(init_diffusers);
         // randomly make cell CD19 or not (move to different method eventually)
         double rand = RANDOM(s_val);
         if (rand < par.proportion_celltype2)
@@ -3216,7 +3196,7 @@ void CellularPotts::StartSyntheticNetwork(Cell &newcell)
       newcell.setRandomBindingProteins(init_random_binding_proteins);
 
       vector<double> init_diffusers{1.0};
-      newcell.set_diffusers(init_diffusers);
+      // newcell.set_diffusers(init_diffusers);
     }
     else
     {
@@ -3241,7 +3221,7 @@ void CellularPotts::StartSyntheticNetwork(Cell &newcell)
       newcell.setRandomBindingProteins(init_random_binding_proteins);
 
       vector<double> init_diffusers{0.0};
-      newcell.set_diffusers(init_diffusers);
+      // newcell.set_diffusers(init_diffusers);
     }
 
   } 

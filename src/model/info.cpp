@@ -152,7 +152,6 @@ void Info::Menu() {
       dish->CPM->MeasureCellSize(tcell);
       
       tcell.setTau(2);
-      tcell.SetTargetLength(10);
       tcell.SetTargetArea(50);
       
       cerr << "tumorcell = " << tumorcell << endl;

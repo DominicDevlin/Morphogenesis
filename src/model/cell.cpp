@@ -87,49 +87,10 @@ void Cell::CellBirth(Cell &mother_cell) {
   tau=mother_cell.tau;
   target_length = mother_cell.target_length;
 
-  fitness=mother_cell.fitness;
-  genes=mother_cell.genes;
-  diff_genes=mother_cell.diff_genes;
-  lambda_2 = mother_cell.lambda_2;
-  lambda = mother_cell.lambda;
-
-  locks=mother_cell.locks;
-  locks_bool=mother_cell.locks_bool;
-  keys=mother_cell.keys;
-  keys_bool=mother_cell.keys_bool;
-  medp=mother_cell.medp;
-  medp_bool=mother_cell.medp_bool;
-  full_set=mother_cell.full_set;
-  cycles=mother_cell.cycles;
-  gene_recordings=mother_cell.gene_recordings;
-  shrinker = mother_cell.shrinker;
-
-  div_time = mother_cell.div_time;
-  div_phen = mother_cell.div_phen;
-  phenotype_history = mother_cell.phenotype_history;
-  phentime = mother_cell.phentime;
-  adulttime = mother_cell.adulttime;
-  phenotype = mother_cell.phenotype;
-  switches = mother_cell.switches;
-  long_switches = mother_cell.long_switches;
-
   xcen = mother_cell.xcen;
   ycen = mother_cell.ycen;
   xcens = mother_cell.xcens;
   ycens = mother_cell.ycens;
-  vel_phens = mother_cell.vel_phens;
-
-  gamma_list = mother_cell.gamma_list;
-  mass_list = mother_cell.mass_list;
-  time_created = mother_cell.time_created;
-
-  phase_protein_conc = mother_cell.phase_protein_conc;
-  phase_state = mother_cell.phase_state;
-  medium_protein_conc = mother_cell.medium_protein_conc;
-  medium_state = mother_cell.medium_state;
-
-  temp_hexes = mother_cell.temp_hexes;
-  temp_shapes = mother_cell.temp_shapes;
 
   epithelial = mother_cell.epithelial;
 
@@ -287,24 +248,27 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma)
     // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
     // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
     // that unsorted cells are gradually sorted out of the tissue.
-    return par.Jblasto - SoxCommitment(cell2.Sox17_concentration) * par.sox17_blasto_adhesion
-                        - cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
+    return par.Jblasto - cell2.sox2_internal_adhesion * par.sox2_blasto_adhesion
+                        - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion;
+                        //- cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
   else if (cell2.sigma==0)
   {
-    return par.Jblasto - SoxCommitment(Sox17_concentration) * par.sox17_blasto_adhesion
-                        - IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
+    return par.Jblasto - sox2_internal_adhesion * par.sox2_blasto_adhesion;
+                       - sox17_internal_adhesion * par.sox17_blasto_adhesion;
+                        // - IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
-  else if (cell2.sigma=zona_sigma) // 1 is zona pellucida
+  else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
   {
+    // cout << "here" << endl;
     return par.J_cell_zona;
   }
   else
   {
-    double t2 = SoxCommitment(Sox2_concentration);
-    double t17 = SoxCommitment(Sox17_concentration);
-    double cell2_t2 = SoxCommitment(cell2.Sox2_concentration);
-    double cell2_t17 = SoxCommitment(cell2.Sox17_concentration);
+    double t2 = sox2_internal_adhesion;
+    double t17 = sox17_internal_adhesion;
+    double cell2_t2 = cell2.sox2_internal_adhesion;
+    double cell2_t17 = cell2.sox17_internal_adhesion;
 
     // "Looser" = undifferentiated: t2 and t17 are comparable (both big or
     // both small), so neither lineage clearly dominates; 0.5 if intermediate.
@@ -314,13 +278,18 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma)
 
     // lambda_epi_epi and lambda_hypo_hypo may be equal. Same for
     // lambda_epi_hypo and lambda_hypo_epi.
-    return one_of_both_loosers * par.lambda_both_loosers
-         + (1. - one_of_both_loosers) * (
-               t2 * cell2_t2 * par.lambda_epi_epi
-             + t17 * cell2_t17 * par.lambda_hypo_hypo
-             + t2 * cell2_t17 * par.lambda_epi_hypo
-             + t17 * cell2_t2 * par.lambda_hypo_epi
-           );
+    return par.J_cell_baseline - t2 * cell2_t2 * par.sox2binding
+                              - t17 * cell2_t17 * par.sox17binding;
+                              - t17 * cell2_t2 * par.sox2vs17binding;
+                              - t2 * cell2_t17 * par.sox2vs17binding;
+    
+    // one_of_both_loosers * par.lambda_both_loosers
+    //      - (1. - one_of_both_loosers) * (
+    //            t2 * cell2_t2 * par.lambda_epi_epi
+    //          + t17 * cell2_t17 * par.lambda_hypo_hypo
+    //          + t2 * cell2_t17 * par.lambda_epi_hypo
+    //          + t17 * cell2_t2 * par.lambda_hypo_epi
+    //        );
   }
 
 

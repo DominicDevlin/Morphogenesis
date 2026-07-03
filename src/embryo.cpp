@@ -135,7 +135,7 @@ TIMESTEP {
       dish->CPM->SetMotilityStrengths();
       if (par.make_zona_pellucida)
       {
-        dish->CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 63, 75, 3);
+        dish->CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 90, 120, 3);
       }
     }
 

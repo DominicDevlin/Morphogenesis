@@ -119,7 +119,7 @@ class Parameter {
   double hypoblast_lambda_scale;
   // Fluidity of undifferentiated cells (comparable Sox2/Sox17): scales down
   // lambda_perimeter, i.e. weak shape memory (see Cell::IsUndifferentiated).
-  double undifferentiated_stiffness_scale;
+  double undifferentiated_lambda_scale;
   bool H_perim;
 
   double bulk_modulus;
@@ -135,6 +135,7 @@ class Parameter {
   double sox2_blasto_adhesion;
   double sox2binding;
   double sox17binding;
+  double sox2vs17binding;
   double Jblasto;
   double J_cell_baseline;
   // Extra pull towards the medium for undifferentiated cells (comparable

@@ -96,59 +96,21 @@ public:
     avg_vx= src.avg_vx;
     avg_vy= src.avg_vy;
 
-
-    fitness=src.fitness;
-    genes=src.genes;
-    diff_genes=src.diff_genes;
     lambda_2 = src.lambda_2;
     lambda = src.lambda;
     c_type=src.c_type;
-
-    // more network things
-    locks=src.locks;
-    locks_bool=src.locks_bool;
-    keys=src.keys;
-    keys_bool=src.keys_bool;
-    medp=src.medp;
-    medp_bool=src.medp_bool;
-    full_set=src.full_set;
-    cycles=src.cycles;
-    gene_recordings=src.gene_recordings;
-
-    shrinker = src.shrinker;
-
-    div_time = src.div_time;
-    div_phen = src.div_phen;
-    phenotype_history = src.phenotype_history;
-    phentime = src.phentime;
-    adulttime = src.adulttime;
-    phenotype = src.phenotype;
-    switches = src.switches;
-    long_switches = src.switches;
 
     xcen = src.xcen;
     ycen = src.ycen;
 
     xcens = src.xcens;
     ycens = src.ycens;
-    vel_phens = src.vel_phens;
 
     time_created = src.time_created;
 
 
     perimeter = src.perimeter;
     target_perimeter = src.target_perimeter;
-
-    gamma_list = src.gamma_list;
-    mass_list = src.mass_list;
-
-    phase_protein_conc = src.phase_protein_conc;
-    phase_state = src.phase_state;
-    medium_protein_conc = src.medium_protein_conc;
-    medium_state = src.medium_state;
-
-    temp_hexes = src.temp_hexes;
-    temp_shapes = src.temp_shapes;
 
     diffs = new double[par.n_diffusers];
 
@@ -255,53 +217,17 @@ public:
     target_length=src.target_length;
     owner=src.owner;
 
-    fitness=src.fitness;
-    genes=src.genes;
-    diff_genes=src.diff_genes;
     lambda_2 = src.lambda_2;
     lambda = src.lambda;
     c_type=src.c_type;
 
-
-    locks=src.locks;
-    locks_bool=src.locks_bool;
-    keys=src.keys;
-    keys_bool=src.keys_bool;
-    medp=src.medp;
-    medp_bool=src.medp_bool;
-    full_set=src.full_set;
-    cycles=src.cycles;
-    gene_recordings=src.gene_recordings;
-
-    div_time = src.div_time;
-    div_phen = src.div_phen;
-    phenotype_history = src.phenotype_history;
-    phentime = src.phentime;
-    adulttime = src.adulttime;
-    phenotype = src.phenotype;
-    switches = src.switches;
-    long_switches = src.switches;
-
     time_created = src.time_created;
-
-    shrinker = src.shrinker;
 
     xcen = src.xcen;
     ycen = src.ycen;
     xcens = src.xcens;
     ycens = src.ycens;
-    vel_phens = src.vel_phens;
 
-    gamma_list = src.gamma_list;
-    mass_list = src.mass_list;
-
-    phase_protein_conc = src.phase_protein_conc;
-    phase_state = src.phase_state;
-    medium_protein_conc = src.medium_protein_conc;
-    medium_state = src.medium_state;
-
-    temp_hexes = src.temp_hexes;
-    temp_shapes = src.temp_shapes;
 
     perimeter = src.perimeter;
     target_perimeter = src.target_perimeter;
@@ -439,27 +365,6 @@ public:
   //! Return Cell's target area.
   inline int TargetArea() const {
     return target_area;
-  }
-  
-  /*! \brief Return Cell's target length.
-    
-  Length constraint is documented in Merks et al. 2006, Dev. Biol. 
-  */
-  inline double TargetLength() const 
-  {
-    if (phase_state)
-    {
-      return 2* sqrt(area/M_PI);
-      // return length;
-    }
-    else
-      return target_length;// sqrt(area)*par.target_length;
-    // return target_length;
-  }
-
-  //! Set the Cell's target length
-  inline double SetTargetLength(double l) {
-    return target_length=l;
   }
   
 
@@ -748,57 +653,6 @@ private:
 
   }
 
-  inline double get_fitness(void)
-  {
-    return fitness;
-  }
-
-  inline void set_fitness(double fit)
-  {
-    fitness = fit;
-  }
-
-  inline void set_genes(vector<double> new_g)
-  {
-    genes = new_g;
-  }
-
-  inline vector<double>& get_genes(void)
-  {
-    return genes;
-  }
-
-  inline void print_genes(void)
-  {
-    cout << "Concentrations: ";
-    for (int i = 0; i < genes.size(); ++i)
-    {
-      if (i < par.n_diffusers)
-        cout << " - Gene " << i+1 << " is: " << diff_genes.at(i);
-      else
-        cout << " - Gene " << i+1 << " is: " << genes.at(i);
-    }
-    cout << endl << "Diffuser proteins: ";
-    for (int i = 0; i < par.n_diffusers; ++i)
-      cout << " - Diffuser " << i+1 << " is: " << genes.at(i);
-    cout << endl;
-    cout << "lock bools: ";
-    for (int i = 0; i < par.n_locks; ++i) 
-      cout << locks_bool.at(i) << "  ";
-    cout << "key bools: ";
-    for (int i = 0; i < par.n_locks; ++i) 
-      cout << keys_bool.at(i) << "  ";
-
-    cout << "medp bools: ";
-    for (int i = 0; i < par.n_mediums; ++i) 
-      cout << medp_bool.at(i) << "  ";
-    cout << endl; 
-
-
-    cout << "Target length is: " << target_length << endl;
-
-  }
-
   // ! Return Cell's perimeter
   inline int Perimeter() 
   { 
@@ -825,158 +679,6 @@ private:
   inline int IncrementTargetPerimeter() { return ++target_perimeter; }
 
   inline int DecrementTargetPerimeter() { return --target_perimeter; }
-
-
-  inline vector<double>& get_diffusers(void)
-  {
-    return diff_genes;
-  }
-
-  inline void set_diffusers(vector<double> new_diff)
-  {
-    diff_genes = new_diff;
-  }
-
-  inline void set_phase_state(int &t)
-  {
-    if (phase_protein_conc > 0.5)
-      phase_state = true;
-    else if (phase_state == true)
-    {
-      phase_state = false;
-      phase_change_time = t;
-    }
-
-  }
-
-  inline void TransformPhase(bool ptype)
-  {
-    if (ptype)
-    {
-      phase_protein_conc=1.;
-      phase_state = true;
-    }
-    else
-    {
-      phase_protein_conc=0.;
-      phase_state = false;
-    }
-  }
-
-  inline double& get_phase_J(void)
-  {
-    return phase_protein_conc;
-  }
-
-  inline double& get_phase_M(void)
-  {
-    return medium_protein_conc;
-  }
-
-  inline void SetEpithelial(bool setter)
-  {
-    epithelial = setter;
-    for (auto &cc : diff_genes)
-    {
-      cc = 0;
-    }
-  }
-
-  inline bool IsEpithelia(void)
-  {
-    return epithelial;
-  }
-
-  inline bool& getmJ(void)
-  {
-    return medium_state;
-  }  
-
-  inline void set_locks(vector<double>& nlock)
-  {
-    locks = nlock;
-  }
-  inline void set_keys(vector<double>& nkeys)
-  {
-    keys = nkeys;
-  }
-
-  inline vector<double>& get_locks(void)
-  {
-    return locks;
-  }
-  inline vector<double>& get_keys(void)
-  {
-    return keys;
-  }
-  inline vector<bool>& get_locks_bool(void)
-  {
-    return locks_bool;
-  }
-  inline vector<bool>& get_keys_bool(void)
-  {
-    return keys_bool;
-  }
-
-  inline void set_meds(vector<double>& nmeds)
-  {
-    medp = nmeds;
-  }
-  inline vector<double>& get_medp(void)
-  {
-    return medp;
-  }
-  inline vector<bool>& get_medp_bool(void)
-  {
-    return medp_bool;
-  }
-
-
-  inline vector<bool>& get_set(void)
-  {
-    return full_set;
-  }
-
-  inline void set_lists(void)
-  {
-    if (par.phase_evolution)
-    {
-      full_set.resize(1);
-      gene_recordings.resize(par.n_genes+par.n_diffusers);
-      cycles.resize(par.cycle_size);
-      phase_protein_conc=0.;
-      medium_protein_conc=0.;
-    }
-    else
-    {
-      locks.resize(par.n_locks);
-      keys.resize(par.n_locks);
-      locks_bool.resize(par.n_locks);
-      keys_bool.resize(par.n_locks);
-      medp.resize(par.n_mediums);
-      medp_bool.resize(par.n_mediums);
-      full_set.resize(par.n_lockandkey + par.n_length_genes + par.n_mediums);
-      cycles.resize(par.cycle_size);
-      gene_recordings.resize(par.n_genes+par.n_diffusers);
-    }
-  }
-
-  
-
-  inline void average_chem()
-  {
-    for (int i=0; i<par.n_diffusers;++i)
-    {
-      diffs[i] = diffs[i] / (double)(area);
-      if (par.limit_morph)
-      {
-        if (diffs[i] > par.limit_amount)
-          diffs[i] = par.limit_amount;
-        
-      }
-      genes[i] = diffs[i];
-    }
-  }
 
   inline void average_chem_synthetic()
   {
@@ -1029,40 +731,6 @@ private:
     return lambda;
   }
 
-  // used for checking cycles in network. Holds the booleanised network from the last 4 update steps. Depracated.
-  inline void add_to_cycle()
-  {
-    if (cycles.size() > par.cycle_size - 1)
-      cycles.erase(cycles.begin());
-    
-    cycles.push_back(full_set);
-  }
-
-  bool checkforcycles(int max);
-
-
-  void add_to_vectors();
-
-
-  inline vector<vector<double>>& get_history(void)
-  {
-    return gene_recordings;
-  }
-
-
-
-
-  inline void set_shrink(bool fate)
-  {
-    shrinker = fate;
-  }
-
-  inline bool get_shrink(void)
-  {
-    return shrinker;
-  }
-
-
   inline void set_xcen()
   {
     xcen = double(sum_x) / area;
@@ -1113,52 +781,6 @@ private:
     return ycens;
   }
 
-  inline vector<int>& get_velphens()
-  {
-    return vel_phens;
-  }
-
-  inline void AddPressure()
-  {
-      double cpressure = - par.lambda * 2 * (area - target_area);
-      pressure.push_front(cpressure);
-      if (pressure.size() > par.pressure_time_length)
-      {
-        pressure.pop_back();
-      }
-  }
-
-  inline double GetCellPressure()
-  {
-    double avgpressure{};
-    for (double &i : pressure)
-    {
-      avgpressure+=i;
-    }
-    avgpressure = avgpressure / double(pressure.size());
-    return avgpressure;
-  }
-
-  inline void AddAdhesionStress(double stress)
-  {
-    adhesion_stress.push_front(stress);
-    if (adhesion_stress.size() > par.pressure_time_length)
-    {
-      adhesion_stress.pop_back();
-    } 
-  }
-
-  inline double GetAdhesionStress()
-  {
-    double avg_adhstress{};
-    for (double &i : adhesion_stress)
-    {
-      avg_adhstress+=i;
-    }
-    avg_adhstress = avg_adhstress / double(adhesion_stress.size());
-    return avg_adhstress;
-  }
-
 
   inline void cellmed()
   {
@@ -1174,139 +796,16 @@ private:
     ++cell_perim;
   }
 
-  inline void resetCAC()
-  {
-    medium_contact=0;
-    cell_contact=0;
-    cell_perim=0;
-  }
-
-  void Phenotype();
-
-  int RegPhenotype();
-
 
   inline int GetPhenotype()
   {
     return phenotype;
   }
 
-  void RecordSwitch(vector<bool> &v1, uint64_t rndm);
-
-  void RecordLongSwitch(vector<bool> &v1, uint64_t rndm);
-
-
-
-  inline vector<tuple<int,int,uint64_t>>& get_switches()
-  {
-    return switches; 
-  }
-
-  inline vector<tuple<int,int,uint64_t>>& get_long_switches()
-  {
-    return long_switches; 
-  }
-
-
-
-  inline void AddPhenotype() // how long each cell spends in each phentoype
-  {
-    phentime[phenotype] += 1;
-  }
-
-  inline unordered_map<int,int>& PhenTime()
-  {
-    return phentime;
-  }
-
-  inline void reset_recordings()
-  {
-    phentime.clear();
-    adulttime.clear();
-  }
-
-  inline void ClearStacks()
-  {
-    mass_list.clear();
-    gamma_list.clear();
-    xcens.clear();
-    ycens.clear();
-    vel_phens.clear();
-    mass_list.clear();
-    div_x_cen.clear();
-    div_y_cen.clear();
-    mass_div_time.clear();
-    switches.clear();
-    long_switches.clear();
-    div_time.clear();
-    div_phen.clear();
-    phenotype_history.clear();
-    temp_hexes.clear();
-    temp_shapes.clear();
-
-
-  }
-
-  inline void AddType()
-  {
-    adulttime[phenotype] += 1;
-  }
-
-  inline unordered_map<int,int>& AdultTime()
-  {
-    return adulttime;
-  }
-
-  bool limit_cycle();
 
   inline int get_time_created()
   {
     return time_created;
-  }
-
-
-  inline vector<double>& get_div_x()
-  {
-    return div_x_cen;
-  }
-
-  inline vector<double>& get_div_y()
-  {
-    return div_y_cen;
-  }
-
-  inline vector<int>& get_mass_div_time()
-  {
-    return mass_div_time;
-  }
-
-  inline void SetShapeIndex(double ind)
-  {
-    shape_index = ind;
-  }
-
-  inline double& GetShapeIndex()
-  {
-    return shape_index;
-  }
-
-  inline void AddShapeIndex(double ind)
-  {
-    shape_indices.push_back(ind);
-  }
-
-  inline double& GetShapeIndices()
-  {
-    double avg_ind=-1;
-    if (shape_indices.size() == 0)
-    {
-      cerr << "error in shape counting";
-      return avg_ind;
-    }
-    avg_ind = accumulate(shape_indices.begin(), shape_indices.end(), 0.0);
-    avg_ind = avg_ind / double(shape_indices.size());
-    shape_indices.clear();
-    return avg_ind;
   }
 
 
@@ -1315,73 +814,6 @@ private:
     time_created = time;
   }
 
-
-  inline void RecordDivision(int time)
-  {
-    if (time > par.end_program)
-    {
-      pair<int, int> newp = {time, sigma};
-      pair<int, int> newt = {phenotype, time};
-      div_time.push_back(newp);
-      div_phen.push_back(newt);
-      // cout << "division recorded with phenotype: " << phenotype << endl;
-    }
-    
-    
-    if (par.division_anisotropy && time > par.end_program)
-    {
-      div_x_cen.push_back(xcens.back());
-      div_y_cen.push_back(ycens.back());
-      mass_div_time.push_back(xcens.size());
-    }
-
-  }
-
-
-  inline vector<pair<int, int>>& get_divisions()
-  {
-    return div_time;
-  }
-
-  inline vector<int>& TypeHistory()
-  {
-    return phenotype_history;
-  }
-
-  inline vector<pair<int,int>>& DivisionPhenotype()
-  {
-    return div_phen;
-  }
-
-  inline void set_death_tag(bool n)
-  {
-    death_tag = n;
-  }
-
-  inline bool get_death_tag()
-  {
-    return death_tag;
-  }
-
-
-  inline double return_enzyme(int loc)
-  {
-    return genes[loc];
-  }
-
-  int LocksKeysScore(vector<bool>& locks, vector<bool>& keys);
-
-  int CheckMedsOn();
-
-  inline void AddGamma(double g)
-  {
-    gamma_list.push_back(g);
-  }
-
-  inline vector<double>& GetGamma()
-  {
-    return gamma_list;
-  }
 
   inline void MassToList()
   {
@@ -1393,142 +825,7 @@ private:
     return mass_list;
   }
 
-  inline void MaxSet()
-  {
-    if (par.phase_evolution)
-      full_set.resize(par.n_genes,0);
-    else
-      full_set.resize(par.n_functional+par.n_activators, 0);
-  }
 
-  inline bool& GetPhase()
-  {
-    return phase_state;
-  }
-
-  inline void AddHex(double &h, int &t)
-  {
-    temp_hexes.push_back(h);
-  }
-
-  inline double GetTempHexes()
-  {
-    double ret_hex{};
-    if (temp_hexes.size() % 2 == 0)
-    {
-      // If even, average the two middle elements
-      ret_hex = (temp_hexes[temp_hexes.size() / 2 - 1] + temp_hexes[temp_hexes.size() / 2]) / 2.0;
-    }
-    else
-    {
-      // If odd, take the middle element
-      ret_hex = temp_hexes[temp_hexes.size() / 2];
-    }
-    temp_hexes.clear();
-    return ret_hex;
-
-
-    // double ret_hex{};
-    // vector<double> hex_values{};
-    // for (auto &i : temp_hexes)
-    // {
-    //   hex_values.push_back(i.second);
-    // }
-    // if (hex_values.size() % 2 == 0)
-    // {
-    //   // If even, average the two middle elements
-    //   ret_hex = (hex_values[hex_values.size() / 2 - 1] + hex_values[hex_values.size() / 2]) / 2.0;
-    // }
-    // else
-    // {
-    //   // If odd, take the middle element
-    //   ret_hex = hex_values[hex_values.size() / 2];
-    // }
-    // temp_hexes.clear();
-    // return ret_hex;
-  }
-
-  inline int GetShapeHexStartTime()
-  {
-    return phase_change_time;
-  }
-
-
-  inline void AddShape(double &s, int &t)
-  {
-    temp_shapes.push_back(s);
-    // int back_time = t-100;
-    // temp_shapes[t] = s;
-    // if (!temp_shapes.empty() && temp_shapes.begin()->first == back_time)
-    // {
-    //   temp_shapes.erase(temp_shapes.begin());
-    // }
-  }
-
-  inline double GetTempShape()
-  {
-    double ret_shape{};
-    if (temp_shapes.size() % 2 == 0)
-    {
-      // If even, average the two middle elements
-      ret_shape = (temp_shapes[temp_shapes.size() / 2 - 1] + temp_shapes[temp_shapes.size() / 2]) / 2.0;
-    }
-    else
-    {
-      // If odd, take the middle element
-      ret_shape = temp_shapes[temp_shapes.size() / 2];
-    }
-    temp_shapes.clear();
-    return ret_shape;
-
-
-    // double ret_shape{};
-    // vector<double> shape_values{};
-    // for (auto &i : temp_shapes)
-    // {
-    //   shape_values.push_back(i.second);
-    // }
-    // if (shape_values.size() % 2 == 0)
-    // {
-    //   // If even, average the two middle elements
-    //   ret_shape = (shape_values[shape_values.size() / 2 - 1] + shape_values[shape_values.size() / 2]) / 2.0;
-    // }
-    // else
-    // {
-    //   // If odd, take the middle element
-    //   ret_shape = shape_values[shape_values.size() / 2];
-    // }
-    // temp_shapes.clear();
-    // return ret_shape;
-  }
-
-  void SetSheetType(bool tp)
-  {
-    sheet_type = tp;
-    if (sheet_type)
-      c_type = par.sheetcol1;
-    else
-      c_type = par.sheetcol2;
-  }
-
-  void SwapSheetType()
-  {
-    if (sheet_type)
-    {
-      sheet_type = false;
-      c_type = par.sheetcol1;
-    }
-    else
-    {
-      sheet_type = true;
-      c_type = par.sheetcol2;
-    }
-  }  
-
-  bool GetSheetType()
-  {
-    return sheet_type;
-  }
 
   /* active matter methods */
 
@@ -2000,19 +1297,6 @@ double& GetFauxTargetArea()
   return leftover_area;
 }
 
-inline bool& GetSortingType()
-{
-  return sorting_type;
-}
-
-inline void SetSortingType(bool t)
-{
-  sorting_type = t;
-  if (sorting_type)
-    c_type = 4;
-  else
-    c_type = 90;
-}
 
 inline double getSox2()
 {
@@ -2023,6 +1307,19 @@ inline void setSox2(double newsox)
 {
   Sox2_concentration=newsox;
   UpdatePerimeterConstraint();
+
+  double t = 1./ (1+ exp(-100 * (Sox2_concentration - par.sox_threshold_width) ));
+  sox2_internal_adhesion=t;
+  // (Sox2_concentration - (par.sox_threshold - par.sox_threshold_width))
+  //            / (2.0 * par.sox_threshold_width);
+  // if (t <= 0.0)
+  //   sox2_internal_adhesion=0.;
+  // else if (t >= 1.0) 
+  //   sox2_internal_adhesion=0.;
+  // else 
+  //   sox2_internal_adhesion = t * t * (3.0 - 2.0 * t);
+
+
 }
 
 inline double getSox17()
@@ -2034,6 +1331,27 @@ inline void setSox17(double newsox)
 {
   Sox17_concentration=newsox;
   UpdatePerimeterConstraint();
+
+  double t = 1./ (1+ exp(-100 * (Sox17_concentration - par.sox_threshold_width) ));
+  sox17_internal_adhesion=t;
+
+  
+  // cout << sox2_internal_adhesion << '\t' << sox17_internal_adhesion << endl;
+  
+}
+
+inline void SetSoxColour()
+{
+    // weight is the Sox2/Sox17 dominance ratio: 0 = pure Sox17, 1 = pure Sox2.
+    double weight = 0.5f * (sox2_internal_adhesion - sox17_internal_adhesion + 1.0f);
+
+    // Map the 0.0 - 1.0 weight to the integer range 2 to 102 (100 steps) for
+    // display. This ctype value drives cell colour only (Colour() -> c_type);
+    // it no longer plays any role in adhesion, which is computed directly
+    // from Sox2_concentration/Sox17_concentration in Cell::EmbryoEnergy.
+    int index = 2 + static_cast<int>(std::round(weight * 100.0f));
+
+    set_ctype(index);
 }
 
 // Lineage calls, using the same 0.2 threshold as Cell::EmbryoEnergy.
@@ -2072,7 +1390,7 @@ inline void UpdatePerimeterConstraint()
     stiffness_scale = par.hypoblast_lambda_scale;
   else
     // Undifferentiated: fluid behaviour, weak resistance to deformation.
-    stiffness_scale = par.undifferentiated_stiffness_scale;
+    stiffness_scale = par.undifferentiated_lambda_scale;
 
   target_perimeter = static_cast<int>(round(par.ptarget_perimeter *
       sqrt(double(target_area) / double(par.cell_target_area))));
@@ -2166,30 +1484,21 @@ protected:
 
 
   double Sox2_concentration;
+  double sox2_internal_adhesion;
   double Sox17_concentration;
+  double sox17_internal_adhesion;
 
 
   //current state of the cell
   int phenotype;
 
-  vector<pair<int,int>> div_time;
-  vector<pair<int,int>> div_phen;
 
-  vector<int> phenotype_history;
 
-  unordered_map<int, int> phentime;
-  unordered_map<int, int> adulttime;
 
-  vector<double> gamma_list; 
+
   vector<double> mass_list;
 
-  deque<double> pressure;
-  deque<double> adhesion_stress;
 
-  double phase_protein_conc;
-  bool phase_state=false;
-  double medium_protein_conc;
-  bool medium_state;
 
 
   int perimeter;        // amount of cell's membrane
@@ -2198,10 +1507,6 @@ protected:
   bool exposed{true};
 
   int c_type{2};
-
-  double EnDif(Cell &cell2);
-
-  double SheetDif(Cell &cell2, double &sJ=par.sheet_J, double &sheetmix=par.sheetmixJ);
 
   double SyntheticEnergy(Cell &cell2);
 
@@ -2224,8 +1529,6 @@ protected:
   double opposing_N_cadherin{};
   double opposing_P_cadherin{};
 
-
-
   double random_binding_proteins{};
   double GFP{};
   double mCherry{};
@@ -2238,7 +1541,6 @@ protected:
   double f_opposing_N_cad;
   double f_opposing_P_cad;
   double f_opposing_mCherry;
-
 
   vector<bool>constitutives;
   vector<bool>GFP_induced;
@@ -2254,55 +1556,18 @@ protected:
   double leftover_area;
 
 
-  // static int maxsigma; // the last cell identity number given out, Dom removed
-  double fitness{};
-
-  // I will make the gene network I vector for now.
-  vector<double> genes; // should initialise to appropriate value
-
-  vector<double> diff_genes{};
-
-  bool sorting_type{};
 
 
-  vector<double> locks{};
-  vector<bool> locks_bool{};
-
-  vector<double> keys{};
-  vector<bool> keys_bool{};
-
-  vector<double> medp{};
-  vector<bool> medp_bool{};
-
-  vector<bool> full_set{};
-
-  vector<vector<bool>> cycles; 
-
-  vector<vector<double>> gene_recordings;
-
-  vector<double> temp_hexes;
-  vector<double> temp_shapes;
-  int phase_change_time=0;
 
 
-  bool death_tag=false;
+
+
+
 
   vector<double> xcens;
   vector<double> ycens;
-  vector<int> vel_phens;
   int time_created=0;
 
-  vector<double> div_x_cen;
-  vector<double> div_y_cen;
-  vector<int> mass_div_time;
-
-
-  vector<tuple<int,int, uint64_t>> switches;
-  vector<tuple<int,int, uint64_t>> long_switches;
-
-
-  // if cell shrinks more easily
-  bool shrinker{false};
 
 
   // determine energy change to reach target length
@@ -2346,8 +1611,6 @@ protected:
   // gradient of a chemical (to be extended to the total number chemicals)
   double grad[2];
   
-  bool sheet_type=false;
-
   double *diffs; // concentration of diffusers based on PDE field. 
 
   double *chem;
@@ -2368,8 +1631,6 @@ protected:
   bool velocity_initialised=false;
   
   // N.B: N is area!
-  double shape_index;
-  vector<double> shape_indices;
   
   long int sum_x;
   long int sum_y;

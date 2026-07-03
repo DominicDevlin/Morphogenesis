@@ -79,11 +79,11 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     bulk_modulus = 5;
-    cell_target_area = 300;
+    cell_target_area = 100;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 150;
-    synthetic_max_area=102;
-    synthetic_min_area=98;
+    synthetic_max_area=cell_target_area+2;
+    synthetic_min_area=cell_target_area-2;
 
     H_perim = true;
     elastic_modulus = 1;
@@ -102,8 +102,7 @@
     hypoblast_lambda_scale = 2.0;
     // Undifferentiated cells (comparable Sox2/Sox17) behave like a fluid:
     // much weaker perimeter constraint than either committed lineage.
-    undifferentiated_stiffness_scale = 0.2;
-    Ecad_elastic_change=5;
+    undifferentiated_lambda_scale = 1.0;
       
 
     // active motion should depend on E/P/N cadherin
@@ -125,15 +124,19 @@
 /* adhesion params */
 
     // modulation of sox17 expressing cell to medium
-    sox17_blasto_adhesion=0.05;
+    sox17_blasto_adhesion=-0.;
     // modulation of sox2 expressing cell to medium
-    sox2_blasto_adhesion=0.05;
+    sox2_blasto_adhesion=-0.4;
     // binding of sox2 to sox2 (will change later to cadherin)
-    sox2binding=0.05;
+    sox2binding=0.2;
     // binding of sox17 to sox17 (will change later to cadherin)
-    sox17binding=0.05;
+    sox17binding=0.2;
+    // binding between sox2 and sox17
+    sox2vs17binding=0.03;
+
+
     // baseline J value for adhesion between cells and blasto
-    Jblasto=0.4;
+    Jblasto=0.05;
     // baseline J value between cells
     J_cell_baseline=0.2;
     // extra pull towards medium for undifferentiated (comparable Sox2/Sox17)
@@ -143,7 +146,7 @@
     // instead of a step: width=0.1 reaches 0/1 at +/-0.1 of the midpoint,
     // so behaviour stays close to the old cutoff while being smooth.
     sox_threshold=0.2;
-    sox_threshold_width=0.1;
+    sox_threshold_width=0.2;
     // Lineage-pair adhesion terms for two non-medium, non-zona cells (see
     // Cell::EmbryoEnergy). Placeholder values, same magnitudes as the old
     // sox2binding/sox17binding/J_cell_baseline formula it replaces: matching
@@ -157,7 +160,7 @@
 
     // make an oval zona pellucida that does not move
     make_zona_pellucida = true;
-    J_cell_zona = 2;
+    J_cell_zona = 0.01;
 
     E_cadherin_production_rate=0.04;
     E_cadherin_saturation_constant=0.25;

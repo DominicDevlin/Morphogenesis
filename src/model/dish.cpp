@@ -269,7 +269,7 @@ void Dish::AverageChemCell() // d is number of diffusers (2?)
   for ( (c=cell.begin(),c++); c!=cell.end(); c++) 
     if (c->AliveP())
     {
-      c->average_chem();
+      // c->average_chem();
       // if (c->chem_conc(0) > max_conc)
       //   max_conc = c->chem_conc(0);
       // if (c->chem_conc(1) > max_conc1)
@@ -318,13 +318,13 @@ void Dish::SyntheticAverageChemCell() // d is number of diffusers (2?)
 
         }
       }
-  vector<Cell>::iterator c;
-  for ( (c=cell.begin(),c++); c!=cell.end(); c++) 
-    if (c->AliveP())
-    {
-      c->average_chem_synthetic();
+  // vector<Cell>::iterator c;
+  // for ( (c=cell.begin(),c++); c!=cell.end(); c++) 
+  //   if (c->AliveP())
+  //   {
+  //     c->average_chem_synthetic();
 
-    }
+  //   }
 }
 
 
