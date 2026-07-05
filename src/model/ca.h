@@ -751,7 +751,9 @@ public:
   void InitialiseRandomSoxValues();
 
 
+  void ToxictoLonelyCells();
 
+  void NeighbourBasedPerimeterConstraint();
 
 
 

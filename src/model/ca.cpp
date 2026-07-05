@@ -414,7 +414,7 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
   // ==========================================
   // ACTIVE MOTION TERM
   // ==========================================
-  if (par.active_motion)
+  if (par.active_motion && cell_sxy.Area() > 2)
   {
     double &mot_strength_sxy = cell_sxy.GetMotilityStrength();
     double &mot_strength_sxyp = cell_sxyp.GetMotilityStrength();
@@ -431,13 +431,15 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
       DH -= cell_sxyp.GetMotilityStrength() * cell_sxyp.ActiveDotProduct_added(x, y);
       DH -= cell_sxy.GetMotilityStrength() * cell_sxy.ActiveDotProduct_removed(x, y);
     }
+    // if ((*cell)[sigma[x][y]].TargetArea()==0 && sigma[x][y] > 0)
+    //   cout << cell_sxy.GetMotilityStrength() * cell_sxy.ActiveDotProduct_removed(x, y) << endl;
   }
 
 
   // ==========================================
   // PERIMETER CONSTRAINT
   // ==========================================
-  if (par.H_perim) 
+  if (par.H_perim && cell_sxy.Area() > 2) 
   {
     double DH_perimeter = 0;
     if (sxyp == MEDIUM) 
@@ -464,8 +466,11 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
            DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y, neighbor_spins) - cell_sxy.TargetPerimeter()));      
     }
     DH += DH_perimeter;
+
   }
   
+
+
   return DH;
 }
 
@@ -3732,8 +3737,6 @@ void CellularPotts::Vectorfield()
 
 }
 
-
-
 // check if there are any lonely cells. 
 bool CellularPotts::SoloCheck()
 {
@@ -3772,4 +3775,88 @@ bool CellularPotts::SoloCheck()
   return true;  
 }
 
-  
+void CellularPotts::ToxictoLonelyCells()
+{
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      int nbh_count{};
+      int j=0;
+      while (ns[i][j] >= 0)
+      {
+        ++j;
+      }
+      if (j==1)
+      {
+        cell->at(i).MakeLonely(true);
+        if (cell->at(i).TargetArea() > 0)
+          cell->at(i).DecrementTargetArea();
+
+        double area_constraint = par.bulk_modulus / double(cell->at(i).TargetArea());
+        cell->at(i).setAreaConstraint(area_constraint);
+        int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(cell->at(i).TargetArea())/double(par.cell_target_area)));
+        if (target_perim < 2)
+          target_perim=0;
+        cell->at(i).SetTargetPerimeter(target_perim);
+        
+        double perim_constraint = (cell->at(i).GetElasticMod() / double(target_perim));
+        cell->at(i).setPerimConstraint(perim_constraint);
+
+        // cout << "cell number: " << cell->at(i).Sigma() << "  area: " << cell->at(i).Area() << '\t' << "  target area: " << cell->at(i).TargetArea() << "  perimeter: " << cell->at(i).Perimeter() << "   target perimeter: " << cell->at(i).TargetPerimeter() << endl;
+
+      }
+      else
+      {
+        cell->at(i).MakeLonely(false);
+      }
+    }
+  }
+
+  free(ns[0]);
+  free(ns);
+
+}
+
+// still working on this
+void CellularPotts::NeighbourBasedPerimeterConstraint()
+{
+
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  vector<double> neighbour_sox2_vals(n_size,0);
+  vector<double> neighbour_sox17_vals(n_size,0);
+  vector<int> cell_nbh_counts(n_size,0);
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      int nbh_count{};
+      int j=0;
+      // sox17 should maybe depend on blastocoel touching (do later)
+      while (ns[i][j] > 0)
+      {
+        ++cell_nbh_counts[i];
+        neighbour_sox2_vals[i]+=(*cell)[ns[i][j]].getSox2adhesion();
+        neighbour_sox17_vals[i]+=(*cell)[ns[i][j]].getSox17adhesion();
+        ++j;
+      }
+      neighbour_sox2_vals[i] /= double(cell_nbh_counts[i]);
+      neighbour_sox17_vals[i] /= double(cell_nbh_counts[i]);
+      double elastic_mod_new = par.elastic_modulus * (neighbour_sox2_vals[i] * cell->at(i).getSox2adhesion() * 10
+                          + neighbour_sox17_vals[i] * cell->at(i).getSox17adhesion() * 10);
+     
+      cell->at(i).SetElasticMod(elastic_mod_new);
+      double perim_constraint = (elastic_mod_new / double(cell->at(i).TargetPerimeter()));
+      cell->at(i).setPerimConstraint(perim_constraint);
+
+    }
+  }
+
+
+
+  free(ns[0]);
+  free(ns);
+}

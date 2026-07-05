@@ -1298,6 +1298,26 @@ double& GetFauxTargetArea()
 }
 
 
+inline void UpdateAdhesions() 
+{
+  double t2  = 1.0 / (1.0 + std::exp(-100.0 * (Sox2_concentration  - par.sox_threshold_width)));
+  double t17 = 1.0 / (1.0 + std::exp(-100.0 * (Sox17_concentration - par.sox_threshold_width)));
+
+  // 2. Apply mutual inhibition so that if BOTH are ~1, both adhesions become ~0
+  sox2_internal_adhesion  = t2  * (1.0 - t17);
+  sox17_internal_adhesion = t17 * (1.0 - t2);
+}
+
+inline double getSox2adhesion()
+{
+  return sox2_internal_adhesion;
+}
+
+inline double getSox17adhesion()
+{
+  return sox17_internal_adhesion;
+}
+
 inline double getSox2()
 {
   return Sox2_concentration;
@@ -1308,8 +1328,7 @@ inline void setSox2(double newsox)
   Sox2_concentration=newsox;
   UpdatePerimeterConstraint();
 
-  double t = 1./ (1+ exp(-100 * (Sox2_concentration - par.sox_threshold_width) ));
-  sox2_internal_adhesion=t;
+  UpdateAdhesions();
   // (Sox2_concentration - (par.sox_threshold - par.sox_threshold_width))
   //            / (2.0 * par.sox_threshold_width);
   // if (t <= 0.0)
@@ -1332,10 +1351,8 @@ inline void setSox17(double newsox)
   Sox17_concentration=newsox;
   UpdatePerimeterConstraint();
 
-  double t = 1./ (1+ exp(-100 * (Sox17_concentration - par.sox_threshold_width) ));
-  sox17_internal_adhesion=t;
+  UpdateAdhesions();
 
-  
   // cout << sox2_internal_adhesion << '\t' << sox17_internal_adhesion << endl;
   
 }
@@ -1354,47 +1371,27 @@ inline void SetSoxColour()
     set_ctype(index);
 }
 
-// Lineage calls, using the same 0.2 threshold as Cell::EmbryoEnergy.
-inline bool IsEpiblast() const
+inline void MakeLonely(bool lonely)
 {
-  return Sox2_concentration > 0.2 && Sox17_concentration <= 0.2;
+  lonely_cell=true;
 }
 
-inline bool IsHypoblast() const
+inline bool IsLonely()
 {
-  return Sox17_concentration > 0.2 && Sox2_concentration <= 0.2;
+  return lonely_cell;
 }
 
-//! Neither lineage has committed (Sox2/Sox17 comparable: both low, both
-//! high, or otherwise not clearly one or the other). These cells behave
-//! like a fluid (weak shape memory) and are gradually sorted out towards
-//! the medium (see the undifferentiated_blasto_adhesion term in
-//! Cell::EmbryoEnergy).
-inline bool IsUndifferentiated() const
-{
-  return !IsEpiblast() && !IsHypoblast();
-}
 
-//! (Re)computes the perimeter target and constraint from the cell's
-//! *targeted* area (not its actual, fluctuating pixel-count area) and its
-//! lineage. Called from SetTargetArea/setSox2/setSox17, so later varying
-//! target_area or par.cell_target_area keeps the shape constraint in sync
-//! without a separate manual step.
 inline void UpdatePerimeterConstraint()
 {
-  double stiffness_scale = 1.0;
-  // this needs to be changed
-  if (IsEpiblast())
-    stiffness_scale = par.epiblast_lambda_scale;
-  else if (IsHypoblast())
-    stiffness_scale = par.hypoblast_lambda_scale;
-  else
-    // Undifferentiated: fluid behaviour, weak resistance to deformation.
-    stiffness_scale = par.undifferentiated_lambda_scale;
-
   target_perimeter = static_cast<int>(round(par.ptarget_perimeter *
       sqrt(double(target_area) / double(par.cell_target_area))));
-  cell_perim_constraint = par.lambda_perimeter * stiffness_scale;
+
+  cell_elastic_mod = par.elastic_modulus;
+  target_perimeter = round(double(par.ptarget_perimeter) * sqrt(double(target_area)/double(par.cell_target_area)));
+  
+  cell_perim_constraint = cell_elastic_mod / double(target_perimeter);
+
 }
 
 
@@ -1555,7 +1552,7 @@ protected:
   double motility_strength;
   double leftover_area;
 
-
+  bool lonely_cell;
 
 
 

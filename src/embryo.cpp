@@ -160,6 +160,13 @@ TIMESTEP {
       dish->CPM->update_cell_velocities_MCS();
     }
 
+    if (t%100==0 && t > 900)
+    {
+      dish->CPM->ToxictoLonelyCells();
+      // dish->CPM->NeighbourBasedPerimeterConstraint();
+
+    }
+
 
 
     // std::cout << "Press Enter to continue..."; // Nice to have a prompt

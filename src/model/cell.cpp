@@ -279,8 +279,8 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma)
     // lambda_epi_epi and lambda_hypo_hypo may be equal. Same for
     // lambda_epi_hypo and lambda_hypo_epi.
     return par.J_cell_baseline - t2 * cell2_t2 * par.sox2binding
-                              - t17 * cell2_t17 * par.sox17binding;
-                              - t17 * cell2_t2 * par.sox2vs17binding;
+                              - t17 * cell2_t17 * par.sox17binding
+                              - t17 * cell2_t2 * par.sox2vs17binding
                               - t2 * cell2_t17 * par.sox2vs17binding;
     
     // one_of_both_loosers * par.lambda_both_loosers

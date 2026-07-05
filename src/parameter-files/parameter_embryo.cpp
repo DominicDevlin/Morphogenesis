@@ -126,19 +126,19 @@
     // modulation of sox17 expressing cell to medium
     sox17_blasto_adhesion=-0.;
     // modulation of sox2 expressing cell to medium
-    sox2_blasto_adhesion=-0.4;
-    // binding of sox2 to sox2 (will change later to cadherin)
-    sox2binding=0.2;
-    // binding of sox17 to sox17 (will change later to cadherin)
-    sox17binding=0.2;
+    sox2_blasto_adhesion=-0.;
+    // binding of sox2 to sox2
+    sox2binding=1.0;
+    // binding of sox17 to sox17 =
+    sox17binding=0.5;
     // binding between sox2 and sox17
-    sox2vs17binding=0.03;
+    sox2vs17binding=0.75;
 
 
     // baseline J value for adhesion between cells and blasto
-    Jblasto=0.05;
+    Jblasto=0.4;
     // baseline J value between cells
-    J_cell_baseline=0.2;
+    J_cell_baseline=1.0;
     // extra pull towards medium for undifferentiated (comparable Sox2/Sox17)
     // cells, so they get sorted out of the tissue over time.
     undifferentiated_blasto_adhesion=0.15;
