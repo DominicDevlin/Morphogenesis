@@ -80,11 +80,18 @@ INIT
     
     CPM->ClearGrid();
 
-    CPM->PopulateSparseCells(par.start_density, par.start_radius, 0, 0);
+    if (par.make_zona_pellucida)
+    {
+      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 60, 70, 2);
+    }
+
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -55, par.sizex/2, par.sizey/2, 60, 70, 2);
+
+
 
 
     // Assign a random type to each of the cells
-    CPM->SetRandomTypes();
+    // CPM->SetRandomTypes();
 
     par.end_program=0;
 
@@ -133,10 +140,6 @@ TIMESTEP {
       dish->CPM->SetPerims(par.ptarget_perimeter);
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
       dish->CPM->SetMotilityStrengths();
-      if (par.make_zona_pellucida)
-      {
-        dish->CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 90, 120, 3);
-      }
     }
 
     if (t==1000)
@@ -145,6 +148,11 @@ TIMESTEP {
       dish->CPM->MeanCellPerimeter();
     }
 
+    // if (t==5)
+    // {
+    //   double check;
+    //   std::cin >> check;
+    // }
     // if (t % par.synthetic_update_step == 0 && t > 0))
     // {
     //   dish->CPM->UpdateActiveMotion();
@@ -163,11 +171,10 @@ TIMESTEP {
     if (t%100==0 && t > 900)
     {
       dish->CPM->ToxictoLonelyCells();
-      // dish->CPM->NeighbourBasedPerimeterConstraint();
-
     }
 
-
+    // if (t % 20==0 && t > 0)
+    //   dish->CPM->NeighbourBasedPerimeterConstraint();
 
     // std::cout << "Press Enter to continue..."; // Nice to have a prompt
     // std::cin.get();                            // The actual pause

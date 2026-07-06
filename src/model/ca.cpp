@@ -1847,14 +1847,35 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
 
 /* putting new methods here */
 
-
 void CellularPotts::InitialiseRandomSoxValues()
 {
+  // --- NEW CONFIGURATION ---
+  // Define your desired probability for a cell to be Sox2 dominant.
+  // 0.8 means 80% Sox2, 20% Sox17. 0.5 is 50/50.
+  // (You could easily make this a parameter like par.sox2_ratio)
+  double target_sox2_prob = 0.7; 
+
+  // Clamp the probability between 0.001 and 0.999 to prevent log(0) math errors
+  if (target_sox2_prob < 0.001) target_sox2_prob = 0.001;
+  if (target_sox2_prob > 0.999) target_sox2_prob = 0.999;
+  
+  double target_sox17_prob = 1.0 - target_sox2_prob;
+
+  // The threshold upon which cell fate is decided. 
+  // Based on your previous p=2.321928 math, this is 0.2.
+  // (Ideally, set this to par.sox_threshold if it's accessible here)
+  double threshold = 0.2; 
+
+  // Mathematically calculate the exact exponents needed to shift the distributions
+  // so that exactly 'target_sox2_prob' proportion of cells land above the threshold.
+  double p2  = std::log(threshold) / std::log(1.0 - target_sox2_prob);
+  double p17 = std::log(threshold) / std::log(1.0 - target_sox17_prob);
+  // -------------------------
 
   vector<Cell>::iterator c;
   for ((c=cell->begin(), c++); c!=cell->end(); c++)
   {
-    if (c->AliveP())
+    if (c->AliveP() && c->Sigma()!=zona_sigma)
     {
       // 1. Get two independent uniform random numbers between 0 and 1
       double u_a = RANDOM(s_val);
@@ -1868,10 +1889,8 @@ void CellularPotts::InitialiseRandomSoxValues()
       double z2 = radius * std::sin(theta);
 
       // 3. DEFINE YOUR 'x' HERE (Fraction of cases split across 0.2)
-      // Example: 0.85 means in 85% of cases, one is < 0.2 and the other is > 0.2
-      double x = 0.85; 
-
-      // Calculate the exact correlation (rho) needed to achieve 'x'
+      // This maintains the mutual exclusion (if it's Sox2, it's NOT Sox17)
+      double x = 0.99; 
       double rho = std::sin(M_PI * (0.5 - x)); 
 
       // Create negatively correlated variables
@@ -1883,29 +1902,16 @@ void CellularPotts::InitialiseRandomSoxValues()
       double u1 = 0.5 * std::erfc(-y1 * inv_sqrt2);
       double u2 = 0.5 * std::erfc(-y2 * inv_sqrt2);
 
-      // 5. Apply mathematical skew to set Median exactly to 0.2
-      // 0.5 ^ 2.321928 == 0.2
-      const double p = 2.321928;
-      double sox2 = std::pow(u1, p);
-      double sox17 = std::pow(u2, p);
-      // cout << "sox2 and 17:  " << sox2 << '\t' << sox17 << endl;
+      // 5. Apply the calculated skew exponents to achieve your desired ratio
+      double sox2 = std::pow(u1, p2);
+      double sox17 = std::pow(u2, p17);
+      
       c->setSox2(sox2);
       c->setSox17(sox17);
 
-      // // weight is the Sox2/Sox17 dominance ratio: 0 = pure Sox17, 1 = pure Sox2.
-      // double weight = 0.5f * (sox2 - sox17 + 1.0f);
-
-      // // Map the 0.0 - 1.0 weight to the integer range 2 to 102 (100 steps) for
-      // // display. This ctype value drives cell colour only (Colour() -> c_type);
-      // // it no longer plays any role in adhesion, which is computed directly
-      // // from Sox2_concentration/Sox17_concentration in Cell::EmbryoEnergy.
-      // int index = 2 + static_cast<int>(std::round(weight * 100.0f));
-
-      // c->set_ctype(index);
       c->SetSoxColour();
     }
   }
-
 }
 
 
@@ -2024,6 +2030,214 @@ void CellularPotts::ClearGrid()
   }
 }
 
+void CellularPotts::PopulateDenseCellsInZonaRadius(double density, double R, int shiftx, int shifty, double h, double k, double a, double b, double n)
+{
+  int current_cells = CountCells();
+  // 1. Define the usable active grid space
+  int W = sizex - 2;
+  int H = sizey - 2;
+  
+  double max_area = par.synthetic_max_area;
+  double min_area = par.synthetic_min_area;
+  double average_area = (max_area - min_area)/2. + min_area;
+  
+  // Guard against invalid parameters
+  if (max_area <= 0 || density <= 0.0 || R <= 0.0 || a <= 0.0 || b <= 0.0) return;
+  
+  // 2. Calculate lattice spacing directly from density and target area.
+  double area_per_center = average_area / density;
+  double r = std::sqrt(area_per_center / (2.0 * std::sqrt(3.0)));
+
+  // 3. Determine lattice parameters to cover the grid
+  int num_cols = static_cast<int>(std::round(W / (2.0 * r)));  
+  int num_rows = static_cast<int>(std::round(H / (std::sqrt(3.0) * r)));
+  if (num_cols <= 0) num_cols = 1;
+  if (num_rows <= 0) num_rows = 1;
+
+  // 4. Calculate actual lattice bounds to perfectly center the cells on the grid
+  double max_x = 0, max_y = 0;
+  for (int row = 0; row < num_rows; ++row) {
+    for (int col = 0; col < num_cols; ++col) {
+      double cx = col * 2.0 * r;
+      double cy = row * std::sqrt(3.0) * r;
+      if (row % 2 == 1) cx += r; // Stagger odd rows
+      
+      if (cx > max_x) max_x = cx;
+      if (cy > max_y) max_y = cy;
+    }
+  }
+
+  // Offset ensures perfectly symmetric empty padding near the walls, shifted by user request
+  double offset_x = (W - max_x) / 2.0 + 1.0 + shiftx; 
+  double offset_y = (H - max_y) / 2.0 + 1.0 + shifty;
+
+  // Find the exact mathematical center of the grid
+  double grid_center_x = sizex / 2.0 + shiftx;
+  double grid_center_y = sizey / 2.0 + shifty;
+
+  // HELPER: Check if a point is strictly INSIDE the Zona Pellucida hollow cavity
+  auto isInsideZonaCavity = [&](double px, double py) {
+      double dx = px - h;
+      double dy = py - k;
+      
+      // Ellipse equation f(x, y)
+      double f = (dx * dx) / (a * a) + (dy * dy) / (b * b) - 1.0;
+      
+      // If f >= 0, we are on or outside the mathematical ellipse boundary
+      if (f >= 0.0) return false; 
+      
+      // Calculate approximated distance to the ellipse curve
+      double grad_x = (2.0 * dx) / (a * a);
+      double grad_y = (2.0 * dy) / (b * b);
+      double grad_mag = std::sqrt(grad_x * grad_x + grad_y * grad_y);
+      
+      double distance = (grad_mag == 0.0) ? std::min(a, b) : std::abs(f) / grad_mag;
+      
+      // Must be deeper inside the boundary than the zona thickness 'n'
+      return distance > n; 
+  };
+
+  // 5. Generate the centers, filtering by BOTH grid center <= R AND ellipse cavity
+  struct VPoint { 
+    double x, y; 
+    int id; 
+    double target_area;
+  };
+  std::vector<VPoint> centers;
+
+  for (int row = 0; row < num_rows; ++row) {
+    for (int col = 0; col < num_cols; ++col) {
+      double cx = col * 2.0 * r;
+      double cy = row * std::sqrt(3.0) * r;
+      if (row % 2 == 1) cx += r;
+      
+      double final_cx = cx + offset_x;
+      double final_cy = cy + offset_y;
+      
+      // Distance from the shifted grid center
+      double dist = euclideanDistance(final_cx, final_cy, grid_center_x, grid_center_y, sizex, sizey);
+      
+      // Must be within radius R AND inside the Zona Pellucida cavity
+      if (dist <= R && isInsideZonaCavity(final_cx, final_cy)) 
+      {
+        double rnd = RANDOM(s_val) * (max_area - min_area) + min_area;
+        centers.push_back({final_cx, final_cy, -1, rnd});
+      }
+      if (final_cx < 5 || final_cx > sizex-5 || final_cy < 5 || final_cy > sizey-5)
+        cerr << "warning: some centers are outside of domain\n";
+    }
+  }
+
+  int final_ncells = centers.size();
+  if (final_ncells == 0) {
+      std::cout << "Conditions too restrictive to generate any cells (Check R and Ellipse bounds)." << std::endl;
+      return;
+  }
+
+  // 6. Split sheet to prepare sufficient cell instances
+  FractureSheet(final_ncells);
+
+  // Map the new alive cell IDs to our spatial centers
+  std::vector<int> valid_ids;
+  for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) {
+    if (c == cell->begin()) continue; // Skip medium/background index 0
+    if (c->AliveP()) 
+    {
+      valid_ids.push_back(c->Sigma());
+    }
+  }
+
+  for (size_t i = 0; i < centers.size(); ++i) {
+      if (i < valid_ids.size()) {
+          centers[i].id = valid_ids[i];
+      }
+  }
+
+  // 8. Draw the Voronoi domains
+  for (int x = 1; x < sizex - 1; ++x) {
+      for (int y = 1; y < sizey - 1; ++y) {
+        
+        // Safety check: Never overwrite the existing Zona Pellucida
+        if (sigma[x][y] == zona_sigma) {
+          continue;
+        }
+
+        // Distance from the shifted grid center
+        double dist_to_grid_center = euclideanDistance(x, y, grid_center_x, grid_center_y, sizex, sizey);
+        
+        // Pixel must be within radius R AND strictly inside the hollow cavity
+        if (dist_to_grid_center <= R && isInsideZonaCavity(x, y)) 
+        {
+          double minDistance = std::numeric_limits<double>::max();
+          int closestCenter = -1;
+          
+          for (const auto& center : centers) {
+            if (center.id == -1) continue;
+            
+            double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
+            if (dist < minDistance) {
+                minDistance = dist;
+                closestCenter = center.id;
+            }
+          }
+            
+          // Assign to closest center
+          if (closestCenter != -1) {
+            sigma[x][y] = closestCenter;
+          }
+        }
+      }
+  }
+
+  // 9. Re-evaluate actual populated cell areas
+  for (auto c = cell->begin(); c != cell->end(); ++c) {
+    if (c == cell->begin()) 
+      continue;
+    if (c->AliveP() && c->Sigma() != zona_sigma) 
+      c->area = 0;
+  }
+
+  for (int x = 1; x < sizex - 1; ++x) {
+    for (int y = 1; y < sizey - 1; ++y) {
+      if (sigma[x][y] > 0 && sigma[x][y] != zona_sigma) 
+      {
+        (*cell)[sigma[x][y]].area += 1;
+        (*cell)[sigma[x][y]].makeAlive();
+      }
+    }   
+  }
+  
+  // 10. Single unified cleanup and target initialization loop
+  int deadcells = 0;
+  for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) 
+  {
+    if (c == cell->begin()) continue;
+    if (c->Sigma() == zona_sigma) continue; // Skip Zona Pellucida cell
+
+    if (c->AliveP()) 
+    {
+      if (c->area == 0) 
+      {
+        c->Apoptose();
+        ++deadcells;
+      } 
+      else 
+      {
+        // Target area is now matched identically to the size the Voronoi algorithm generated.
+        c->SetTargetArea(c->area); 
+        c->setSpheroid(false);
+      }
+    }
+  }
+  MeasureCellSizes();
+
+  std::cout << "Grid generated | Radius: " << R 
+            << " | Density: " << density 
+            << " | Cells populated: " << (final_ncells - deadcells)
+            << " | Cells killed (0 area): " << deadcells << std::endl;
+}
+
+
 // Added 'double R' to the function parameters
 void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, int shifty)
 {
@@ -2120,7 +2334,8 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
   std::vector<int> valid_ids;
   for (auto c = std::next(cell->begin(), current_cells); c != cell->end(); ++c) {
     if (c == cell->begin()) continue; // Skip medium/background index 0
-    if (c->AliveP()) {
+    if (c->AliveP()) 
+    {
       valid_ids.push_back(c->Sigma());
     }
   }
@@ -2138,6 +2353,10 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
 
   for (int x = 1; x < sizex - 1; ++x) {
       for (int y = 1; y < sizey - 1; ++y) {
+        if (sigma[x][y] == zona_sigma) {
+          continue;
+        }
+
         double minDistance = std::numeric_limits<double>::max();
         int closestCenter = -1;
         double closestRadiusLimit=0.;
@@ -2170,7 +2389,7 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
 
   for (int x = 1; x < sizex - 1; ++x) {
     for (int y = 1; y < sizey - 1; ++y) {
-      if (sigma[x][y] > 0) 
+      if (sigma[x][y] > 0 && sigma[x][y] != zona_sigma) 
       {
         (*cell)[sigma[x][y]].area += 1;
         (*cell)[sigma[x][y]].makeAlive();
@@ -2220,7 +2439,7 @@ void CellularPotts::FractureSheet()
     vector<Cell>::iterator c;
     for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
-      if (c->AliveP())
+      if (c->AliveP() && c->Sigma() != zona_sigma)
       {
         int area = c->Area();  
         if (area>par.div_threshold)
@@ -2249,7 +2468,7 @@ void CellularPotts::FractureSheet(int n_cells)
     vector<Cell>::iterator c;
     for ( (c=cell->begin(), c++);c!=cell->end();c++) 
     {
-      if (c->AliveP())
+      if (c->AliveP() && c->Sigma() != zona_sigma)
       {
         if (counter<=n_cells)
         {
@@ -2842,8 +3061,11 @@ void CellularPotts::MakeZonaPellucida(double h, double k, double a, double b, do
       }
     }
   }
-(*cell)[zona_sigma].SetTargetArea(total_area);
+  (*cell)[zona_sigma].SetTargetArea(total_area);
+  (*cell)[zona_sigma].Apoptose();
 }
+
+
 
 void CellularPotts::SetMotilityStrengths()
 {
@@ -2858,6 +3080,136 @@ void CellularPotts::SetMotilityStrengths()
     }
   }
 }
+
+
+
+
+void CellularPotts::ToxictoLonelyCells()
+{
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (true==true)//(cell->at(i).AliveP())
+    {
+      int nbh_count{};
+      int j=0;
+      int non_cell_count=0;
+      while (ns[i][j] >= 0)
+      {
+        if (ns[i][j] != zona_sigma && ns[i][j] > 0)
+          ++non_cell_count;
+        ++j;
+      }
+      if (non_cell_count == 0)
+      {
+        cell->at(i).MakeLonely(true);
+        if (cell->at(i).Area() < 50 && cell->at(i).TargetArea() > 0)
+          cell->at(i).SetTargetArea(1);
+        else if (cell->at(i).TargetArea() > 1)
+          cell->at(i).DecrementTargetArea();
+
+        double area_constraint = par.bulk_modulus / double(cell->at(i).TargetArea());
+        cell->at(i).setAreaConstraint(area_constraint);
+        int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(cell->at(i).TargetArea())/double(par.cell_target_area)));
+        if (target_perim < 2)
+          target_perim=0;
+        cell->at(i).SetTargetPerimeter(target_perim);
+        
+        double perim_constraint = (cell->at(i).GetElasticMod() / double(target_perim));
+        cell->at(i).setPerimConstraint(perim_constraint);
+
+        // cout << "cell number: " << cell->at(i).Sigma() << "  area: " << cell->at(i).Area() << '\t' << "  target area: " << cell->at(i).TargetArea() << "  perimeter: " << cell->at(i).Perimeter() << "   target perimeter: " << cell->at(i).TargetPerimeter() << endl;
+
+      }
+      else
+      {
+        cell->at(i).MakeLonely(false);
+      }
+    }
+  }
+
+  free(ns[0]);
+  free(ns);
+
+}
+
+// still working on this
+void CellularPotts::NeighbourBasedPerimeterConstraint()
+{
+
+  int **ns = SearchNeighbours();
+  int n_size = CountCells();
+  vector<double> neighbour_sox2_vals(n_size,0);
+  vector<double> neighbour_sox17_vals(n_size,0);
+  vector<int> cell_nbh_counts(n_size,0);
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      int nbh_count{};
+      int j=0;
+      bool touching_med=false;
+      // sox17 should maybe depend on blastocoel touching (do later)
+      while (ns[i][j] >= 0)
+      {
+        if (ns[i][j] > 0)
+        {
+          ++cell_nbh_counts[i];
+          neighbour_sox2_vals[i]+=(*cell)[ns[i][j]].getSox2adhesion();
+          neighbour_sox17_vals[i]+=(*cell)[ns[i][j]].getSox17adhesion();
+        }
+        if (ns[i][j]==0)
+          touching_med=true;
+        ++j;
+      }
+      double stiffness_multiplier=1;
+      if (cell_nbh_counts[i] > 0)
+      {
+        neighbour_sox2_vals[i] /= double(cell_nbh_counts[i]);
+        neighbour_sox17_vals[i] /= double(cell_nbh_counts[i]);
+        double p1 = neighbour_sox2_vals[i] * cell->at(i).getSox2adhesion() * 20;
+        double p2 = neighbour_sox17_vals[i] * cell->at(i).getSox17adhesion() * 20;
+        stiffness_multiplier += (p1+p2);
+        cout << p1 << '\t' << p2 << endl;
+      }
+      if (touching_med==true)
+      {
+        double mot_strength = par.motility_strength - par.motility_strength * cell->at(i).getSox17adhesion();
+        cell->at(i).SetMotilityStrength(mot_strength);
+      }
+      else
+      {
+        double mot_strength = par.motility_strength;
+        cell->at(i).SetMotilityStrength(mot_strength);
+      }
+      int target_perim = cell->at(i).TargetPerimeter();
+      double ideal_perim_constraint = (par.elastic_modulus / double(target_perim)) * stiffness_multiplier;
+
+      double current_constraint = cell->at(i).getPerimConstraint();
+      double smoothed_constraint = (current_constraint * 0.9) + (ideal_perim_constraint * 0.1);
+
+      cell->at(i).setPerimConstraint(smoothed_constraint);
+    }
+  }
+
+  free(ns[0]);
+  free(ns);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3735,128 +4087,4 @@ void CellularPotts::Vectorfield()
     cout << "called centroids without setting velocities to true" << endl;
   }
 
-}
-
-// check if there are any lonely cells. 
-bool CellularPotts::SoloCheck()
-{
-  vector<Cell>::iterator c;
-  for ( (c=cell->begin(), c++);c!=cell->end();c++) 
-    if (c->AliveP())
-    {
-      bool lonely=true; 
-      int id = c->Sigma();
-      for (int x=1;x<sizex-2;++x)
-        for (int y=1;y<sizey-2;++y)
-        {
-          if (sigma[x][y] == id)
-          {
-            if (sigma[x][y-1] > 0 && sigma[x][y-1] != id)
-            {
-              lonely = false;
-              x = sizex;
-              y = sizey;
-              break;
-            }
-            
-            if (sigma[x][y+1] > 0 && sigma[x][y+1] != id)
-            {
-              lonely = false;
-              x = sizex;
-              y = sizey;
-              break;
-            }
-              
-          }
-        }
-      if (lonely)
-        return false;
-    }
-  return true;  
-}
-
-void CellularPotts::ToxictoLonelyCells()
-{
-  int **ns = SearchNeighbours();
-  int n_size = CountCells();
-  for (int i = 1; i < n_size; ++i)
-  {
-    if (cell->at(i).AliveP())
-    {
-      int nbh_count{};
-      int j=0;
-      while (ns[i][j] >= 0)
-      {
-        ++j;
-      }
-      if (j==1)
-      {
-        cell->at(i).MakeLonely(true);
-        if (cell->at(i).TargetArea() > 0)
-          cell->at(i).DecrementTargetArea();
-
-        double area_constraint = par.bulk_modulus / double(cell->at(i).TargetArea());
-        cell->at(i).setAreaConstraint(area_constraint);
-        int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(cell->at(i).TargetArea())/double(par.cell_target_area)));
-        if (target_perim < 2)
-          target_perim=0;
-        cell->at(i).SetTargetPerimeter(target_perim);
-        
-        double perim_constraint = (cell->at(i).GetElasticMod() / double(target_perim));
-        cell->at(i).setPerimConstraint(perim_constraint);
-
-        // cout << "cell number: " << cell->at(i).Sigma() << "  area: " << cell->at(i).Area() << '\t' << "  target area: " << cell->at(i).TargetArea() << "  perimeter: " << cell->at(i).Perimeter() << "   target perimeter: " << cell->at(i).TargetPerimeter() << endl;
-
-      }
-      else
-      {
-        cell->at(i).MakeLonely(false);
-      }
-    }
-  }
-
-  free(ns[0]);
-  free(ns);
-
-}
-
-// still working on this
-void CellularPotts::NeighbourBasedPerimeterConstraint()
-{
-
-  int **ns = SearchNeighbours();
-  int n_size = CountCells();
-  vector<double> neighbour_sox2_vals(n_size,0);
-  vector<double> neighbour_sox17_vals(n_size,0);
-  vector<int> cell_nbh_counts(n_size,0);
-  for (int i = 1; i < n_size; ++i)
-  {
-    if (cell->at(i).AliveP())
-    {
-      int nbh_count{};
-      int j=0;
-      // sox17 should maybe depend on blastocoel touching (do later)
-      while (ns[i][j] > 0)
-      {
-        ++cell_nbh_counts[i];
-        neighbour_sox2_vals[i]+=(*cell)[ns[i][j]].getSox2adhesion();
-        neighbour_sox17_vals[i]+=(*cell)[ns[i][j]].getSox17adhesion();
-        ++j;
-      }
-      neighbour_sox2_vals[i] /= double(cell_nbh_counts[i]);
-      neighbour_sox17_vals[i] /= double(cell_nbh_counts[i]);
-      double elastic_mod_new = par.elastic_modulus * (neighbour_sox2_vals[i] * cell->at(i).getSox2adhesion() * 10
-                          + neighbour_sox17_vals[i] * cell->at(i).getSox17adhesion() * 10);
-     
-      cell->at(i).SetElasticMod(elastic_mod_new);
-      double perim_constraint = (elastic_mod_new / double(cell->at(i).TargetPerimeter()));
-      cell->at(i).setPerimConstraint(perim_constraint);
-
-    }
-  }
-
-
-
-  free(ns[0]);
-  free(ns);
 }

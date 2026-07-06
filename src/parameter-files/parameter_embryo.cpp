@@ -92,24 +92,11 @@
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
 
-    // Epiblast (Sox2+/Sox17-) is more compact/rounded than baseline; hypoblast
-    // keeps the baseline shape constraint for now. Combined with the area-based
-    // scaling in SetPerims, this keeps the constraint consistent as cells grow.
-    // Note from dom. We should keep the perimeter constant and just change lambda via the elastic modulus or lambda_perimeter.
-    // and also, these values should change depending on the neighbours of the cell (when it has more neighbours that 
-    // it binds to, lambda should go up...)
-    epiblast_lambda_scale = 1.0;
-    hypoblast_lambda_scale = 2.0;
-    // Undifferentiated cells (comparable Sox2/Sox17) behave like a fluid:
-    // much weaker perimeter constraint than either committed lineage.
-    undifferentiated_lambda_scale = 1.0;
-      
-
     // active motion should depend on E/P/N cadherin
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.2;
+    motility_strength = 0.16;
     Ecadherin_bound_motility_loss=0.15;
     persistence_time = 40.;
 
@@ -123,44 +110,34 @@
 
 /* adhesion params */
 
+
+    // baseline J value for adhesion between cells and blastocoel
+    Jblasto=0.5;
     // modulation of sox17 expressing cell to medium
     sox17_blasto_adhesion=-0.;
     // modulation of sox2 expressing cell to medium
     sox2_blasto_adhesion=-0.;
-    // binding of sox2 to sox2
-    sox2binding=1.0;
-    // binding of sox17 to sox17 =
-    sox17binding=0.5;
-    // binding between sox2 and sox17
-    sox2vs17binding=0.75;
+    loser_blasto_adhesion=-1.0;
 
-
-    // baseline J value for adhesion between cells and blasto
-    Jblasto=0.4;
     // baseline J value between cells
     J_cell_baseline=1.0;
-    // extra pull towards medium for undifferentiated (comparable Sox2/Sox17)
-    // cells, so they get sorted out of the tissue over time.
-    undifferentiated_blasto_adhesion=0.15;
-    // Same midpoint as the old hard 0.2 cutoff, but now a smoothstep ramp
-    // instead of a step: width=0.1 reaches 0/1 at +/-0.1 of the midpoint,
-    // so behaviour stays close to the old cutoff while being smooth.
+    // binding of sox2 to sox2
+    sox2binding=0.8;
+    // binding of sox17 to sox17 =
+    sox17binding=0.4;
+    // binding between sox2 and sox17
+    sox2vs17binding=0.6;
+
+    J_cell_zona = 1.5;
+    // added zona adhesion for sox2 sox17
+    Jzona_sox2extra=0.3;
+    Jzona_sox17extra=0.;
+
     sox_threshold=0.2;
-    sox_threshold_width=0.2;
-    // Lineage-pair adhesion terms for two non-medium, non-zona cells (see
-    // Cell::EmbryoEnergy). Placeholder values, same magnitudes as the old
-    // sox2binding/sox17binding/J_cell_baseline formula it replaces: matching
-    // lineages bind a bit more strongly than baseline, mismatched lineages
-    // and undifferentiated ("looser") pairs sit at baseline. Needs tuning.
-    lambda_epi_epi=0.15;
-    lambda_hypo_hypo=0.15;
-    lambda_epi_hypo=0.2;
-    lambda_hypo_epi=0.2;
-    lambda_both_loosers=0.2;
 
     // make an oval zona pellucida that does not move
     make_zona_pellucida = true;
-    J_cell_zona = 0.01;
+
 
     E_cadherin_production_rate=0.04;
     E_cadherin_saturation_constant=0.25;
@@ -178,7 +155,7 @@
     // Note - i changed this to simply change lambdaP
     make_sparse_cells=true;
     start_radius=50;
-    start_density=0.8;
+    start_density=1.0;
     
     
 

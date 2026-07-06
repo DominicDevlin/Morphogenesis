@@ -1300,8 +1300,8 @@ double& GetFauxTargetArea()
 
 inline void UpdateAdhesions() 
 {
-  double t2  = 1.0 / (1.0 + std::exp(-100.0 * (Sox2_concentration  - par.sox_threshold_width)));
-  double t17 = 1.0 / (1.0 + std::exp(-100.0 * (Sox17_concentration - par.sox_threshold_width)));
+  double t2  = 1.0 / (1.0 + std::exp(-1000.0 * (Sox2_concentration  - par.sox_threshold)));
+  double t17 = 1.0 / (1.0 + std::exp(-1000.0 * (Sox17_concentration - par.sox_threshold)));
 
   // 2. Apply mutual inhibition so that if BOTH are ~1, both adhesions become ~0
   sox2_internal_adhesion  = t2  * (1.0 - t17);
@@ -1329,14 +1329,7 @@ inline void setSox2(double newsox)
   UpdatePerimeterConstraint();
 
   UpdateAdhesions();
-  // (Sox2_concentration - (par.sox_threshold - par.sox_threshold_width))
-  //            / (2.0 * par.sox_threshold_width);
-  // if (t <= 0.0)
-  //   sox2_internal_adhesion=0.;
-  // else if (t >= 1.0) 
-  //   sox2_internal_adhesion=0.;
-  // else 
-  //   sox2_internal_adhesion = t * t * (3.0 - 2.0 * t);
+
 
 
 }

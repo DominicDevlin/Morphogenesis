@@ -79,281 +79,17 @@ public:
   Find enlarged cells, and divide them.*/
   void CellGrowthAndDivision(int time);
 
-  /// program first divisions for MFs
-  void Programmed_Division(void);
-
-  void Programmed_Division(bool phase);
-
-  // get the approx middle of a cell
-  vector<int> MiddleOfCell(int sig);
-
-  // called by Programmed_Division() to set maternal factors
-  void set_MF(vector<vector<int>> middles, int gene, double conc=1., double conc2=0., bool mod_second = false);
-
-  vector<bool> divide_vector(void);
-
   int CountCells(void) const;  
-
-  int CountSomaticCells(void); 
-
-  void start_network(vector<vector<int>> start_matrix, vector<bool> start_pol={0,0,0,0});
-
-  void update_network(int tsteps);
-
-  void update_phase_network(int tsteps);
-
-  double numeric_step(vector<double>& gene_list, double conc, int gene_n, int tsteps);
-
-  void add_noise();
-
-  void noise_term(double &x);
-
-  void randomise_network(void);
-
-  void print_random_cell(void);
-
-  pair<int,int> GetTargetandVolume();
-
-  bool CycleCheck();
-
-  void set_long_switches(map<pair<int,int>,int>& tally);
-
-  // Function to get new colour==c_type 
-  int set_type(int& setv);
-
-  void PrintColourList();
-
-
-  void SetAllStates();
-
-  int get_ntypes(void);
 
   void set_num(int in);
 
   void set_seed(void);
 
-  int hamming_distance(vector<bool> &str1, vector<bool> &str2);
-
-  void CellHammingDifferences();
 
   void set_datafile(string file);
 
 
-  // fitness methods. 
-  void som_fitness(void);
-  void update_fitness(void);
-  void TypeFitness(void);
-
-  int TypeFitness2(void);
-
-  double get_fitness(void);
-
-
-  void record_GRN(void); // record concentrations. 
-
-  void print_cell_GRN(); // print concentrations of a cell. 
-
-  // void RecordTypes();
-
-  // void RecordAdultTypes();
-
-  // unlikely to use, Dom has programmed for fun.
-  void morphogenWave(void);
-
-  void decay_morph(double& morph);
-
-  void colourbymorph(void);
-
-  void get_center(double* center);
-
-  double OldDeviationFromCircle();
-
-  double NewDeviationFromCircle();
-
-  double BresenhamForCircle(int x1, int y1, int x2, int y2, int dx, int dy, int decide, double *center, double rad);
-
-  double CircleNegGrad(double m, double *center, double rad);
-
-  double CirclePosGrad(double m, double *center, double rad);
-  
-
-  double WhiteSpace();
-
-  void EarlyWhiteSpace();
-
-
-  double BresenhamLine(int x1, int y1, int x2, int y2, int dx, int dy, int decide, int m_contig);
-
-  double neg_grad(double m, int m_contig);
-
-  double pos_grad(double m, int m_contig);
-
-  void plotPixel(int x1, int y1, int x2, int y2, int dx, int dy, int decide);
-
-
-  void cell_concentrations();
-
-  void cell_divisions();
-
-  void phenotype_time();
-
-  map<int, int> get_phenotype_time();
-
-  map<int, int> get_AdultTypes();
-
-
-  unordered_map<string, int> transitions(bool cycling);
-  
-  void set_switches(map<pair<int,int>,int>& tally);
-
-
-  bool SoloCheck();
-
-  double diffuser_check(int n, int x, int y);
-
-  double get_enzyme_conc(int n, int x, int y);
-
-  bool CheckAllConnected(double threshold=1.);
-
-  bool RemoveUnconnectedCells(int max_cells = 10);
-
-  double VecDoubleDeriv(vector<double>& vex);
-
-  void ShapeFitness();
-
-  // void InitShape(int n);
-
-  // void AddNewShape();
-  
-  // double ChangeInShape();
-
-  double Curvature();
-
-  bool CheckShape();
-
-  double AngleCurvature();
-
-  void SetCellCenters();
-
-  void StartSheetTypes();
-
-  void RandomSheetType();
-
-  vector<int> CellsFromCAC(vector<array<int,2>> cac);
-
-  void DrawPerimeter(Graphics *g, vector<int> pcells);
-
-  vector<array<int,2>> PerimeterCAC();
-
-  void DrawListofCAC(Graphics *g, vector<array<int,2>> cac);
-
-  int PerimeterFitness();
-
-  long TotalArea();
-
-  vector<int> LinkPerimeter();
-
-  void PerimeterGrid();
-
-  vector<vector<int>> CellNeighbours(vector<int> cell_list); 
-
   void update_cell_velocities_MCS();
-
-  void CellExposure();
-
-  vector<vector<bool>> ReturnGridBad();
-  int** ReturnGrid();
-
-  inline bool MaintainedShape()
-  {
-    return ShapeMaintained;
-  }
-
-  void PrintPhenotypes();
-
-  void PrintColours();
-
-  void SetColours();
-
-  void DestroyCellsByPhenotype(int type, bool save=true, int type2=-2, int type3=-2, int type4=-2);
-
-  void DestroyCellsByMorphogen(int morph, double conc=0.5);
-
-  void DestroyCellsByRadius(double rad);
-
-  int ConvertToStem(int xloc, int yloc, int rad, int type, PDE *field, bool clear=false, int clear_rad=0);
-
-  void IntroduceMorphogen(int num);
-
-  // true = divide down vertical axis, false = divide across horizontal axis
-  void xyCellDivision(int id, bool direction, int t=0);
-
-  int VerticalLine(int id);
-
-  int HorizontalLine(int id);
-
-  double TraverseFitness();
-
-  void IntroduceMorphogen(int num, int xloc, int yloc, PDE *field);
-
-  double AverageBinding();
-
-  void BindingBetweenCells();
-
-  void RecordGamma();
-
-  void OutputGamma();
-
-  double AvgMedsOn();
-
-  void DeviationCheck();
-
-  double CompareGrid(int **grid2);
-
-  void swap_cells(void);
-
-  int random_cell(void);
-
-  void CountTypesTime(void);
-
-  void PrintTypesTime(bool prune=false);
-
-  void RecordMasses(bool phase_only=false);
-
-  void CellVelocities();
-
-  void SpecialVelocity();
-
-  void Directionality();
-
-  vector<pair<double, double>> scc_momenta(vector<vector<int>> sccs);
-
-
-  vector<pair<double, double>> scc_polar_momenta(vector<vector<int>> sccs);
-
-  pair<double, double> momenta(void);
-
-  void diff_anisotropy(vector<vector<int>> sccs);
-
-  void division_anisotropy(vector<vector<int>> sccs);
-
-  void OutputInitConcs();
-
-  void SingleCellDirection();
-
-  void RecordSizes();
-
-  void OutputSizes();
-
-  void CheckCellsInBud();
-
-  void ColourIndex();
-
-  void PrintHexColours();
-
-  void ColourCells();
-
-  void ColourCells(bool phase);
 
   void FillGrid();
 
@@ -361,153 +97,13 @@ public:
 
   void FractureSheet(int n_cells);
 
-  // make whole grid voronoi cell tesselatoin
-  void Voronoi();
-  
-  //specify rectangular area of voronoi tesselation
-  void Voronoi(int xlen, int ylen, int shift=0, int xshift=0, bool turnonphase=false);
-
-  void VoronoiSeparated(int xlen, int ylen, int shift, int xshift, bool turnonphase=false);
-
-  void ToppingVoronoi();
-
-  int ReturnHeight();
-
-  void DrawDisplacement(Graphics *g);
-
-  void MeanSquareDisplacement();
-
   double SumEnergy();
 
   void SetMediumArea();
 
   bool IsLocallyConnected(int* nbs, int check_val);
 
-
-  vector<vector<double>> ReturnMSD();
-
-  vector<double> ReturnDriftCorrectedMSD();
-
-  void ShapeIndex();
-
-  void removeVolume(int i, int j, int celln);
-
-  void addVolume(int i, int j, int celln);
-
-  // must be done after adjusting volumes
-  void adjustPerimeters();
-
-  vector<double> TruePerimeters();
-
-  map<int, double> TruePerimetersMap();
-
-  void ShapeIndexByState();
-
-  void PhaseShapeIndex(int time=0, bool measure_proportion=false);
-
-  void MeasureShapeIndex();
-
-  void AverageShapeIndex();
-
-  vector<double>& ReturnShapeIndex();
-
-  void MeasureHexaticOrder();
-
-  void AverageHexaticOrder();
-
-  vector<double>& ReturnHexaticOrder();
-
-
-
-  vector<double> GetVolumes();
-
-  vector<double> measureAnisotropy();
-
-  void initVolume();
-
-  map<int,vector<double>> Get_state_shape_index();
-
-  vector<double> TrueAdhesion();
-
-  void AdhesionByState();
-
-  map<int,vector<double>> Get_state_Adhesion();
-
-  vector<double> PerimitersRadiusN(double radius=sqrt(13), double correction=36.);
-
-  void Init_Optimizer();
-
-  double Optimizer();
-
-  bool EndOptimizer(int time);
-
-  int CountPhaseOnCells();
-
-  pair<double,double> LengthWidth(bool do_coeff);
-
-  void ConstrainedGrowthAndDivision(int time);
-
-  void DiscreteGrowthAndDivision(int time);
-
-  void ComputeShapeAlignment();
-
-  pair<double,double> ShapeAlignmentByPhase();
-
-  pair<double,double> PhaseZValues();
-
-  // void TypeGrowDivide(bool state, vector<bool> &which_cells);
-
-  // void TypeGrowDivideDistribution(vector<int> &to_increase);
-
-  void VolumeAddition();
-
-  void SetXTip();
-
-  void ColourCellsByShape();
-
-  void ColourCellsByIndex();
-
-  void PhaseHexaticOrder(int time=0);
-
-  void HexaticOrder(int time=0);
-
-  void ShapeOrder(int time=0);
-
-  vector<double> GetHexes();
-
-  map<int,vector<double>> GetHexaticOrderList();
-
-  map<int, vector<pair<int,double>>> Get_time_hexatic_order();
-
-  map<int, vector<pair<int,double>>> Get_time_shape_index();
-
-  vector<pair<int,double>> Get_sheet_hexatic_order();
-
-  vector<pair<int,double>> Get_sheet_shape_index();
-
   bool SpawnCell(int x, int y, int cp_sigma, int time);
-
-  int FindHighestCell();
-
-  double von_mises_random(double mean, double kappa); 
-
-  pair<int,int> ChooseAddPoint(int max_point=par.sizey);
-
-  pair<int,int> ChooseAddPointtoTop(int max_point=par.sizey);
-
-  int CheckAddPoints();
-
-  int TopStalk();
-
-  void SetAreas(int area);
-
-  void SetLengths(int tlength);
-
-  void PrintLengths();
-
-  int EmptySpace();
-
-  double Cooperativity(int time_skip=1);
 
   int GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y, const int* neighbor_spins);
 
@@ -520,66 +116,12 @@ public:
 
   void SetPerims(int tperim);
 
-  void WetTopCells(int width, int depth);
-
-  void WetAbove(int width, int depth);
-
-  void WetAllCells();
-
-  double HTouchMedium();
-  
-  void StartWettingNetwork();
-
-  int WettingLength();
-
-  bool WettingDepinned();
-
-  void WetRandomCells();
-
-  int init_wet_length;
-  double WettingRatio();
-
-  int ContactAngle();
-
-  int EpiContactAngle();
-
-
-  double GetContactAngles();
-  vector<double> tmp_angles;
-
-  double NeighbourExchangeRate();
-
-  double ReturnShapeProportion();
-
-  void AddEpithelialLayer();
-
-  int CountEpithelial();
-
-  int MediumExchangeRate();
-
-  double avgMedMovement();
-
-  double MedPSuccessRate();
-
   void ApoptoseDeadCells();
 
-  vector<double> HydrostaticPressure();
-
-  void RecordPressure();
-
-  void RecordStress();
-
-  void CheckIfCellTouchingMedium();
-
-  map<int, bool> ReturnMediumTouching();
-
-  vector<double> AdhesionStress();
-
-  vector<vector<int>> t1transitions();
-
-  vector<vector<double>> find_shared_centres();
-
   void PopulateSparseCells(double density, double R, int shiftx, int shifty);
+
+  void PopulateDenseCells(double density, double R, int shiftx, int shifty);
+
 
   /* SYNTHETIC MULTICELLULAR STRUCTURE METHODS */
   void SyntheticNetwork();
@@ -606,16 +148,7 @@ public:
 
   void ClearGrid();
 
-  double MeasureDomainSizeR(vector<double>* out_C_r = nullptr);
-
-  // dynamic adhesion project methods
-  void UpdateDynamicAdhesion();
-
-  void StartDynamicAdhesion();
-
-  void AddtoMeeting(int i, int j);
-  void SnapMeeting(int i, int j);
-  int GetMeeting(int i, int j);
+  void PopulateDenseCellsInZonaRadius(double density, double R, int shiftx, int shifty, double h, double k, double a, double b, double n);
 
 
   inline double GetDynamicAdhesion(int i, int j) const
@@ -650,40 +183,13 @@ public:
     }
   }
 
-  void SetSortingTypesRandomly();
-
-  double CalculateABBoundaryLength();
+  void SetAreas(int tarea);
 
   void MakeZonaPellucida(double h, double k, double a, double b, double n);
 
   void SetMotilityStrengths();
 
-
-
-  // inline double prop_success()
-  // {
-  //   // cout << "Successes: " << flip_true << "  Fails: " << flip_false << endl;
-  //   double val = double(flip_true) / double(flip_true + flip_false);
-  //   cout << "percent: " << val << "  average dH: " << dH_tally / double(flip_true + flip_false) << "  average neg dH: " << dH_neg / double(flip_true) << endl;
-    
-  //   return val;
-  // }
-
-
-  void ConstructSheet(int x, int y);
-
-  // returns colour at this site
-  int SiteColour(int x, int y);
-
-  vector<vector<double>> OrganismGenes(int start);
-
-  vector<int> OrganismTypes(int start);
-
   void Vectorfield();
-
-  //Output norm on cell proteins for all cells. 
-  void OutputProteinNorms();
-
 
 
   // personal random numbers for xoshiro RNG (each grid has its own state)

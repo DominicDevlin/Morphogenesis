@@ -225,20 +225,6 @@ void Cell::ConstructorBody(int settau) {
 
 
 
-// Smooth stand-in for the old hard >0.2 concentration cutoff, so Sox2/Sox17
-// -driven adhesion effects ramp up gradually around par.sox_threshold instead
-// of jumping at it. This runs on every candidate copy attempt in the CPM's
-// inner loop, so it uses a cubic Hermite smoothstep (clamp + multiplies)
-// rather than a logistic sigmoid, which would need a exp() call per pixel.
-static inline double SoxCommitment(double concentration)
-{
-  double t = (concentration - (par.sox_threshold - par.sox_threshold_width))
-             / (2.0 * par.sox_threshold_width);
-  if (t <= 0.0) return 0.0;
-  if (t >= 1.0) return 1.0;
-  return t * t * (3.0 - 2.0 * t);
-}
-
 double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma)
 {
   if (sigma==cell2.sigma)
@@ -249,19 +235,23 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma)
     // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
     // that unsorted cells are gradually sorted out of the tissue.
     return par.Jblasto - cell2.sox2_internal_adhesion * par.sox2_blasto_adhesion
-                        - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion;
+                        - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion
+                        - (1-cell2.sox2_internal_adhesion) * (1-cell2.sox17_internal_adhesion) * par.loser_blasto_adhesion;
                         //- cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
   else if (cell2.sigma==0)
   {
     return par.Jblasto - sox2_internal_adhesion * par.sox2_blasto_adhesion;
-                       - sox17_internal_adhesion * par.sox17_blasto_adhesion;
+                       - sox17_internal_adhesion * par.sox17_blasto_adhesion
+                      - (1-sox2_internal_adhesion) * (1-sox17_internal_adhesion) * par.loser_blasto_adhesion;
+
                         // - IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
   else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
   {
     // cout << "here" << endl;
-    return par.J_cell_zona;
+    return par.J_cell_zona - sox2_internal_adhesion * par.Jzona_sox2extra;
+                          - sox17_internal_adhesion * par.Jzona_sox17extra;
   }
   else
   {
@@ -276,20 +266,13 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma)
     double cell2_is_looser = max(cell2_t2 * cell2_t17, (1. - cell2_t2) * (1. - cell2_t17));
     double one_of_both_loosers = max(is_looser, cell2_is_looser);
 
-    // lambda_epi_epi and lambda_hypo_hypo may be equal. Same for
-    // lambda_epi_hypo and lambda_hypo_epi.
+
     return par.J_cell_baseline - t2 * cell2_t2 * par.sox2binding
                               - t17 * cell2_t17 * par.sox17binding
                               - t17 * cell2_t2 * par.sox2vs17binding
                               - t2 * cell2_t17 * par.sox2vs17binding;
     
-    // one_of_both_loosers * par.lambda_both_loosers
-    //      - (1. - one_of_both_loosers) * (
-    //            t2 * cell2_t2 * par.lambda_epi_epi
-    //          + t17 * cell2_t17 * par.lambda_hypo_hypo
-    //          + t2 * cell2_t17 * par.lambda_epi_hypo
-    //          + t17 * cell2_t2 * par.lambda_hypo_epi
-    //        );
+
   }
 
 

@@ -133,31 +133,20 @@ class Parameter {
 
   double sox17_blasto_adhesion;
   double sox2_blasto_adhesion;
+  double loser_blasto_adhesion;
   double sox2binding;
   double sox17binding;
   double sox2vs17binding;
   double Jblasto;
+  double Jzona_sox2extra;
+  double Jzona_sox17extra;
   double J_cell_baseline;
-  // Extra pull towards the medium for undifferentiated cells (comparable
-  // Sox2/Sox17), on top of sox17_blasto_adhesion, so they get sorted out.
-  double undifferentiated_blasto_adhesion;
+
+
+
   // Midpoint and transition half-width of the smoothstep function that
   // replaces the old hard >0.2 cutoff on Sox2/Sox17 concentration in
-  // Cell::EmbryoEnergy, so "committed" adhesion effects turn on gradually
-  // instead of stepwise. Ramps from 0 to 1 over
-  // [sox_threshold - sox_threshold_width, sox_threshold + sox_threshold_width].
   double sox_threshold;
-  double sox_threshold_width;
-  // Adhesion energy between two non-medium, non-zona cells, weighted by how
-  // committed each is to epiblast (t2, from Sox2) vs hypoblast (t17, from
-  // Sox17) fate. If either cell is "undifferentiated" (t2 and t17 comparable,
-  // i.e. not clearly one lineage), lambda_both_loosers applies instead of the
-  // lineage-pair terms below. See Cell::EmbryoEnergy.
-  double lambda_both_loosers;
-  double lambda_epi_epi;
-  double lambda_hypo_hypo;
-  double lambda_epi_hypo;
-  double lambda_hypo_epi;
 
   /* synthetic params*/
   bool make_synthetic;
