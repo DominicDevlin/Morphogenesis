@@ -96,7 +96,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.45;
+    motility_strength = 0.6;
     persistence_time = 40.;
 
   
@@ -109,7 +109,7 @@
 
     starting_fraction_losers=0.2;
     target_sox2_prob=0.67;
-    loser_perim_increase=0.15;
+    loser_perim_increase=0.25;
 /* adhesion params */
 
     // baseline J value for adhesion between cells and blastocoel
@@ -128,6 +128,11 @@
     sox17binding=0.4;
     // binding between sox2 and sox17
     sox2vs17binding=0.5;
+
+    loser_loser_adhesion=-0.6;
+    loser_sox2_adhesion=0.;
+    loser_sox17_adhesion=-0.1;
+
 
     J_cell_zona = 1.5;
     // added zona adhesion for sox2 sox17

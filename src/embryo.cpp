@@ -134,6 +134,7 @@ TIMESTEP {
       dish->Init();
       dish->CPM->CopyProb(par.T);
       dish->CPM->MeasureCellPerimeters();
+      dish->CPM->SetAreas(par.cell_target_area);
       // Sox values must be assigned before SetPerims, which sizes the
       // perimeter constraint per lineage (epiblast/hypoblast).
       dish->CPM->InitialiseRandomSoxValues();
@@ -175,6 +176,8 @@ TIMESTEP {
 
     if (t % 20==0 && t > 0)
       dish->CPM->NeighbourBasedPerimeterConstraint();
+
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     // std::cout << "Press Enter to continue..."; // Nice to have a prompt
     // std::cin.get();                            // The actual pause

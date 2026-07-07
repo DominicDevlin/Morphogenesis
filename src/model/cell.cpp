@@ -266,15 +266,20 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
 
     // "Looser" = undifferentiated: t2 and t17 are comparable (both big or
     // both small), so neither lineage clearly dominates; 0.5 if intermediate.
-    // double is_looser = max(t2 * t17, (1. - t2) * (1. - t17));
-    // double cell2_is_looser = max(cell2_t2 * cell2_t17, (1. - cell2_t2) * (1. - cell2_t17));
+    double is_looser = max(t2 * t17, (1. - t2) * (1. - t17));
+    double cell2_is_looser = max(cell2_t2 * cell2_t17, (1. - cell2_t2) * (1. - cell2_t17));
     // double one_of_both_loosers = max(is_looser, cell2_is_looser);
 
 
     return par.J_cell_baseline - t2 * cell2_t2 * par.sox2binding
                               - t17 * cell2_t17 * par.sox17binding
                               - t17 * cell2_t2 * par.sox2vs17binding
-                              - t2 * cell2_t17 * par.sox2vs17binding;
+                              - t2 * cell2_t17 * par.sox2vs17binding
+                              - is_looser * cell2_is_looser * par.loser_loser_adhesion
+                              - is_looser * cell2_t2 * par.loser_sox2_adhesion
+                              - cell2_is_looser * t2 * par.loser_sox2_adhesion
+                              - is_looser * cell2_t17 * par.loser_sox17_adhesion
+                              - cell2_is_looser * t17 * par.loser_sox17_adhesion;
     
 
   }

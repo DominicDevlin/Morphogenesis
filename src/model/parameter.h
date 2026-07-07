@@ -144,6 +144,10 @@ class Parameter {
   double Jzona_sox17extra;
   double J_cell_baseline;
 
+  double loser_loser_adhesion;
+  double loser_sox2_adhesion;
+  double loser_sox17_adhesion;
+
   double starting_fraction_losers;
   double loser_perim_increase;
   double target_sox2_prob;
