@@ -225,7 +225,7 @@ void Cell::ConstructorBody(int settau) {
 
 
 
-double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma)
+double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
 {
   if (sigma==cell2.sigma)
     return 0;
@@ -250,8 +250,12 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma)
   else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
   {
     // cout << "here" << endl;
-    return par.J_cell_zona - sox2_internal_adhesion * par.Jzona_sox2extra;
-                          - sox17_internal_adhesion * par.Jzona_sox17extra;
+    return par.J_cell_zona;
+  }
+  else if (cell2.sigma==zona_sigma_sticky)
+  {
+    return par.J_cell_zona_sticky - sox2_internal_adhesion * par.Jzona_sox2extra;
+                          - sox17_internal_adhesion * par.Jzona_sox17extra;  
   }
   else
   {

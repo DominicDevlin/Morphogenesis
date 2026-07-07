@@ -187,6 +187,8 @@ public:
 
   void MakeZonaPellucida(double h, double k, double a, double b, double n);
 
+  void DifferentiateZonaPellucida();
+
   void SetMotilityStrengths();
 
   void Vectorfield();
@@ -500,6 +502,7 @@ private:
 
 
   int zona_sigma;
+  int zona_sigma_sticky;
 
   double internal_T;
 

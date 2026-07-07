@@ -87,7 +87,7 @@ INIT
 
     CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -55, par.sizex/2, par.sizey/2, 60, 70, 2);
 
-
+    CPM->DifferentiateZonaPellucida();
 
 
     // Assign a random type to each of the cells

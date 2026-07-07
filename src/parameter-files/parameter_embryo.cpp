@@ -108,8 +108,9 @@
     conn_diss = 2000;
 
 
+    starting_fraction_losers=0.2;
+    target_sox2_prob=0.7;
 /* adhesion params */
-
 
     // baseline J value for adhesion between cells and blastocoel
     Jblasto=0.5;
@@ -117,7 +118,7 @@
     sox17_blasto_adhesion=-0.;
     // modulation of sox2 expressing cell to medium
     sox2_blasto_adhesion=-0.;
-    loser_blasto_adhesion=-1.0;
+    loser_blasto_adhesion=-0.;
 
     // baseline J value between cells
     J_cell_baseline=1.0;
@@ -130,7 +131,8 @@
 
     J_cell_zona = 1.5;
     // added zona adhesion for sox2 sox17
-    Jzona_sox2extra=0.3;
+    J_cell_zona_sticky=1.5;
+    Jzona_sox2extra=0.8;
     Jzona_sox17extra=0.;
 
     sox_threshold=0.2;

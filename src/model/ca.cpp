@@ -376,7 +376,7 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
     } 
     else 
     {
-      Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma);
+      Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky);
     }
   }
   
@@ -879,7 +879,7 @@ int CellularPotts::AmoebaeMove(long tsteps, PDE *PDEfield)
     if (k == kp)
       continue;
 
-    if (par.make_zona_pellucida && (k==zona_sigma || kp==zona_sigma))
+    if (par.make_zona_pellucida && (k==zona_sigma || kp==zona_sigma || k==zona_sigma_sticky || kp==zona_sigma_sticky))
     {
       continue;
     }
@@ -1853,13 +1853,12 @@ void CellularPotts::InitialiseRandomSoxValues()
   // Define your desired probability for a cell to be Sox2 dominant.
   // 0.8 means 80% Sox2, 20% Sox17. 0.5 is 50/50.
   // (You could easily make this a parameter like par.sox2_ratio)
-  double target_sox2_prob = 0.7; 
 
   // Clamp the probability between 0.001 and 0.999 to prevent log(0) math errors
-  if (target_sox2_prob < 0.001) target_sox2_prob = 0.001;
-  if (target_sox2_prob > 0.999) target_sox2_prob = 0.999;
+  if (par.target_sox2_prob < 0.001) par.target_sox2_prob = 0.001;
+  if (par.target_sox2_prob > 0.999) par.target_sox2_prob = 0.999;
   
-  double target_sox17_prob = 1.0 - target_sox2_prob;
+  double target_sox17_prob = 1.0 - par.target_sox2_prob;
 
   // The threshold upon which cell fate is decided. 
   // Based on your previous p=2.321928 math, this is 0.2.
@@ -1868,7 +1867,7 @@ void CellularPotts::InitialiseRandomSoxValues()
 
   // Mathematically calculate the exact exponents needed to shift the distributions
   // so that exactly 'target_sox2_prob' proportion of cells land above the threshold.
-  double p2  = std::log(threshold) / std::log(1.0 - target_sox2_prob);
+  double p2  = std::log(threshold) / std::log(1.0 - par.target_sox2_prob);
   double p17 = std::log(threshold) / std::log(1.0 - target_sox17_prob);
   // -------------------------
 
@@ -1890,7 +1889,7 @@ void CellularPotts::InitialiseRandomSoxValues()
 
       // 3. DEFINE YOUR 'x' HERE (Fraction of cases split across 0.2)
       // This maintains the mutual exclusion (if it's Sox2, it's NOT Sox17)
-      double x = 0.99; 
+      double x = 1-par.starting_fraction_losers; 
       double rho = std::sin(M_PI * (0.5 - x)); 
 
       // Create negatively correlated variables
@@ -3066,6 +3065,71 @@ void CellularPotts::MakeZonaPellucida(double h, double k, double a, double b, do
 }
 
 
+void CellularPotts::DifferentiateZonaPellucida()
+{
+  //make room for a new cell!
+  vector<bool> which_cells(cell->size());
+  which_cells.back()=true;
+  DivideCellsNoGrid(which_cells);
+  zona_sigma_sticky = (*cell).back().Sigma();
+  int total_area=0;
+  (*cell)[zona_sigma_sticky].set_ctype(203);
+  // Store modifications to prevent a chain-reaction in a single pass
+  vector<std::pair<int, int>> to_change;
+  int R = 4;
+  // Step 2: Iterate through the grid
+  for (int x = 1; x <= sizex-1; ++x) 
+  {
+    for (int y = 1; y <= sizey-1; ++y) 
+    {
+      if (sigma[x][y] == zona_sigma)
+      {
+        bool found = false;
+        // Search neighboring pixels within the bounding box of radius R
+        // std::max/std::min ensures we don't check outside the grid boundaries
+        for (int nx = max(1, x - R); nx <= min(sizex - 1, x + R); ++nx) 
+        {
+          for (int ny = max(1, y - R); ny <= min(sizey - 1, y + R); ++ny) 
+          {
+            // Check if the neighbor is actually within the circular radius R
+            if ((nx - x) * (nx - x) + (ny - y) * (ny - y) <= R * R) 
+            {
+              if (sigma[nx][ny] > 0 && sigma[nx][ny] != zona_sigma) 
+              {
+                found = true;
+                break; // Stop searching if we found at least one
+              }
+            }
+          }
+          if (found) break; // Break out of the outer neighbor loop early
+        }
+        
+        // If a valid pixel was found in radius R, mark this coordinate to be changed
+        if (found) 
+        {
+          cout << x << '\t' << y << endl;
+          pair<int,int>newchange={x,y};
+          to_change.push_back(newchange);
+          ++total_area;
+        } 
+      }
+      
+ 
+    }
+  }
+  
+  for (auto pp : to_change)
+  {
+    sigma[pp.first][pp.second] = zona_sigma_sticky;
+  }
+
+  (*cell)[zona_sigma_sticky].SetTargetArea(total_area);
+  (*cell)[zona_sigma_sticky].Apoptose();
+}
+
+
+
+
 
 void CellularPotts::SetMotilityStrengths()
 {
@@ -3097,7 +3161,7 @@ void CellularPotts::ToxictoLonelyCells()
       int non_cell_count=0;
       while (ns[i][j] >= 0)
       {
-        if (ns[i][j] != zona_sigma && ns[i][j] > 0)
+        if (ns[i][j] != zona_sigma && ns[i][j] !=zona_sigma_sticky && ns[i][j] > 0)
           ++non_cell_count;
         ++j;
       }

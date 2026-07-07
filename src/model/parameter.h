@@ -130,6 +130,7 @@ class Parameter {
 
   bool make_zona_pellucida;
   double J_cell_zona;
+  
 
   double sox17_blasto_adhesion;
   double sox2_blasto_adhesion;
@@ -138,10 +139,13 @@ class Parameter {
   double sox17binding;
   double sox2vs17binding;
   double Jblasto;
+  double J_cell_zona_sticky;
   double Jzona_sox2extra;
   double Jzona_sox17extra;
   double J_cell_baseline;
 
+  double starting_fraction_losers;
+  double target_sox2_prob;
 
 
   // Midpoint and transition half-width of the smoothstep function that
