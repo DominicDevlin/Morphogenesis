@@ -145,6 +145,7 @@ class Parameter {
   double J_cell_baseline;
 
   double starting_fraction_losers;
+  double loser_perim_increase;
   double target_sox2_prob;
 
 

@@ -87,7 +87,7 @@
 
     H_perim = true;
     elastic_modulus = 1;
-    ptarget_perimeter = 42;
+    ptarget_perimeter = 44;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
@@ -96,8 +96,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.16;
-    Ecadherin_bound_motility_loss=0.15;
+    motility_strength = 0.45;
     persistence_time = 40.;
 
   
@@ -109,7 +108,8 @@
 
 
     starting_fraction_losers=0.2;
-    target_sox2_prob=0.7;
+    target_sox2_prob=0.67;
+    loser_perim_increase=0.15;
 /* adhesion params */
 
     // baseline J value for adhesion between cells and blastocoel
@@ -121,18 +121,18 @@
     loser_blasto_adhesion=-0.;
 
     // baseline J value between cells
-    J_cell_baseline=1.0;
+    J_cell_baseline=1.2;
     // binding of sox2 to sox2
-    sox2binding=0.8;
+    sox2binding=0.6;
     // binding of sox17 to sox17 =
     sox17binding=0.4;
     // binding between sox2 and sox17
-    sox2vs17binding=0.6;
+    sox2vs17binding=0.5;
 
     J_cell_zona = 1.5;
     // added zona adhesion for sox2 sox17
-    J_cell_zona_sticky=1.5;
-    Jzona_sox2extra=0.8;
+    J_cell_zona_sticky=2.0;
+    Jzona_sox2extra=1.4;
     Jzona_sox17extra=0.;
 
     sox_threshold=0.2;

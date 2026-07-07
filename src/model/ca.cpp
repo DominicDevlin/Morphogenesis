@@ -3107,7 +3107,6 @@ void CellularPotts::DifferentiateZonaPellucida()
         // If a valid pixel was found in radius R, mark this coordinate to be changed
         if (found) 
         {
-          cout << x << '\t' << y << endl;
           pair<int,int>newchange={x,y};
           to_change.push_back(newchange);
           ++total_area;
@@ -3151,21 +3150,27 @@ void CellularPotts::SetMotilityStrengths()
 void CellularPotts::ToxictoLonelyCells()
 {
   int **ns = SearchNeighbours();
-  int n_size = CountCells();
+  int n_size = (*cell).size();
   for (int i = 1; i < n_size; ++i)
   {
-    if (true==true)//(cell->at(i).AliveP())
+    // cout << i << '\t' << "is alive: " << cell->at(i).AliveP() << endl;;
+    if (cell->at(i).AliveP())
     {
       int nbh_count{};
       int j=0;
-      int non_cell_count=0;
+      bool sox2neighbour=false;
       while (ns[i][j] >= 0)
       {
-        if (ns[i][j] != zona_sigma && ns[i][j] !=zona_sigma_sticky && ns[i][j] > 0)
-          ++non_cell_count;
+        if (ns[i][j] != zona_sigma && ns[i][j] != zona_sigma_sticky && ns[i][j] > 0)
+        {
+          if ((*cell)[ns[i][j]].getSox2adhesion() > 0.75)
+          {
+            sox2neighbour=true;
+          }
+        }
         ++j;
       }
-      if (non_cell_count == 0)
+      if (sox2neighbour==false)
       {
         cell->at(i).MakeLonely(true);
         if (cell->at(i).Area() < 50 && cell->at(i).TargetArea() > 0)
@@ -3175,13 +3180,8 @@ void CellularPotts::ToxictoLonelyCells()
 
         double area_constraint = par.bulk_modulus / double(cell->at(i).TargetArea());
         cell->at(i).setAreaConstraint(area_constraint);
-        int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(cell->at(i).TargetArea())/double(par.cell_target_area)));
-        if (target_perim < 2)
-          target_perim=0;
-        cell->at(i).SetTargetPerimeter(target_perim);
-        
-        double perim_constraint = (cell->at(i).GetElasticMod() / double(target_perim));
-        cell->at(i).setPerimConstraint(perim_constraint);
+
+        cell->at(i).UpdatePerimeterConstraint();
 
         // cout << "cell number: " << cell->at(i).Sigma() << "  area: " << cell->at(i).Area() << '\t' << "  target area: " << cell->at(i).TargetArea() << "  perimeter: " << cell->at(i).Perimeter() << "   target perimeter: " << cell->at(i).TargetPerimeter() << endl;
 
@@ -3228,32 +3228,38 @@ void CellularPotts::NeighbourBasedPerimeterConstraint()
         ++j;
       }
       double stiffness_multiplier=1;
+      double mot_strength = par.motility_strength;
+      double sox2ad = cell->at(i).getSox2adhesion();
+      double sox17ad = cell->at(i).getSox17adhesion();
       if (cell_nbh_counts[i] > 0)
       {
         neighbour_sox2_vals[i] /= double(cell_nbh_counts[i]);
         neighbour_sox17_vals[i] /= double(cell_nbh_counts[i]);
-        double p1 = neighbour_sox2_vals[i] * cell->at(i).getSox2adhesion() * 20;
-        double p2 = neighbour_sox17_vals[i] * cell->at(i).getSox17adhesion() * 20;
-        stiffness_multiplier += (p1+p2);
-        cout << p1 << '\t' << p2 << endl;
+        double p1 = neighbour_sox2_vals[i] * sox2ad * 20;
+        //double p2 = neighbour_sox17_vals[i] * cell->at(i).getSox17adhesion() * 20;
+        //stiffness_multiplier += (p1+p2);
+        // cout << p1 << '\t' << p2 << endl;
+        mot_strength -= par.motility_strength * p1;
       }
       if (touching_med==true)
       {
-        double mot_strength = par.motility_strength - par.motility_strength * cell->at(i).getSox17adhesion();
-        cell->at(i).SetMotilityStrength(mot_strength);
+        mot_strength -= par.motility_strength * sox17ad;
       }
-      else
-      {
-        double mot_strength = par.motility_strength;
-        cell->at(i).SetMotilityStrength(mot_strength);
-      }
-      int target_perim = cell->at(i).TargetPerimeter();
-      double ideal_perim_constraint = (par.elastic_modulus / double(target_perim)) * stiffness_multiplier;
+      if (mot_strength < 0)
+        mot_strength=0;
 
-      double current_constraint = cell->at(i).getPerimConstraint();
-      double smoothed_constraint = (current_constraint * 0.9) + (ideal_perim_constraint * 0.1);
+      cell->at(i).SetMotilityStrength(mot_strength);
 
-      cell->at(i).setPerimConstraint(smoothed_constraint);
+      double is_looser = max(sox2ad * sox17ad, (1. - sox2ad) * (1. - sox17ad));
+
+      // int target_perim = cell->at(i).TargetPerimeter();
+      // double ideal_perim_constraint = (par.elastic_modulus / double(target_perim)) * stiffness_multiplier;
+
+
+      // double current_constraint = cell->at(i).getPerimConstraint();
+      // double smoothed_constraint = (current_constraint * 0.9) + (ideal_perim_constraint * 0.1);
+
+      // cell->at(i).setPerimConstraint(smoothed_constraint);
     }
   }
 

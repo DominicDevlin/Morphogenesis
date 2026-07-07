@@ -235,15 +235,15 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
     // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
     // that unsorted cells are gradually sorted out of the tissue.
     return par.Jblasto - cell2.sox2_internal_adhesion * par.sox2_blasto_adhesion
-                        - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion
-                        - (1-cell2.sox2_internal_adhesion) * (1-cell2.sox17_internal_adhesion) * par.loser_blasto_adhesion;
+                        - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion;
+                        // - (1-cell2.sox2_internal_adhesion) * (1-cell2.sox17_internal_adhesion) * par.loser_blasto_adhesion;
                         //- cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
   else if (cell2.sigma==0)
   {
     return par.Jblasto - sox2_internal_adhesion * par.sox2_blasto_adhesion;
-                       - sox17_internal_adhesion * par.sox17_blasto_adhesion
-                      - (1-sox2_internal_adhesion) * (1-sox17_internal_adhesion) * par.loser_blasto_adhesion;
+                       - sox17_internal_adhesion * par.sox17_blasto_adhesion;
+                      // - (1-sox2_internal_adhesion) * (1-sox17_internal_adhesion) * par.loser_blasto_adhesion;
 
                         // - IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
@@ -266,9 +266,9 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
 
     // "Looser" = undifferentiated: t2 and t17 are comparable (both big or
     // both small), so neither lineage clearly dominates; 0.5 if intermediate.
-    double is_looser = max(t2 * t17, (1. - t2) * (1. - t17));
-    double cell2_is_looser = max(cell2_t2 * cell2_t17, (1. - cell2_t2) * (1. - cell2_t17));
-    double one_of_both_loosers = max(is_looser, cell2_is_looser);
+    // double is_looser = max(t2 * t17, (1. - t2) * (1. - t17));
+    // double cell2_is_looser = max(cell2_t2 * cell2_t17, (1. - cell2_t2) * (1. - cell2_t17));
+    // double one_of_both_loosers = max(is_looser, cell2_is_looser);
 
 
     return par.J_cell_baseline - t2 * cell2_t2 * par.sox2binding

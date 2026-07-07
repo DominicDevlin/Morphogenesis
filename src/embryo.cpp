@@ -173,8 +173,8 @@ TIMESTEP {
       dish->CPM->ToxictoLonelyCells();
     }
 
-    // if (t % 20==0 && t > 0)
-    //   dish->CPM->NeighbourBasedPerimeterConstraint();
+    if (t % 20==0 && t > 0)
+      dish->CPM->NeighbourBasedPerimeterConstraint();
 
     // std::cout << "Press Enter to continue..."; // Nice to have a prompt
     // std::cin.get();                            // The actual pause

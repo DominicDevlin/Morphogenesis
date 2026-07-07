@@ -1377,12 +1377,14 @@ inline bool IsLonely()
 
 inline void UpdatePerimeterConstraint()
 {
-  target_perimeter = static_cast<int>(round(par.ptarget_perimeter *
+  double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
+  double added_perim = par.loser_perim_increase * par.ptarget_perimeter * is_looser;
+  target_perimeter = static_cast<int>(round((par.ptarget_perimeter + added_perim) *
       sqrt(double(target_area) / double(par.cell_target_area))));
+  if (target_perimeter < 2)
+    target_perimeter=0;
 
   cell_elastic_mod = par.elastic_modulus;
-  target_perimeter = round(double(par.ptarget_perimeter) * sqrt(double(target_area)/double(par.cell_target_area)));
-  
   cell_perim_constraint = cell_elastic_mod / double(target_perimeter);
 
 }
