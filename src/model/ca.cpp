@@ -138,7 +138,7 @@ CellularPotts::CellularPotts(vector<Cell> *cells,
 			     const int sx, const int sy ) {
   
   sigma=0;
-  outside=0;
+  inside_elipse=0;
   frozen=false;
   thetime=0;
   zygote_area=0;
@@ -184,7 +184,7 @@ CellularPotts::CellularPotts(vector<Cell> *cells,
 CellularPotts::CellularPotts(void) {
 
   sigma=0;
-  outside = 0;
+  inside_elipse = 0;
   sizex=0; sizey=0;
   frozen=false;
   thetime=0;
@@ -227,11 +227,11 @@ CellularPotts::~CellularPotts(void) {
     sigma=0;
   }
 
-  if (outside)
+  if (inside_elipse)
   {
-    free(outside[0]);
-    free(outside);
-    outside=0;
+    free(inside_elipse[0]);
+    free(inside_elipse);
+    inside_elipse=0;
   }
 
   if (old_nbhs)
@@ -265,24 +265,24 @@ void CellularPotts::AllocateSigma(int sx, int sy) {
 
 
   // do the same for outside plane
-  outside=(int **)malloc(sizex*sizeof(int *));
-  if (outside==NULL)
+  inside_elipse=(int **)malloc(sizex*sizeof(int *));
+  if (inside_elipse==NULL)
     MemoryWarning();
   
-  outside[0]=(int *)malloc(sizex*sizey*sizeof(int));
-  if (outside[0]==NULL)  
+  inside_elipse[0]=(int *)malloc(sizex*sizey*sizeof(int));
+  if (inside_elipse[0]==NULL)  
     MemoryWarning();
   
   
   {for (int i=1;i<sizex;i++) 
-    outside[i]=outside[i-1]+sizey;}
+    inside_elipse[i]=inside_elipse[i-1]+sizey;}
   
   /* Clear CA plane */
    {for (int i=0;i<sizex*sizey;i++) 
-     outside[0][i]=0; }
+     inside_elipse[0][i]=0; }
 
   {for (int i=1;i<sizex;i++) 
-    outside[i]=outside[i-1]+sizey;}
+    inside_elipse[i]=inside_elipse[i-1]+sizey;}
 
   
 }
@@ -580,16 +580,7 @@ void CellularPotts::MeasureCellPerimeters()
         }
       }
     }
-  }
-
-  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) 
-  {
-    if (c->AliveP())
-    {
-      c->SetTargetPerimeter(par.ptarget_perimeter);
-    }
-  }  
-
+  } 
 
 }
 
@@ -1842,72 +1833,121 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
       MeasureSinglePerimeter(cell->back().Sigma());
   }
   return true;
-}\
+}
 
 
-/* putting new methods here */
 
 void CellularPotts::InitialiseRandomSoxValues()
 {
   // --- NEW CONFIGURATION ---
-  // Define your desired probability for a cell to be Sox2 dominant.
-  // 0.8 means 80% Sox2, 20% Sox17. 0.5 is 50/50.
-  // (You could easily make this a parameter like par.sox2_ratio)
-
-  // Clamp the probability between 0.001 and 0.999 to prevent log(0) math errors
   if (par.target_sox2_prob < 0.001) par.target_sox2_prob = 0.001;
   if (par.target_sox2_prob > 0.999) par.target_sox2_prob = 0.999;
   
   double target_sox17_prob = 1.0 - par.target_sox2_prob;
-
-  // The threshold upon which cell fate is decided. 
-  // Based on your previous p=2.321928 math, this is 0.2.
-  // (Ideally, set this to par.sox_threshold if it's accessible here)
   double threshold = 0.2; 
 
-  // Mathematically calculate the exact exponents needed to shift the distributions
-  // so that exactly 'target_sox2_prob' proportion of cells land above the threshold.
   double p2  = std::log(threshold) / std::log(1.0 - par.target_sox2_prob);
   double p17 = std::log(threshold) / std::log(1.0 - target_sox17_prob);
+  
+  const double inv_sqrt2 = 0.7071067811865475;
+  double x = 1 - par.starting_fraction_losers; 
+  double rho = std::sin(M_PI * (0.5 - x)); 
   // -------------------------
 
-  vector<Cell>::iterator c;
-  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  // STEP 1: Count the total number of valid cells
+  int total_valid_cells = 0;
+  std::vector<Cell>::iterator c;
+  for (c = cell->begin(), c++; c != cell->end(); c++) {
+    if (c->AliveP() && c->Sigma() != zona_sigma) {
+      total_valid_cells++;
+    }
+  }
+
+  if (total_valid_cells == 0) return;
+
+  // STEP 2: Calculate a target count with TUNABLE VARIANCE
+  // 1.0 = Pure random coin-flip (High variance, sometimes 95/5)
+  // 0.0 = Exact mathematical quota (Zero variance, exactly 80/20)
+  // 0.4 = Realistic biology (Mostly 80/20, occasionally 85/15 or 75/25)
+  double variance_modifier = 0.4; // <-- TUNE THIS
+
+  double mean_sox2 = total_valid_cells * par.target_sox2_prob;
+  double natural_std_dev = std::sqrt(total_valid_cells * par.target_sox2_prob * target_sox17_prob);
+  double tuned_std_dev = natural_std_dev * variance_modifier;
+
+  // Generate a standard normal random variable for the macro-population variance
+  double rand_u1 = RANDOM(s_val);
+  double rand_u2 = RANDOM(s_val);
+  if (rand_u1 <= 0.0) rand_u1 = 0.0000001;
+  double z_macro = std::sqrt(-2.0 * std::log(rand_u1)) * std::cos(2.0 * M_PI * rand_u2);
+
+  // Apply the bell-curve to get our specific target count for THIS simulation
+  int target_sox2_count = std::round(mean_sox2 + (z_macro * tuned_std_dev));
+  
+  // Safety clamps so we don't ask for impossible numbers of cells
+  if (target_sox2_count < 0) target_sox2_count = 0;
+  if (target_sox2_count > total_valid_cells) target_sox2_count = total_valid_cells;
+
+  // STEP 3: Create an array representing exact fates and shuffle it
+  std::vector<bool> fate_is_sox2(total_valid_cells, false);
+  for (int i = 0; i < target_sox2_count; i++) {
+    fate_is_sox2[i] = true;
+  }
+
+  // Fisher-Yates shuffle
+  for (int i = total_valid_cells - 1; i > 0; i--) {
+    int j = (int)(RANDOM(s_val) * (i + 1));
+    if (j > i) j = i; // Safety bound
+    bool temp = fate_is_sox2[i];
+    fate_is_sox2[i] = fate_is_sox2[j];
+    fate_is_sox2[j] = temp;
+  }
+
+  // STEP 4: Iterate through cells and enforce the assigned fate via rejection sampling
+  int cell_index = 0;
+  for (c = cell->begin(), c++; c != cell->end(); c++)
   {
-    if (c->AliveP() && c->Sigma()!=zona_sigma)
+    if (c->AliveP() && c->Sigma() != zona_sigma)
     {
-      // 1. Get two independent uniform random numbers between 0 and 1
-      double u_a = RANDOM(s_val);
-      double u_b = RANDOM(s_val);
-      if (u_a <= 0.0) u_a = 0.0000001; 
+      bool assigned_sox2_fate = fate_is_sox2[cell_index];
+      cell_index++;
 
-      // 2. Box-Muller transform
-      double radius = std::sqrt(-2.0 * std::log(u_a));
-      double theta = 2.0 * M_PI * u_b;
-      double z1 = radius * std::cos(theta);
-      double z2 = radius * std::sin(theta);
+      double sox2 = 0.0;
+      double sox17 = 0.0;
+      bool acceptable_values = false;
+      int safety_counter = 0; 
 
-      // 3. DEFINE YOUR 'x' HERE (Fraction of cases split across 0.2)
-      // This maintains the mutual exclusion (if it's Sox2, it's NOT Sox17)
-      double x = 1-par.starting_fraction_losers; 
-      double rho = std::sin(M_PI * (0.5 - x)); 
+      while (!acceptable_values && safety_counter < 1000)
+      {
+        safety_counter++;
 
-      // Create negatively correlated variables
-      double y1 = z1;
-      double y2 = rho * z1 + std::sqrt(1.0 - rho * rho) * z2;
+        double u_a = RANDOM(s_val);
+        double u_b = RANDOM(s_val);
+        if (u_a <= 0.0) u_a = 0.0000001; 
 
-      // 4. Convert back to Uniform(0, 1)
-      const double inv_sqrt2 = 0.7071067811865475;
-      double u1 = 0.5 * std::erfc(-y1 * inv_sqrt2);
-      double u2 = 0.5 * std::erfc(-y2 * inv_sqrt2);
+        double radius = std::sqrt(-2.0 * std::log(u_a));
+        double theta = 2.0 * M_PI * u_b;
+        double z1 = radius * std::cos(theta);
+        double z2 = radius * std::sin(theta);
 
-      // 5. Apply the calculated skew exponents to achieve your desired ratio
-      double sox2 = std::pow(u1, p2);
-      double sox17 = std::pow(u2, p17);
+        double y1 = z1;
+        double y2 = rho * z1 + std::sqrt(1.0 - rho * rho) * z2;
+
+        double u1 = 0.5 * std::erfc(-y1 * inv_sqrt2);
+        double u2 = 0.5 * std::erfc(-y2 * inv_sqrt2);
+
+        sox2 = std::pow(u1, p2);
+        sox17 = std::pow(u2, p17);
+        
+        bool generated_is_sox2 = (sox2 > threshold);
+
+        if (generated_is_sox2 == assigned_sox2_fate) {
+            acceptable_values = true;
+        }
+      }
       
       c->setSox2(sox2);
       c->setSox17(sox17);
-
       c->SetSoxColour();
     }
   }
@@ -3058,6 +3098,15 @@ void CellularPotts::MakeZonaPellucida(double h, double k, double a, double b, do
         sigma[x][y] = zona_sigma;
         ++total_area=0;
       }
+      if (f < 0 && sigma[x][y]!=zona_sigma)
+      {
+        inside_elipse[x][y]=1;
+        // cout << x << '\t' << y << endl;
+      }
+      else
+      {
+        inside_elipse[x][y]=0;
+      }
     }
   }
   (*cell)[zona_sigma].SetTargetArea(total_area);
@@ -3076,7 +3125,8 @@ void CellularPotts::DifferentiateZonaPellucida()
   (*cell)[zona_sigma_sticky].set_ctype(203);
   // Store modifications to prevent a chain-reaction in a single pass
   vector<std::pair<int, int>> to_change;
-  int R = 4;
+  int R1 = 2;
+  int R2 = 16;
   // Step 2: Iterate through the grid
   for (int x = 1; x <= sizex-1; ++x) 
   {
@@ -3085,27 +3135,50 @@ void CellularPotts::DifferentiateZonaPellucida()
       if (sigma[x][y] == zona_sigma)
       {
         bool found = false;
+        bool next_to_med = false;
         // Search neighboring pixels within the bounding box of radius R
         // std::max/std::min ensures we don't check outside the grid boundaries
-        for (int nx = max(1, x - R); nx <= min(sizex - 1, x + R); ++nx) 
+        for (int nx = max(1, x - R1); nx <= min(sizex - 1, x + R1); ++nx) 
         {
-          for (int ny = max(1, y - R); ny <= min(sizey - 1, y + R); ++ny) 
+          for (int ny = max(1, y - R1); ny <= min(sizey - 1, y + R1); ++ny) 
           {
             // Check if the neighbor is actually within the circular radius R
-            if ((nx - x) * (nx - x) + (ny - y) * (ny - y) <= R * R) 
+            if ((nx - x) * (nx - x) + (ny - y) * (ny - y) <= R1 * R1) 
             {
               if (sigma[nx][ny] > 0 && sigma[nx][ny] != zona_sigma) 
               {
                 found = true;
-                break; // Stop searching if we found at least one
+                break;
               }
             }
           }
-          if (found) break; // Break out of the outer neighbor loop early
+          if (found) break;
         }
+        for (int nx = max(1, x - R2); nx <= min(sizex - 1, x + R2); ++nx) 
+        {
+          for (int ny = max(1, y - R2); ny <= min(sizey - 1, y + R2); ++ny) 
+          {
+            // Check if the neighbor is actually within the circular radius R
+            if ((nx - x) * (nx - x) + (ny - y) * (ny - y) <= R2 * R2) 
+            {
+              if (sigma[nx][ny] > 0 && sigma[nx][ny] != zona_sigma) 
+              {
+                found = true;
+              }
+              if (inside_elipse[nx][ny]==1 && sigma[nx][ny]==0)
+              {
+                next_to_med=true;
+                break;
+              }
+            }
+          }
+          if (next_to_med) break;
+        }
+
+
         
         // If a valid pixel was found in radius R, mark this coordinate to be changed
-        if (found) 
+        if (found && !next_to_med) 
         {
           pair<int,int>newchange={x,y};
           to_change.push_back(newchange);
@@ -3145,6 +3218,60 @@ void CellularPotts::SetMotilityStrengths()
 }
 
 
+void CellularPotts::InnerCellMassDivisions(int t)
+{
+  vector<bool> which_cells(cell->size(), false);
+  vector<int> target_areas(cell->size(), 0);
+  int cell_division = 0;
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP()) 
+    {
+      double atime = 1;
+      double barea = 1;
+      double threshold = 1;
+      double mxarea = 400;
+      double ctarea = (double(c->TargetArea()) - 0.4*mxarea) / (0.4*mxarea + mxarea);
+
+      if (ctarea > 1)
+        ctarea = 1;
+
+      double urgency = atime * t + barea * ctarea - threshold;
+
+      double prob = RANDOM(s_val);
+      double log_function = 1.0 / (1.0 + exp(-urgency));
+      if (ctarea < 0)
+        log_function = 0;
+      if (prob < log_function)
+      {
+        cout << c->TargetArea() << '\t' << ctarea << endl;
+        which_cells[c->Sigma()] = true;
+        target_areas[c->Sigma()] = c->TargetArea() / 2;
+        ++cell_division;
+      }
+    }
+  }
+  if (cell_division)
+  {
+    DivideCells(which_cells, t);
+  }
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP()) 
+    {
+      if (which_cells[c->Sigma()])
+      {
+        c->SetTargetArea(target_areas[c->Sigma()]);
+        double area_constraint = par.bulk_modulus / double(c->TargetArea());
+        c->setAreaConstraint(area_constraint);
+        c->UpdatePerimeterConstraint();
+      }
+
+    }
+  }
+}
+
 
 
 void CellularPotts::ToxictoLonelyCells()
@@ -3173,15 +3300,24 @@ void CellularPotts::ToxictoLonelyCells()
       if (sox2neighbour==false)
       {
         cell->at(i).MakeLonely(true);
-        if (cell->at(i).Area() < 50 && cell->at(i).TargetArea() > 0)
+        if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
           cell->at(i).SetTargetArea(1);
         else if (cell->at(i).TargetArea() > 1)
-          cell->at(i).DecrementTargetArea();
+        {
+          int n=10;
+          while (n>0)
+          {
+            cell->at(i).DecrementTargetArea();
+            --n;
+          }
+        }
+
 
         double area_constraint = par.bulk_modulus / double(cell->at(i).TargetArea());
         cell->at(i).setAreaConstraint(area_constraint);
 
         cell->at(i).UpdatePerimeterConstraint();
+
 
         // cout << "cell number: " << cell->at(i).Sigma() << "  area: " << cell->at(i).Area() << '\t' << "  target area: " << cell->at(i).TargetArea() << "  perimeter: " << cell->at(i).Perimeter() << "   target perimeter: " << cell->at(i).TargetPerimeter() << endl;
 
@@ -3203,7 +3339,7 @@ void CellularPotts::NeighbourBasedPerimeterConstraint()
 {
 
   int **ns = SearchNeighbours();
-  int n_size = CountCells();
+  int n_size = (*cell).size();
   vector<double> neighbour_sox2_vals(n_size,0);
   vector<double> neighbour_sox17_vals(n_size,0);
   vector<int> cell_nbh_counts(n_size,0);
@@ -3260,6 +3396,8 @@ void CellularPotts::NeighbourBasedPerimeterConstraint()
       // double smoothed_constraint = (current_constraint * 0.9) + (ideal_perim_constraint * 0.1);
 
       // cell->at(i).setPerimConstraint(smoothed_constraint);
+      // cell->at(i).OutputPerim();
+
     }
   }
 
@@ -3382,7 +3520,7 @@ void CellularPotts::UpdateActiveMotion()
 {
 
   int **ns = SearchNeighbours();
-  int n_size = CountCells();
+  int n_size = (*cell).size();
   for (int i = 1; i < n_size; ++i)
   {
     if (cell->at(i).AliveP())

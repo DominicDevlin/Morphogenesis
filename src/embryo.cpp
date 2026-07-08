@@ -82,10 +82,10 @@ INIT
 
     if (par.make_zona_pellucida)
     {
-      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 60, 70, 2);
+      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 90, 110, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -55, par.sizex/2, par.sizey/2, 60, 70, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -110, par.sizex/2, par.sizey/2, 90, 110, 2);
 
     CPM->DifferentiateZonaPellucida();
 
@@ -175,7 +175,14 @@ TIMESTEP {
     }
 
     if (t % 20==0 && t > 0)
+    {
       dish->CPM->NeighbourBasedPerimeterConstraint();
+    }
+
+    if (t==1000)
+    {
+      dish->CPM->InnerCellMassDivisions(t);
+    }
 
     // std::this_thread::sleep_for(std::chrono::milliseconds(1));
 

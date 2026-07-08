@@ -124,16 +124,22 @@ public:
     for (int ch=0;ch<par.n_chem;ch++)
       chem[ch]=src.chem[ch];
 
-    epithelial = src.epithelial;
 
+    Sox2_concentration = src.Sox2_concentration;
+    sox2_internal_adhesion = src.sox2_internal_adhesion;
+    Sox17_concentration = src.Sox17_concentration;
+    sox17_internal_adhesion = src.sox17_internal_adhesion;
+    lonely_cell = src.lonely_cell;
+
+    cell_perim_constraint = src.cell_perim_constraint;
+    cell_area_constraint = src.cell_area_constraint;
+
+    epithelial = src.epithelial;
     synNotch_bound = src.synNotch_bound;
     synNotch_unbound = src.synNotch_unbound;
     synNotch_intra = src.synNotch_intra;
     E_cadherin = src.E_cadherin;
     CD19 = src.CD19;
-
-
-
     random_binding_proteins = src.random_binding_proteins;
     touching_med = src.touching_med;
     mCherry=src.mCherry;
@@ -232,9 +238,16 @@ public:
     perimeter = src.perimeter;
     target_perimeter = src.target_perimeter;
 
+    cell_perim_constraint = src.cell_perim_constraint;
+    cell_area_constraint = src.cell_area_constraint;
+
+    Sox2_concentration = src.Sox2_concentration;
+    sox2_internal_adhesion = src.sox2_internal_adhesion;
+    Sox17_concentration = src.Sox17_concentration;
+    sox17_internal_adhesion = src.sox17_internal_adhesion;
+    lonely_cell = src.lonely_cell;
+
     epithelial = src.epithelial;
-
-
     synNotch_bound = src.synNotch_bound;
     synNotch_unbound = src.synNotch_unbound;
     synNotch_intra = src.synNotch_intra;
@@ -1350,6 +1363,11 @@ inline void setSox17(double newsox)
   
 }
 
+inline void OutputPerim()
+{
+  cout << "here: " << perimeter << '\t' << target_perimeter << '\t' << cell_perim_constraint << '\t' << area << '\t' << target_area << endl;
+}
+
 inline void SetSoxColour()
 {
     // weight is the Sox2/Sox17 dominance ratio: 0 = pure Sox17, 1 = pure Sox2.
@@ -1377,11 +1395,14 @@ inline bool IsLonely()
 
 inline void UpdatePerimeterConstraint()
 {
-  double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
-  double added_perim = par.loser_perim_increase * par.ptarget_perimeter * is_looser;
-  target_perimeter = static_cast<int>(round((par.ptarget_perimeter + added_perim) *
-      sqrt(double(target_area) / double(par.cell_target_area))));
-  if (target_perimeter < 2)
+  // double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
+  // double added_perim = par.loser_perim_increase * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
+  target_perimeter = static_cast<int>(round((par.ptarget_perimeter) *
+      sqrt(double(target_area) / double(par.cell_target_area)))) - par.perim_offset;
+
+  cout << sqrt(double(target_area) / double(par.cell_target_area)) << endl;
+    
+  if (target_perimeter < 20)
     target_perimeter=0;
 
   cell_elastic_mod = par.elastic_modulus;
@@ -1479,14 +1500,10 @@ protected:
   double sox2_internal_adhesion;
   double Sox17_concentration;
   double sox17_internal_adhesion;
-
+  bool lonely_cell;
 
   //current state of the cell
   int phenotype;
-
-
-
-
 
   vector<double> mass_list;
 
@@ -1499,10 +1516,6 @@ protected:
   bool exposed{true};
 
   int c_type{2};
-
-  double SyntheticEnergy(Cell &cell2);
-
-
 
   /* parameters for synthetic structures */
   // we are going to change this so that concentrations depend on cell size
@@ -1547,12 +1560,7 @@ protected:
   double motility_strength;
   double leftover_area;
 
-  bool lonely_cell;
-
-
-
-
-
+  
 
 
 

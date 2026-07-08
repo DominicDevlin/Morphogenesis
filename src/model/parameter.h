@@ -113,6 +113,7 @@ class Parameter {
   double lambda_perimeter_phase;
   double neighbour_multiplier;
   int ptarget_perimeter;
+  int perim_offset;
   // Per-lineage multipliers on ptarget_perimeter (see Cell::IsEpiblast/
   // IsHypoblast), applied on top of the usual area-based perimeter scaling.
   double epiblast_lambda_scale;
@@ -130,6 +131,9 @@ class Parameter {
 
   bool make_zona_pellucida;
   double J_cell_zona;
+  double Jzona_sox2;
+  double Jzona_sox17;
+  double Jzona_loser;
   
 
   double sox17_blasto_adhesion;
@@ -140,8 +144,8 @@ class Parameter {
   double sox2vs17binding;
   double Jblasto;
   double J_cell_zona_sticky;
-  double Jzona_sox2extra;
-  double Jzona_sox17extra;
+  double Jzona_sticky_sox2extra;
+  double Jzona_sticky_sox17extra;
   double J_cell_baseline;
 
   double loser_loser_adhesion;

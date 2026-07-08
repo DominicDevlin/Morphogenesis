@@ -79,7 +79,7 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     bulk_modulus = 5;
-    cell_target_area = 100;
+    cell_target_area = 400;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 150;
     synthetic_max_area=cell_target_area+2;
@@ -87,8 +87,10 @@
 
     H_perim = true;
     elastic_modulus = 1;
-    ptarget_perimeter = 44;
+    ptarget_perimeter = 108;
+    perim_offset = 10;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
+    perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
 
@@ -96,7 +98,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.6;
+    motility_strength = 0.5;
     persistence_time = 40.;
 
   
@@ -108,7 +110,7 @@
 
 
     starting_fraction_losers=0.2;
-    target_sox2_prob=0.67;
+    target_sox2_prob=0.6;
     loser_perim_increase=0.25;
 /* adhesion params */
 
@@ -133,12 +135,15 @@
     loser_sox2_adhesion=0.;
     loser_sox17_adhesion=-0.1;
 
-
+    // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     J_cell_zona = 1.5;
-    // added zona adhesion for sox2 sox17
+    Jzona_sox2 = 0.0;
+    Jzona_sox17 = 0.6;
+    Jzona_loser=0;;
+    // added zona adhesion for sox2 sox17 for sticky part
     J_cell_zona_sticky=2.0;
-    Jzona_sox2extra=1.4;
-    Jzona_sox17extra=0.;
+    Jzona_sticky_sox2extra=1.4;
+    Jzona_sticky_sox17extra=0.;
 
     sox_threshold=0.2;
 
@@ -161,7 +166,7 @@
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
     // Note - i changed this to simply change lambdaP
     make_sparse_cells=true;
-    start_radius=50;
+    start_radius=80;
     start_density=1.0;
     
     

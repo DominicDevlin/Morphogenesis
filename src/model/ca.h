@@ -263,6 +263,7 @@ public:
 
   void NeighbourBasedPerimeterConstraint();
 
+  void InnerCellMassDivisions(int t);
 
 
 
@@ -459,10 +460,10 @@ protected:
   
 protected:
   int **sigma;
+  int **inside_elipse;
   int sizex;
   int sizey;
 
-  int **outside;
 
   int **old_nbhs;
   int old_cell_count{};

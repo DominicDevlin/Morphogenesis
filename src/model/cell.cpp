@@ -133,6 +133,15 @@ void Cell::CellBirth(Cell &mother_cell) {
   motility_strength=mother_cell.motility_strength;
   leftover_area=mother_cell.leftover_area;
 
+  Sox2_concentration = mother_cell.Sox2_concentration;
+  sox2_internal_adhesion = mother_cell.sox2_internal_adhesion;
+  Sox17_concentration = mother_cell.Sox17_concentration;
+  sox17_internal_adhesion = mother_cell.sox17_internal_adhesion;
+  lonely_cell = mother_cell.lonely_cell;
+
+  cell_perim_constraint = mother_cell.cell_perim_constraint;
+  cell_area_constraint = mother_cell.cell_area_constraint;
+
 
   for (int i=0;i<par.n_diffusers;i++)
   {
@@ -250,12 +259,12 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
   else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
   {
     // cout << "here" << endl;
-    return par.J_cell_zona;
+    return par.J_cell_zona - sox17_internal_adhesion * par.Jzona_sox17;
   }
   else if (cell2.sigma==zona_sigma_sticky)
   {
-    return par.J_cell_zona_sticky - sox2_internal_adhesion * par.Jzona_sox2extra;
-                          - sox17_internal_adhesion * par.Jzona_sox17extra;  
+    return par.J_cell_zona_sticky - sox2_internal_adhesion * par.Jzona_sticky_sox2extra;
+                          - sox17_internal_adhesion * par.Jzona_sticky_sox17extra;  
   }
   else
   {
