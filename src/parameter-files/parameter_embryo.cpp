@@ -98,9 +98,11 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.5;
+    motility_strength = 0.25; // not that this term depends on the cell size (1/sqrt(area))
+    motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
 
+    initialise_sox_time=800;
   
 
     // high value ensures cells are never broken apart by copy attempts.
@@ -109,8 +111,8 @@
     conn_diss = 2000;
 
 
-    starting_fraction_losers=0.2;
-    target_sox2_prob=0.6;
+    starting_fraction_losers=0.1;
+    target_sox2_prob=0.7;
     loser_perim_increase=0.25;
 /* adhesion params */
 
@@ -125,11 +127,11 @@
     // baseline J value between cells
     J_cell_baseline=1.2;
     // binding of sox2 to sox2
-    sox2binding=0.6;
+    sox2binding=0.7;
     // binding of sox17 to sox17 =
-    sox17binding=0.4;
+    sox17binding=0.5;
     // binding between sox2 and sox17
-    sox2vs17binding=0.5;
+    sox2vs17binding=0.6;
 
     loser_loser_adhesion=-0.6;
     loser_sox2_adhesion=0.;

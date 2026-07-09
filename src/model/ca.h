@@ -265,6 +265,10 @@ public:
 
   void InnerCellMassDivisions(int t);
 
+  void DrawDivisionTimes();
+
+  void CheckIfDivisionHit(int t);
+
 
 
 
@@ -402,6 +406,8 @@ public:
   Jtable in parameter file).
   */
   void SetRandomTypes(void);
+
+  void SetColours(void);
 
   /*! Cells grow until twice their original target_length, then
     divide, with rate "growth_rate"

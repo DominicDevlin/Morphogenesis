@@ -85,7 +85,7 @@ INIT
       CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 90, 110, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -110, par.sizex/2, par.sizey/2, 90, 110, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -120, par.sizex/2, par.sizey/2, 90, 110, 2);
 
     CPM->DifferentiateZonaPellucida();
 
@@ -137,28 +137,42 @@ TIMESTEP {
       dish->CPM->SetAreas(par.cell_target_area);
       // Sox values must be assigned before SetPerims, which sizes the
       // perimeter constraint per lineage (epiblast/hypoblast).
-      dish->CPM->InitialiseRandomSoxValues();
       dish->CPM->SetPerims(par.ptarget_perimeter);
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
-      dish->CPM->SetMotilityStrengths();
+      dish->CPM->DrawDivisionTimes();
+      dish->CPM->SetColours();
     }
 
-    if (t==1000)
+    if (t==par.initialise_sox_time)
     {
-      dish->CPM->MeanCellArea();
-      dish->CPM->MeanCellPerimeter();
+      dish->CPM->InitialiseRandomSoxValues();
+      dish->CPM->SetMotilityStrengths();
+      dish->CPM->SetPerims(par.ptarget_perimeter);
+
+    }
+    if (t>par.initialise_sox_time)
+    {
+      if (t%100==0)
+      {
+        dish->CPM->ToxictoLonelyCells();
+      }
+      if (t % 20==0)
+      {
+        dish->CPM->NeighbourBasedPerimeterConstraint();
+      }
+
+      if (t%10==0)
+      {
+        dish->CPM->CheckIfDivisionHit(t);
+        // dish->CPM->InnerCellMassDivisions(t);
+      }
     }
 
-    // if (t==5)
+    // if (t==1000)
     // {
-    //   double check;
-    //   std::cin >> check;
+    //   dish->CPM->MeanCellArea();
+    //   dish->CPM->MeanCellPerimeter();
     // }
-    // if (t % par.synthetic_update_step == 0 && t > 0))
-    // {
-    //   dish->CPM->UpdateActiveMotion();
-    // }
-  
 
     static Info *info=new Info(*dish, *this);
   
@@ -169,20 +183,8 @@ TIMESTEP {
       dish->CPM->update_cell_velocities_MCS();
     }
 
-    if (t%100==0 && t > 900)
-    {
-      dish->CPM->ToxictoLonelyCells();
-    }
 
-    if (t % 20==0 && t > 0)
-    {
-      dish->CPM->NeighbourBasedPerimeterConstraint();
-    }
 
-    if (t==1000)
-    {
-      dish->CPM->InnerCellMassDivisions(t);
-    }
 
     // std::this_thread::sleep_for(std::chrono::milliseconds(1));
 

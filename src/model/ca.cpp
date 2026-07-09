@@ -376,7 +376,15 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
     } 
     else 
     {
-      Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky);
+      if (tsteps < 1000)
+      {
+        Jen += cell_sxyp.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky) - cell_sxy.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky);
+      }
+      else
+      {
+        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky);
+      }
+
     }
   }
   
@@ -1695,7 +1703,7 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 
           if (!(divflags[ motherp->Sigma() ]) ) 
           {
-      
+            int new_target = round(double(motherp->TargetArea()) / 2);
             // add daughter cell, copying states of mother
             daughterp=new Cell(*(motherp->owner));
             daughterp->CellBirth(*motherp);
@@ -1712,6 +1720,26 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
 
             daughterp->SetTimeCreated(t);
             motherp->SetTimeCreated(t);
+            daughterp->ResetActiveMotion();
+            motherp->ResetActiveMotion();
+            motherp->SetTargetArea(new_target);
+            daughterp->SetTargetArea(new_target);
+            vector<int> tt = motherp->getDivisionTimes();
+            tt.erase(tt.begin());
+            if (tt.size() <= 1)
+            {
+              vector<int> n1 = {par.mcs};
+              vector<int> n2 = {par.mcs};
+              motherp->setDivisionTimes(n1);
+              daughterp->setDivisionTimes(n2);
+            }
+            else
+            {
+              vector<int> n1 = {tt[0]};
+              vector<int> n2 = {tt[1]};
+              motherp->setDivisionTimes(n1);
+              daughterp->setDivisionTimes(n2);
+            }
 
             
           /* administration on the onset of mitosis */
@@ -1738,20 +1766,33 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
           if (j>((int)(celldir[motherp->sigma].aa2 + celldir[motherp->sigma].bb2*(double)i))) 
           { 
             motherp->DecrementArea();
-            motherp->DecrementTargetArea();
+            // motherp->DecrementTargetArea();
             motherp->RemoveSiteFromMoments(i,j);
             sigma[i][j]=daughterp->Sigma();
             daughterp->AddSiteToMoments(i,j);
             daughterp->IncrementArea();
-            daughterp->IncrementTargetArea();
+            // daughterp->IncrementTargetArea();
 
           } 
         }
       }
   }  
   if (par.H_perim)
+  {
     MeasureCellPerimeters();
-
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+    {
+      if (c->AliveP()) 
+      {
+        double newmot = par.motility_zero / (c->TargetArea());
+        c->SetMotilityStrength(newmot);
+        c->SetLambdaByBulk();
+        c->UpdatePerimeterConstraint();
+        // c->OutputPerim();
+      }
+    }
+  }
  
   if (celldir) 
     delete[] (celldir);
@@ -1829,8 +1870,7 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
         }
       }
     }
-    if (par.H_perim)
-      MeasureSinglePerimeter(cell->back().Sigma());
+
   }
   return true;
 }
@@ -2811,6 +2851,23 @@ void CellularPotts::SetRandomTypes(void) {
   
 }
 
+
+void CellularPotts::SetColours(void) 
+{
+  
+  // each cell gets a random type 1..maxtau
+  
+  vector<Cell>::iterator c=cell->begin(); ++c;
+  
+  for (;c!=cell->end();c++) 
+  {   
+    if (c->AliveP())
+      c->set_ctype(10);    
+  } 
+  
+}
+
+
 void CellularPotts::GrowAndDivideCells(int growth_rate) {
 
   vector<Cell>::iterator c=cell->begin(); ++c;
@@ -3126,7 +3183,7 @@ void CellularPotts::DifferentiateZonaPellucida()
   // Store modifications to prevent a chain-reaction in a single pass
   vector<std::pair<int, int>> to_change;
   int R1 = 2;
-  int R2 = 16;
+  int R2 = 25;
   // Step 2: Iterate through the grid
   for (int x = 1; x <= sizex-1; ++x) 
   {
@@ -3212,9 +3269,86 @@ void CellularPotts::SetMotilityStrengths()
   {
     if (c->AliveP()) 
     {
-      c->SetMotilityStrength(par.motility_strength);
+      double newmot = par.motility_zero / (c->TargetArea());
+      c->SetMotilityStrength(newmot);
     }
   }
+}
+
+
+void CellularPotts::DrawDivisionTimes()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP()) 
+    {
+      // first divisions.
+      double prob_1 = RANDOM(s_val);
+      double prob_2 = RANDOM(s_val);
+      double prob_3 = RANDOM(s_val);
+
+      double urgency_1 = log(prob_1/(1-prob_1));
+      double urgency_2 = log(prob_2/(1-prob_2));
+      double urgency_3 = log(prob_3/(1-prob_3));
+      double first_size = 1;
+      double second_size = 0.5;
+      double threshold = 30;
+
+      double atime = 0.0007;
+      double barea = 20;
+
+      int t_1 = round((urgency_1 - barea * first_size + threshold) / atime);
+      int t_2 = round((urgency_2 - barea * second_size + threshold) / atime);
+      int t_3 = round((urgency_3 - barea * second_size + threshold) / atime);
+      if (t_2 < t_1)
+        t_2=par.mcs;
+      if (t_3<t_1)
+        t_3=par.mcs;
+      vector<int> tt = {t_1, t_2, t_3};
+      c->setDivisionTimes(tt);
+
+    }
+  }
+}
+
+void CellularPotts::CheckIfDivisionHit(int t)
+{
+  vector<bool> which_cells(cell->size(), false);
+  int init_cells = (*cell).size();
+  bool cell_division=false;
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP()) 
+    {
+      if (c->getDivisionTimes().front() < t)
+      {
+        which_cells[c->Sigma()] = true;
+        cell_division=true;
+      }
+    }
+  }
+
+  if (cell_division)
+  {
+    DivideCells(which_cells, t);
+  }
+
+  // for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  // {
+  //   if (c->AliveP()) 
+  //   {
+  //     if (which_cells[c->Sigma()] || which_cells[c->Sigma()] >= init_cells)
+  //     {
+  //       c->SetTargetArea(target_areas[c->Sigma()]);
+  //       double area_constraint = par.bulk_modulus / double(c->TargetArea());
+  //       c->setAreaConstraint(area_constraint);
+  //       // c->UpdatePerimeterConstraint();
+  //     }
+
+  //   }
+  // }
 }
 
 
@@ -3223,6 +3357,7 @@ void CellularPotts::InnerCellMassDivisions(int t)
   vector<bool> which_cells(cell->size(), false);
   vector<int> target_areas(cell->size(), 0);
   int cell_division = 0;
+  int init_cells = (*cell).size();
   vector<Cell>::iterator c;
   for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
   {
@@ -3245,7 +3380,7 @@ void CellularPotts::InnerCellMassDivisions(int t)
         log_function = 0;
       if (prob < log_function)
       {
-        cout << c->TargetArea() << '\t' << ctarea << endl;
+        // cout << c->TargetArea() << '\t' << ctarea << endl;
         which_cells[c->Sigma()] = true;
         target_areas[c->Sigma()] = c->TargetArea() / 2;
         ++cell_division;
@@ -3260,11 +3395,10 @@ void CellularPotts::InnerCellMassDivisions(int t)
   {
     if (c->AliveP()) 
     {
-      if (which_cells[c->Sigma()])
+      if (which_cells[c->Sigma()] || which_cells[c->Sigma()] >= init_cells)
       {
         c->SetTargetArea(target_areas[c->Sigma()]);
-        double area_constraint = par.bulk_modulus / double(c->TargetArea());
-        c->setAreaConstraint(area_constraint);
+        c->SetLambdaByBulk();
         c->UpdatePerimeterConstraint();
       }
 
@@ -3288,16 +3422,20 @@ void CellularPotts::ToxictoLonelyCells()
       bool sox2neighbour=false;
       while (ns[i][j] >= 0)
       {
-        if (ns[i][j] != zona_sigma && ns[i][j] != zona_sigma_sticky && ns[i][j] > 0)
+        // if (ns[i][j] != zona_sigma && ns[i][j] != zona_sigma_sticky && ns[i][j] > 0)
+        // {
+        //   if ((*cell)[ns[i][j]].getSox2adhesion() > 0.75)
+        //   {
+        //     sox2neighbour=true;
+        //   }
+        // }
+        if (ns[i][j] != zona_sigma && ns[i][j] != zona_sigma_sticky && ns[i][j] != 0)
         {
-          if ((*cell)[ns[i][j]].getSox2adhesion() > 0.75)
-          {
-            sox2neighbour=true;
-          }
+          ++nbh_count;
         }
         ++j;
       }
-      if (sox2neighbour==false)
+      if (nbh_count==0)
       {
         cell->at(i).MakeLonely(true);
         if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
@@ -3313,9 +3451,7 @@ void CellularPotts::ToxictoLonelyCells()
         }
 
 
-        double area_constraint = par.bulk_modulus / double(cell->at(i).TargetArea());
-        cell->at(i).setAreaConstraint(area_constraint);
-
+        cell->at(i).SetLambdaByBulk();
         cell->at(i).UpdatePerimeterConstraint();
 
 
@@ -3364,22 +3500,22 @@ void CellularPotts::NeighbourBasedPerimeterConstraint()
         ++j;
       }
       double stiffness_multiplier=1;
-      double mot_strength = par.motility_strength;
+      double mot_strength = par.motility_zero / sqrt(double(cell->at(i).TargetArea()));
       double sox2ad = cell->at(i).getSox2adhesion();
       double sox17ad = cell->at(i).getSox17adhesion();
       if (cell_nbh_counts[i] > 0)
       {
-        neighbour_sox2_vals[i] /= double(cell_nbh_counts[i]);
-        neighbour_sox17_vals[i] /= double(cell_nbh_counts[i]);
-        double p1 = neighbour_sox2_vals[i] * sox2ad * 20;
+        neighbour_sox2_vals[i] /= 2;
+        // neighbour_sox17_vals[i] /= double(cell_nbh_counts[i]);
+        double p1 = neighbour_sox2_vals[i] * sox2ad;
         //double p2 = neighbour_sox17_vals[i] * cell->at(i).getSox17adhesion() * 20;
         //stiffness_multiplier += (p1+p2);
-        // cout << p1 << '\t' << p2 << endl;
-        mot_strength -= par.motility_strength * p1;
+        // cout << p1 << endl;
+        mot_strength -= mot_strength * p1;
       }
       if (touching_med==true)
       {
-        mot_strength -= par.motility_strength * sox17ad;
+        mot_strength -= mot_strength * sox17ad;
       }
       if (mot_strength < 0)
         mot_strength=0;
@@ -3818,8 +3954,7 @@ void CellularPotts::UpdateSyntheticCellConstraints()
   {
     if (c->AliveP())
     {
-      double area_constraint = par.bulk_modulus / double(c->TargetArea());
-      c->setAreaConstraint(area_constraint);
+      c->SetLambdaByBulk();
       int target_perim = round(double(par.ptarget_perimeter) * sqrt(double(c->TargetArea())/double(par.cell_target_area)));
       c->SetTargetPerimeter(target_perim);
       

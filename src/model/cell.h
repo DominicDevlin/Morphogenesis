@@ -131,8 +131,9 @@ public:
     sox17_internal_adhesion = src.sox17_internal_adhesion;
     lonely_cell = src.lonely_cell;
 
+    div_times = src.div_times;
+
     cell_perim_constraint = src.cell_perim_constraint;
-    cell_area_constraint = src.cell_area_constraint;
 
     epithelial = src.epithelial;
     synNotch_bound = src.synNotch_bound;
@@ -234,12 +235,12 @@ public:
     xcens = src.xcens;
     ycens = src.ycens;
 
+    div_times = src.div_times;
 
     perimeter = src.perimeter;
     target_perimeter = src.target_perimeter;
 
     cell_perim_constraint = src.cell_perim_constraint;
-    cell_area_constraint = src.cell_area_constraint;
 
     Sox2_concentration = src.Sox2_concentration;
     sox2_internal_adhesion = src.sox2_internal_adhesion;
@@ -471,6 +472,7 @@ al. 2000). The current version of TST does not include such functionality.
   // inline static int SetJ(int t1,int t2, int val) {
   //   return J[t2][t1]=J[t1][t2]=val;
   // }
+  double EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky);
 
 
   // Deal with gradient measurements:
@@ -739,6 +741,11 @@ private:
     lambda = l;
   }
 
+  void SetLambdaByBulk()
+  {
+    lambda = par.bulk_modulus / target_area;
+  }
+
   inline double get_lambda()
   {
     return lambda;
@@ -840,14 +847,24 @@ private:
 
 
 
+
+  inline void ResetActiveMotion()
+  {
+    velocity_initialised=false;
+    prev_com_x=0;
+    prev_com_y=0;
+    velocity_histories_x.clear();
+    velocity_histories_y.clear();
+    velocity_histories_x.assign(par.persistence_time, 0.);
+    velocity_histories_y.assign(par.persistence_time, 0.);
+  }
+
   /* active matter methods */
 
   // called every time step to determine the direction of cell motion over last N steps.
   inline void update_velocity()
   {
     // calculate velocity here
-
-
 
     double com_x = double(sum_x) / double(area);
     double com_y = double(sum_y) / double(area);
@@ -1365,7 +1382,7 @@ inline void setSox17(double newsox)
 
 inline void OutputPerim()
 {
-  cout << "here: " << perimeter << '\t' << target_perimeter << '\t' << cell_perim_constraint << '\t' << area << '\t' << target_area << endl;
+  cout << "here: " << sigma << '\t' << perimeter << '\t' << target_perimeter << '\t' << cell_perim_constraint << '\t' << area << '\t' << target_area << '\t' << lambda << endl;
 }
 
 inline void SetSoxColour()
@@ -1395,19 +1412,29 @@ inline bool IsLonely()
 
 inline void UpdatePerimeterConstraint()
 {
-  // double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
-  // double added_perim = par.loser_perim_increase * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
+  double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
+  double added_perim = par.loser_perim_increase * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
   target_perimeter = static_cast<int>(round((par.ptarget_perimeter) *
-      sqrt(double(target_area) / double(par.cell_target_area)))) - par.perim_offset;
+      sqrt(double(target_area) / double(par.cell_target_area)))) + added_perim - par.perim_offset;
 
-  cout << sqrt(double(target_area) / double(par.cell_target_area)) << endl;
-    
+  // cout << sqrt(double(target_area) / double(par.cell_target_area)) << endl;
+  // out << target_perimeter << '\t' << target_area << endl;
   if (target_perimeter < 20)
     target_perimeter=0;
 
   cell_elastic_mod = par.elastic_modulus;
   cell_perim_constraint = cell_elastic_mod / double(target_perimeter);
 
+}
+
+void setDivisionTimes(vector<int> tt)
+{
+  div_times=tt;
+}
+
+vector<int> getDivisionTimes()
+{
+  return div_times;
 }
 
 
@@ -1430,17 +1457,6 @@ void setPerimConstraint(double is)
 double& getPerimConstraint()
 {
   return cell_perim_constraint;
-}
-
-
-void setAreaConstraint(double is)
-{
-  cell_area_constraint = is;
-}
-
-double& getAreaConstraint()
-{
-  return cell_area_constraint;
 }
 
 private:
@@ -1555,12 +1571,11 @@ protected:
   bool touching_med{};
 
   double cell_perim_constraint;
-  double cell_area_constraint;
 
   double motility_strength;
   double leftover_area;
 
-  
+  vector<int> div_times;
 
 
 

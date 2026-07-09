@@ -140,7 +140,7 @@ void Cell::CellBirth(Cell &mother_cell) {
   lonely_cell = mother_cell.lonely_cell;
 
   cell_perim_constraint = mother_cell.cell_perim_constraint;
-  cell_area_constraint = mother_cell.cell_area_constraint;
+  div_times = mother_cell.div_times;
 
 
   for (int i=0;i<par.n_diffusers;i++)
@@ -234,6 +234,36 @@ void Cell::ConstructorBody(int settau) {
 
 
 
+double Cell::EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
+{
+  if (sigma==cell2.sigma)
+    return 0;
+  else if (sigma==0)
+  {
+    // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
+    // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
+    // that unsorted cells are gradually sorted out of the tissue.
+    return 1.5;
+  }
+  else if (cell2.sigma==0)
+  {
+    return 1.5;
+  }
+  else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
+  {
+    return 3.0;
+  }
+  else if (cell2.sigma==zona_sigma_sticky)
+  {
+    return 1.0;
+  }
+  else
+  {
+    return 1.0;
+  }
+}
+
+
 double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
 {
   if (sigma==cell2.sigma)
@@ -289,25 +319,5 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
                               - cell2_is_looser * t2 * par.loser_sox2_adhesion
                               - is_looser * cell2_t17 * par.loser_sox17_adhesion
                               - cell2_is_looser * t17 * par.loser_sox17_adhesion;
-    
-
   }
-
-
-  // bool this_has_chem = false, other_has_chem = false;
-  // for (int ch = 0; ch < par.n_cell_chem; ch++)
-  //   if (par.getInitChem(tau, ch) >= 0.0) { this_has_chem = true; break; }
-  // for (int ch = 0; ch < par.n_cell_chem; ch++)
-  //   if (par.getInitChem(cell2.tau, ch) >= 0.0) { other_has_chem = true; break; }
-
-  // if (this_has_chem && other_has_chem) {
-  //   double weighted_dist2 = 0.0;
-  //   for (int ch = 0; ch < par.n_cell_chem; ch++) {
-  //     double d = chem[ch] - cell2.chem[ch];
-  //     weighted_dist2 += par.chem_adhesion_weights[ch] * d * d;
-  //   }
-  //   return J[tau][cell2.tau] + (int)weighted_dist2;
-  // }
-
-  // return J[tau][cell2.tau];
 }

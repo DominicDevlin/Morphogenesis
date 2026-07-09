@@ -134,6 +134,8 @@ class Parameter {
   double Jzona_sox2;
   double Jzona_sox17;
   double Jzona_loser;
+
+  int initialise_sox_time;
   
 
   double sox17_blasto_adhesion;
@@ -458,6 +460,7 @@ class Parameter {
   //active terms
   bool active_motion;
   double motility_strength;
+  double motility_zero;
   double Ecadherin_bound_motility_loss;
   double Ncadherin_bound_motility_loss;
   double Pcadherin_bound_motility_loss;
