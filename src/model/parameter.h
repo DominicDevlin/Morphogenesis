@@ -136,6 +136,7 @@ class Parameter {
   double Jzona_loser;
 
   int initialise_sox_time;
+  int time_till_full_expression;
   
 
   double sox17_blasto_adhesion;

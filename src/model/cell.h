@@ -467,12 +467,12 @@ al. 2000). The current version of TST does not include such functionality.
   //   return J[sigma][c2.sigma];
   // }
 
-  double EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky);
+  double EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, double t);
   //! Sets bond energy J between cell type t1 and t2 to val
   // inline static int SetJ(int t1,int t2, int val) {
   //   return J[t2][t1]=J[t1][t2]=val;
   // }
-  double EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky);
+  double EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, double t);
 
 
   // Deal with gradient measurements:
@@ -1360,8 +1360,6 @@ inline void setSox2(double newsox)
 
   UpdateAdhesions();
 
-
-
 }
 
 inline double getSox17()
@@ -1385,7 +1383,7 @@ inline void OutputPerim()
   cout << "here: " << sigma << '\t' << perimeter << '\t' << target_perimeter << '\t' << cell_perim_constraint << '\t' << area << '\t' << target_area << '\t' << lambda << endl;
 }
 
-inline void SetSoxColour()
+inline void SetSoxColour(double t)
 {
     // weight is the Sox2/Sox17 dominance ratio: 0 = pure Sox17, 1 = pure Sox2.
     double weight = 0.5f * (sox2_internal_adhesion - sox17_internal_adhesion + 1.0f);
@@ -1394,7 +1392,7 @@ inline void SetSoxColour()
     // display. This ctype value drives cell colour only (Colour() -> c_type);
     // it no longer plays any role in adhesion, which is computed directly
     // from Sox2_concentration/Sox17_concentration in Cell::EmbryoEnergy.
-    int index = 2 + static_cast<int>(std::round(weight * 100.0f));
+    int index = 2 + t * static_cast<int>(std::round(weight * 100.0f));
 
     set_ctype(index);
 }

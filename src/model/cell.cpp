@@ -234,7 +234,7 @@ void Cell::ConstructorBody(int settau) {
 
 
 
-double Cell::EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
+double Cell::EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, double t)
 {
   if (sigma==cell2.sigma)
     return 0;
@@ -243,28 +243,28 @@ double Cell::EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_stick
     // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
     // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
     // that unsorted cells are gradually sorted out of the tissue.
-    return 1.5;
+    return t * 1.5;
   }
   else if (cell2.sigma==0)
   {
-    return 1.5;
+    return t * 1.5;
   }
   else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
   {
-    return 3.0;
+    return t * 3.0;
   }
   else if (cell2.sigma==zona_sigma_sticky)
   {
-    return 1.0;
+    return t *1.0;
   }
   else
   {
-    return 1.0;
+    return t * 1.0;
   }
 }
 
 
-double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
+double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, double t)
 {
   if (sigma==cell2.sigma)
     return 0;
@@ -273,15 +273,15 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
     // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
     // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
     // that unsorted cells are gradually sorted out of the tissue.
-    return par.Jblasto - cell2.sox2_internal_adhesion * par.sox2_blasto_adhesion
-                        - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion;
+    return (par.Jblasto - cell2.sox2_internal_adhesion * par.sox2_blasto_adhesion
+                        - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion)*t;
                         // - (1-cell2.sox2_internal_adhesion) * (1-cell2.sox17_internal_adhesion) * par.loser_blasto_adhesion;
                         //- cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
   }
   else if (cell2.sigma==0)
   {
-    return par.Jblasto - sox2_internal_adhesion * par.sox2_blasto_adhesion;
-                       - sox17_internal_adhesion * par.sox17_blasto_adhesion;
+    return (par.Jblasto - sox2_internal_adhesion * par.sox2_blasto_adhesion
+                       - sox17_internal_adhesion * par.sox17_blasto_adhesion)*t;
                       // - (1-sox2_internal_adhesion) * (1-sox17_internal_adhesion) * par.loser_blasto_adhesion;
 
                         // - IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
@@ -289,12 +289,12 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
   else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
   {
     // cout << "here" << endl;
-    return par.J_cell_zona - sox17_internal_adhesion * par.Jzona_sox17;
+    return (par.J_cell_zona - sox17_internal_adhesion * par.Jzona_sox17)*t;
   }
   else if (cell2.sigma==zona_sigma_sticky)
   {
-    return par.J_cell_zona_sticky - sox2_internal_adhesion * par.Jzona_sticky_sox2extra;
-                          - sox17_internal_adhesion * par.Jzona_sticky_sox17extra;  
+    return (par.J_cell_zona_sticky - sox2_internal_adhesion * par.Jzona_sticky_sox2extra
+                          - sox17_internal_adhesion * par.Jzona_sticky_sox17extra) * t;  
   }
   else
   {
@@ -310,7 +310,7 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
     // double one_of_both_loosers = max(is_looser, cell2_is_looser);
 
 
-    return par.J_cell_baseline - t2 * cell2_t2 * par.sox2binding
+    return (par.J_cell_baseline - t2 * cell2_t2 * par.sox2binding
                               - t17 * cell2_t17 * par.sox17binding
                               - t17 * cell2_t2 * par.sox2vs17binding
                               - t2 * cell2_t17 * par.sox2vs17binding
@@ -318,6 +318,6 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky)
                               - is_looser * cell2_t2 * par.loser_sox2_adhesion
                               - cell2_is_looser * t2 * par.loser_sox2_adhesion
                               - is_looser * cell2_t17 * par.loser_sox17_adhesion
-                              - cell2_is_looser * t17 * par.loser_sox17_adhesion;
+                              - cell2_is_looser * t17 * par.loser_sox17_adhesion) * t;
   }
 }

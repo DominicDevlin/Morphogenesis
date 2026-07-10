@@ -114,7 +114,9 @@ public:
   void MeasureSinglePerimeter(int targetsigma);
 
 
-  void SetPerims(int tperim);
+  void SetPerims(int tperim=0);
+
+  void SetSoxColours(double tfrac);
 
   void ApoptoseDeadCells();
 
@@ -261,7 +263,7 @@ public:
 
   void ToxictoLonelyCells();
 
-  void NeighbourBasedPerimeterConstraint();
+  void NeighbourBasedActiveMotion();
 
   void InnerCellMassDivisions(int t);
 

@@ -82,10 +82,10 @@ INIT
 
     if (par.make_zona_pellucida)
     {
-      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 90, 110, 2);
+      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 65, 85, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -120, par.sizex/2, par.sizey/2, 90, 110, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -110, par.sizex/2, par.sizey/2, 65, 85, 2);
 
     CPM->DifferentiateZonaPellucida();
 
@@ -145,6 +145,7 @@ TIMESTEP {
 
     if (t==par.initialise_sox_time)
     {
+      
       dish->CPM->InitialiseRandomSoxValues();
       dish->CPM->SetMotilityStrengths();
       dish->CPM->SetPerims(par.ptarget_perimeter);
@@ -152,19 +153,19 @@ TIMESTEP {
     }
     if (t>par.initialise_sox_time)
     {
+      double tfrac = min(1., double(t-par.initialise_sox_time)/double(par.time_till_full_expression));
+      par.loser_perim_increase = 0.5 * tfrac;
+
       if (t%100==0)
       {
         dish->CPM->ToxictoLonelyCells();
       }
-      if (t % 20==0)
-      {
-        dish->CPM->NeighbourBasedPerimeterConstraint();
-      }
-
       if (t%10==0)
       {
         dish->CPM->CheckIfDivisionHit(t);
-        // dish->CPM->InnerCellMassDivisions(t);
+        dish->CPM->NeighbourBasedActiveMotion();
+        dish->CPM->SetPerims();
+        dish->CPM->SetSoxColours(tfrac);
       }
     }
 
@@ -187,9 +188,12 @@ TIMESTEP {
 
 
     // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    // if (t==200)
+    // {
+    //   std::cout << "Press Enter to continue..."; // Nice to have a prompt
+    //   std::cin.get();                            // The actual pause
+    // }
 
-    // std::cout << "Press Enter to continue..."; // Nice to have a prompt
-    // std::cin.get();                            // The actual pause
 
     // if (t%100==0)
     // {
