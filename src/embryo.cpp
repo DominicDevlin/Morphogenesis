@@ -163,7 +163,7 @@ TIMESTEP {
       if (t%10==0)
       {
         dish->CPM->CheckIfDivisionHit(t);
-        dish->CPM->NeighbourBasedActiveMotion();
+        dish->CPM->NeighbourBasedActiveMotion(tfrac);
         dish->CPM->SetPerims();
         dish->CPM->SetSoxColours(tfrac);
       }

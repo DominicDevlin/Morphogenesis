@@ -137,6 +137,9 @@ class Parameter {
 
   int initialise_sox_time;
   int time_till_full_expression;
+  bool set_loser_colours;
+
+  double switch_like;
   
 
   double sox17_blasto_adhesion;

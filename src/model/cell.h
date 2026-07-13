@@ -1330,8 +1330,8 @@ double& GetFauxTargetArea()
 
 inline void UpdateAdhesions() 
 {
-  double t2  = 1.0 / (1.0 + std::exp(-1000.0 * (Sox2_concentration  - par.sox_threshold)));
-  double t17 = 1.0 / (1.0 + std::exp(-1000.0 * (Sox17_concentration - par.sox_threshold)));
+  double t2  = 1.0 / (1.0 + std::exp(-par.switch_like * (Sox2_concentration  - par.sox_threshold)));
+  double t17 = 1.0 / (1.0 + std::exp(-par.switch_like * (Sox17_concentration - par.sox_threshold)));
 
   // 2. Apply mutual inhibition so that if BOTH are ~1, both adhesions become ~0
   sox2_internal_adhesion  = t2  * (1.0 - t17);
@@ -1395,6 +1395,14 @@ inline void SetSoxColour(double t)
     int index = 2 + t * static_cast<int>(std::round(weight * 100.0f));
 
     set_ctype(index);
+    if (par.set_loser_colours)
+    {
+      double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
+      if (is_looser > 0.9)
+      {
+        set_ctype(203);
+      }
+    }
 }
 
 inline void MakeLonely(bool lonely)

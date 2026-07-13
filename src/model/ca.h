@@ -263,13 +263,15 @@ public:
 
   void ToxictoLonelyCells();
 
-  void NeighbourBasedActiveMotion();
+  void NeighbourBasedActiveMotion(double tfrac);
 
   void InnerCellMassDivisions(int t);
 
   void DrawDivisionTimes();
 
   void CheckIfDivisionHit(int t);
+
+  void NeighbourBasedApoptosis();
 
 
 

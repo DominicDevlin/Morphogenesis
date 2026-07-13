@@ -1892,7 +1892,7 @@ void CellularPotts::InitialiseRandomSoxValues()
   
   // Note: target_sox2_prob is now the ratio of Sox2 vs Sox17 among WINNING cells.
   double target_sox17_prob = 1.0 - par.target_sox2_prob;
-  double threshold = 0.2; 
+  double threshold = par.sox_threshold; 
   double loser_prob = par.starting_fraction_losers;
 
   double p2  = std::log(threshold) / std::log(1.0 - par.target_sox2_prob);
@@ -2243,8 +2243,8 @@ void CellularPotts::PopulateDenseCellsInZonaRadius(double density, double R, int
         double rnd = RANDOM(s_val) * (max_area - min_area) + min_area;
         centers.push_back({final_cx, final_cy, -1, rnd});
       }
-      if (final_cx < 5 || final_cx > sizex-5 || final_cy < 5 || final_cy > sizey-5)
-        cerr << "warning: some centers are outside of domain\n";
+      // if (final_cx < 5 || final_cx > sizex-5 || final_cy < 5 || final_cy > sizey-5)
+      //   cerr << "warning: some centers are outside of domain\n";
     }
   }
 
@@ -3448,6 +3448,37 @@ void CellularPotts::InnerCellMassDivisions(int t)
 }
 
 
+void CellularPotts::NeighbourBasedApoptosis()
+{
+  int **ns = SearchNeighbours();
+  int n_size = (*cell).size();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP())
+    {
+      // we say there is a base probability that increases by same factor (sqrt?) depending on number of viable neighbours (cell competition). Probability should be multiplied by expression of internal??
+
+      // get loser cell
+      double sox2internal = cell->at(i).getSox2adhesion();
+      double sox17internal = cell->at(i).getSox17adhesion();
+      double is_looser = max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
+      int j=0;
+
+      while (ns[i][j] >= 0)
+      {
+        double neighbour_fit = 1 - max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
+      }
+
+
+    }
+  }
+
+  free(ns[0]);
+  free(ns);
+
+}
+
+
 
 void CellularPotts::ToxictoLonelyCells()
 {
@@ -3484,7 +3515,7 @@ void CellularPotts::ToxictoLonelyCells()
         else if (cell->at(i).TargetArea() > 1)
         {
           int n=10;
-          while (n>0)
+          while (n>1)
           {
             cell->at(i).DecrementTargetArea();
             --n;
@@ -3512,7 +3543,7 @@ void CellularPotts::ToxictoLonelyCells()
 }
 
 // still working on this
-void CellularPotts::NeighbourBasedActiveMotion()
+void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
 {
 
   int **ns = SearchNeighbours();
@@ -3561,6 +3592,7 @@ void CellularPotts::NeighbourBasedActiveMotion()
       if (mot_strength < 0)
         mot_strength=0;
 
+      mot_strength = mot_strength * tfrac;
       cell->at(i).SetMotilityStrength(mot_strength);
 
       double is_looser = max(sox2ad * sox17ad, (1. - sox2ad) * (1. - sox17ad));

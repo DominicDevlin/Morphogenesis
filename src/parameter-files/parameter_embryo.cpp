@@ -54,7 +54,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;
+    pickseed=0;//16045985250248971749;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -103,7 +103,12 @@
     persistence_time = 40.;
 
     initialise_sox_time=800;
-    time_till_full_expression=5000;
+    time_till_full_expression=10000;
+
+    // smaller this is the smoother the curve between losers and winners (this is important)
+    switch_like=100.; 
+
+    set_loser_colours=false;
   
 
     // high value ensures cells are never broken apart by copy attempts.
