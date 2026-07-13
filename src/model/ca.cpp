@@ -3463,7 +3463,7 @@ void CellularPotts::NeighbourBasedApoptosis()
       double sox17internal = cell->at(i).getSox17adhesion();
       double is_looser = max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
       int j=0;
-
+      int total
       while (ns[i][j] >= 0)
       {
         double neighbour_fit = 1 - max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
