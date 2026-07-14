@@ -3448,35 +3448,35 @@ void CellularPotts::InnerCellMassDivisions(int t)
 }
 
 
-void CellularPotts::NeighbourBasedApoptosis()
-{
-  int **ns = SearchNeighbours();
-  int n_size = (*cell).size();
-  for (int i = 1; i < n_size; ++i)
-  {
-    if (cell->at(i).AliveP())
-    {
-      // we say there is a base probability that increases by same factor (sqrt?) depending on number of viable neighbours (cell competition). Probability should be multiplied by expression of internal??
+// void CellularPotts::NeighbourBasedApoptosis()
+// {
+//   int **ns = SearchNeighbours();
+//   int n_size = (*cell).size();
+//   for (int i = 1; i < n_size; ++i)
+//   {
+//     if (cell->at(i).AliveP())
+//     {
+//       // we say there is a base probability that increases by same factor (sqrt?) depending on number of viable neighbours (cell competition). Probability should be multiplied by expression of internal??
 
-      // get loser cell
-      double sox2internal = cell->at(i).getSox2adhesion();
-      double sox17internal = cell->at(i).getSox17adhesion();
-      double is_looser = max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
-      int j=0;
-      int total
-      while (ns[i][j] >= 0)
-      {
-        double neighbour_fit = 1 - max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
-      }
+//       // get loser cell
+//       double sox2internal = cell->at(i).getSox2adhesion();
+//       double sox17internal = cell->at(i).getSox17adhesion();
+//       double is_looser = max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
+//       int j=0;
+//       int total
+//       while (ns[i][j] >= 0)
+//       {
+//         double neighbour_fit = 1 - max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
+//       }
 
 
-    }
-  }
+//     }
+//   }
 
-  free(ns[0]);
-  free(ns);
+//   free(ns[0]);
+//   free(ns);
 
-}
+// }
 
 
 

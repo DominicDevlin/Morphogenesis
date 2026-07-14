@@ -93,10 +93,6 @@ INIT
     // Assign a random type to each of the cells
     // CPM->SetRandomTypes();
 
-    par.end_program=0;
-
-    par.print_fitness = true;
-
     if (par.store)
     {
       if (mkdir("data_film", 0777) == -1)

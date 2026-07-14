@@ -14,7 +14,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-TARGET = embryo
+TARGET = embryo_multi
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 PARAMFILE = parameter-files/parameter_$${TARGET}.cpp
 
