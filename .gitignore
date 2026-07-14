@@ -17,3 +17,4 @@ src/.qmake.stash
 src/moc_predefs.h
 src/moc_qtgraph.h
 src/moc_qtgraph.cpp
+src/embryo_multi

@@ -231,13 +231,18 @@
     CleanUp();
   }
 
-  void Parameter::CleanUp(void) 
+  void Parameter::CleanUp(void)
   {
-    if (Jtable) 
+    if (Jtable)
+    {
       free(Jtable);
-    if (datadir) 
+      Jtable = nullptr;
+    }
+    if (datadir)
+    {
       free(datadir);
-
+      datadir = nullptr;
+    }
   }
 
   void Parameter::Read(const char *filename) {

@@ -310,8 +310,8 @@ void fft::PolarToOutput(string name)
 	#ifdef QTGRAPHICS
 
 			
-	QtGraphics g(rho*2,sizer*2);
- 
+	QtGraphics g(rho*2,sizer*2,0,false);
+
 
 
 	char fname[200];
@@ -363,12 +363,12 @@ void fft::cpmOutput(string name)
 	strcpy(nname, name.c_str());
 	#ifdef QTGRAPHICS
 
-	QtGraphics g(sizex*2,sizey*2);
+	QtGraphics g(sizex*2,sizey*2,0,false);
 
 	char fname[200];
 	sprintf(fname, nname);
 	g.BeginScene();
-	g.ClearImage();    
+	g.ClearImage();
 
 	m_CPM->SearchNandPlot(&g, false);
 
@@ -391,8 +391,8 @@ void fft::GridToOutput(string name)
 	#ifdef QTGRAPHICS
 
 			
-	QtGraphics qtgrid(sizex*2,sizey*2);
- 
+	QtGraphics qtgrid(sizex*2,sizey*2,0,false);
+
 
 
 	char fname[200];
@@ -467,7 +467,7 @@ void fft::ShowOptimal(string name)
 	#ifdef QTGRAPHICS
 
 			
-	QtGraphics s(rho*2,sizer*2);
+	QtGraphics s(rho*2,sizer*2,0,false);
 
 	char fname[200];
 	sprintf(fname, nname,par.data_file);

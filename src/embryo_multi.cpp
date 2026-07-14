@@ -97,6 +97,36 @@ TIMESTEP
   cerr << "Error" << endl;
 }
 
+// Draws one progress bar per organism and updates them in place (rather than
+// reprinting new lines), the same way tools like pacman/apt render parallel
+// progress. `n_orgs` lines are reserved up front by init_progress_bars();
+// each call here rewrites only organism org_index's line via ANSI cursor
+// movement, so all bars stay pinned to their own row while ticking forward.
+void init_progress_bars(int n_orgs, int total)
+{
+  for (int org_index = 0; org_index < n_orgs; ++org_index)
+    cout << "Org " << (org_index + 1) << " [" << string(40, '-') << "] 0% (0/" << total << ")\n";
+  cout << flush;
+}
+
+void update_progress_bar(int org_index, int step, int total, int n_orgs)
+{
+  const int bar_width = 40;
+  double fraction = double(step) / double(total);
+  int filled = static_cast<int>(bar_width * fraction);
+
+  ostringstream bar;
+  bar << "Org " << (org_index + 1) << " [";
+  for (int i = 0; i < bar_width; ++i)
+    bar << (i < filled ? '#' : '-');
+  bar << "] " << static_cast<int>(fraction * 100) << "% (" << step << "/" << total << ")";
+
+  int lines_up = n_orgs - org_index;
+
+  #pragma omp critical(progress_print)
+  cout << "\033[" << lines_up << "A\r\033[K" << bar.str() << "\033[" << lines_up << "B\r" << flush;
+}
+
 void process_population()
 {
 
@@ -105,6 +135,8 @@ void process_population()
   Dish *dishes = new Dish[par.n_orgs];
 
   ostringstream makefll;
+
+  init_progress_bars(par.n_orgs, par.mcs);
 
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
@@ -120,7 +152,11 @@ void process_population()
     dishes[i].CPM->SetPerims(par.ptarget_perimeter);
     cout << "Number of cells: " << dishes[i].CPM->CountCells() << endl; // 1200
     dishes[i].CPM->DrawDivisionTimes();
-    dishes[i].CPM->SetColours(); 
+    dishes[i].CPM->SetColours();
+
+    string celltype_fname = par.data_file + "/celltypes-org-" + to_string(i + 1) + ".dat";
+    ofstream celltype_file(celltype_fname);
+    celltype_file << "time\tzona_pellucida\tsox2_high\tsox17_high\tloser\tundifferentiated\ttotal" << endl;
 
     int t;
 
@@ -153,6 +189,14 @@ void process_population()
           dishes[i].CPM->SetSoxColours(tfrac);
         }
       }
+      if (t%10==0)
+      {
+        CellTypeCounts type_counts = dishes[i].CPM->CountCellTypes();
+        celltype_file << t << '\t' << type_counts.zona_pellucida << '\t' << type_counts.sox2_high
+                      << '\t' << type_counts.sox17_high << '\t' << type_counts.loser << '\t'
+                      << type_counts.undifferentiated << '\t' << type_counts.total() << endl;
+      }
+
       dishes[i].CPM->AmoebaeMove(t);
 
       if (par.active_motion)
@@ -160,30 +204,25 @@ void process_population()
         dishes[i].CPM->update_cell_velocities_MCS();
       }
 
-      if (par.pics_for_opt && t % 1000 == 0)
+      if (t % 1000 == 0)
       {
-        string dirn = par.pic_dir;
-        if (mkdir(dirn.c_str(), 0777) != -1)
-        {
-          cout << "Directory created." << endl;
-        }
+        update_progress_bar(i, t, par.mcs, par.n_orgs);
 
-        for (int org=0; org < par.n_orgs; ++org)
+        if (par.pics_for_opt)
         {
-          // dishes[i].CPM->ColourCells(par.phase_evolution);
-          fft new_org(par.sizex,par.sizey);
-          new_org.ImportCPM(dishes[org].get_cpm());
-          string f2 = "org-";
-          string n2 = to_string(org);
-          string ftype = ".png";
-          string foutput = dirn + "/" + f2 + n2 + "-" + to_string(t) + ftype;
+          fft new_org(par.sizex, par.sizey);
+          new_org.ImportCPM(dishes[i].get_cpm());
+          string foutput = par.pic_dir + "/org-" + to_string(i) + "-" + to_string(t) + ".png";
           new_org.cpmOutput(foutput);
         }
       }
 
     }
+
+    celltype_file.close();
   }
-    
+
+
   //   ostringstream stream;
   //   stream << fixed << setprecision(2) << par.sheet_J; // Setting precision to 2 decimal points
   //   string formatted_value = stream.str();
@@ -246,7 +285,8 @@ int main(int argc, char *argv[])
   else
     cout << "Directory created." << endl;
 
-
+  if (par.pics_for_opt)
+    mkdir(par.pic_dir.c_str(), 0777);
 
   process_population();
   
