@@ -106,7 +106,6 @@ void process_population()
 
   ostringstream makefll;
 
-
   omp_set_num_threads(par.n_orgs);
   #pragma omp parallel for
   for (int i = 0; i < par.n_orgs; ++i)
@@ -122,7 +121,6 @@ void process_population()
     cout << "Number of cells: " << dishes[i].CPM->CountCells() << endl; // 1200
     dishes[i].CPM->DrawDivisionTimes();
     dishes[i].CPM->SetColours(); 
-
 
     int t;
 
@@ -185,7 +183,6 @@ void process_population()
 
     }
   }
-
     
   //   ostringstream stream;
   //   stream << fixed << setprecision(2) << par.sheet_J; // Setting precision to 2 decimal points

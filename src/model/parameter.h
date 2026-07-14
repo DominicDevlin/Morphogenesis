@@ -140,7 +140,11 @@ class Parameter {
   bool set_loser_colours;
 
   double switch_like;
-  
+
+  double apop_signal_noise;
+  double apop_dt;
+  double apop_threshold;
+  double death_decay_rate;
 
   double sox17_blasto_adhesion;
   double sox2_blasto_adhesion;

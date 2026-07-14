@@ -163,6 +163,10 @@ TIMESTEP {
         dish->CPM->SetPerims();
         dish->CPM->SetSoxColours(tfrac);
       }
+      if (t%150==0)
+      {
+        dish->CPM->NeighbourBasedApoptosis();
+      }
     }
 
     // if (t==1000)

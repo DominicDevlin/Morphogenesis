@@ -177,6 +177,8 @@ public:
 
     cell_elastic_mod=src.cell_elastic_mod;
     motility_strength=src.motility_strength;
+
+    accumulated_death_signals = src.accumulated_death_signals;
     
   }
   
@@ -287,6 +289,9 @@ public:
     f_opposing_E_cad = src.f_opposing_E_cad;
     f_opposing_N_cad = src.f_opposing_N_cad;
     f_opposing_P_cad = src.f_opposing_P_cad;
+  
+    accumulated_death_signals = src.accumulated_death_signals;
+
 
     diffs = new double[par.n_diffusers];
 
@@ -1415,6 +1420,12 @@ inline bool IsLonely()
   return lonely_cell;
 }
 
+inline double& GetDeathSignals()
+{
+  return accumulated_death_signals;
+}
+
+
 
 inline void UpdatePerimeterConstraint()
 {
@@ -1604,6 +1615,7 @@ protected:
   int cell_contact{};
   int cell_perim{};
 
+  double accumulated_death_signals{};
 
   // indices of mother and daughter
   // (Note: no pointers, cells may be relocated)

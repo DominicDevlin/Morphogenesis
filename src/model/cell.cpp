@@ -142,6 +142,7 @@ void Cell::CellBirth(Cell &mother_cell) {
   cell_perim_constraint = mother_cell.cell_perim_constraint;
   div_times = mother_cell.div_times;
 
+  accumulated_death_signals = mother_cell.accumulated_death_signals;
 
   for (int i=0;i<par.n_diffusers;i++)
   {

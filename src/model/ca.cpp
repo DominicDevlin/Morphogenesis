@@ -3448,35 +3448,85 @@ void CellularPotts::InnerCellMassDivisions(int t)
 }
 
 
-// void CellularPotts::NeighbourBasedApoptosis()
-// {
-//   int **ns = SearchNeighbours();
-//   int n_size = (*cell).size();
-//   for (int i = 1; i < n_size; ++i)
-//   {
-//     if (cell->at(i).AliveP())
-//     {
-//       // we say there is a base probability that increases by same factor (sqrt?) depending on number of viable neighbours (cell competition). Probability should be multiplied by expression of internal??
+void CellularPotts::NeighbourBasedApoptosis()
+{
+  auto GetNoise = [&]() {
+      double u1 = RANDOM(s_val);
+      double u2 = RANDOM(s_val);
+      if (u1 <= 0.0) u1 = 0.0000001;
+      // Standard normal value (mean = 0, variance = 1)
+      double standard_normal = std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * u2);
+      // Scale by the standard deviation (sqrt of variance K)
+      return standard_normal * std::sqrt(par.apop_signal_noise);
+  };
+  int **ns = SearchNeighbours();
+  int n_size = (*cell).size();
+  for (int i = 1; i < n_size; ++i)
+  {
+    if (cell->at(i).AliveP()) 
+    {
 
-//       // get loser cell
-//       double sox2internal = cell->at(i).getSox2adhesion();
-//       double sox17internal = cell->at(i).getSox17adhesion();
-//       double is_looser = max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
-//       int j=0;
-//       int total
-//       while (ns[i][j] >= 0)
-//       {
-//         double neighbour_fit = 1 - max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
-//       }
+      double &death_amount = cell->at(i).GetDeathSignals();
+      // get loser cell
+      double sox2internal = cell->at(i).getSox2adhesion();
+      double sox17internal = cell->at(i).getSox17adhesion();
+      double is_looser = max(sox2internal * sox17internal, (1. - sox2internal) * (1. - sox17internal));
+      int j=0;
+      double nbh_total_fit=0.;
+      while (ns[i][j] >= 0)
+      {
+        if (cell->at(j).AliveP() && j > 0)
+        {
+          double nbh_sox2int = cell->at(j).getSox2adhesion();
+          double nbh_sox17int = cell->at(j).getSox17adhesion();
+          double neighbour_fit = 1 - max(nbh_sox2int * nbh_sox17int, (1. - nbh_sox2int) * (1. - nbh_sox17int));
+          nbh_total_fit+=neighbour_fit;
+        }
+
+        ++j;
+      }
+      // we could divide by 6 because maximum 6 neighbours and we want the absolute max to be 1 or so i guess? But its very stochastic so maybe we can just keep it as is.
+      // now do differential equation (stochasticity included above stochastic)
+      double nbh_signal = nbh_total_fit * is_looser;
+
+      death_amount += ((nbh_signal) - par.death_decay_rate * death_amount + GetNoise()) * par.apop_dt;
+      if (death_amount < 0)
+        death_amount=0;
+      //if (is_looser > 0.9)
+      //{
+        ofstream outfile;
+        string out = data_file + "/death_total.dat";
+        outfile.open(out, ios::app);
+        outfile << i << '\t' << death_amount << endl;
+        outfile.close();      
+      //}
 
 
-//     }
-//   }
+      if (death_amount > par.apop_threshold)
+      {
+        if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
+          cell->at(i).SetTargetArea(1);
+        else if (cell->at(i).TargetArea() > 1)
+        {
+          int n=10;
+          while (n>1)
+          {
+            cell->at(i).DecrementTargetArea();
+            --n;
+          }
+        }
 
-//   free(ns[0]);
-//   free(ns);
 
-// }
+        cell->at(i).SetLambdaByBulk();
+        cell->at(i).UpdatePerimeterConstraint();
+      }
+    }
+  }
+
+  free(ns[0]);
+  free(ns);
+
+}
 
 
 
