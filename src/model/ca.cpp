@@ -3133,18 +3133,49 @@ void CellularPotts::CellGrowthAndDivision(int time)
 
 
 
-int CellularPotts::CountCells(void) const 
+int CellularPotts::CountCells(void) const
 {
   int amount=0;
   vector<Cell>::const_iterator i;
-  for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
+  for ( (i=cell->begin(),i++); i!=cell->end(); i++)
   {
-    if (i->AliveP()) 
+    if (i->AliveP())
     {
       amount++;
     }
   }
   return amount;
+}
+
+
+CellTypeCounts CellularPotts::CountCellTypes(void) const
+{
+  CellTypeCounts counts;
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(),c++); c!=cell->end(); c++)
+  {
+    if (!c->AliveP())
+      continue;
+
+    if (c->Sigma()==zona_sigma || c->Sigma()==zona_sigma_sticky)
+    {
+      counts.zona_pellucida++;
+      continue;
+    }
+
+    bool sox2_active = c->getSox2() >= par.sox_threshold;
+    bool sox17_active = c->getSox17() >= par.sox_threshold;
+
+    if (sox2_active && sox17_active)
+      counts.loser++;
+    else if (sox2_active)
+      counts.sox2_high++;
+    else if (sox17_active)
+      counts.sox17_high++;
+    else
+      counts.undifferentiated++;
+  }
+  return counts;
 }
 
 

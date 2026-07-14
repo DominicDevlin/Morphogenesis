@@ -57,6 +57,20 @@ public:
   double  lb1,lb2;
 };
 
+//! Counts of living cells broken down by differentiation state
+//! (see CellularPotts::CountCellTypes).
+struct CellTypeCounts {
+  int zona_pellucida{};
+  int sox2_high{};
+  int sox17_high{};
+  int loser{};
+  int undifferentiated{};
+
+  int total() const {
+    return zona_pellucida + sox2_high + sox17_high + loser + undifferentiated;
+  }
+};
+
 class CellularPotts {
 
   friend class Info;
@@ -79,7 +93,13 @@ public:
   Find enlarged cells, and divide them.*/
   void CellGrowthAndDivision(int time);
 
-  int CountCells(void) const;  
+  int CountCells(void) const;
+
+  //! \brief Classifies living cells into zona pellucida, Sox2-high (epiblast-like),
+  //! Sox17-high (primitive-endoderm-like), loser (both markers above threshold,
+  //! mutually inhibited) and undifferentiated (neither marker above threshold),
+  //! and returns the count for each category.
+  CellTypeCounts CountCellTypes(void) const;
 
   void set_num(int in);
 

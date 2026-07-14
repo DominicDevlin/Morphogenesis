@@ -45,7 +45,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 extern Parameter par;
 
 using namespace std;
-QtGraphics::QtGraphics(int xfield, int yfield, const char *movie_file)
+QtGraphics::QtGraphics(int xfield, int yfield, const char *movie_file, bool enable_timer)
 {
 	mag = 1.;
 	if (movie_file) {
@@ -84,10 +84,19 @@ QtGraphics::QtGraphics(int xfield, int yfield, const char *movie_file)
 	pal.setColor(backgroundRole(), pens[0].color());
 	setPalette(pal);
 	
-  timer = new QTimer( this );
-  connect( timer, SIGNAL(timeout()), SLOT(TimeStepWrap()) );
-  timer->start( 0 );
-  
+  // The timer drives TimeStepWrap() through the Qt event loop, which only
+  // exists on the thread QApplication::exec() runs on. Off-thread,
+  // event-loop-less uses (e.g. rendering a single frame to a file from an
+  // OpenMP worker thread) must skip it, or Qt warns that timers require a
+  // QThread-managed thread.
+  timer = nullptr;
+  if (enable_timer)
+  {
+    timer = new QTimer( this );
+    connect( timer, SIGNAL(timeout()), SLOT(TimeStepWrap()) );
+    timer->start( 0 );
+  }
+
 
   mouse_button=Qt::NoButton;
   // changed by RM for porting to Win Qt4
@@ -282,10 +291,12 @@ void QtGraphics::Write(char *fname, int quality) {
   
   // Get file extension to infer desired image format
   QString extension_str = imname.section( '.', -1).toUpper();
-    const char *extension = extension_str.toLocal8Bit().constData();
+  QByteArray extension_bytes = extension_str.toLocal8Bit();
+  const char *extension = extension_bytes.constData();
   //cerr << "Extension is: " << extension << "\n";
   if (pixmap->save(imname,extension,quality)) {
-    cerr << "Image " << imname.toLocal8Bit().constData() << " was succesfully written.\n";
+    if (!par.pics_for_opt)
+      cerr << "Image " << imname.toLocal8Bit().constData() << " was succesfully written.\n";
   } else {
     cerr << "Image " << imname.toLocal8Bit().constData() << " could not be written.\n";
     QList< QByteArray > fmt = QImageWriter::supportedImageFormats();
