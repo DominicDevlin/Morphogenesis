@@ -106,13 +106,13 @@
     time_till_full_expression=10000;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
-    switch_like=300.; 
+    switch_like=300.;
 
     set_loser_colours=false;
   
     apop_signal_noise=3;
     apop_dt=0.1;
-    apop_threshold=100;
+    apop_threshold=1;
     death_decay_rate=0.15;
 
     // high value ensures cells are never broken apart by copy attempts.

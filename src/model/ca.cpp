@@ -3166,14 +3166,55 @@ CellTypeCounts CellularPotts::CountCellTypes(void) const
     bool sox2_active = c->getSox2() >= par.sox_threshold;
     bool sox17_active = c->getSox17() >= par.sox_threshold;
 
-    if (sox2_active && sox17_active)
-      counts.loser++;
-    else if (sox2_active)
+    if (sox2_active && !sox17_active)
       counts.sox2_high++;
-    else if (sox17_active)
+    else if (sox17_active && !sox2_active)
       counts.sox17_high++;
     else
+      // Neither marker active, or both at once (essentially never observed
+      // given how steep switch_like makes the commitment) - either way the
+      // cell hasn't cleanly committed to one lineage.
       counts.undifferentiated++;
+  }
+  return counts;
+}
+
+DeathCounts CellularPotts::CountAndClearDeathEvents()
+{
+  DeathCounts counts;
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(),c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+      continue;
+
+    int cause = c->GetDeathCause();
+    if (cause != Cell::DEATH_CAUSE_LONELY && cause != Cell::DEATH_CAUSE_SIGNAL)
+      continue; // already tallied on a previous call, or died some other way
+
+    // Classify by the marker levels frozen at time of death, same rule as
+    // CountCellTypes.
+    DeathCauseCounts *bucket;
+    if (c->Sigma() == zona_sigma || c->Sigma() == zona_sigma_sticky)
+      bucket = &counts.zona_pellucida;
+    else
+    {
+      bool sox2_active = c->getSox2() >= par.sox_threshold;
+      bool sox17_active = c->getSox17() >= par.sox_threshold;
+      if (sox2_active && !sox17_active)
+        bucket = &counts.sox2_high;
+      else if (sox17_active && !sox2_active)
+        bucket = &counts.sox17_high;
+      else
+        bucket = &counts.undifferentiated;
+    }
+
+    if (cause == Cell::DEATH_CAUSE_LONELY)
+      bucket->lonely++;
+    else
+      bucket->signal++;
+
+    c->ClearDeathCause();
   }
   return counts;
 }
@@ -3479,7 +3520,7 @@ void CellularPotts::InnerCellMassDivisions(int t)
 }
 
 
-void CellularPotts::NeighbourBasedApoptosis()
+void CellularPotts::NeighbourBasedApoptosis(int org_index)
 {
   auto GetNoise = [&]() {
       double u1 = RANDOM(s_val);
@@ -3526,7 +3567,7 @@ void CellularPotts::NeighbourBasedApoptosis()
       //if (is_looser > 0.9)
       //{
         ofstream outfile;
-        string out = data_file + "/death_total.dat";
+        string out = data_file + "/death_total" + (org_index > 0 ? "-org-" + to_string(org_index) : "") + ".dat";
         outfile.open(out, ios::app);
         outfile << i << '\t' << death_amount << endl;
         outfile.close();      
@@ -3535,6 +3576,7 @@ void CellularPotts::NeighbourBasedApoptosis()
 
       if (death_amount > par.apop_threshold)
       {
+        cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_SIGNAL);
         if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
           cell->at(i).SetTargetArea(1);
         else if (cell->at(i).TargetArea() > 1)
@@ -3591,6 +3633,7 @@ void CellularPotts::ToxictoLonelyCells()
       if (nbh_count==0)
       {
         cell->at(i).MakeLonely(true);
+        cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_LONELY);
         if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
           cell->at(i).SetTargetArea(1);
         else if (cell->at(i).TargetArea() > 1)

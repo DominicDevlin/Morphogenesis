@@ -63,11 +63,50 @@ struct CellTypeCounts {
   int zona_pellucida{};
   int sox2_high{};
   int sox17_high{};
-  int loser{};
   int undifferentiated{};
 
   int total() const {
-    return zona_pellucida + sox2_high + sox17_high + loser + undifferentiated;
+    return zona_pellucida + sox2_high + sox17_high + undifferentiated;
+  }
+};
+
+//! Cells that started apoptosing via one of the two mechanisms tracked by
+//! CountAndClearDeathEvents.
+struct DeathCauseCounts {
+  int lonely{};  // ToxictoLonelyCells: no live neighbours (blastocoel extrusion after cell sorting)
+  int signal{};  // NeighbourBasedApoptosis: accumulated neighbour-competition signal crossed apop_threshold
+
+  int total() const {
+    return lonely + signal;
+  }
+};
+
+//! Cells that have started apoptosing since the last call to
+//! CellularPotts::CountAndClearDeathEvents, broken down by which cell type
+//! they were (classified the same way as CountCellTypes, using the marker
+//! levels frozen at time of death) and which mechanism triggered it.
+struct DeathCounts {
+  DeathCauseCounts zona_pellucida;
+  DeathCauseCounts sox2_high;
+  DeathCauseCounts sox17_high;
+  DeathCauseCounts undifferentiated;
+
+  int total_lonely() const {
+    return zona_pellucida.lonely + sox2_high.lonely + sox17_high.lonely + undifferentiated.lonely;
+  }
+  int total_signal() const {
+    return zona_pellucida.signal + sox2_high.signal + sox17_high.signal + undifferentiated.signal;
+  }
+
+  void Accumulate(const DeathCounts &other) {
+    zona_pellucida.lonely += other.zona_pellucida.lonely;
+    zona_pellucida.signal += other.zona_pellucida.signal;
+    sox2_high.lonely += other.sox2_high.lonely;
+    sox2_high.signal += other.sox2_high.signal;
+    sox17_high.lonely += other.sox17_high.lonely;
+    sox17_high.signal += other.sox17_high.signal;
+    undifferentiated.lonely += other.undifferentiated.lonely;
+    undifferentiated.signal += other.undifferentiated.signal;
   }
 };
 
@@ -96,10 +135,16 @@ public:
   int CountCells(void) const;
 
   //! \brief Classifies living cells into zona pellucida, Sox2-high (epiblast-like),
-  //! Sox17-high (primitive-endoderm-like), loser (both markers above threshold,
-  //! mutually inhibited) and undifferentiated (neither marker above threshold),
-  //! and returns the count for each category.
+  //! Sox17-high (primitive-endoderm-like) and undifferentiated (neither marker
+  //! above threshold, or - rare given how steep switch_like makes the
+  //! Sox2/Sox17 commitment - both above threshold at once), and returns the
+  //! count for each category.
   CellTypeCounts CountCellTypes(void) const;
+
+  //! \brief Tallies cells that started apoptosing since the last call, by cause
+  //! (see DeathCounts), then clears their recorded cause so they aren't counted
+  //! twice on the next call.
+  DeathCounts CountAndClearDeathEvents();
 
   void set_num(int in);
 
@@ -291,7 +336,10 @@ public:
 
   void CheckIfDivisionHit(int t);
 
-  void NeighbourBasedApoptosis();
+  //! org_index distinguishes death_total.dat's filename when several
+  //! organisms share the same data_file directory (embryo_multi runs them
+  //! in parallel); leave at 0 for a single-organism run.
+  void NeighbourBasedApoptosis(int org_index = 0);
 
   vector<double> sox2_values();
   vector<double> sox17_values();

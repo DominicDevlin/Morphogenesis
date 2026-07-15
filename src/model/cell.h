@@ -1425,6 +1425,35 @@ inline double& GetDeathSignals()
   return accumulated_death_signals;
 }
 
+// Which mechanism started killing this cell - lonely/blastocoel extrusion
+// (ToxictoLonelyCells) or neighbour-competition signalling
+// (NeighbourBasedApoptosis). Both shrink the cell identically, so this has
+// to be recorded at the point the shrink is triggered; by the time the CPM
+// dynamics actually bring the cell's area to 0 (ConvertSpin), the cause is
+// no longer distinguishable from the mechanics alone.
+static const int DEATH_CAUSE_NONE = 0;
+static const int DEATH_CAUSE_LONELY = 1;
+static const int DEATH_CAUSE_SIGNAL = 2;
+
+inline int GetDeathCause() const
+{
+  return death_cause;
+}
+
+//! Records why this cell started dying, unless a cause is already recorded
+//! (first trigger wins - a cell can become lonely and cross the signal
+//! threshold on different steps).
+inline void MarkDeathCause(int cause)
+{
+  if (death_cause == DEATH_CAUSE_NONE)
+    death_cause = cause;
+}
+
+inline void ClearDeathCause()
+{
+  death_cause = DEATH_CAUSE_NONE;
+}
+
 
 
 inline void UpdatePerimeterConstraint()
@@ -1616,6 +1645,7 @@ protected:
   int cell_perim{};
 
   double accumulated_death_signals{};
+  int death_cause{};
 
   // indices of mother and daughter
   // (Note: no pointers, cells may be relocated)

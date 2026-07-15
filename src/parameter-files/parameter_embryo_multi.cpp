@@ -109,7 +109,11 @@
     switch_like=1000.; 
 
     set_loser_colours=false;
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> f8634685e4d36d1c0fd04cfbaca582d919cda677
     apop_signal_noise=3;
     apop_dt=0.1;
     apop_threshold=100;
