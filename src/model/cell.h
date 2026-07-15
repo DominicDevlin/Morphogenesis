@@ -112,6 +112,8 @@ public:
     perimeter = src.perimeter;
     target_perimeter = src.target_perimeter;
 
+    apop_noise_state=src.apop_noise_state;
+
     diffs = new double[par.n_diffusers];
 
     for (int i=0;i<par.n_diffusers;i++)
@@ -243,6 +245,8 @@ public:
     target_perimeter = src.target_perimeter;
 
     cell_perim_constraint = src.cell_perim_constraint;
+    apop_noise_state=src.apop_noise_state;
+
 
     Sox2_concentration = src.Sox2_concentration;
     sox2_internal_adhesion = src.sox2_internal_adhesion;
@@ -1505,6 +1509,12 @@ double& getPerimConstraint()
   return cell_perim_constraint;
 }
 
+
+double& GetApopNoiseState()
+{
+  return apop_noise_state;
+}
+
 private:
 //! Increments the cell's actual area by 1 unit.
   inline int IncrementArea() {
@@ -1569,7 +1579,7 @@ protected:
 
   vector<double> mass_list;
 
-
+  double apop_noise_state{};
 
 
   int perimeter;        // amount of cell's membrane

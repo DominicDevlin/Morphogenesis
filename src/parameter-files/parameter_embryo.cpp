@@ -109,10 +109,11 @@
     switch_like=300.;
 
     set_loser_colours=false;
-  
-    apop_signal_noise=3;
+
+    apop_signal_noise=2;
+    apop_noise_tau=0.2;
     apop_dt=0.1;
-    apop_threshold=1;
+    apop_threshold=100;
     death_decay_rate=0.15;
 
     // high value ensures cells are never broken apart by copy attempts.

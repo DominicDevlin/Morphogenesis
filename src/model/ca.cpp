@@ -3522,23 +3522,26 @@ void CellularPotts::InnerCellMassDivisions(int t)
 
 void CellularPotts::NeighbourBasedApoptosis(int org_index)
 {
-  auto GetNoise = [&]() {
+  // Changed to return a pure N(0,1) Standard Normal.
+  // The scaling will be handled by the Ornstein-Uhlenbeck process below.
+  auto GetStandardNormal = [&]() {
       double u1 = RANDOM(s_val);
       double u2 = RANDOM(s_val);
       if (u1 <= 0.0) u1 = 0.0000001;
-      // Standard normal value (mean = 0, variance = 1)
-      double standard_normal = std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * u2);
-      // Scale by the standard deviation (sqrt of variance K)
-      return standard_normal * std::sqrt(par.apop_signal_noise);
+      return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * u2);
   };
+  
   int **ns = SearchNeighbours();
   int n_size = (*cell).size();
   for (int i = 1; i < n_size; ++i)
   {
     if (cell->at(i).AliveP()) 
     {
-
       double &death_amount = cell->at(i).GetDeathSignals();
+      
+      // --> NEW: Fetch the persistent noise state for this specific cell
+      double &eta = cell->at(i).GetApopNoiseState(); 
+
       // get loser cell
       double sox2internal = cell->at(i).getSox2adhesion();
       double sox17internal = cell->at(i).getSox17adhesion();
@@ -3554,25 +3557,37 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
           double neighbour_fit = 1 - max(nbh_sox2int * nbh_sox17int, (1. - nbh_sox2int) * (1. - nbh_sox17int));
           nbh_total_fit+=neighbour_fit;
         }
-
         ++j;
       }
-      // we could divide by 6 because maximum 6 neighbours and we want the absolute max to be 1 or so i guess? But its very stochastic so maybe we can just keep it as is.
-      // now do differential equation (stochasticity included above stochastic)
+      
       double nbh_signal = nbh_total_fit * is_looser;
+      
+      //  Update time-correlated noise (Ornstein-Uhlenbeck process)
+      double dt = par.apop_dt;
+      double tau = par.apop_noise_tau;  
+      double sigma = std::sqrt(par.apop_signal_noise); // Amplitude of the noise
+      
+      // Calculate how the noise changes in this dt step
+      double drift_eta = -(eta / tau) * dt;
+      // Note the use of sqrt(dt) here, standard requirement for stochastic calculus
+      double diff_eta = sigma * std::sqrt(2.0 / tau) * GetStandardNormal() * std::sqrt(dt);
+      
+      eta += drift_eta + diff_eta; // Update cell's internal noise memory
 
-      death_amount += ((nbh_signal) - par.death_decay_rate * death_amount + GetNoise()) * par.apop_dt;
+      // -Apply the correlated noise to the ODE
+      // Retaining multiplicative structure: noise scales with death_amount
+      double noise_term = eta * death_amount; 
+      
+      death_amount += ((nbh_signal) - par.death_decay_rate * death_amount + noise_term) * dt;
+      
       if (death_amount < 0)
         death_amount=0;
-      //if (is_looser > 0.9)
-      //{
-        ofstream outfile;
-        string out = data_file + "/death_total" + (org_index > 0 ? "-org-" + to_string(org_index) : "") + ".dat";
-        outfile.open(out, ios::app);
-        outfile << i << '\t' << death_amount << endl;
-        outfile.close();      
-      //}
 
+      // ofstream outfile;
+      // string out = data_file + "/death_total" + (org_index > 0 ? "-org-" + to_string(org_index) : "") + ".dat";
+      // outfile.open(out, ios::app);
+      // outfile << i << '\t' << death_amount << endl;
+      // outfile.close();      
 
       if (death_amount > par.apop_threshold)
       {
@@ -3589,7 +3604,6 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
           }
         }
 
-
         cell->at(i).SetLambdaByBulk();
         cell->at(i).UpdatePerimeterConstraint();
       }
@@ -3598,7 +3612,6 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
 
   free(ns[0]);
   free(ns);
-
 }
 
 

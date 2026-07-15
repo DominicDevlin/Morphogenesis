@@ -138,6 +138,8 @@ void Cell::CellBirth(Cell &mother_cell) {
   Sox17_concentration = mother_cell.Sox17_concentration;
   sox17_internal_adhesion = mother_cell.sox17_internal_adhesion;
   lonely_cell = mother_cell.lonely_cell;
+  apop_noise_state=mother_cell.apop_noise_state;
+
 
   cell_perim_constraint = mother_cell.cell_perim_constraint;
   div_times = mother_cell.div_times;

@@ -163,12 +163,11 @@ void process_population()
 
     string celltype_fname = par.data_file + "/celltypes-org-" + to_string(i + 1) + ".dat";
     ofstream celltype_file(celltype_fname);
-    celltype_file << "time\tzona_pellucida\tsox2_high\tsox17_high\tundifferentiated\ttotal" << endl;
+    celltype_file << "time\tsox2_high\tsox17_high\tundifferentiated\ttotal" << endl;
 
     string death_cause_fname = par.data_file + "/death_causes-org-" + to_string(i + 1) + ".dat";
     ofstream death_cause_file(death_cause_fname);
     death_cause_file << "time"
-                      << "\tzona_pellucida_lonely\tzona_pellucida_signal"
                       << "\tsox2_high_lonely\tsox2_high_signal"
                       << "\tsox17_high_lonely\tsox17_high_signal"
                       << "\tundifferentiated_lonely\tundifferentiated_signal"
@@ -212,17 +211,16 @@ void process_population()
           dishes[i].CPM->NeighbourBasedApoptosis(i + 1);
         }
       }
-      if (t%10==0)
+      if (t%100==0)
       {
         CellTypeCounts type_counts = dishes[i].CPM->CountCellTypes();
-        celltype_file << t << '\t' << type_counts.zona_pellucida << '\t' << type_counts.sox2_high
+        celltype_file << t << '\t' << type_counts.sox2_high
                       << '\t' << type_counts.sox17_high << '\t'
                       << type_counts.undifferentiated << '\t' << type_counts.total() << endl;
 
         DeathCounts death_counts = dishes[i].CPM->CountAndClearDeathEvents();
         cumulative_deaths.Accumulate(death_counts);
         death_cause_file << t
-                          << '\t' << cumulative_deaths.zona_pellucida.lonely << '\t' << cumulative_deaths.zona_pellucida.signal
                           << '\t' << cumulative_deaths.sox2_high.lonely << '\t' << cumulative_deaths.sox2_high.signal
                           << '\t' << cumulative_deaths.sox17_high.lonely << '\t' << cumulative_deaths.sox17_high.signal
                           << '\t' << cumulative_deaths.undifferentiated.lonely << '\t' << cumulative_deaths.undifferentiated.signal
@@ -258,7 +256,7 @@ void process_population()
 
   string oname = par.data_file + "/sox_start_values.dat";
   ofstream outfile;
-  outfile.open(oname, ios::app);
+  outfile.open(oname);
   for (int i = 0; i < par.n_orgs; ++i)
   {    
     for (int s=0; s<sox2_start.size(); ++s)
@@ -269,7 +267,7 @@ void process_population()
   outfile.close();
 
   oname = par.data_file + "/sox_end_values.dat";
-  outfile.open(oname, ios::app);
+  outfile.open(oname);
   for (int i = 0; i < par.n_orgs; ++i)
   {
     vector<double> sox2 = dishes[i].CPM->sox2_values();
@@ -290,7 +288,7 @@ void process_population()
 
 int main(int argc, char *argv[]) 
 {
-  par.pics_for_opt = true;
+  par.pics_for_opt = false;
   par.pic_dir = "photos";
 
 #ifdef QTGRAPHICS

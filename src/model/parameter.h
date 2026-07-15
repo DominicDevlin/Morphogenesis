@@ -144,6 +144,7 @@ class Parameter {
   double apop_signal_noise;
   double apop_dt;
   double apop_threshold;
+  double apop_noise_tau;
   double death_decay_rate;
 
   double sox17_blasto_adhesion;
