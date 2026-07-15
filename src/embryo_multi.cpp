@@ -161,13 +161,17 @@ void process_population()
 
     string celltype_fname = par.data_file + "/celltypes-org-" + to_string(i + 1) + ".dat";
     ofstream celltype_file(celltype_fname);
-    celltype_file << "time\tzona_pellucida\tsox2_high\tsox17_high\tloser\tundifferentiated\ttotal" << endl;
+    celltype_file << "time\tzona_pellucida\tsox2_high\tsox17_high\tundifferentiated\ttotal" << endl;
 
     string death_cause_fname = par.data_file + "/death_causes-org-" + to_string(i + 1) + ".dat";
     ofstream death_cause_file(death_cause_fname);
-    death_cause_file << "time\tlonely_killed\tsignal_killed\ttotal_killed" << endl;
-    int lonely_killed_total = 0;
-    int signal_killed_total = 0;
+    death_cause_file << "time"
+                      << "\tzona_pellucida_lonely\tzona_pellucida_signal"
+                      << "\tsox2_high_lonely\tsox2_high_signal"
+                      << "\tsox17_high_lonely\tsox17_high_signal"
+                      << "\tundifferentiated_lonely\tundifferentiated_signal"
+                      << "\ttotal_lonely\ttotal_signal" << endl;
+    DeathCounts cumulative_deaths;
 
     int t;
 
@@ -208,14 +212,17 @@ void process_population()
       {
         CellTypeCounts type_counts = dishes[i].CPM->CountCellTypes();
         celltype_file << t << '\t' << type_counts.zona_pellucida << '\t' << type_counts.sox2_high
-                      << '\t' << type_counts.sox17_high << '\t' << type_counts.loser << '\t'
+                      << '\t' << type_counts.sox17_high << '\t'
                       << type_counts.undifferentiated << '\t' << type_counts.total() << endl;
 
         DeathCounts death_counts = dishes[i].CPM->CountAndClearDeathEvents();
-        lonely_killed_total += death_counts.lonely;
-        signal_killed_total += death_counts.signal;
-        death_cause_file << t << '\t' << lonely_killed_total << '\t' << signal_killed_total
-                          << '\t' << (lonely_killed_total + signal_killed_total) << endl;
+        cumulative_deaths.Accumulate(death_counts);
+        death_cause_file << t
+                          << '\t' << cumulative_deaths.zona_pellucida.lonely << '\t' << cumulative_deaths.zona_pellucida.signal
+                          << '\t' << cumulative_deaths.sox2_high.lonely << '\t' << cumulative_deaths.sox2_high.signal
+                          << '\t' << cumulative_deaths.sox17_high.lonely << '\t' << cumulative_deaths.sox17_high.signal
+                          << '\t' << cumulative_deaths.undifferentiated.lonely << '\t' << cumulative_deaths.undifferentiated.signal
+                          << '\t' << cumulative_deaths.total_lonely() << '\t' << cumulative_deaths.total_signal() << endl;
       }
 
       dishes[i].CPM->AmoebaeMove(t);
@@ -292,7 +299,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 2;
+  par.n_orgs = 10;
   par.make_synthetic=true;
   par.phase_evolution = false;
 

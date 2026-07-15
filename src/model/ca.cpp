@@ -3166,13 +3166,14 @@ CellTypeCounts CellularPotts::CountCellTypes(void) const
     bool sox2_active = c->getSox2() >= par.sox_threshold;
     bool sox17_active = c->getSox17() >= par.sox_threshold;
 
-    if (sox2_active && sox17_active)
-      counts.loser++;
-    else if (sox2_active)
+    if (sox2_active && !sox17_active)
       counts.sox2_high++;
-    else if (sox17_active)
+    else if (sox17_active && !sox2_active)
       counts.sox17_high++;
     else
+      // Neither marker active, or both at once (essentially never observed
+      // given how steep switch_like makes the commitment) - either way the
+      // cell hasn't cleanly committed to one lineage.
       counts.undifferentiated++;
   }
   return counts;
@@ -3188,12 +3189,30 @@ DeathCounts CellularPotts::CountAndClearDeathEvents()
       continue;
 
     int cause = c->GetDeathCause();
-    if (cause == Cell::DEATH_CAUSE_LONELY)
-      counts.lonely++;
-    else if (cause == Cell::DEATH_CAUSE_SIGNAL)
-      counts.signal++;
-    else
+    if (cause != Cell::DEATH_CAUSE_LONELY && cause != Cell::DEATH_CAUSE_SIGNAL)
       continue; // already tallied on a previous call, or died some other way
+
+    // Classify by the marker levels frozen at time of death, same rule as
+    // CountCellTypes.
+    DeathCauseCounts *bucket;
+    if (c->Sigma() == zona_sigma || c->Sigma() == zona_sigma_sticky)
+      bucket = &counts.zona_pellucida;
+    else
+    {
+      bool sox2_active = c->getSox2() >= par.sox_threshold;
+      bool sox17_active = c->getSox17() >= par.sox_threshold;
+      if (sox2_active && !sox17_active)
+        bucket = &counts.sox2_high;
+      else if (sox17_active && !sox2_active)
+        bucket = &counts.sox17_high;
+      else
+        bucket = &counts.undifferentiated;
+    }
+
+    if (cause == Cell::DEATH_CAUSE_LONELY)
+      bucket->lonely++;
+    else
+      bucket->signal++;
 
     c->ClearDeathCause();
   }

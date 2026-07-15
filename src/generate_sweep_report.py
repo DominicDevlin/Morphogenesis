@@ -22,7 +22,6 @@ CELL_TYPE_LABELS = {
     "zona_pellucida": "Zona pellucida",
     "sox2_high": "Sox2 high",
     "sox17_high": "Sox17 high",
-    "loser": "Loser",
     "undifferentiated": "Undifferentiated",
     "differentiated": "Differentiated",
 }
@@ -66,17 +65,27 @@ def build_report_data(sweep_dir):
                 break
 
     death_causes_raw = agg.collect_death_causes(sweep_dir)
-    death_causes = None
-    if death_causes_raw:
-        death_causes = []
-        for value, stats in death_causes_raw.items():
+    death_cause_types = []
+    for cell_type in agg.DEATH_CAUSE_TYPES:
+        points = []
+        for value in values:
+            by_type = death_causes_raw.get(value)
+            stats = by_type.get(cell_type) if by_type else None
+            if stats is None:
+                continue
             total = stats["mean_lonely"] + stats["mean_signal"]
-            death_causes.append({
+            points.append({
                 "value": value,
                 "n_orgs": stats["n_orgs"],
                 "mean_lonely": stats["mean_lonely"],
                 "mean_signal": stats["mean_signal"],
                 "frac_signal": (stats["mean_signal"] / total) if total else None,
+            })
+        if points:
+            death_cause_types.append({
+                "key": cell_type,
+                "label": CELL_TYPE_LABELS.get(cell_type, cell_type),
+                "points": points,
             })
 
     return {
@@ -84,7 +93,7 @@ def build_report_data(sweep_dir):
         "values": values,
         "nOrgsByValue": n_orgs_by_value,
         "cellTypes": cell_types,
-        "deathCauses": death_causes,
+        "deathCauseTypes": death_cause_types or None,
     }
 
 
@@ -168,6 +177,20 @@ section > .section-note {{ color: var(--text-secondary); font-size: 0.85rem; mar
 .legend-key {{ width: 14px; height: 2px; border-radius: 1px; display: inline-block; }}
 .legend-key.rect {{ width: 10px; height: 10px; border-radius: 2px; }}
 
+.filter-row {{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 32px; }}
+.filter-row .filter-label {{ color: var(--text-secondary); font-size: 0.85rem; margin-right: 2px; }}
+.filter-chip {{
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border: 1px solid var(--border); border-radius: 999px;
+  font-size: 0.82rem; cursor: pointer; user-select: none; background: var(--surface-1);
+}}
+.filter-chip input {{ margin: 0; accent-color: var(--series-killed); }}
+.filter-chip.unchecked {{ color: var(--text-muted); }}
+.filter-link {{
+  font-size: 0.78rem; color: var(--text-secondary); cursor: pointer;
+  text-decoration: underline; background: none; border: none; padding: 0 4px;
+}}
+
 svg.chart {{ width: 100%; height: auto; overflow: visible; display: block; }}
 .gridline {{ stroke: var(--gridline); stroke-width: 1; }}
 .baseline {{ stroke: var(--baseline); stroke-width: 1; }}
@@ -221,6 +244,22 @@ table.data-table tr:last-child td {{ border-bottom: none; }}
   <p>{subtitle}</p>
 </div>
 
+<div class="filter-row" id="type-filter">
+  <span class="filter-label">Cell types:</span>
+  <button class="filter-link" id="filter-all" type="button">All</button>
+  <button class="filter-link" id="filter-none" type="button">None</button>
+</div>
+
+<section>
+  <h2>Selected subset</h2>
+  <p class="section-note">Summed over the cell types checked above.</p>
+  <div class="grid">
+    <div class="card wide"><h3>Mean cells killed</h3><div id="subset-chart"></div></div>
+    <div class="card wide" id="subset-cause-stackedbar-card" style="display:none"><h3>Mean cells killed, by cause</h3><div id="subset-cause-stackedbar"></div></div>
+    <div class="card wide" id="subset-cause-fracline-card" style="display:none"><h3>Share of deaths from signal apoptosis</h3><div id="subset-cause-fracline"></div></div>
+  </div>
+</section>
+
 <section>
   <h2>Cells killed, by type</h2>
   <p class="section-note">Mean number of cells killed per organism, across the swept values of {param}.</p>
@@ -234,12 +273,9 @@ table.data-table tr:last-child td {{ border-bottom: none; }}
 </section>
 
 <section id="cause-section" style="display:none">
-  <h2>Cause of death</h2>
-  <p class="section-note">Signal-based apoptosis (NeighbourBasedApoptosis) vs. lonely-cell/blastocoel extrusion (ToxictoLonelyCells).</p>
-  <div class="grid">
-    <div class="card wide"><h3>Mean cells killed, by cause</h3><div id="cause-stackedbar"></div></div>
-    <div class="card wide"><h3>Share of deaths from signal apoptosis</h3><div id="cause-fracline"></div></div>
-  </div>
+  <h2>Cause of death, by type</h2>
+  <p class="section-note">Signal-based apoptosis (NeighbourBasedApoptosis) vs. lonely-cell/blastocoel extrusion (ToxictoLonelyCells), for each cell type at time of death.</p>
+  <div class="grid" id="cause-grid"></div>
 </section>
 
 <section>
@@ -520,7 +556,7 @@ JS_ENGINE = r"""
     container.appendChild(svg);
   }
 
-  function renderTable(container, columns, rows) {
+  function renderTable(container, columns, rows, getRowType) {
     const table = document.createElement('table');
     table.className = 'data-table';
     const thead = document.createElement('thead');
@@ -535,6 +571,7 @@ JS_ENGINE = r"""
     const tbody = document.createElement('tbody');
     rows.forEach(r => {
       const tr = document.createElement('tr');
+      if (getRowType) tr.dataset.celltype = getRowType(r);
       columns.forEach(c => {
         const td = document.createElement('td');
         td.textContent = c.get(r);
@@ -556,6 +593,7 @@ JS_ENGINE = r"""
   DATA.cellTypes.forEach(ct => {
     const killedCard = document.createElement('div');
     killedCard.className = 'card';
+    killedCard.dataset.celltype = ct.key;
     killedCard.appendChild(setText(document.createElement('h3'), ct.label));
     renderLineChart(killedCard, {
       xLabels, xTitle: DATA.param,
@@ -567,6 +605,7 @@ JS_ENGINE = r"""
 
     const extinctCard = document.createElement('div');
     extinctCard.className = 'card';
+    extinctCard.dataset.celltype = ct.key;
     extinctCard.appendChild(setText(document.createElement('h3'), ct.label));
     renderLineChart(extinctCard, {
       xLabels, xTitle: DATA.param,
@@ -578,35 +617,34 @@ JS_ENGINE = r"""
     extinctGrid.appendChild(extinctCard);
   });
 
-  // --- Cause of death ---
-  if (DATA.deathCauses) {
+  // --- Cause of death, by type ---
+  const lonelyColor = cssColor('--series-lonely');
+  const signalColor = cssColor('--series-signal');
+
+  if (DATA.deathCauseTypes) {
     document.getElementById('cause-section').style.display = '';
-    const dcLabels = DATA.deathCauses.map(d => d.value);
-    const lonelyColor = cssColor('--series-lonely');
-    const signalColor = cssColor('--series-signal');
-
-    renderStackedBarChart(document.getElementById('cause-stackedbar'), {
-      xLabels: dcLabels, xTitle: DATA.param,
-      series: [
-        { name: 'Lonely / blastocoel', color: lonelyColor, rect: true, values: DATA.deathCauses.map(d => d.mean_lonely) },
-        { name: 'Signal apoptosis', color: signalColor, rect: true, values: DATA.deathCauses.map(d => d.mean_signal) },
-      ],
-      yFormat: (v) => fmt(v, 2),
-    });
-
-    renderLineChart(document.getElementById('cause-fracline'), {
-      xLabels: dcLabels, xTitle: DATA.param,
-      series: [{ name: 'Share from signal apoptosis', color: signalColor, values: DATA.deathCauses.map(d => d.frac_signal === null ? null : d.frac_signal * 100) }],
-      showLegend: false,
-      yFormat: (v) => fmt(v, 0) + '%',
-      yDigits: 0,
+    const causeGrid = document.getElementById('cause-grid');
+    DATA.deathCauseTypes.forEach(ct => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.celltype = ct.key;
+      card.appendChild(setText(document.createElement('h3'), ct.label));
+      renderStackedBarChart(card, {
+        xLabels: ct.points.map(p => p.value), xTitle: DATA.param,
+        series: [
+          { name: 'Lonely / blastocoel', color: lonelyColor, rect: true, values: ct.points.map(p => p.mean_lonely) },
+          { name: 'Signal apoptosis', color: signalColor, rect: true, values: ct.points.map(p => p.mean_signal) },
+        ],
+        yFormat: (v) => fmt(v, 2),
+      });
+      causeGrid.appendChild(card);
     });
   }
 
   // --- Full data tables ---
   const killedRows = [];
   DATA.cellTypes.forEach(ct => {
-    ct.points.forEach(p => killedRows.push({ label: ct.label, ...p }));
+    ct.points.forEach(p => killedRows.push({ label: ct.label, key: ct.key, ...p }));
   });
   renderTable(document.getElementById('killed-table'), [
     { label: 'Cell type', get: r => r.label },
@@ -615,16 +653,147 @@ JS_ENGINE = r"""
     { label: 'Mean killed', get: r => fmt(r.mean_n_killed, 2) },
     { label: 'Frac. extinct', get: r => fmt(r.frac_extinct * 100, 0) + '%' },
     { label: 'Mean extinction t', get: r => r.mean_extinction_time === null ? '–' : fmt(r.mean_extinction_time, 0) },
-  ], killedRows);
+  ], killedRows, r => r.key);
 
-  if (DATA.deathCauses) {
+  // --- Cell-type filter: chips + subset chart, live-updating ---
+  (function () {
+    const filterRow = document.getElementById('type-filter');
+    const allBtn = document.getElementById('filter-all');
+    const noneBtn = document.getElementById('filter-none');
+    const selected = new Set(DATA.cellTypes.map(ct => ct.key));
+    const checkboxes = [];
+
+    DATA.cellTypes.forEach(ct => {
+      const chip = document.createElement('label');
+      chip.className = 'filter-chip';
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.checked = true;
+      box.dataset.celltype = ct.key;
+      const label = document.createElement('span');
+      label.textContent = ct.label;
+      chip.appendChild(box);
+      chip.appendChild(label);
+      filterRow.insertBefore(chip, allBtn);
+      checkboxes.push(box);
+      box.addEventListener('change', () => {
+        if (box.checked) selected.add(ct.key); else selected.delete(ct.key);
+        chip.classList.toggle('unchecked', !box.checked);
+        applyFilter();
+      });
+    });
+
+    allBtn.addEventListener('click', () => {
+      checkboxes.forEach(box => { box.checked = true; box.dispatchEvent(new Event('change')); });
+    });
+    noneBtn.addEventListener('click', () => {
+      checkboxes.forEach(box => { box.checked = false; box.dispatchEvent(new Event('change')); });
+    });
+
+    function renderSubsetChart() {
+      const container = document.getElementById('subset-chart');
+      container.innerHTML = '';
+      const values = DATA.values.map(value => {
+        let sum = 0;
+        DATA.cellTypes.forEach(ct => {
+          if (!selected.has(ct.key)) return;
+          const p = ct.points.find(pt => pt.value === value);
+          if (p) sum += p.mean_n_killed;
+        });
+        return sum;
+      });
+      renderLineChart(container, {
+        xLabels: DATA.values, xTitle: DATA.param,
+        series: [{ name: 'Selected total', color: cssColor('--series-killed'), values }],
+        showLegend: false,
+        yFormat: (v) => fmt(v, 2),
+      });
+    }
+
+    function renderSubsetCauseCharts() {
+      const stackedCard = document.getElementById('subset-cause-stackedbar-card');
+      const fraclineCard = document.getElementById('subset-cause-fracline-card');
+      if (!DATA.deathCauseTypes) {
+        stackedCard.style.display = 'none';
+        fraclineCard.style.display = 'none';
+        return;
+      }
+      stackedCard.style.display = '';
+      fraclineCard.style.display = '';
+
+      const lonely = DATA.values.map(value => {
+        let sum = 0;
+        DATA.deathCauseTypes.forEach(ct => {
+          if (!selected.has(ct.key)) return;
+          const p = ct.points.find(pt => pt.value === value);
+          if (p) sum += p.mean_lonely;
+        });
+        return sum;
+      });
+      const signal = DATA.values.map(value => {
+        let sum = 0;
+        DATA.deathCauseTypes.forEach(ct => {
+          if (!selected.has(ct.key)) return;
+          const p = ct.points.find(pt => pt.value === value);
+          if (p) sum += p.mean_signal;
+        });
+        return sum;
+      });
+
+      const stackedContainer = document.getElementById('subset-cause-stackedbar');
+      stackedContainer.innerHTML = '';
+      renderStackedBarChart(stackedContainer, {
+        xLabels: DATA.values, xTitle: DATA.param,
+        series: [
+          { name: 'Lonely / blastocoel', color: lonelyColor, rect: true, values: lonely },
+          { name: 'Signal apoptosis', color: signalColor, rect: true, values: signal },
+        ],
+        yFormat: (v) => fmt(v, 2),
+      });
+
+      const fracContainer = document.getElementById('subset-cause-fracline');
+      fracContainer.innerHTML = '';
+      const frac = DATA.values.map((_, i) => {
+        const total = lonely[i] + signal[i];
+        return total ? (signal[i] / total) * 100 : null;
+      });
+      renderLineChart(fracContainer, {
+        xLabels: DATA.values, xTitle: DATA.param,
+        series: [{ name: 'Share from signal apoptosis', color: signalColor, values: frac }],
+        showLegend: false,
+        yFormat: (v) => fmt(v, 0) + '%',
+        yDigits: 0,
+      });
+    }
+
+    function applyFilter() {
+      document.querySelectorAll('#killed-grid [data-celltype], #extinct-grid [data-celltype], #cause-grid [data-celltype]').forEach(card => {
+        card.style.display = selected.has(card.dataset.celltype) ? '' : 'none';
+      });
+      document.querySelectorAll('#killed-table tr[data-celltype], #cause-table tr[data-celltype]').forEach(tr => {
+        tr.style.display = selected.has(tr.dataset.celltype) ? '' : 'none';
+      });
+      renderSubsetChart();
+      renderSubsetCauseCharts();
+    }
+
+    renderSubsetChart();
+    renderSubsetCauseCharts();
+  })();
+
+  if (DATA.deathCauseTypes) {
+    const causeRows = [];
+    DATA.deathCauseTypes.forEach(ct => {
+      ct.points.forEach(p => causeRows.push({ label: ct.label, key: ct.key, ...p }));
+    });
     renderTable(document.getElementById('cause-table'), [
+      { label: 'Cell type', get: r => r.label },
       { label: DATA.param, get: r => r.value },
       { label: 'n orgs', get: r => r.n_orgs },
       { label: 'Mean lonely killed', get: r => fmt(r.mean_lonely, 2) },
       { label: 'Mean signal killed', get: r => fmt(r.mean_signal, 2) },
       { label: 'Share signal', get: r => r.frac_signal === null ? '–' : fmt(r.frac_signal * 100, 0) + '%' },
-    ], DATA.deathCauses);
+    ], causeRows, r => r.key);
   }
 })();
 """

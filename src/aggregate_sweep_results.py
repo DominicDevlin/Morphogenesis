@@ -11,11 +11,11 @@ organisms within each value, and lines the values up so the trend across
 the sweep is visible directly.
 
 It also reports the cause-of-death split (sweep_results/PARAM/death_causes_summary.csv):
-for each swept value, the mean number of cells killed by lonely/blastocoel
-extrusion (ToxictoLonelyCells) vs. neighbour-competition signalling
-(NeighbourBasedApoptosis), read from each organism's
-org-data/death_causes-org-*.dat. Sweeps run before this data existed are
-skipped for this part.
+for each swept value and cell type, the mean number of cells killed by
+lonely/blastocoel extrusion (ToxictoLonelyCells) vs. neighbour-competition
+signalling (NeighbourBasedApoptosis), read from each organism's
+org-data/death_causes-org-*.dat. Sweeps run before this per-cell-type
+breakdown existed are skipped for this part.
 
 Usage:
     python3 aggregate_sweep_results.py SWEEP_DIR [--out FILE]
@@ -30,7 +30,9 @@ import glob
 import os
 import sys
 
-CELL_TYPES = ["zona_pellucida", "sox2_high", "sox17_high", "loser", "undifferentiated", "differentiated"]
+CELL_TYPES = ["zona_pellucida", "sox2_high", "sox17_high", "undifferentiated", "differentiated"]
+RAW_DEATH_CAUSE_TYPES = ["zona_pellucida", "sox2_high", "sox17_high", "undifferentiated"]
+DEATH_CAUSE_TYPES = RAW_DEATH_CAUSE_TYPES + ["differentiated"]
 
 
 def sort_key(value):
@@ -46,7 +48,10 @@ def load_value_dir(path):
     rows_by_type = {ct: [] for ct in CELL_TYPES}
     with open(csv_path, newline="") as f:
         for row in csv.DictReader(f):
-            rows_by_type[row["cell_type"]].append(row)
+            # Ignore cell types no longer tracked (e.g. death_summary.csv files
+            # from a sweep run before "loser" was retired) rather than crash.
+            if row["cell_type"] in rows_by_type:
+                rows_by_type[row["cell_type"]].append(row)
 
     stats = {}
     for cell_type, rows in rows_by_type.items():
@@ -89,7 +94,10 @@ def collect(sweep_dir):
 
 def load_death_causes(value_dir):
     """Reads each org's death_causes-org-*.dat (time series of cumulative
-    lonely/signal kill counts) and returns the final (total) counts per org."""
+    lonely/signal kill counts, per cell type) and returns the final (total)
+    per-cell-type counts per org. Returns [] for sweeps run before this
+    per-cell-type breakdown existed (old files only had a single overall
+    lonely/signal total, no per-type columns)."""
     org_files = sorted(glob.glob(os.path.join(value_dir, "org-data", "death_causes-org-*.dat")))
     per_org = []
     for path in org_files:
@@ -98,13 +106,26 @@ def load_death_causes(value_dir):
         if not rows:
             continue
         last = rows[-1]
-        per_org.append({"lonely": int(last["lonely_killed"]), "signal": int(last["signal_killed"])})
+        if "zona_pellucida_lonely" not in last:
+            continue  # pre-per-cell-type format
+        counts = {
+            cell_type: {
+                "lonely": int(last[f"{cell_type}_lonely"]),
+                "signal": int(last[f"{cell_type}_signal"]),
+            }
+            for cell_type in RAW_DEATH_CAUSE_TYPES
+        }
+        counts["differentiated"] = {
+            "lonely": counts["sox2_high"]["lonely"] + counts["sox17_high"]["lonely"],
+            "signal": counts["sox2_high"]["signal"] + counts["sox17_high"]["signal"],
+        }
+        per_org.append(counts)
     return per_org
 
 
 def collect_death_causes(sweep_dir):
-    """Returns {value: {n_orgs, mean_lonely, mean_signal}}; skips values with
-    no death_causes-org-*.dat (e.g. sweeps run before this data existed)."""
+    """Returns {value: {cell_type: {n_orgs, mean_lonely, mean_signal}}}; skips
+    values with no (or pre-per-cell-type) death_causes-org-*.dat."""
     value_dirs = [d for d in sorted(glob.glob(os.path.join(sweep_dir, "*"))) if os.path.isdir(d)]
     results = {}
     for value_dir in value_dirs:
@@ -114,9 +135,12 @@ def collect_death_causes(sweep_dir):
             continue
         n_orgs = len(per_org)
         results[value] = {
-            "n_orgs": n_orgs,
-            "mean_lonely": sum(o["lonely"] for o in per_org) / n_orgs,
-            "mean_signal": sum(o["signal"] for o in per_org) / n_orgs,
+            cell_type: {
+                "n_orgs": n_orgs,
+                "mean_lonely": sum(o[cell_type]["lonely"] for o in per_org) / n_orgs,
+                "mean_signal": sum(o[cell_type]["signal"] for o in per_org) / n_orgs,
+            }
+            for cell_type in DEATH_CAUSE_TYPES
         }
     return dict(sorted(results.items(), key=lambda kv: sort_key(kv[0])))
 
@@ -133,20 +157,22 @@ def write_csv(out_path, param, results):
 
 
 def write_death_causes_csv(out_path, results):
-    fieldnames = ["value", "n_orgs", "mean_lonely_killed", "mean_signal_killed", "frac_signal"]
+    fieldnames = ["value", "cell_type", "n_orgs", "mean_lonely_killed", "mean_signal_killed", "frac_signal"]
     with open(out_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        for value, stats in results.items():
-            total = stats["mean_lonely"] + stats["mean_signal"]
-            frac_signal = stats["mean_signal"] / total if total else ""
-            writer.writerow({
-                "value": value,
-                "n_orgs": stats["n_orgs"],
-                "mean_lonely_killed": stats["mean_lonely"],
-                "mean_signal_killed": stats["mean_signal"],
-                "frac_signal": frac_signal,
-            })
+        for value, by_type in results.items():
+            for cell_type, stats in by_type.items():
+                total = stats["mean_lonely"] + stats["mean_signal"]
+                frac_signal = stats["mean_signal"] / total if total else ""
+                writer.writerow({
+                    "value": value,
+                    "cell_type": cell_type,
+                    "n_orgs": stats["n_orgs"],
+                    "mean_lonely_killed": stats["mean_lonely"],
+                    "mean_signal_killed": stats["mean_signal"],
+                    "frac_signal": frac_signal,
+                })
     print(f"Death-cause summary written to {out_path}")
 
 
@@ -154,14 +180,21 @@ def print_death_causes_table(param, results):
     if not results:
         return
     print(f"\n=== Cause of death vs {param} (lonely/blastocoel vs signal-based apoptosis) ===")
-    print(f"  {'value':>12}  {'n_orgs':>6}  {'mean_lonely':>11}  {'mean_signal':>11}  {'frac_signal':>11}")
-    for value, stats in results.items():
-        total = stats["mean_lonely"] + stats["mean_signal"]
-        frac_signal = f"{stats['mean_signal'] / total:.2f}" if total else "-"
-        print(
-            f"  {value:>12}  {stats['n_orgs']:>6}  {stats['mean_lonely']:>11.2f}  "
-            f"{stats['mean_signal']:>11.2f}  {frac_signal:>11}"
-        )
+    for cell_type in DEATH_CAUSE_TYPES:
+        if not any(cell_type in by_type for by_type in results.values()):
+            continue
+        print(f"\n  {cell_type}:")
+        print(f"  {'value':>12}  {'n_orgs':>6}  {'mean_lonely':>11}  {'mean_signal':>11}  {'frac_signal':>11}")
+        for value, by_type in results.items():
+            stats = by_type.get(cell_type)
+            if stats is None:
+                continue
+            total = stats["mean_lonely"] + stats["mean_signal"]
+            frac_signal = f"{stats['mean_signal'] / total:.2f}" if total else "-"
+            print(
+                f"  {value:>12}  {stats['n_orgs']:>6}  {stats['mean_lonely']:>11.2f}  "
+                f"{stats['mean_signal']:>11.2f}  {frac_signal:>11}"
+            )
 
 
 def print_table(param, results):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Analyses the celltypes-org-*.dat files produced by embryo_multi (columns:
-time, zona_pellucida, sox2_high, sox17_high, loser, undifferentiated,
+time, zona_pellucida, sox2_high, sox17_high, undifferentiated,
 total) to find, for every cell type, when cells of that type are killed
 and when they have all died out (if that happens).
 
@@ -24,7 +24,7 @@ import glob
 import os
 import sys
 
-RAW_TYPES = ["zona_pellucida", "sox2_high", "sox17_high", "loser", "undifferentiated"]
+RAW_TYPES = ["zona_pellucida", "sox2_high", "sox17_high", "undifferentiated"]
 CELL_TYPES = RAW_TYPES + ["differentiated"]
 
 
