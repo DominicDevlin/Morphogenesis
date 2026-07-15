@@ -71,6 +71,18 @@ struct CellTypeCounts {
   }
 };
 
+//! Cells that have started apoptosing since the last call to
+//! CellularPotts::CountAndClearDeathEvents, broken down by which mechanism
+//! triggered it.
+struct DeathCounts {
+  int lonely{};  // ToxictoLonelyCells: no live neighbours (blastocoel extrusion after cell sorting)
+  int signal{};  // NeighbourBasedApoptosis: accumulated neighbour-competition signal crossed apop_threshold
+
+  int total() const {
+    return lonely + signal;
+  }
+};
+
 class CellularPotts {
 
   friend class Info;
@@ -100,6 +112,11 @@ public:
   //! mutually inhibited) and undifferentiated (neither marker above threshold),
   //! and returns the count for each category.
   CellTypeCounts CountCellTypes(void) const;
+
+  //! \brief Tallies cells that started apoptosing since the last call, by cause
+  //! (see DeathCounts), then clears their recorded cause so they aren't counted
+  //! twice on the next call.
+  DeathCounts CountAndClearDeathEvents();
 
   void set_num(int in);
 
@@ -291,7 +308,10 @@ public:
 
   void CheckIfDivisionHit(int t);
 
-  void NeighbourBasedApoptosis();
+  //! org_index distinguishes death_total.dat's filename when several
+  //! organisms share the same data_file directory (embryo_multi runs them
+  //! in parallel); leave at 0 for a single-organism run.
+  void NeighbourBasedApoptosis(int org_index = 0);
 
 
 

@@ -9,8 +9,11 @@ A "death" is inferred from a decrease in a type's cell count between two
 consecutive samples. "differentiated" is a derived type combining
 sox2_high and sox17_high.
 
+Results are printed to the console and also logged to a CSV file (one row
+per organism/cell type).
+
 Usage:
-    python3 analyse_differentiated_deaths.py [path]
+    python3 analyse_differentiated_deaths.py [path] [--csv FILE]
 
 `path` can be a .dat file, or a directory containing celltypes-org-*.dat
 files (defaults to org-data, next to this script).
@@ -85,11 +88,40 @@ def format_summary(cell_type, rows, events, extinction_time):
 
 
 def report(path, rows):
-    print(f"== {os.path.basename(path)} ==")
+    """Prints the console summary and returns the matching CSV rows."""
+    org = os.path.basename(path)
+    print(f"== {org} ==")
+
+    csv_rows = []
     for cell_type in CELL_TYPES:
         events, extinction_time = summarise_type(rows, cell_type)
         print(format_summary(cell_type, rows, events, extinction_time))
+
+        recovered = extinction_time is not None and rows[-1]["counts"][cell_type] != 0
+        csv_rows.append({
+            "org": org,
+            "cell_type": cell_type,
+            "n_killed": sum(n for _, n in events),
+            "first_death_time": events[0][0] if events else "",
+            "last_death_time": events[-1][0] if events else "",
+            "extinction_time": extinction_time if extinction_time is not None else "",
+            "recovered_after_extinction": recovered,
+        })
     print()
+    return csv_rows
+
+
+def write_csv(csv_path, csv_rows):
+    fieldnames = [
+        "org", "cell_type", "n_killed",
+        "first_death_time", "last_death_time",
+        "extinction_time", "recovered_after_extinction",
+    ]
+    with open(csv_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(csv_rows)
+    print(f"Results written to {csv_path}")
 
 
 def resolve_files(path):
@@ -119,11 +151,19 @@ def main():
         default=0,
         help="ignore samples before this time, e.g. to skip the pre-differentiation burn-in (default: 0)",
     )
+    parser.add_argument(
+        "--csv",
+        default="death_summary.csv",
+        help="CSV file to write the results to (default: death_summary.csv)",
+    )
     args = parser.parse_args()
 
+    csv_rows = []
     for path in resolve_files(args.path):
         rows = [row for row in load_counts(path) if row["time"] >= args.start]
-        report(path, rows)
+        csv_rows.extend(report(path, rows))
+
+    write_csv(args.csv, csv_rows)
 
 
 if __name__ == "__main__":

@@ -138,7 +138,12 @@ void process_population()
 
   init_progress_bars(par.n_orgs, par.mcs);
 
-  omp_set_num_threads(par.n_orgs);
+  // One OS thread per organism oversubscribes the machine once n_orgs
+  // exceeds the core count (context-switch/cache-thrashing overhead can
+  // dwarf the actual simulation work). Cap at the hardware thread count;
+  // OpenMP's parallel-for then queues the remaining organisms onto
+  // whichever thread frees up, instead of running them all at once.
+  omp_set_num_threads(min(par.n_orgs, omp_get_num_procs()));
   #pragma omp parallel for
   for (int i = 0; i < par.n_orgs; ++i)
   {
@@ -157,6 +162,12 @@ void process_population()
     string celltype_fname = par.data_file + "/celltypes-org-" + to_string(i + 1) + ".dat";
     ofstream celltype_file(celltype_fname);
     celltype_file << "time\tzona_pellucida\tsox2_high\tsox17_high\tloser\tundifferentiated\ttotal" << endl;
+
+    string death_cause_fname = par.data_file + "/death_causes-org-" + to_string(i + 1) + ".dat";
+    ofstream death_cause_file(death_cause_fname);
+    death_cause_file << "time\tlonely_killed\tsignal_killed\ttotal_killed" << endl;
+    int lonely_killed_total = 0;
+    int signal_killed_total = 0;
 
     int t;
 
@@ -188,6 +199,10 @@ void process_population()
           dishes[i].CPM->SetPerims();
           dishes[i].CPM->SetSoxColours(tfrac);
         }
+        if (t%150==0)
+        {
+          dishes[i].CPM->NeighbourBasedApoptosis(i + 1);
+        }
       }
       if (t%10==0)
       {
@@ -195,6 +210,12 @@ void process_population()
         celltype_file << t << '\t' << type_counts.zona_pellucida << '\t' << type_counts.sox2_high
                       << '\t' << type_counts.sox17_high << '\t' << type_counts.loser << '\t'
                       << type_counts.undifferentiated << '\t' << type_counts.total() << endl;
+
+        DeathCounts death_counts = dishes[i].CPM->CountAndClearDeathEvents();
+        lonely_killed_total += death_counts.lonely;
+        signal_killed_total += death_counts.signal;
+        death_cause_file << t << '\t' << lonely_killed_total << '\t' << signal_killed_total
+                          << '\t' << (lonely_killed_total + signal_killed_total) << endl;
       }
 
       dishes[i].CPM->AmoebaeMove(t);
@@ -271,7 +292,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 5;
+  par.n_orgs = 2;
   par.make_synthetic=true;
   par.phase_evolution = false;
 

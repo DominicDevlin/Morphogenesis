@@ -106,7 +106,7 @@
     time_till_full_expression=10000;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
-    switch_like=300.; 
+    switch_like=300.;
 
     set_loser_colours=false;
   

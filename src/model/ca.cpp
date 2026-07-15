@@ -3178,6 +3178,28 @@ CellTypeCounts CellularPotts::CountCellTypes(void) const
   return counts;
 }
 
+DeathCounts CellularPotts::CountAndClearDeathEvents()
+{
+  DeathCounts counts;
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(),c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+      continue;
+
+    int cause = c->GetDeathCause();
+    if (cause == Cell::DEATH_CAUSE_LONELY)
+      counts.lonely++;
+    else if (cause == Cell::DEATH_CAUSE_SIGNAL)
+      counts.signal++;
+    else
+      continue; // already tallied on a previous call, or died some other way
+
+    c->ClearDeathCause();
+  }
+  return counts;
+}
+
 
 // Function to plot a thick ellipse on a 2D grid
 void CellularPotts::MakeZonaPellucida(double h, double k, double a, double b, double n) 
@@ -3479,7 +3501,7 @@ void CellularPotts::InnerCellMassDivisions(int t)
 }
 
 
-void CellularPotts::NeighbourBasedApoptosis()
+void CellularPotts::NeighbourBasedApoptosis(int org_index)
 {
   auto GetNoise = [&]() {
       double u1 = RANDOM(s_val);
@@ -3526,7 +3548,7 @@ void CellularPotts::NeighbourBasedApoptosis()
       //if (is_looser > 0.9)
       //{
         ofstream outfile;
-        string out = data_file + "/death_total.dat";
+        string out = data_file + "/death_total" + (org_index > 0 ? "-org-" + to_string(org_index) : "") + ".dat";
         outfile.open(out, ios::app);
         outfile << i << '\t' << death_amount << endl;
         outfile.close();      
@@ -3535,6 +3557,7 @@ void CellularPotts::NeighbourBasedApoptosis()
 
       if (death_amount > par.apop_threshold)
       {
+        cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_SIGNAL);
         if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
           cell->at(i).SetTargetArea(1);
         else if (cell->at(i).TargetArea() > 1)
@@ -3591,6 +3614,7 @@ void CellularPotts::ToxictoLonelyCells()
       if (nbh_count==0)
       {
         cell->at(i).MakeLonely(true);
+        cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_LONELY);
         if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
           cell->at(i).SetTargetArea(1);
         else if (cell->at(i).TargetArea() > 1)

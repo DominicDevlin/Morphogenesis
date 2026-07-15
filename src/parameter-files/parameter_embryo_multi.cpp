@@ -109,7 +109,11 @@
     switch_like=100.; 
 
     set_loser_colours=false;
-  
+
+    apop_signal_noise=3;
+    apop_dt=0.1;
+    apop_threshold=100;
+    death_decay_rate=0.15;
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
