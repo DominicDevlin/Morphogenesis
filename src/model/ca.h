@@ -293,6 +293,9 @@ public:
 
   void NeighbourBasedApoptosis();
 
+  vector<double> sox2_values();
+  vector<double> sox17_values();
+
 
 
 
@@ -429,6 +432,7 @@ public:
   The number of cell types is defined by the J parameter file. (See
   Jtable in parameter file).
   */
+ 
   void SetRandomTypes(void);
 
   void SetColours(void);

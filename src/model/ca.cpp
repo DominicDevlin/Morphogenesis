@@ -3698,7 +3698,33 @@ void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
 
 
 
-
+  vector<double> CellularPotts::sox2_values()
+  {
+    vector<double> toreturn{};
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+    {
+      if (c->AliveP())
+      {
+        toreturn.push_back(c->getSox2());
+      }
+    }
+    return toreturn;
+  }
+  
+  vector<double> CellularPotts::sox17_values()
+  {
+    vector<double> toreturn{};
+    vector<Cell>::iterator c;
+    for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+    {
+      if (c->AliveP())
+      {
+        toreturn.push_back(c->getSox17());
+      }
+    }
+    return toreturn;
+  }
 
 
 

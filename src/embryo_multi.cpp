@@ -133,6 +133,8 @@ void process_population()
   
 
   Dish *dishes = new Dish[par.n_orgs];
+  vector<vector<double>> sox2_start(par.n_orgs);
+  vector<vector<double>> sox17_start(par.n_orgs);
 
   ostringstream makefll;
 
@@ -168,6 +170,8 @@ void process_population()
       {
         
         dishes[i].CPM->InitialiseRandomSoxValues();
+        sox2_start[i] = dishes[i].CPM->sox2_values();
+        sox17_start[i] = dishes[i].CPM->sox17_values();
         dishes[i].CPM->SetMotilityStrengths();
         dishes[i].CPM->SetPerims(par.ptarget_perimeter);
 
@@ -223,21 +227,31 @@ void process_population()
   }
 
 
-  //   ostringstream stream;
-  //   stream << fixed << setprecision(2) << par.sheet_J; // Setting precision to 2 decimal points
-  //   string formatted_value = stream.str();
-  //   string oname = par.data_file + "/hex_time-" + formatted_value + ".dat";
-  //   ofstream outfile;
-  //   outfile.open(oname, ios::app);  // Append mode
-  //   outfile << fixed << setprecision(3);
-  //   for (int i = 0; i < container_size; ++i)
-  //   {
-  //     outfile << i*par.struct_avg_interval + 2*par.struct_avg_interval << '\t' << hex_order_output[i] << endl;
-  //   }
-  //   outfile.close();
 
-  // } 
+  string oname = par.data_file + "/sox_start_values.dat";
+  ofstream outfile;
+  outfile.open(oname, ios::app);
+  for (int i = 0; i < par.n_orgs; ++i)
+  {    
+    for (int s=0; s<sox2_start.size(); ++s)
+    {
+      outfile << sox2_start[i][s] << '\t' << sox17_start[i][s] << endl;
+    }
+  }
+  outfile.close();
 
+  oname = par.data_file + "/sox_end_values.dat";
+  outfile.open(oname, ios::app);
+  for (int i = 0; i < par.n_orgs; ++i)
+  {
+    vector<double> sox2 = dishes[i].CPM->sox2_values();
+    vector<double> sox17 = dishes[i].CPM->sox17_values();
+    for (int s=0; s<sox2.size(); ++s)
+    {
+      outfile << sox2[s] << '\t' << sox17[s] << endl;
+    }
+  }
+  outfile.close();
 
   delete[] dishes;
 
@@ -271,7 +285,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 5;
+  par.n_orgs = 10;
   par.make_synthetic=true;
   par.phase_evolution = false;
 

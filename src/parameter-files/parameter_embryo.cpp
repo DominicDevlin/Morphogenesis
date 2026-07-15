@@ -129,7 +129,7 @@
     // baseline J value for adhesion between cells and blastocoel
     Jblasto=0.5;
     // modulation of sox17 expressing cell to medium
-    sox17_blasto_adhesion=0.;
+    sox17_blasto_adhesion=0.1;
     // modulation of sox2 expressing cell to medium
     sox2_blasto_adhesion=-0.;
     loser_blasto_adhesion=-0.;
