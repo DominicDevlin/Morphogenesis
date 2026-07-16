@@ -167,6 +167,12 @@ TIMESTEP {
       {
         dish->CPM->NeighbourBasedApoptosis();
       }
+
+      if (t%500==0)
+      {
+        cout << "loser boundary: " << dish->CPM->LoserWinnerBoundaryLength() << endl;
+        cout << "sox boundary: " << dish->CPM->Sox2Sox17BoundaryLength() << endl;
+      }
     }
 
     // if (t==1000)

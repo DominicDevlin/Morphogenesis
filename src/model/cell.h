@@ -1470,7 +1470,7 @@ inline void UpdatePerimeterConstraint()
   // cout << sqrt(double(target_area) / double(par.cell_target_area)) << endl;
   // out << target_perimeter << '\t' << target_area << endl;
   if (target_perimeter < 20)
-    target_perimeter=0;
+    target_perimeter=1;
 
   cell_elastic_mod = par.elastic_modulus;
   cell_perim_constraint = cell_elastic_mod / double(target_perimeter);
@@ -1509,11 +1509,29 @@ double& getPerimConstraint()
   return cell_perim_constraint;
 }
 
-
 double& GetApopNoiseState()
 {
   return apop_noise_state;
 }
+
+bool CheckLooser()
+{
+  return looser_cell;
+}
+
+void SetLooser()
+{
+  double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
+  if (is_looser>0.5)
+  {
+    looser_cell=true;
+  }
+  else
+  {
+    looser_cell=false;
+  }
+}
+
 
 private:
 //! Increments the cell's actual area by 1 unit.
@@ -1633,7 +1651,7 @@ protected:
 
   vector<int> div_times;
 
-
+  bool looser_cell;
 
   vector<double> xcens;
   vector<double> ycens;

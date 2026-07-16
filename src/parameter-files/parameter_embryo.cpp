@@ -106,14 +106,14 @@
     time_till_full_expression=10000;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
-    switch_like=300.;
+    switch_like=1000.;
 
     set_loser_colours=false;
 
-    apop_signal_noise=2;
-    apop_noise_tau=0.2;
-    apop_dt=0.1;
-    apop_threshold=100;
+    apop_signal_noise=1.5;
+    apop_noise_tau=0.1;
+    apop_dt=0.05;
+    apop_threshold=15;
     death_decay_rate=0.15;
 
     // high value ensures cells are never broken apart by copy attempts.
@@ -130,7 +130,7 @@
     // baseline J value for adhesion between cells and blastocoel
     Jblasto=0.5;
     // modulation of sox17 expressing cell to medium
-    sox17_blasto_adhesion=0.1;
+    sox17_blasto_adhesion=0.;
     // modulation of sox2 expressing cell to medium
     sox2_blasto_adhesion=-0.;
     loser_blasto_adhesion=-0.;
@@ -157,6 +157,36 @@
     J_cell_zona_sticky=2.0;
     Jzona_sticky_sox2extra=1.4;
     Jzona_sticky_sox17extra=0.;
+
+    init_blasto=1.5;
+    init_zona=3.0;
+    init_zona_sticky=1.0;
+    init_cellcell=1.0;
+
+    // end of adhesion params
+    adhesion_multiplier=1.5;
+
+
+    J_cell_baseline=J_cell_baseline*adhesion_multiplier;
+    sox2binding=sox2binding*adhesion_multiplier;
+    sox17binding=sox17binding*adhesion_multiplier;
+    sox2vs17binding=sox2vs17binding*adhesion_multiplier;
+    loser_loser_adhesion=loser_loser_adhesion*adhesion_multiplier;
+    loser_sox2_adhesion=loser_sox2_adhesion*adhesion_multiplier;
+    loser_sox17_adhesion=loser_sox17_adhesion*adhesion_multiplier;
+    J_cell_zona=J_cell_zona*adhesion_multiplier;
+    Jzona_sox2=Jzona_sox2*adhesion_multiplier;
+    Jzona_sox17=Jzona_sox17*adhesion_multiplier;
+    Jzona_loser=Jzona_loser*adhesion_multiplier;
+    J_cell_zona_sticky=J_cell_zona_sticky*adhesion_multiplier;
+    Jzona_sticky_sox2extra=Jzona_sticky_sox2extra*adhesion_multiplier;
+    Jzona_sticky_sox17extra=Jzona_sticky_sox17extra*adhesion_multiplier;
+    Jblasto=Jblasto*adhesion_multiplier;
+    sox17_blasto_adhesion=sox17_blasto_adhesion*adhesion_multiplier;
+    sox2_blasto_adhesion=sox2_blasto_adhesion*adhesion_multiplier;
+    loser_blasto_adhesion=loser_blasto_adhesion*adhesion_multiplier;
+
+
 
     sox_threshold=0.2;
 

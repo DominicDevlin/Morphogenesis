@@ -246,23 +246,23 @@ double Cell::EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_stick
     // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
     // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
     // that unsorted cells are gradually sorted out of the tissue.
-    return t * 1.5;
+    return t * par.init_blasto;
   }
   else if (cell2.sigma==0)
   {
-    return t * 1.5;
+    return t * par.init_blasto;
   }
   else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
   {
-    return t * 3.0;
+    return t * par.init_zona;
   }
   else if (cell2.sigma==zona_sigma_sticky)
   {
-    return t *1.0;
+    return t * par.init_zona_sticky;
   }
   else
   {
-    return t * 1.0;
+    return t * par.init_cellcell;
   }
 }
 

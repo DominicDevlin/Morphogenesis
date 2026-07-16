@@ -158,10 +158,16 @@ class Parameter {
   double Jzona_sticky_sox2extra;
   double Jzona_sticky_sox17extra;
   double J_cell_baseline;
+  double adhesion_multiplier;
 
   double loser_loser_adhesion;
   double loser_sox2_adhesion;
   double loser_sox17_adhesion;
+
+  double init_blasto;
+  double init_zona;
+  double init_zona_sticky;
+  double init_cellcell;
 
   double starting_fraction_losers;
   double loser_perim_increase;

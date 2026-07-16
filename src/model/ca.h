@@ -344,6 +344,8 @@ public:
   vector<double> sox2_values();
   vector<double> sox17_values();
 
+  double LoserWinnerBoundaryLength();
+  double Sox2Sox17BoundaryLength();
 
 
 

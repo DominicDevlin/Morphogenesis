@@ -174,6 +174,10 @@ void process_population()
                       << "\ttotal_lonely\ttotal_signal" << endl;
     DeathCounts cumulative_deaths;
 
+    string sorting_fname = par.data_file + "/boundary_lengths-org-" + to_string(i + 1) + ".dat";
+    ofstream sorting_file(sorting_fname);
+    sorting_file << "time" << "\tsox2sox17\tloserwinner" << endl;
+
     int t;
 
     for (t = 0; t < par.mcs; t++)
@@ -225,6 +229,10 @@ void process_population()
                           << '\t' << cumulative_deaths.sox17_high.lonely << '\t' << cumulative_deaths.sox17_high.signal
                           << '\t' << cumulative_deaths.undifferentiated.lonely << '\t' << cumulative_deaths.undifferentiated.signal
                           << '\t' << cumulative_deaths.total_lonely() << '\t' << cumulative_deaths.total_signal() << endl;
+        
+        double loser_boundary= dishes[i].CPM->LoserWinnerBoundaryLength();
+        double sox_boundary = dishes[i].CPM->Sox2Sox17BoundaryLength();
+        sorting_file << t << '\t' << loser_boundary << '\t' << sox_boundary << endl;
       }
 
       dishes[i].CPM->AmoebaeMove(t);

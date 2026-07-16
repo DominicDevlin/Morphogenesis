@@ -106,17 +106,15 @@
     time_till_full_expression=10000;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
-    switch_like=1000.; 
+    switch_like=1000.;
 
     set_loser_colours=false;
-  
 
-    apop_signal_noise=2;
-    apop_noise_tau=0.2;
-    apop_dt=0.1;
-    apop_threshold=100;
+    apop_signal_noise=1.5;
+    apop_noise_tau=0.1;
+    apop_dt=0.05;
+    apop_threshold=15;
     death_decay_rate=0.15;
-
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
