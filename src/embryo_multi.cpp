@@ -316,6 +316,25 @@ int main(int argc, char *argv[])
 #endif
   
 
+  if (mkdir(par.data_file.c_str(), 0777) == -1)
+    cerr << "Error : " << strerror(errno) << endl;
+  else
+    cout << "Directory created." << endl;
+  if (argc > 1)
+  {
+    vector<double> params;
+    for (int i = 1; i < argc; ++i)
+    {
+      params.push_back(stod(argv[i]));
+      cout << stod(argv[i]) << " ";
+    }
+    cout << endl;
+
+    par.data_file = par.data_file + "/" + argv[1] + "-" + argv[2];
+  }
+
+
+
   Parameter();
   par.graphics=false;
   par.contours=false;
@@ -341,7 +360,12 @@ int main(int argc, char *argv[])
   if (par.pics_for_opt)
     mkdir(par.pic_dir.c_str(), 0777);
 
-  process_population();
+  if (argc < 2)
+    process_population();
+  else // do sweep
+  {
+    process_population();
+  }
   
   // finished
   par.CleanUp();
