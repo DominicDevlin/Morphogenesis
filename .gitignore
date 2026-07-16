@@ -18,11 +18,8 @@ src/moc_predefs.h
 src/moc_qtgraph.h
 src/moc_qtgraph.cpp
 src/embryo_multi
-<<<<<<< HEAD
 src/processing
-=======
 *.csv
 *.csv#
 *.html
 *.pyc
->>>>>>> f8634685e4d36d1c0fd04cfbaca582d919cda677
