@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
 """
 Analyses the celltypes-org-*.dat files produced by embryo_multi (columns:
-time, zona_pellucida, sox2_high, sox17_high, undifferentiated,
-total) to find, for every cell type, when cells of that type are killed
-and when they have all died out (if that happens).
+time, [zona_pellucida,] sox2_high, sox17_high, undifferentiated, total,
+initial_count) to find, for every cell type, when cells of that type are
+killed and when they have all died out (if that happens).
 
 A "death" is inferred from a decrease in a type's cell count between two
 consecutive samples. "differentiated" is a derived type combining
-sox2_high and sox17_high.
+sox2_high and sox17_high. "total" is the whole organism (all cell types
+together); combined with initial_count (population size once cell sorting
+starts, before which no apoptosis mechanism runs), its CSV row reports
+frac_eliminated - the proportion of the starting population no longer
+present in the last sample, i.e. how much cell sorting culled overall.
+
+Columns not present in a given file (e.g. zona_pellucida, or
+initial_count/total in files from before they were tracked) are silently
+skipped rather than erroring, so old and new celltypes-org-*.dat files can
+both be analysed.
 
 Results are printed to the console and also logged to a CSV file (one row
 per organism/cell type).
@@ -25,18 +34,25 @@ import os
 import sys
 
 RAW_TYPES = ["zona_pellucida", "sox2_high", "sox17_high", "undifferentiated"]
-CELL_TYPES = RAW_TYPES + ["differentiated"]
+CELL_TYPES = RAW_TYPES + ["differentiated", "total"]
 
 
 def load_counts(path):
+    """Returns (rows, initial_count). initial_count is None for files from
+    before it was tracked."""
     rows = []
+    initial_count = None
     with open(path, newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
-            counts = {col: int(row[col]) for col in RAW_TYPES}
-            counts["differentiated"] = counts["sox2_high"] + counts["sox17_high"]
+            counts = {col: int(row[col]) for col in RAW_TYPES if col in row}
+            counts["differentiated"] = counts.get("sox2_high", 0) + counts.get("sox17_high", 0)
+            if "total" in row:
+                counts["total"] = int(row["total"])
+            if row.get("initial_count", ""):
+                initial_count = int(row["initial_count"])
             rows.append({"time": int(row["time"]), "counts": counts})
-    return rows
+    return rows, initial_count
 
 
 def find_death_events(rows, cell_type):
@@ -87,17 +103,22 @@ def format_summary(cell_type, rows, events, extinction_time):
     return line
 
 
-def report(path, rows):
+def report(path, rows, initial_count):
     """Prints the console summary and returns the matching CSV rows."""
     org = os.path.basename(path)
     print(f"== {org} ==")
 
+    available_types = [ct for ct in CELL_TYPES if rows and ct in rows[0]["counts"]]
+
     csv_rows = []
-    for cell_type in CELL_TYPES:
+    for cell_type in available_types:
         events, extinction_time = summarise_type(rows, cell_type)
         print(format_summary(cell_type, rows, events, extinction_time))
 
         recovered = extinction_time is not None and rows[-1]["counts"][cell_type] != 0
+        frac_eliminated = ""
+        if cell_type == "total" and initial_count:
+            frac_eliminated = max(0.0, 1 - rows[-1]["counts"]["total"] / initial_count)
         csv_rows.append({
             "org": org,
             "cell_type": cell_type,
@@ -106,6 +127,8 @@ def report(path, rows):
             "last_death_time": events[-1][0] if events else "",
             "extinction_time": extinction_time if extinction_time is not None else "",
             "recovered_after_extinction": recovered,
+            "initial_count": initial_count if (cell_type == "total" and initial_count is not None) else "",
+            "frac_eliminated": frac_eliminated,
         })
     print()
     return csv_rows
@@ -116,6 +139,7 @@ def write_csv(csv_path, csv_rows):
         "org", "cell_type", "n_killed",
         "first_death_time", "last_death_time",
         "extinction_time", "recovered_after_extinction",
+        "initial_count", "frac_eliminated",
     ]
     with open(csv_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -160,8 +184,9 @@ def main():
 
     csv_rows = []
     for path in resolve_files(args.path):
-        rows = [row for row in load_counts(path) if row["time"] >= args.start]
-        csv_rows.extend(report(path, rows))
+        all_rows, initial_count = load_counts(path)
+        rows = [row for row in all_rows if row["time"] >= args.start]
+        csv_rows.extend(report(path, rows, initial_count))
 
     write_csv(args.csv, csv_rows)
 

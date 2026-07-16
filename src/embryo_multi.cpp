@@ -157,13 +157,17 @@ void process_population()
     dishes[i].CPM->SetAreas(par.cell_target_area);
 
     dishes[i].CPM->SetPerims(par.ptarget_perimeter);
-    cout << "Number of cells: " << dishes[i].CPM->CountCells() << endl; // 1200
+    int initial_cell_count = dishes[i].CPM->CountCells();
+    cout << "Number of cells: " << initial_cell_count << endl; // 1200
     dishes[i].CPM->DrawDivisionTimes();
     dishes[i].CPM->SetColours();
 
+    // No apoptosis mechanism runs before t==initialise_sox_time, so this is
+    // also the population cell sorting starts from - lets downstream analysis
+    // compute what fraction of the starting population was eliminated.
     string celltype_fname = par.data_file + "/celltypes-org-" + to_string(i + 1) + ".dat";
     ofstream celltype_file(celltype_fname);
-    celltype_file << "time\tsox2_high\tsox17_high\tundifferentiated\ttotal" << endl;
+    celltype_file << "time\tsox2_high\tsox17_high\tundifferentiated\ttotal\tinitial_count" << endl;
 
     string death_cause_fname = par.data_file + "/death_causes-org-" + to_string(i + 1) + ".dat";
     ofstream death_cause_file(death_cause_fname);
@@ -216,7 +220,8 @@ void process_population()
         CellTypeCounts type_counts = dishes[i].CPM->CountCellTypes();
         celltype_file << t << '\t' << type_counts.sox2_high
                       << '\t' << type_counts.sox17_high << '\t'
-                      << type_counts.undifferentiated << '\t' << type_counts.total() << endl;
+                      << type_counts.undifferentiated << '\t' << type_counts.total()
+                      << '\t' << initial_cell_count << endl;
 
         DeathCounts death_counts = dishes[i].CPM->CountAndClearDeathEvents();
         cumulative_deaths.Accumulate(death_counts);
@@ -311,7 +316,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 10;
+  par.n_orgs = 2;
   par.make_synthetic=true;
   par.phase_evolution = false;
 
