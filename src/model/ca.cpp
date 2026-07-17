@@ -3855,7 +3855,7 @@ void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
     }
 
     // Return the relative boundary length as a double between 0.0 and 1.0
-    return static_cast<double>(total_LW_boundary);
+    return static_cast<double>(total_LW_boundary)/static_cast<double>(total_boundary);
 
   }
 
@@ -3930,7 +3930,7 @@ void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
     }
 
     // Return the relative boundary length as a double between 0.0 and 1.0
-    return static_cast<double>(total_sox_boundary);
+    return static_cast<double>(total_sox_boundary)/static_cast<double>(total_boundary);
   }
 
 

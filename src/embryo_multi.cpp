@@ -331,6 +331,8 @@ int main(int argc, char *argv[])
     cout << endl;
 
     par.data_file = par.data_file + "/" + argv[1] + "-" + argv[2];
+    par.apop_threshold=stod(argv[1]);
+    par.loser_sox2_adhesion=stod(argv[2]);
   }
 
 
@@ -343,7 +345,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 2;
+  par.n_orgs = 60;
   par.make_synthetic=true;
   par.phase_evolution = false;
 
@@ -360,12 +362,8 @@ int main(int argc, char *argv[])
   if (par.pics_for_opt)
     mkdir(par.pic_dir.c_str(), 0777);
 
-  if (argc < 2)
-    process_population();
-  else // do sweep
-  {
-    process_population();
-  }
+  process_population();
+
   
   // finished
   par.CleanUp();

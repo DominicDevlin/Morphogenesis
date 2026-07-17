@@ -113,7 +113,7 @@
     apop_signal_noise=1.5;
     apop_noise_tau=0.1;
     apop_dt=0.05;
-    apop_threshold=15;
+    apop_threshold=18;
     death_decay_rate=0.15;
 
     // high value ensures cells are never broken apart by copy attempts.
