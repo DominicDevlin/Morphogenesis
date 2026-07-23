@@ -82,10 +82,10 @@ INIT
 
     if (par.make_zona_pellucida)
     {
-      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 65, 85, 2);
+      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 55, 65, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -110, par.sizex/2, par.sizey/2, 65, 85, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -83, par.sizex/2, par.sizey/2, 55, 65, 2);
 
     CPM->DifferentiateZonaPellucida();
 
@@ -146,12 +146,13 @@ TIMESTEP {
       dish->CPM->SetMotilityStrengths();
       dish->CPM->SetPerims(par.ptarget_perimeter);
 
+
     }
     if (t>par.initialise_sox_time)
     {
       double tfrac = min(1., double(t-par.initialise_sox_time)/double(par.time_till_full_expression));
-      par.loser_perim_increase = 0.5 * tfrac;
-
+      double multiplier = par.sox2binding - par.loser_sox2_adhesion;
+      dish->CPM->SetLoserPerimIncrease( multiplier * tfrac );
       if (t%100==0)
       {
         dish->CPM->ToxictoLonelyCells();

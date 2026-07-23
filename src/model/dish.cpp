@@ -53,7 +53,7 @@ Dish::Dish()
       
   if (par.init_area>0)
     for (std::vector<Cell>::iterator c=cell.begin();c!=cell.end();c++) {
-      c->SetTargetArea(par.init_area);
+      c->SetTargetArea(par.init_area, 1);
     } 
 }
 

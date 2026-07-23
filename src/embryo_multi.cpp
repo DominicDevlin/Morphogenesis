@@ -43,8 +43,7 @@ INIT
     // Define initial distribution of cells
 
 
-    par.make_synthetic=true;
-    par.phase_evolution = false;
+
 
     CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
 
@@ -53,7 +52,6 @@ INIT
     if (par.velocities)
       par.output_sizes = true;
 
-    par.highT=false;
     // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
 
     // Note - this function will need to have a center of mass somewhere.
@@ -62,19 +60,16 @@ INIT
 
     if (par.make_zona_pellucida)
     {
-      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 65, 85, 2);
+      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 55, 65, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -110, par.sizex/2, par.sizey/2, 65, 85, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -83, par.sizex/2, par.sizey/2, 55, 65, 2);
 
     CPM->DifferentiateZonaPellucida();
 
 
     // Assign a random type to each of the cells
     // CPM->SetRandomTypes();
-
-    par.end_program=0;
-
     
   } 
   catch(const char* error) 
@@ -201,7 +196,8 @@ void process_population()
       if (t>par.initialise_sox_time)
       {
         double tfrac = min(1., double(t-par.initialise_sox_time)/double(par.time_till_full_expression));
-        par.loser_perim_increase = 0.5 * tfrac;
+        double multiplier = par.sox2binding - par.loser_sox2_adhesion;
+        dishes[i].CPM->SetLoserPerimIncrease( multiplier * tfrac );
 
         if (t%100==0)
         {
@@ -247,7 +243,7 @@ void process_population()
         dishes[i].CPM->update_cell_velocities_MCS();
       }
 
-      if (t % 1000 == 0)
+      if (t % 5000 == 0)
       {
         update_progress_bar(i, t, par.mcs, par.n_orgs);
 
@@ -267,30 +263,30 @@ void process_population()
 
 
 
-  string oname = par.data_file + "/sox_start_values.dat";
-  ofstream outfile;
-  outfile.open(oname);
-  for (int i = 0; i < par.n_orgs; ++i)
-  {    
-    for (int s=0; s<sox2_start.size(); ++s)
-    {
-      outfile << sox2_start[i][s] << '\t' << sox17_start[i][s] << endl;
-    }
-  }
-  outfile.close();
+  // string oname = par.data_file + "/sox_start_values.dat";
+  // ofstream outfile;
+  // outfile.open(oname);
+  // for (int i = 0; i < par.n_orgs; ++i)
+  // {    
+  //   for (int s=0; s<sox2_start.size(); ++s)
+  //   {
+  //     outfile << sox2_start[i][s] << '\t' << sox17_start[i][s] << endl;
+  //   }
+  // }
+  // outfile.close();
 
-  oname = par.data_file + "/sox_end_values.dat";
-  outfile.open(oname);
-  for (int i = 0; i < par.n_orgs; ++i)
-  {
-    vector<double> sox2 = dishes[i].CPM->sox2_values();
-    vector<double> sox17 = dishes[i].CPM->sox17_values();
-    for (int s=0; s<sox2.size(); ++s)
-    {
-      outfile << sox2[s] << '\t' << sox17[s] << endl;
-    }
-  }
-  outfile.close();
+  // oname = par.data_file + "/sox_end_values.dat";
+  // outfile.open(oname);
+  // for (int i = 0; i < par.n_orgs; ++i)
+  // {
+  //   vector<double> sox2 = dishes[i].CPM->sox2_values();
+  //   vector<double> sox17 = dishes[i].CPM->sox17_values();
+  //   for (int s=0; s<sox2.size(); ++s)
+  //   {
+  //     outfile << sox2[s] << '\t' << sox17[s] << endl;
+  //   }
+  // }
+  // outfile.close();
 
   delete[] dishes;
 
@@ -342,10 +338,11 @@ int main(int argc, char *argv[])
   par.contours=false;
   par.print_fitness=true;
   par.randomise=false;
+  par.highT=false;
 
 
   par.end_program=0;
-  par.n_orgs = 60;
+  par.n_orgs = 10;
   par.make_synthetic=true;
   par.phase_evolution = false;
 

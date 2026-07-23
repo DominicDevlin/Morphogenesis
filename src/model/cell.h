@@ -434,10 +434,10 @@ al. 2000). The current version of TST does not include such functionality.
   }
   
   //! Sets the target area of the cell.
-  inline int SetTargetArea(const int new_area)
+  inline int SetTargetArea(const int new_area, double lpi)
   {
     target_area=new_area;
-    UpdatePerimeterConstraint();
+    UpdatePerimeterConstraint(lpi);
     return target_area;
   }
   
@@ -1362,10 +1362,10 @@ inline double getSox2()
   return Sox2_concentration;
 }
 
-inline void setSox2(double newsox)
+inline void setSox2(double newsox, double perim_increase)
 {
   Sox2_concentration=newsox;
-  UpdatePerimeterConstraint();
+  UpdatePerimeterConstraint(perim_increase);
 
   UpdateAdhesions();
 
@@ -1376,10 +1376,10 @@ inline double getSox17()
   return Sox17_concentration;
 }
 
-inline void setSox17(double newsox)
+inline void setSox17(double newsox, double perim_increase)
 {
   Sox17_concentration=newsox;
-  UpdatePerimeterConstraint();
+  UpdatePerimeterConstraint(perim_increase);
 
   UpdateAdhesions();
 
@@ -1460,10 +1460,10 @@ inline void ClearDeathCause()
 
 
 
-inline void UpdatePerimeterConstraint()
+inline void UpdatePerimeterConstraint(double loser_perim_inc)
 {
   double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
-  double added_perim = par.loser_perim_increase * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
+  double added_perim = loser_perim_inc * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
   target_perimeter = static_cast<int>(round((par.ptarget_perimeter) *
       sqrt(double(target_area) / double(par.cell_target_area)))) + added_perim - par.perim_offset;
 

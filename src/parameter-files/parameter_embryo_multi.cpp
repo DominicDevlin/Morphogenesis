@@ -63,7 +63,7 @@
 /* Cellular Potts parameters */
     sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 300;
-    mcs = 30001;
+    mcs = 35001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
@@ -79,7 +79,7 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     bulk_modulus = 5;
-    cell_target_area = 200;
+    cell_target_area = 400;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 150;
     synthetic_max_area=cell_target_area+2;
@@ -87,8 +87,8 @@
 
     H_perim = true;
     elastic_modulus = 1;
-    ptarget_perimeter = 76;
-    perim_offset = 10;
+    ptarget_perimeter = 114;
+    perim_offset = 16;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -122,8 +122,8 @@
     conn_diss = 2000;
 
 
-    starting_fraction_losers=0.25;
-    target_sox2_prob=0.65;
+    starting_fraction_losers=0.33;
+    target_sox2_prob=0.6;
     loser_perim_increase=0.;
 /* adhesion params */
 
@@ -151,14 +151,14 @@
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     J_cell_zona = 1.2;
     Jzona_sox2 = 0.0;
-    Jzona_sox17 = 0.3;
+    Jzona_sox17 = 0.25;
     Jzona_loser=0;
     // added zona adhesion for sox2 sox17 for sticky part
     J_cell_zona_sticky=2.0;
     Jzona_sticky_sox2extra=1.4;
     Jzona_sticky_sox17extra=0.;
-    
-   init_blasto=1.5;
+
+    init_blasto=1.5;
     init_zona=3.0;
     init_zona_sticky=1.0;
     init_cellcell=1.0;

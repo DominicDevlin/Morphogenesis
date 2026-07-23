@@ -104,7 +104,7 @@ void Info::Menu() {
 	t+=i->Area() - i->TargetArea(); 
 	*os << i->Sigma() << " " << i->Area() - i->TargetArea() << " " 
 	    << i->Area() << " " << i->TargetArea() << "\n";
-	i->SetTargetArea(i->Area());
+	i->SetTargetArea(i->Area(), 1);
       }
      
       *os << "Mean deviation from target: " << (double)t/((double)dish->cell.size()-1) << "\n";
@@ -152,7 +152,7 @@ void Info::Menu() {
       dish->CPM->MeasureCellSize(tcell);
       
       tcell.setTau(2);
-      tcell.SetTargetArea(50);
+      tcell.SetTargetArea(50, 1);
       
       cerr << "tumorcell = " << tumorcell << endl;
       cerr << "tcell.Sigma() = " << tcell.Sigma() << endl;

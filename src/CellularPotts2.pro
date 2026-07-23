@@ -14,7 +14,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-TARGET = embryo_multi
+TARGET = embryo
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 PARAMFILE = parameter-files/parameter_$${TARGET}.cpp
 
@@ -71,6 +71,12 @@ SOURCES += $$PARAMFILE
 QMAKE_CXXFLAGS += -fopenmp
 QMAKE_LFLAGS +=  -fopenmp
 LIBS += -fopenmp
+
+# Add ThreadSanitizer and Debug flags
+# QMAKE_CXXFLAGS += -fopenmp -fsanitize=thread -g -O1
+# QMAKE_CFLAGS   += -fopenmp -fsanitize=thread -g -O1
+# QMAKE_LFLAGS   += -fopenmp -fsanitize=thread -g
+# LIBS += -fopenmp -fsanitize=thread
 
 contains( GRAPHICS, qt ) {
    message( "Building Qt executable" )

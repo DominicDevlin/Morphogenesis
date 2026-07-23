@@ -79,7 +79,7 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     bulk_modulus = 5;
-    cell_target_area = 200;
+    cell_target_area = 400;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 150;
     synthetic_max_area=cell_target_area+2;
@@ -87,8 +87,8 @@
 
     H_perim = true;
     elastic_modulus = 1;
-    ptarget_perimeter = 76;
-    perim_offset = 10;
+    ptarget_perimeter = 114;
+    perim_offset = 16;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -113,8 +113,11 @@
     apop_signal_noise=1.5;
     apop_noise_tau=0.1;
     apop_dt=0.05;
-    apop_threshold=18;
     death_decay_rate=0.15;
+
+    // the two important params
+    loser_sox2_adhesion=0.7;
+    apop_threshold=24;
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
@@ -122,8 +125,8 @@
     conn_diss = 2000;
 
 
-    starting_fraction_losers=0.25;
-    target_sox2_prob=0.65;
+    starting_fraction_losers=0.33;
+    target_sox2_prob=0.6;
     loser_perim_increase=0.;
 /* adhesion params */
 
@@ -145,13 +148,13 @@
     sox2vs17binding=0.6;
 
     loser_loser_adhesion=-0.7;
-    loser_sox2_adhesion=0.;
+    
     loser_sox17_adhesion=-0.1;
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     J_cell_zona = 1.2;
     Jzona_sox2 = 0.0;
-    Jzona_sox17 = 0.3;
+    Jzona_sox17 = 0.25;
     Jzona_loser=0;
     // added zona adhesion for sox2 sox17 for sticky part
     J_cell_zona_sticky=2.0;

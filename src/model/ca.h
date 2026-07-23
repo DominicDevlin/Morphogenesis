@@ -400,6 +400,11 @@ public:
       return thetime;
     }
   
+    inline void SetLoserPerimIncrease(double lp)
+    {
+      global_loser_perim_increase=lp;
+    }
+
 
     // not currently used? In Critter implementation (see Hogeweg
     // 2000) this was used to have cells divide at double their original area.
@@ -567,6 +572,7 @@ protected:
   std::map<int, std::set< std::pair<int, int>>> cellPerimeterList;
 
 
+
   
 
 private:
@@ -640,6 +646,8 @@ private:
   // int scount=0;
   bool ShapeMaintained=true;
 
+  double copyprob[1024]; 
+
   //for calculating organism fitness.
   vector<int> som_cell_list;
   vector<double> type_fitness_list;
@@ -670,6 +678,7 @@ private:
   int org_num=1;
   map<int,int> transition_cooldown_list;
 
+  double global_loser_perim_increase{0.};
 
   //count grid hits for awkward gradients
   long griditcount;
