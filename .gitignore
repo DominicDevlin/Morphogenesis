@@ -19,7 +19,6 @@ src/moc_qtgraph.h
 src/moc_qtgraph.cpp
 src/embryo_multi
 src/sweep_results
-src/processing
 *.csv
 *.csv#
 *.html
