@@ -98,7 +98,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.35; // not that this term depends on the cell size (1/sqrt(area))
+    motility_strength = 0.3; // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
 
@@ -115,6 +115,12 @@
     apop_dt=0.05;
     apop_threshold=15;
     death_decay_rate=0.15;
+
+        // the important params
+    loser_sox2_adhesion=0.; //0.;
+    loser_loser_adhesion=-0.7;// -0.7;
+    loser_sox17_adhesion=-0.1;//-0.1;
+    apop_threshold=24;
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
@@ -144,9 +150,7 @@
     // binding between sox2 and sox17
     sox2vs17binding=0.6;
 
-    loser_loser_adhesion=-0.7;
-    loser_sox2_adhesion=0.;
-    loser_sox17_adhesion=-0.1;
+
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     J_cell_zona = 1.2;
@@ -187,7 +191,7 @@
     loser_blasto_adhesion=loser_blasto_adhesion*adhesion_multiplier;
 
 
-    
+
     sox_threshold=0.2;
 
     // make an oval zona pellucida that does not move

@@ -196,7 +196,7 @@ void process_population()
       if (t>par.initialise_sox_time)
       {
         double tfrac = min(1., double(t-par.initialise_sox_time)/double(par.time_till_full_expression));
-        double multiplier = par.sox2binding - par.loser_sox2_adhesion;
+        double multiplier = par.sox2binding - par.loser_sox2_adhesion * 0.5;
         dishes[i].CPM->SetLoserPerimIncrease( multiplier * tfrac );
 
         if (t%100==0)
@@ -329,6 +329,24 @@ int main(int argc, char *argv[])
     par.data_file = par.data_file + "/" + argv[1] + "-" + argv[2];
     par.apop_threshold=stod(argv[1]);
     par.loser_sox2_adhesion=stod(argv[2]);
+    // sx2 L min= -0.1, max=0.7
+    // LL  min = -0.7, max=0.7
+    // sx17 L min = 0. max = 0.6
+    // and we do intervals of 9x9 matrix (or 8 dividers) so..
+    double LSX2min=-0.1;
+    double LSX2max=0.7;
+    double frac = (par.loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
+
+    double LLmin=-0.7;
+    double LLmax=0.7;
+    double to_add = (LLmax-LLmin)*frac;
+    par.loser_loser_adhesion=LLmin+to_add;
+    
+    double LSX17min=-0.1;
+    double LSX17max=0.6;
+    to_add = (LSX17max-LSX17min) * frac;
+    par.loser_sox17_adhesion=LSX17min + to_add;
+    cout << "Loser sox2 adhesion: " << par.loser_sox2_adhesion << "\nloser loser adhesion: " << par.loser_loser_adhesion << "\nloser sox17 adhesion: " << par.loser_sox17_adhesion << endl;
   }
 
 
@@ -342,7 +360,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 10;
+  par.n_orgs = 60;
   par.make_synthetic=true;
   par.phase_evolution = false;
 

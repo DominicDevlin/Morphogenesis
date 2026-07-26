@@ -3406,7 +3406,7 @@ void CellularPotts::DrawDivisionTimes()
       int t_1 = round(prob_1 * 12000);
       int t_2 = round(t_1 + 14000 + GetStandardNormal() * 1000);
       int t_3 = round(t_1 + 14000 + GetStandardNormal() * 1000);
-      cout << t_1 << '\t' << t_2 << '\t' << t_3 << '\t' << GetStandardNormal() * 1000 << endl;
+      // cout << t_1 << '\t' << t_2 << '\t' << t_3 << '\t' << GetStandardNormal() * 1000 << endl;
 
 
       // // first divisions.
@@ -3596,6 +3596,9 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
       if (death_amount < 0)
         death_amount=0;
 
+      if (is_looser < 0.4)
+        death_amount=-0.1;
+
       // ofstream outfile;
       // string out = data_file + "/death_total" + (org_index > 0 ? "-org-" + to_string(org_index) : "") + ".dat";
       // outfile.open(out, ios::app);
@@ -3628,11 +3631,79 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
 }
 
 
+void CellularPotts::CountMedNeighbours()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->ResetMedCounts();
+      c->SetLooser();
+    }
+  }
+  // Iterate through the entire grid
+  for (int i = 0; i < sizex; i++) 
+  {
+    for (int j = 0; j < sizey; j++) 
+    {
+        int current_id = sigma[i][j];
+        
+        // 1. Check the RIGHT neighbor
+        if (i + 1 < sizex) 
+        {
+          int right_id = sigma[i + 1][j];
+          // Check if right pixel is a valid cell and is a different cell
+          if (current_id != right_id) 
+          {
+            if (current_id==0)
+            { 
+              (*cell)[right_id].AddMedCount();
+            }
+            else if (right_id==0)
+            {
+              (*cell)[current_id].AddMedCount();
+            }
+            else
+            {
+              (*cell)[current_id].AddNonMedCount();
+              (*cell)[right_id].AddNonMedCount();
+            }
+          }
+        }
+        // 2. Check the BOTTOM neighbor
+        if (j + 1 < sizey) 
+        {
+          int bottom_id = sigma[i][j + 1];
+         // Check if right pixel is a valid cell and is a different cell
+          if (current_id != bottom_id) 
+          {
+            if (current_id==0)
+            { 
+              (*cell)[bottom_id].AddMedCount();
+            }
+            else if (bottom_id==0)
+            {
+              (*cell)[current_id].AddMedCount();
+            }
+            else
+            {
+              (*cell)[current_id].AddNonMedCount();
+              (*cell)[bottom_id].AddNonMedCount();
+            }
+          }
+        }
+      }
+    }
+}
+
+
 
 void CellularPotts::ToxictoLonelyCells()
 {
   int **ns = SearchNeighbours();
   int n_size = (*cell).size();
+  CountMedNeighbours();
   for (int i = 1; i < n_size; ++i)
   {
     // cout << i << '\t' << "is alive: " << cell->at(i).AliveP() << endl;;
@@ -3641,6 +3712,7 @@ void CellularPotts::ToxictoLonelyCells()
       int nbh_count{};
       int j=0;
       bool sox2neighbour=false;
+      bool touching_med;
       while (ns[i][j] >= 0)
       {
         // if (ns[i][j] != zona_sigma && ns[i][j] != zona_sigma_sticky && ns[i][j] > 0)
@@ -3654,29 +3726,44 @@ void CellularPotts::ToxictoLonelyCells()
         {
           ++nbh_count;
         }
+        if (ns[i][j]==0)
+          touching_med=true;
         ++j;
       }
-      if (nbh_count==0)
+      // if (nbh_count==0)
+      // {
+      //   cell->at(i).MakeLonely(true);
+      //   cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_LONELY);
+      //   if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
+      //     cell->at(i).SetTargetArea(1, global_loser_perim_increase);
+      //   else if (cell->at(i).TargetArea() > 1)
+      //   {
+      //     int n=10;
+      //     while (n>1)
+      //     {
+      //       cell->at(i).DecrementTargetArea();
+      //       --n;
+      //     }
+      //   }
+      if (touching_med==true && cell->at(i).GetProportionMed() > 0.5 && cell->at(i).CheckLooser())
       {
         cell->at(i).MakeLonely(true);
-        cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_LONELY);
         if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
+        {
           cell->at(i).SetTargetArea(1, global_loser_perim_increase);
+          cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_LONELY);
+        }
         else if (cell->at(i).TargetArea() > 1)
         {
-          int n=10;
+          int n=20;
           while (n>1)
           {
             cell->at(i).DecrementTargetArea();
             --n;
           }
         }
-
-
         cell->at(i).SetLambdaByBulk();
         cell->at(i).UpdatePerimeterConstraint(global_loser_perim_increase);
-
-
         // cout << "cell number: " << cell->at(i).Sigma() << "  area: " << cell->at(i).Area() << '\t' << "  target area: " << cell->at(i).TargetArea() << "  perimeter: " << cell->at(i).Perimeter() << "   target perimeter: " << cell->at(i).TargetPerimeter() << endl;
 
       }

@@ -9,7 +9,7 @@ import warnings
 # Suppress warnings from calculating mean of empty arrays
 warnings.filterwarnings(action='ignore', message='Mean of empty slice')
 
-def plot_normalized_phase_diagram(base_dir='filtered-data/', target_time=30000.0):
+def plot_normalized_phase_diagram(base_dir='filtered-data/', target_time=10000.0):
     # Data structure to hold the raw aggregated results
     raw_data = []
 
@@ -64,6 +64,8 @@ def plot_normalized_phase_diagram(base_dir='filtered-data/', target_time=30000.0
                 'B': b_val, 
                 'Avg_Total': avg_total
             })
+            print(a_val, b_val, avg_total)
+
 
     if not raw_data:
         print(f"No valid data found for time = {target_time}. Please check the time value and directory path.")
@@ -76,7 +78,7 @@ def plot_normalized_phase_diagram(base_dir='filtered-data/', target_time=30000.0
     print("Normalizing data against A = 3...")
     
     # Isolate rows where A is 3
-    ref_df = df_raw[np.isclose(df_raw['A'], 3.0)]
+    ref_df = df_raw[np.isclose(df_raw['A'], 24.0)]
     print(ref_df)
     
     # Map B -> Avg_Total (where A=3)
@@ -101,7 +103,7 @@ def plot_normalized_phase_diagram(base_dir='filtered-data/', target_time=30000.0
     
     # Using 'coolwarm' centered at 1.0
     ax = sns.heatmap(pivot_table, cmap='coolwarm', center=1, 
-                     cbar_kws={'label': f'Normalized Total (Relative to a=3 at t={target_time})'},
+                     cbar_kws={'label': f'Normalized Total (Relative to a=3 at t={target_time})'}, vmin=0.75,
                      annot=False, square=True)
 
     plt.title(f'Phase Diagram: Normalized Cell Totals at Time = {target_time}', pad=20, fontsize=14)

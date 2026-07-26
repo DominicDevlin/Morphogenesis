@@ -1532,6 +1532,30 @@ void SetLooser()
   }
 }
 
+inline void AddMedCount()
+{
+  ++medcount;
+}
+
+inline void AddNonMedCount()
+{
+  ++notmedcount;
+}
+
+inline void ResetMedCounts()
+{
+  medcount=0;
+  notmedcount=0;
+}
+
+inline double GetProportionMed()
+{
+  if ((notmedcount+medcount)==0)
+  {
+    return 0;
+  }
+  return static_cast<double>(medcount) / static_cast<double>(medcount + notmedcount);
+}
 
 private:
 //! Increments the cell's actual area by 1 unit.
@@ -1598,7 +1622,9 @@ protected:
   vector<double> mass_list;
 
   double apop_noise_state{};
-
+  
+  int medcount{};
+  int notmedcount{};
 
   int perimeter;        // amount of cell's membrane
   int target_perimeter; // cell's target membrane length  

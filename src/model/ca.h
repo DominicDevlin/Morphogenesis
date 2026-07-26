@@ -617,6 +617,8 @@ private:
 
   map<int,vector<double>> state_adhesion;
 
+  void CountMedNeighbours();
+
   double tmp_hex_order;
   double transition_point;
   double tmp_avg_shape=0;
