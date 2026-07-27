@@ -119,7 +119,7 @@
     loser_sox2_adhesion=0.7; //-0.1;
     loser_loser_adhesion=0.7;// -0.7;
     loser_sox17_adhesion=0.6;//-0.1;
-    apop_threshold=20;
+    apop_threshold=1;
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 

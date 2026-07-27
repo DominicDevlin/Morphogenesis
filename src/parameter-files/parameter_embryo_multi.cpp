@@ -110,11 +110,11 @@
 
     set_loser_colours=false;
 
-    apop_signal_noise=1.5;
+    apop_signal_noise=1.;
     apop_noise_tau=0.1;
     apop_dt=0.05;
     apop_threshold=15;
-    death_decay_rate=0.15;
+    death_decay_rate=1.;
 
         // the important params
     loser_sox2_adhesion=0.; //0.;

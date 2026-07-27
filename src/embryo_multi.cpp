@@ -210,7 +210,7 @@ void process_population()
           dishes[i].CPM->SetPerims();
           dishes[i].CPM->SetSoxColours(tfrac);
         }
-        if (t%150==0)
+        if (t%250==0)
         {
           dishes[i].CPM->NeighbourBasedApoptosis(i + 1);
         }
