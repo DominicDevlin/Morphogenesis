@@ -1519,7 +1519,7 @@ bool CheckLooser()
   return looser_cell;
 }
 
-void SetLooser()
+inline void SetLooser()
 {
   double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
   if (is_looser>0.5)
@@ -1530,6 +1530,12 @@ void SetLooser()
   {
     looser_cell=false;
   }
+}
+
+inline double CheckLooserValue()
+{
+  return max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
+ 
 }
 
 inline void AddMedCount()

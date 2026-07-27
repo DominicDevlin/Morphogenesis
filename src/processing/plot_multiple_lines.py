@@ -107,7 +107,8 @@ def plot_total_cells_param_sweep(base_dir="t1/org-data", fixed_param="a", fixed_
     plt.xlabel("Time", fontsize=12)
     plt.ylabel("Total Cells", fontsize=12)
     plt.legend(loc="best", title=f"Parameter {var_param}")
-    plt.xlim(left=0)
+    plt.xlim(left=800)
+    #plt.xscale('log')
     plt.grid(True, linestyle="--", alpha=0.5)
 
     # Save and display plot
@@ -119,7 +120,7 @@ def plot_total_cells_param_sweep(base_dir="t1/org-data", fixed_param="a", fixed_
 
 if __name__ == "__main__":
     # Example 1: Fix b_val at 0.3 and plot multiple lines for different a_val options
-    plot_total_cells_param_sweep(base_dir="t2/org-data", fixed_param="b", fixed_val=0.5)
+    plot_total_cells_param_sweep(base_dir="t1/", fixed_param="b", fixed_val=0.5)
 
     # Example 2: Fix a_val at 6.0 and plot multiple lines for different b_val options
     # plot_total_cells_param_sweep(base_dir="filtered-data", fixed_param="a", fixed_val=6.0)

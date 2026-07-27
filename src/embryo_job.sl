@@ -12,14 +12,5 @@
 module load GCCcore/11.3.0          #  or GCCcore/11.2.0
 module load binutils/2.38-GCCcore-11.3.0   # linker that matches GCC 11
 
-
-if [ ! -f build_done.flag ]; then
-    touch build_done.flag
-    which qmake-qt5 && qmake-qt5 || qmake            # or `qmake-qt5` if that exists on your system
-    make  -j $SLURM_CPUS_ON_NODE
-else
-    sleep 40
-fi
-
 python3 run_script.py ${SLURM_ARRAY_TASK_ID}
 

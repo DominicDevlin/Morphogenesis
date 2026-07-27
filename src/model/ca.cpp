@@ -3563,10 +3563,10 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
       double nbh_total_fit=0.;
       while (ns[i][j] >= 0)
       {
-        if (cell->at(j).AliveP() && j > 0)
+        if (cell->at(ns[i][j]).AliveP() && ns[i][j] > 0)
         {
-          double nbh_sox2int = cell->at(j).getSox2adhesion();
-          double nbh_sox17int = cell->at(j).getSox17adhesion();
+          double nbh_sox2int = cell->at(ns[i][j]).getSox2adhesion();
+          double nbh_sox17int = cell->at(ns[i][j]).getSox17adhesion();
           double neighbour_fit = 1 - max(nbh_sox2int * nbh_sox17int, (1. - nbh_sox2int) * (1. - nbh_sox17int));
           nbh_total_fit+=neighbour_fit;
         }
@@ -3592,7 +3592,8 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
       double noise_term = eta * death_amount; 
       
       death_amount += ((nbh_signal) - par.death_decay_rate * death_amount + noise_term) * dt;
-      
+      // death_amount += ((nbh_signal) - par.death_decay_rate * death_amount) * dt;
+   
       if (death_amount < 0)
         death_amount=0;
 
@@ -3782,7 +3783,9 @@ void CellularPotts::ToxictoLonelyCells()
 // still working on this
 void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
 {
-
+  double LSX2min=-0.1;
+  double LSX2max=0.7;
+  double frac = (par.loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
   int **ns = SearchNeighbours();
   int n_size = (*cell).size();
   vector<double> neighbour_sox2_vals(n_size,0);
@@ -3803,6 +3806,8 @@ void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
           ++cell_nbh_counts[i];
           neighbour_sox2_vals[i]+=(*cell)[ns[i][j]].getSox2adhesion();
           neighbour_sox17_vals[i]+=(*cell)[ns[i][j]].getSox17adhesion();
+          neighbour_sox2_vals[i]+= (*cell)[ns[i][j]].CheckLooserValue() * frac;
+
         }
         if (ns[i][j]==0)
           touching_med=true;
@@ -3812,11 +3817,16 @@ void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
       double mot_strength = par.motility_zero / sqrt(double(cell->at(i).TargetArea()));
       double sox2ad = cell->at(i).getSox2adhesion();
       double sox17ad = cell->at(i).getSox17adhesion();
+
+      double is_looser = max(sox2ad * sox17ad, (1. - sox2ad) * (1. - sox17ad));
+
+
       if (cell_nbh_counts[i] > 0)
       {
         neighbour_sox2_vals[i] /= 2;
         // neighbour_sox17_vals[i] /= double(cell_nbh_counts[i]);
         double p1 = neighbour_sox2_vals[i] * sox2ad;
+        p1 += frac * is_looser * neighbour_sox2_vals[i];
         //double p2 = neighbour_sox17_vals[i] * cell->at(i).getSox17adhesion() * 20;
         //stiffness_multiplier += (p1+p2);
         // cout << p1 << endl;
@@ -3832,7 +3842,6 @@ void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
       mot_strength = mot_strength * tfrac;
       cell->at(i).SetMotilityStrength(mot_strength);
 
-      double is_looser = max(sox2ad * sox17ad, (1. - sox2ad) * (1. - sox17ad));
 
       // int target_perim = cell->at(i).TargetPerimeter();
       // double ideal_perim_constraint = (par.elastic_modulus / double(target_perim)) * stiffness_multiplier;

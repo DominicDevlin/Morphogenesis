@@ -4,13 +4,13 @@ import os
 import shutil
 import numpy as np
 
-def clean_high_variance_directories(root_dir="t4-data", variance_threshold=30.0):
+def clean_high_variance_directories(root_dir="t1/", variance_threshold=30.0):
     """
     Iterates through subdirectories, calculates variance of the final 'total' 
     cells across celltypes-org replicates, and marks the directory for deletion if above threshold.
     """
     
-    # Check if root directory exists
+    # Check if root directory existss
     if not os.path.exists(root_dir):
         print(f"Root directory '{root_dir}' not found.")
         return
@@ -74,11 +74,11 @@ def clean_high_variance_directories(root_dir="t4-data", variance_threshold=30.0)
         # =========================================================
         # UNCOMMENT THE LINES BELOW TO ACTUALLY DELETE DIRECTORIES
         # =========================================================
-        try:
-            shutil.rmtree(d)
-            print(f"Successfully deleted {d}")
-        except Exception as e:
-            print(f"Failed to delete {d}. Reason: {e}")
+        # try:
+        #     shutil.rmtree(d)
+        #     print(f"Successfully deleted {d}")
+        # except Exception as e:
+        #     print(f"Failed to delete {d}. Reason: {e}")
 
 if __name__ == "__main__":
     # Adjust your variance threshold here

@@ -9,7 +9,7 @@ import warnings
 # Suppress warnings from calculating mean of empty arrays
 warnings.filterwarnings(action='ignore', message='Mean of empty slice')
 
-def plot_normalized_phase_diagram(base_dir='filtered-data/', target_time=10000.0):
+def plot_normalized_phase_diagram(base_dir='t1/', target_time=30000.0):
     # Data structure to hold the raw aggregated results
     raw_data = []
 
@@ -78,7 +78,7 @@ def plot_normalized_phase_diagram(base_dir='filtered-data/', target_time=10000.0
     print("Normalizing data against A = 3...")
     
     # Isolate rows where A is 3
-    ref_df = df_raw[np.isclose(df_raw['A'], 24.0)]
+    ref_df = df_raw[np.isclose(df_raw['A'], 30.0)]
     print(ref_df)
     
     # Map B -> Avg_Total (where A=3)

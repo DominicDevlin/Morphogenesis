@@ -110,7 +110,7 @@
 
     set_loser_colours=false;
 
-    apop_signal_noise=2.5;
+    apop_signal_noise=1.5;
     apop_noise_tau=0.1;
     apop_dt=0.05;
     apop_threshold=15;
