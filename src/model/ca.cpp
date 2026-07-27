@@ -3599,11 +3599,11 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
       if (is_looser < 0.4)
         death_amount=-0.1;
 
-      // ofstream outfile;
-      // string out = data_file + "/death_total" + (org_index > 0 ? "-org-" + to_string(org_index) : "") + ".dat";
-      // outfile.open(out, ios::app);
-      // outfile << i << '\t' << death_amount << endl;
-      // outfile.close();      
+      ofstream outfile;
+      string out = data_file + "/death_total" + (org_index > 0 ? "-org-" + to_string(org_index) : "") + ".dat";
+      outfile.open(out, ios::app);
+      outfile << i << '\t' << death_amount << endl;
+      outfile.close();      
 
       if (death_amount > par.apop_threshold)
       {

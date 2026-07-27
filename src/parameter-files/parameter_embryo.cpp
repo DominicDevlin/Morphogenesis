@@ -116,9 +116,9 @@
     death_decay_rate=0.15;
 
     // the important params
-    loser_sox2_adhesion=0.4; //-0.1;
-    loser_loser_adhesion=0.3;// -0.7;
-    loser_sox17_adhesion=0.35;//-0.1;
+    loser_sox2_adhesion=0.7; //-0.1;
+    loser_loser_adhesion=0.7;// -0.7;
+    loser_sox17_adhesion=0.6;//-0.1;
     apop_threshold=20;
 
     // high value ensures cells are never broken apart by copy attempts.
@@ -133,7 +133,7 @@
 /* adhesion params */
 
     // baseline J value for adhesion between cells and blastocoel
-    Jblasto=0.6; //0.5
+    Jblasto=0.5; //0.5
     // modulation of sox17 expressing cell to medium
     sox17_blasto_adhesion=0.;
     // modulation of sox2 expressing cell to medium
@@ -141,22 +141,22 @@
     loser_blasto_adhesion=-0.;
 
     // baseline J value between cells
-    J_cell_baseline=1.4; //1.2
+    J_cell_baseline=1.2; //1.2
     // binding of sox2 to sox2
-    sox2binding=0.75;
+    sox2binding=0.7;
     // binding of sox17 to sox17 =
-    sox17binding=0.45;
+    sox17binding=0.5;
     // binding between sox2 and sox17
     sox2vs17binding=0.6;
 
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
-    J_cell_zona = 1.4; //1.2
+    J_cell_zona = 1.2; //1.2
     Jzona_sox2 = 0.0;
     Jzona_sox17 = 0.2;
     Jzona_loser=0;
     // added zona adhesion for sox2 sox17 for sticky part
-    J_cell_zona_sticky=2.2; //2.0
+    J_cell_zona_sticky=2.0; //2.0
     Jzona_sticky_sox2extra=1.4;
     Jzona_sticky_sox17extra=0.;
 

@@ -197,7 +197,7 @@ void process_population()
       {
         double tfrac = min(1., double(t-par.initialise_sox_time)/double(par.time_till_full_expression));
         double multiplier = par.sox2binding - par.loser_sox2_adhesion * 0.5;
-        dishes[i].CPM->SetLoserPerimIncrease( multiplier * tfrac );
+        // dishes[i].CPM->SetLoserPerimIncrease( multiplier * tfrac );
 
         if (t%100==0)
         {

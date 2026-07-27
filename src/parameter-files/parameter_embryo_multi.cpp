@@ -98,19 +98,19 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.3; // not that this term depends on the cell size (1/sqrt(area))
+    motility_strength = 0.25; // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
 
     initialise_sox_time=800;
-    time_till_full_expression=10000;
+    time_till_full_expression=12000;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
-    switch_like=1000.;
+    switch_like=2000.;
 
     set_loser_colours=false;
 
-    apop_signal_noise=1.5;
+    apop_signal_noise=2.5;
     apop_noise_tau=0.1;
     apop_dt=0.05;
     apop_threshold=15;
@@ -155,7 +155,7 @@
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     J_cell_zona = 1.2;
     Jzona_sox2 = 0.0;
-    Jzona_sox17 = 0.25;
+    Jzona_sox17 = 0.2;
     Jzona_loser=0;
     // added zona adhesion for sox2 sox17 for sticky part
     J_cell_zona_sticky=2.0;
