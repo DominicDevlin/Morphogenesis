@@ -9,7 +9,7 @@ import warnings
 # Suppress warnings when calculating mean of empty slices
 warnings.filterwarnings(action='ignore', message='Mean of empty slice')
 
-def plot_phase_diagram_sox(base_dir='t1/'):
+def plot_phase_diagram_sox(base_dir='newest-data/'):
     # Data structure to hold aggregated results
     phase_data = []
 

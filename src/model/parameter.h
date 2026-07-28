@@ -155,6 +155,7 @@ class Parameter {
   double sox2vs17binding;
   double Jblasto;
   double J_cell_zona_sticky;
+  double Jzona_sticky_loser;
   double Jzona_sticky_sox2extra;
   double Jzona_sticky_sox17extra;
   double J_cell_baseline;

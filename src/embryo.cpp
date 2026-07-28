@@ -136,7 +136,7 @@ TIMESTEP {
       dish->CPM->SetPerims(par.ptarget_perimeter);
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
       dish->CPM->DrawDivisionTimes();
-      dish->CPM->SetColours();
+      dish->CPM->SetSoxColours(0);
     }
 
     if (t==par.initialise_sox_time)
@@ -169,11 +169,11 @@ TIMESTEP {
         dish->CPM->NeighbourBasedApoptosis();
       }
 
-      if (t%500==0)
-      {
-        cout << "loser boundary: " << dish->CPM->LoserWinnerBoundaryLength() << endl;
-        cout << "sox boundary: " << dish->CPM->Sox2Sox17BoundaryLength() << endl;
-      }
+      // if (t%500==0)
+      // {
+      //   cout << "loser boundary: " << dish->CPM->LoserWinnerBoundaryLength() << endl;
+      //   cout << "sox boundary: " << dish->CPM->Sox2Sox17BoundaryLength() << endl;
+      // }
     }
 
     // if (t==1000)
@@ -209,7 +209,7 @@ TIMESTEP {
     // }
 
     //printing every 1000 steps. Do other debugging things here as well. 
-    if (t % 1000 == 0)
+    if (t % 2000 == 0)
     {
       cout << t << " TIME STEPS HAVE PASSED." << endl;
     }

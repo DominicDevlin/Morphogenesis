@@ -3293,7 +3293,7 @@ void CellularPotts::DifferentiateZonaPellucida()
   // Store modifications to prevent a chain-reaction in a single pass
   vector<std::pair<int, int>> to_change;
   int R1 = 2;
-  int R2 = 30;
+  int R2 = 35;
   // Step 2: Iterate through the grid
   for (int x = 1; x <= sizex-1; ++x) 
   {
@@ -3608,6 +3608,7 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
 
       if (death_amount > par.apop_threshold)
       {
+        // cout << "cell dead from signal" << endl;
         cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_SIGNAL);
         // if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
         cell->at(i).SetTargetArea(1, global_loser_perim_increase);
@@ -3746,11 +3747,12 @@ void CellularPotts::ToxictoLonelyCells()
       //       --n;
       //     }
       //   }
-      if (touching_med==true && cell->at(i).GetProportionMed() > 0.5 && cell->at(i).CheckLooser())
+      if (touching_med==true && cell->at(i).GetProportionMed() > 0.66 && cell->at(i).CheckLooser())
       {
         cell->at(i).MakeLonely(true);
         if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
         {
+          // cout << "cell dead from lonely" << endl;
           cell->at(i).SetTargetArea(1, global_loser_perim_increase);
           cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_LONELY);
         }

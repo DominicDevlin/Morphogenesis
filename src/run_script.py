@@ -15,7 +15,7 @@ def main():
 
     # Define the parameter arrays
     adhesion_values = [-0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
-    apop_values = [1, 2, 3, 4, 5, 6, 7, 8, 30]
+    apop_values = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 30]
 
     n_cols = len(adhesion_values)
     num_combinations = len(adhesion_values) * len(apop_values)

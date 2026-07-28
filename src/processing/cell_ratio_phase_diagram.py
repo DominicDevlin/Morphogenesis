@@ -9,7 +9,7 @@ import warnings
 # Suppress warnings from calculating mean of empty arrays
 warnings.filterwarnings(action='ignore', message='Mean of empty slice')
 
-def plot_normalized_phase_diagram(base_dir='t1/', target_time=30000.0):
+def plot_normalized_phase_diagram(base_dir='newest-data/', target_time=12000.0):
     # Data structure to hold the raw aggregated results
     raw_data = []
 

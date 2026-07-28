@@ -162,16 +162,26 @@ void QtGraphics::DrawLegend(void) {
   picture->drawText(QRect(bar_x, legend_y + 2, bar_w, 14), Qt::AlignLeft,
       "Cell identity (Sox2 vs Sox17)");
 
-  // Continuous colour gradient, matching the ctype indices (2..102) set in
-  // CellularPotts::InitialiseRandomSoxValues from the Sox2/Sox17 weight.
+  // Continuous colour gradient, matching the new ctype indices (2..202).
+  // 2 = Green (Hypoblast), 102 = Blue (Undifferentiated), 202 = Pink (Epiblast).
   for (int i = 0; i < bar_w; ++i) {
-    int index = 2 + (i * 100) / bar_w;
+    // Map the loop variable 'i' across the 200 steps of our new color array
+    int index = 2 + (i * 200) / (bar_w - 1);
+    
+    // Safety clamp to ensure we never query out-of-bounds array indices
+    if (index > 202) index = 202; 
+    if (index < 2) index = 2;
+
     picture->setPen(pens[index]);
     picture->drawLine(bar_x + i, bar_y, bar_x + i, bar_y + bar_h);
   }
   picture->setPen(QPen(Qt::black));
   picture->drawRect(bar_x, bar_y, bar_w, bar_h);
 
+  // The labels map perfectly to the new gradient:
+  // Left: Sox17 (Green) -> Hypoblast
+  // Center: Equal weight (Blue) -> Undifferentiated
+  // Right: Sox2 (Pink) -> Epiblast
   QRect label_rect(bar_x, bar_y + bar_h + 2, bar_w, 14);
   picture->drawText(label_rect, Qt::AlignLeft, "Hypoblast");
   picture->drawText(label_rect, Qt::AlignHCenter, "Undiff.");

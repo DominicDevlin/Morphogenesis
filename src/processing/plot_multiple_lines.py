@@ -4,7 +4,7 @@ import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def plot_total_cells_param_sweep(base_dir="t1/org-data", fixed_param="a", fixed_val=6):
+def plot_total_cells_param_sweep(base_dir="newest-data/", fixed_param="b", fixed_val=0.3):
     """
     Plots Total Cells over Time for an explored parameter while holding the other fixed.
     
@@ -109,7 +109,7 @@ def plot_total_cells_param_sweep(base_dir="t1/org-data", fixed_param="a", fixed_
     plt.legend(loc="best", title=f"Parameter {var_param}")
     plt.xlim(left=800)
     #plt.xscale('log')
-    plt.grid(True, linestyle="--", alpha=0.5)
+    # plt.grid(True, linestyle="--", alpha=0.5)
 
     # Save and display plot
     plt.tight_layout()
@@ -120,7 +120,7 @@ def plot_total_cells_param_sweep(base_dir="t1/org-data", fixed_param="a", fixed_
 
 if __name__ == "__main__":
     # Example 1: Fix b_val at 0.3 and plot multiple lines for different a_val options
-    plot_total_cells_param_sweep(base_dir="t1/", fixed_param="b", fixed_val=0.5)
+    plot_total_cells_param_sweep()
 
     # Example 2: Fix a_val at 6.0 and plot multiple lines for different b_val options
     # plot_total_cells_param_sweep(base_dir="filtered-data", fixed_param="a", fixed_val=6.0)

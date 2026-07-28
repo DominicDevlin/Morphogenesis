@@ -271,56 +271,57 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, do
 {
   if (sigma==cell2.sigma)
     return 0;
-  else if (sigma==0)
-  {
-    // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
-    // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
-    // that unsorted cells are gradually sorted out of the tissue.
-    return (par.Jblasto - cell2.sox2_internal_adhesion * par.sox2_blasto_adhesion
-                        - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion)*t;
-                        // - (1-cell2.sox2_internal_adhesion) * (1-cell2.sox17_internal_adhesion) * par.loser_blasto_adhesion;
-                        //- cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
-  }
-  else if (cell2.sigma==0)
-  {
-    return (par.Jblasto - sox2_internal_adhesion * par.sox2_blasto_adhesion
-                       - sox17_internal_adhesion * par.sox17_blasto_adhesion)*t;
-                      // - (1-sox2_internal_adhesion) * (1-sox17_internal_adhesion) * par.loser_blasto_adhesion;
-
-                        // - IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
-  }
-  else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
-  {
-    // cout << "here" << endl;
-    return (par.J_cell_zona - sox17_internal_adhesion * par.Jzona_sox17)*t;
-  }
-  else if (cell2.sigma==zona_sigma_sticky)
-  {
-    return (par.J_cell_zona_sticky - sox2_internal_adhesion * par.Jzona_sticky_sox2extra
-                          - sox17_internal_adhesion * par.Jzona_sticky_sox17extra) * t;  
-  }
   else
   {
     double t2 = sox2_internal_adhesion;
     double t17 = sox17_internal_adhesion;
-    double cell2_t2 = cell2.sox2_internal_adhesion;
-    double cell2_t17 = cell2.sox17_internal_adhesion;
-
     // "Looser" = undifferentiated: t2 and t17 are comparable (both big or
     // both small), so neither lineage clearly dominates; 0.5 if intermediate.
     double is_looser = max(t2 * t17, (1. - t2) * (1. - t17));
-    double cell2_is_looser = max(cell2_t2 * cell2_t17, (1. - cell2_t2) * (1. - cell2_t17));
-    // double one_of_both_loosers = max(is_looser, cell2_is_looser);
+    if (sigma==0)
+    {
+      // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
+      // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
+      // that unsorted cells are gradually sorted out of the tissue.
+      return (par.Jblasto - cell2.sox2_internal_adhesion * par.sox2_blasto_adhesion
+                          - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion)*t;
+                          // - (1-cell2.sox2_internal_adhesion) * (1-cell2.sox17_internal_adhesion) * par.loser_blasto_adhesion;
+                          //- cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
+    }
+    else if (cell2.sigma==0)
+    {
+      return (par.Jblasto - sox2_internal_adhesion * par.sox2_blasto_adhesion
+                        - sox17_internal_adhesion * par.sox17_blasto_adhesion)*t;
+                        // - (1-sox2_internal_adhesion) * (1-sox17_internal_adhesion) * par.loser_blasto_adhesion;
 
-
-    return (par.J_cell_baseline - t2 * cell2_t2 * par.sox2binding
-                              - t17 * cell2_t17 * par.sox17binding
-                              - t17 * cell2_t2 * par.sox2vs17binding
-                              - t2 * cell2_t17 * par.sox2vs17binding
-                              - is_looser * cell2_is_looser * par.loser_loser_adhesion
-                              - is_looser * cell2_t2 * par.loser_sox2_adhesion
-                              - cell2_is_looser * t2 * par.loser_sox2_adhesion
-                              - is_looser * cell2_t17 * par.loser_sox17_adhesion
-                              - cell2_is_looser * t17 * par.loser_sox17_adhesion) * t;
+                          // - IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
+    }
+    else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
+    {
+      // cout << "here" << endl;
+      return (par.J_cell_zona - sox17_internal_adhesion * par.Jzona_sox17)*t;
+    }
+    else if (cell2.sigma==zona_sigma_sticky)
+    {
+      return (par.J_cell_zona_sticky - sox2_internal_adhesion * par.Jzona_sticky_sox2extra
+                            - sox17_internal_adhesion * par.Jzona_sticky_sox17extra
+                          - is_looser * par.Jzona_sticky_loser) * t;  
+    }
+    else
+    {
+      double cell2_t2 = cell2.sox2_internal_adhesion;
+      double cell2_t17 = cell2.sox17_internal_adhesion;
+      double cell2_is_looser = max(cell2_t2 * cell2_t17, (1. - cell2_t2) * (1. - cell2_t17));
+      return (par.J_cell_baseline - t2 * cell2_t2 * par.sox2binding
+                                - t17 * cell2_t17 * par.sox17binding
+                                - t17 * cell2_t2 * par.sox2vs17binding
+                                - t2 * cell2_t17 * par.sox2vs17binding
+                                - is_looser * cell2_is_looser * par.loser_loser_adhesion
+                                - is_looser * cell2_t2 * par.loser_sox2_adhesion
+                                - cell2_is_looser * t2 * par.loser_sox2_adhesion
+                                - is_looser * cell2_t17 * par.loser_sox17_adhesion
+                                - cell2_is_looser * t17 * par.loser_sox17_adhesion) * t;
+    }
   }
+
 }

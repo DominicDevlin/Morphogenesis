@@ -51,7 +51,7 @@
     data_file = "org-data";
 
     //for storing images
-    store = true;
+    store = false;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
     pickseed=0;//16045985250248971749;
@@ -61,8 +61,8 @@
     print_fitness = true; 
 
 /* Cellular Potts parameters */
-    sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 300;
+    sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 200;
     mcs = 30001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
@@ -116,10 +116,27 @@
     death_decay_rate=1.; // was 0.15
 
     // the important params
+    apop_threshold=3;
     loser_sox2_adhesion=0.7; //-0.1;
-    loser_loser_adhesion=0.7;// -0.7;
-    loser_sox17_adhesion=0.6;//-0.1;
-    apop_threshold=1;
+
+    double LSX2min=-0.1;
+    double LSX2max=0.7;
+    double frac = (loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
+
+    double LLmin=-0.7;
+    double LLmax=0.7;
+    double to_add = (LLmax-LLmin)*frac;
+    loser_loser_adhesion=LLmin+to_add;
+    
+    double LSX17min=-0.1;
+    double LSX17max=0.6;
+    to_add = (LSX17max-LSX17min) * frac;
+    loser_sox17_adhesion=LSX17min + to_add;
+
+    double ZLmin=0;
+    double ZLmax=1.4;
+    to_add = (ZLmax-ZLmin) * frac;
+    Jzona_sticky_loser=ZLmin+to_add;
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
@@ -187,6 +204,7 @@
     sox17_blasto_adhesion=sox17_blasto_adhesion*adhesion_multiplier;
     sox2_blasto_adhesion=sox2_blasto_adhesion*adhesion_multiplier;
     loser_blasto_adhesion=loser_blasto_adhesion*adhesion_multiplier;
+    Jzona_sticky_loser=Jzona_sticky_loser*adhesion_multiplier;
 
 
 

@@ -133,7 +133,7 @@ void process_population()
 
   ostringstream makefll;
 
-  init_progress_bars(par.n_orgs, par.mcs);
+  // init_progress_bars(par.n_orgs, par.mcs);
 
   // One OS thread per organism oversubscribes the machine once n_orgs
   // exceeds the core count (context-switch/cache-thrashing overhead can
@@ -245,7 +245,7 @@ void process_population()
 
       if (t % 5000 == 0)
       {
-        update_progress_bar(i, t, par.mcs, par.n_orgs);
+        // update_progress_bar(i, t, par.mcs, par.n_orgs);
 
         if (par.pics_for_opt)
         {
@@ -346,7 +346,19 @@ int main(int argc, char *argv[])
     double LSX17max=0.6;
     to_add = (LSX17max-LSX17min) * frac;
     par.loser_sox17_adhesion=LSX17min + to_add;
+
+    double ZLmin=0;
+    double ZLmax=1.4;
+    to_add = (ZLmax-ZLmin) * frac;
+    par.Jzona_sticky_loser=ZLmin+to_add;
+
     cout << "Loser sox2 adhesion: " << par.loser_sox2_adhesion << "\nloser loser adhesion: " << par.loser_loser_adhesion << "\nloser sox17 adhesion: " << par.loser_sox17_adhesion << endl;
+
+    par.loser_sox2_adhesion=par.loser_sox2_adhesion*par.adhesion_multiplier;
+    par.loser_loser_adhesion=par.loser_loser_adhesion*par.adhesion_multiplier;
+    par.loser_sox17_adhesion=par.loser_sox17_adhesion*par.adhesion_multiplier;
+    par.Jzona_sticky_loser=par.Jzona_sticky_loser*par.adhesion_multiplier;
+
   }
 
 
@@ -360,7 +372,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 60;
+  par.n_orgs = 100;
   par.make_synthetic=true;
   par.phase_evolution = false;
 

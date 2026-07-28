@@ -1397,11 +1397,17 @@ inline void SetSoxColour(double t)
     // weight is the Sox2/Sox17 dominance ratio: 0 = pure Sox17, 1 = pure Sox2.
     double weight = 0.5f * (sox2_internal_adhesion - sox17_internal_adhesion + 1.0f);
 
-    // Map the 0.0 - 1.0 weight to the integer range 2 to 102 (100 steps) for
-    // display. This ctype value drives cell colour only (Colour() -> c_type);
-    // it no longer plays any role in adhesion, which is computed directly
-    // from Sox2_concentration/Sox17_concentration in Cell::EmbryoEnergy.
-    int index = 2 + t * static_cast<int>(std::round(weight * 100.0f));
+    // Map weight to an index offset from the starting color
+    // weight = 0.0 (Sox17) -> offset = -100
+    // weight = 1.0 (Sox2)  -> offset = +100
+    double target_offset = (weight - 0.5f) * 200.0f;
+    
+    // Start at center index 102 (Blue). As t increases, move toward the target offset.
+    int index = 102 + static_cast<int>(std::round(t * target_offset));
+
+    // Clamp index to prevent array out-of-bounds just in case
+    if (index < 2) index = 2;
+    if (index > 202) index = 202;
 
     set_ctype(index);
     if (par.set_loser_colours)

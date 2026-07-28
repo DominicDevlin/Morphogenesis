@@ -9,7 +9,7 @@ import warnings
 # Suppress warnings from calculating mean of empty arrays (when all deaths are 0)
 warnings.filterwarnings(action='ignore', message='Mean of empty slice')
 
-def plot_phase_diagram(base_dir='t1/'):
+def plot_phase_diagram(base_dir='newest-data/'):
     # Data structure to hold the aggregated results
     # List of dictionaries: [{'X': x_val, 'Y': y_val, 'Proportion': avg_prop}, ...]
     phase_data = []

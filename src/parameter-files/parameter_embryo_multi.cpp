@@ -161,6 +161,7 @@
     J_cell_zona_sticky=2.0;
     Jzona_sticky_sox2extra=1.4;
     Jzona_sticky_sox17extra=0.;
+    Jzona_sticky_loser=0;
 
     init_blasto=1.5;
     init_zona=3.0;
@@ -183,6 +184,7 @@
     Jzona_sox17=Jzona_sox17*adhesion_multiplier;
     Jzona_loser=Jzona_loser*adhesion_multiplier;
     J_cell_zona_sticky=J_cell_zona_sticky*adhesion_multiplier;
+    Jzona_sticky_loser=Jzona_sticky_loser*adhesion_multiplier;
     Jzona_sticky_sox2extra=Jzona_sticky_sox2extra*adhesion_multiplier;
     Jzona_sticky_sox17extra=Jzona_sticky_sox17extra*adhesion_multiplier;
     Jblasto=Jblasto*adhesion_multiplier;
