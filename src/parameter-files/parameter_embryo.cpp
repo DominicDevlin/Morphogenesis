@@ -51,7 +51,7 @@
     data_file = "org-data";
 
     //for storing images
-    store = false;
+    store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
     pickseed=0;//16045985250248971749;
@@ -116,7 +116,7 @@
     death_decay_rate=1.; // was 0.15
 
     // the important params
-    apop_threshold=3;
+    apop_threshold=3.;
     loser_sox2_adhesion=0.7; //-0.1;
 
     double LSX2min=-0.1;

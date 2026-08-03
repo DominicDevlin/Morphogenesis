@@ -102,8 +102,8 @@ def plot_normalized_phase_diagram(base_dir='newest-data/', target_time=12000.0):
     plt.figure(figsize=(10, 8))
     
     # Using 'coolwarm' centered at 1.0
-    ax = sns.heatmap(pivot_table, cmap='coolwarm', center=1, 
-                     cbar_kws={'label': f'Normalized Total (Relative to a=3 at t={target_time})'}, vmin=0.75,
+    ax = sns.heatmap(pivot_table, cmap='coolwarm',
+                     cbar_kws={'label': f'Normalized Total (Relative to a=3 at t={target_time})'},
                      annot=False, square=True)
 
     plt.title(f'Phase Diagram: Normalized Cell Totals at Time = {target_time}', pad=20, fontsize=14)
