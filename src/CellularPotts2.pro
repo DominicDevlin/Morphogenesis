@@ -14,7 +14,7 @@ contains( GRAPHICS, qt ) {
   
 }	
 
-TARGET = sorting
+TARGET = MIPS
 MAINFILE = $$join(TARGET, " ", , ".cpp" )
 PARAMFILE = parameter-files/parameter_$${TARGET}.cpp
 

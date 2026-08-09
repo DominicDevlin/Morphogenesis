@@ -235,7 +235,6 @@ TIMESTEP {
       
 
       char title[400];
-      snprintf(title,399,"CellularPotts: %.2f hr",dish->PDEfield->TheTime()/3600);      
 
       //char title[400];
       //snprintf(title,399,"CellularPotts: %d MCS",i);
@@ -274,12 +273,6 @@ TIMESTEP {
 
 }
 
-
-
-int PDE::MapColour(double val) {
-  
-  return (((int)((val/((val)+1.))*100))%100)+155;
-}
 
 
 int main(int argc, char *argv[]) {
