@@ -116,8 +116,8 @@
     death_decay_rate=1.; // was 0.15
 
     // the important params
-    apop_threshold=3.;
-    loser_sox2_adhesion=0.7; //-0.1;
+    apop_threshold=20.;
+    loser_sox2_adhesion=0.0; //-0.1;
 
     double LSX2min=-0.1;
     double LSX2max=0.7;
