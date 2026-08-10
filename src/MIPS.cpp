@@ -103,18 +103,12 @@ INIT
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
 
-    CPM->start_network(par.start_matrix, par.start_polarity);
 
     CPM->Set_evoJ(par.J_SL);
 
     par.end_program=0;
 
     par.print_fitness = true;
-
-    if (par.set_colours)
-    {
-      CPM->SetColours();
-    }
 
 
     if (par.store)
@@ -156,7 +150,6 @@ TIMESTEP {
       dish->CPM->CopyProb(par.T);
       dish->CPM->SetAreas(par.cell_target_area);
       dish->CPM->MeasureCellPerimeters();
-      dish->CPM->WetAllCells();
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
 
     }
@@ -165,13 +158,7 @@ TIMESTEP {
 
     static Info *info=new Info(*dish, *this);
 
-    if (par.velocities)
-    {
-      dish->CPM->RecordMasses();
-    }
-  
-    dish->CPM->ColourCells(true);
-    dish->CPM->AmoebaeMove(t);
+      dish->CPM->AmoebaeMove(t);
     if (par.active_motion)
     {
       dish->CPM->update_cell_velocities_MCS();
@@ -181,13 +168,6 @@ TIMESTEP {
     // pair<int,int> val = dish->CPM->ChooseAddPoint();
     // dish->CPM->SpawnCell(val.first, val.second, cnum, t);    
 
-    if (t == par.mcs - 1)
-    {
-      if (par.velocities)
-      {
-        dish->CPM->CellVelocities();
-      }
-    }
 
     // if (t==1000)
     // {
@@ -215,7 +195,6 @@ TIMESTEP {
     //printing every 1000 steps. Do other debugging things here as well. 
     if (t % 1000 == 0)
     {
-      cout << "Number of cell types: " << dish->CPM->get_ntypes() << endl;
       cout << t << " TIME STEPS HAVE PASSED." << endl;
     }
 
