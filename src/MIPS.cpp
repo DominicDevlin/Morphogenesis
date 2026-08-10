@@ -84,7 +84,7 @@ INIT
       int ytoshift = par.sizey/2 - par.L2/2;
       // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
       // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
-      CPM->GenerateCellsByDensity(0.6, 300);
+      CPM->PopulateSparseCells(0.6, 300, 0, 0);
     }
     else
     {
