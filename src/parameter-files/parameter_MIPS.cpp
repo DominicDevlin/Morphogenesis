@@ -68,7 +68,7 @@
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
 
-    periodic_boundaries = false;
+    periodic_boundaries = true;
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
     // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
@@ -79,14 +79,14 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     bulk_modulus = 5;
-    cell_target_area = 400;
+    cell_target_area = 100;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 150;
 
 
     H_perim = true;
     elastic_modulus = 1;
-    ptarget_perimeter = 114;
+    ptarget_perimeter = 40;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
@@ -95,7 +95,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.25; // not that this term depends on the cell size (1/sqrt(area))
+    motility_strength = 0.1; // not that this term depends on the cell size (1/sqrt(area))
     persistence_time = 40.;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
@@ -111,7 +111,7 @@
 
 
 /* adhesion params */
-    
+    dynamic_sorting=false;
 
 
 /* init conditions and so forth */
@@ -122,13 +122,6 @@
     n_init_cells = 4;
     divisions = 0;
 
-    //programmed division parameters
-    end_program = 7;
-    begin_network = 1000;
-    div_freq = 1;
-    // begin_movement=1200;
-    program_its = 1; // we are doing more PDE iterations during the program. 
-    div_end = 6;
 
 
 

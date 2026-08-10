@@ -63,36 +63,18 @@ INIT
     CPM->set_datafile(par.data_file);
     // Define initial distribution of cells
 
-    if (par.make_sheet)
-    {
-      CPM->ConstructSheet(par.sheetx,par.sheety);
-      par.divisions = 6;
-    }
-    else
-      CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
+
+    CPM->GrowInCells(par.n_init_cells,par.size_init_cells,par.sizex/2, par.sizey/2,0,par.offset);
 
 
     CPM->ConstructInitCells(*this);
     if (par.velocities)
       par.output_sizes = true;
 
-    // par.divisions = 6;
-    if (par.do_voronoi)
-    {
-      par.highT=false;
-      int xtoshift = par.sizex/2 - par.dewet_length/2;
-      int ytoshift = par.sizey/2 - par.L2/2;
-      // cout << "dewet length: " << par.dewet_length << "  .vertical length: " << par.L2 << endl;
-      // CPM->VoronoiSeparated(par.dewet_length,round(par.L2+5), ytoshift, xtoshift);
-      CPM->PopulateSparseCells(0.6, 300, 0, 0);
-    }
-    else
-    {
-      for (int i=0;i<par.divisions;i++) 
-      {
-        CPM->DivideCells();
-      }
-    }
+
+    CPM->PopulateSparseCells(0.6, 300, 0, 0);
+
+
     
     // If we have only one big cell and divide it a few times
     // we start with a nice initial clump of cells. 
@@ -102,9 +84,6 @@ INIT
     
     // Assign a random type to each of the cells
     CPM->SetRandomTypes();
-
-
-    CPM->Set_evoJ(par.J_SL);
 
     par.end_program=0;
 
@@ -168,23 +147,6 @@ TIMESTEP {
     // pair<int,int> val = dish->CPM->ChooseAddPoint();
     // dish->CPM->SpawnCell(val.first, val.second, cnum, t);    
 
-
-    // if (t==1000)
-    // {
-    //   par.medium_area_constraint=true;
-    //   dish->CPM->SetMediumArea();
-    // }
-
-    if (t%1==0)
-    {
-      double hh = dish->CPM->SumEnergy();
-      ofstream outfile;
-      string oname = par.data_file + "/counter.dat";
-      outfile.open(oname, ios::app);  // Append mode
-      outfile << double(par.tmpcounter) / double(par.tmpcountertotal) << endl;
-
-
-    }
 
     if (t%100==0)
     {
@@ -263,29 +225,28 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 #endif
     Parameter();
-    par.phase_evolution = true;
 
-    //active term params
-    par.active_motion = true;
-    par.motility_strength = 1.5;
-    par.persistence_time = 100.;
-    if (par.active_motion)
-    {
-      par.dewet_length=450;
-      par.dewet_cell_depth=47; // 47 is max
-      par.cell_target_area = 100;
-      par.L2 = sqrt((sqrt(3.)/2) * par.cell_target_area ) * par.dewet_cell_depth;   
-      par.H_perim = true;
-      par.ptarget_perimeter = 120;
-      par.J_L = 0;
-      par.lambda2 = 0;
-      par.lambda_perimeter_phase = 0.2;
-      par.J_med = 0;
-      par.J_med2 = par.J_med;
-      par.tmpcounter=0;
-      par.tmpcountertotal=0;
-      par.medium_area_constraint = false;
-    }
+    // //active term params
+    // par.active_motion = true;
+    // par.motility_strength = 1.5;
+    // par.persistence_time = 100.;
+    // if (par.active_motion)
+    // {
+    //   par.dewet_length=450;
+    //   par.dewet_cell_depth=47; // 47 is max
+    //   par.cell_target_area = 100;
+    //   par.L2 = sqrt((sqrt(3.)/2) * par.cell_target_area ) * par.dewet_cell_depth;   
+    //   par.H_perim = true;
+    //   par.ptarget_perimeter = 120;
+    //   par.J_L = 0;
+    //   par.lambda2 = 0;
+    //   par.lambda_perimeter_phase = 0.2;
+    //   par.J_med = 0;
+    //   par.J_med2 = par.J_med;
+    //   par.tmpcounter=0;
+    //   par.tmpcountertotal=0;
+    //   par.medium_area_constraint = false;
+    // }
 
     // Read parameters
     bool read = false;
