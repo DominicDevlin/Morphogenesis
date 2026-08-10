@@ -71,8 +71,9 @@ INIT
     if (par.velocities)
       par.output_sizes = true;
 
+    CPM->ClearGrid();
 
-    CPM->PopulateSparseCells(0.6, 300, 0, 0);
+    CPM->PopulateSparseCells(1., 300, 0, 0);
 
 
     
