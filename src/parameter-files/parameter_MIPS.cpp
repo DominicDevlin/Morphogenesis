@@ -63,7 +63,7 @@
 /* Cellular Potts parameters */
     sizex = 350;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 350;
-    mcs = 100001;
+    mcs = 180001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
@@ -95,7 +95,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 2.6; // not that this term depends on the cell size (1/sqrt(area))
+    motility_strength = 3.6; // not that this term depends on the cell size (1/sqrt(area))
     persistence_time = 40.;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
