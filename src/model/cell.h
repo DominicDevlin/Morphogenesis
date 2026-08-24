@@ -1470,8 +1470,16 @@ inline void UpdatePerimeterConstraint(double loser_perim_inc)
 {
   double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
   double added_perim = loser_perim_inc * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
+
+  // hypoblast cells must have higher perimeter (maybe make this dynamic eventually?)
+  double hypoblast_perim_increase=0.2;
+  added_perim += sox17_internal_adhesion * hypoblast_perim_increase * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area))));
+
+
   target_perimeter = static_cast<int>(round((par.ptarget_perimeter) *
       sqrt(double(target_area) / double(par.cell_target_area)))) + added_perim - par.perim_offset;
+
+
 
   // cout << sqrt(double(target_area) / double(par.cell_target_area)) << endl;
   // out << target_perimeter << '\t' << target_area << endl;

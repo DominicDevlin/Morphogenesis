@@ -82,10 +82,10 @@ INIT
 
     if (par.make_zona_pellucida)
     {
-      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 55, 65, 2);
+      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 40, 40, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -83, par.sizex/2, par.sizey/2, 55, 65, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -80, par.sizex/2, par.sizey/2, 40, 40, 2);
 
     CPM->DifferentiateZonaPellucida();
 

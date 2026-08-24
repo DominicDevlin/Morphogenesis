@@ -400,28 +400,19 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
   // ==========================================
   // AREA CONSTRAINT
   // ==========================================
-  double lambda = cell_sxy.get_lambda();
-    
-  if (par.medium_area_constraint)
-  {
-      DH += (int)((lambda * (2. + 2. * (double) 
-              (cell_sxyp.Area() - cell_sxyp.TargetArea()
-             - cell_sxy.Area()  + cell_sxy.TargetArea()))));
-  }
-  else
-  {
+
     if (sxyp == MEDIUM) {
-      DH += (int)(lambda * (1. - 2. * (double) (cell_sxy.Area() - cell_sxy.TargetArea())));
+      DH += (cell_sxy.get_lambda() * (1. - 2. * (double) (cell_sxy.Area() - cell_sxy.TargetArea())));
     }
     else if (sxy == MEDIUM) {
-      DH += (int)((lambda * (1. + 2. * (double) (cell_sxyp.Area() - cell_sxyp.TargetArea()))));
+      DH += ((cell_sxy.get_lambda() * (1. + 2. * (double) (cell_sxyp.Area() - cell_sxyp.TargetArea()))));
     }
-    else {
-      DH += (int)((lambda * (2. + 2. * (double) 
-              (cell_sxyp.Area() - cell_sxyp.TargetArea()
-             - cell_sxy.Area()  + cell_sxy.TargetArea()))));
+    else 
+    {
+      DH += ((cell_sxy.get_lambda() * (1. + 2. * (double) (cell_sxyp.Area() - cell_sxyp.TargetArea()))));
+      DH += (cell_sxy.get_lambda() * (1. - 2. * (double) (cell_sxy.Area() - cell_sxy.TargetArea())));
     }
-  }
+    
 
 
   // ==========================================
@@ -454,7 +445,33 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
   // ==========================================
   if (par.H_perim && cell_sxy.Area() > 2) 
   {
+    double perim_constraint=0.001;
     double DH_perimeter = 0;
+
+    // if (sxyp == MEDIUM) 
+    // {
+    //   DH_perimeter -= perim_constraint *
+    //       (DSQR(cell_sxy.Perimeter() - cell_sxy.TargetPerimeter()) -
+    //        DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y, neighbor_spins) - cell_sxy.TargetPerimeter()));      
+    // } 
+    // else if (sxy == MEDIUM) 
+    // {
+    //   DH_perimeter -= perim_constraint *
+    //       (DSQR(cell_sxyp.Perimeter() - cell_sxyp.TargetPerimeter()) -
+    //        DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y, neighbor_spins) - cell_sxyp.TargetPerimeter()));      
+    // }
+    // else 
+    // {
+    //   // they're both cells
+    //   DH_perimeter -= perim_constraint *
+    //       ((DSQR(cell_sxyp.Perimeter() - cell_sxyp.TargetPerimeter()) -
+    //         DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y, neighbor_spins) - cell_sxyp.TargetPerimeter())));
+            
+    //   DH_perimeter -= perim_constraint *
+    //       (DSQR(cell_sxy.Perimeter() - cell_sxy.TargetPerimeter()) -
+    //        DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y, neighbor_spins) - cell_sxy.TargetPerimeter()));      
+    // }
+
     if (sxyp == MEDIUM) 
     {
       DH_perimeter -= cell_sxy.getPerimConstraint() *
@@ -3293,7 +3310,7 @@ void CellularPotts::DifferentiateZonaPellucida()
   // Store modifications to prevent a chain-reaction in a single pass
   vector<std::pair<int, int>> to_change;
   int R1 = 2;
-  int R2 = 35;
+  int R2 = 20;
   // Step 2: Iterate through the grid
   for (int x = 1; x <= sizex-1; ++x) 
   {
