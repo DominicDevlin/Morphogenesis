@@ -349,6 +349,11 @@ public:
   double LoserWinnerBoundaryLength();
   double Sox2Sox17BoundaryLength();
 
+  void initVolume();
+  void adjustPerimeters();
+  void ShapeIndex();
+
+
 
 
   /*! Plot the cells according to their cell identity, not their type.

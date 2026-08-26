@@ -3422,7 +3422,7 @@ void CellularPotts::DrawDivisionTimes()
       double prob_1 = RANDOM(s_val);
       int t_1 = round(prob_1 * 20000);
       int t_2 = round(t_1 + 22000 + GetStandardNormal() * 3000);
-      // int t_3 = round(t_1 + 14000 + GetStandardNormal() * 1000);
+      int t_3 = round(t_1 + 22000 + GetStandardNormal() * 3000);
       // cout << t_1 << '\t' << t_2 << '\t' << t_3 << '\t' << GetStandardNormal() * 1000 << endl;
 
 
@@ -3448,7 +3448,7 @@ void CellularPotts::DrawDivisionTimes()
       //   t_2=par.mcs;
       // if (t_3<t_1)
       //   t_3=par.mcs;
-      vector<int> tt = {t_1, t_2};
+      vector<int> tt = {t_1, t_2, t_2};
       c->setDivisionTimes(tt);
 
     }
@@ -3824,6 +3824,10 @@ void CellularPotts::LoserActiveMotion(double tfrac)
   }
 }
 
+
+
+
+
 // This is now going to go defunct (not necessary)
 void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
 {
@@ -3905,186 +3909,335 @@ void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
 }
 
 
-
-
-  vector<double> CellularPotts::sox2_values()
-  {
-    vector<double> toreturn{};
-    vector<Cell>::iterator c;
-    for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+void CellularPotts::initVolume()
+{
+  cellVolumeList.clear();
+  for (int x=0;x<sizex;++x)
+    for (int y=0;y<sizey;++y)
     {
-      if (c->AliveP())
-      {
-        toreturn.push_back(c->getSox2());
-      }
+      int n = sigma[x][y];
+      if (n>0)
+        cellVolumeList[n].insert(std::make_pair(x,y));
     }
-    return toreturn;
-  }
-  
-  vector<double> CellularPotts::sox17_values()
+
+  vlist.clear();
+  for (auto celln : cellVolumeList)
   {
-    vector<double> toreturn{};
-    vector<Cell>::iterator c;
-    for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-    {
-      if (c->AliveP())
-      {
-        toreturn.push_back(c->getSox17());
-      }
-    }
-    return toreturn;
+    vlist[celln.first] = (int(celln.second.size()));
   }
 
+}
 
-  double CellularPotts::LoserWinnerBoundaryLength()
+// MUST BE DONE AFTER ADJUSTING VOLUMES and divisions
+void CellularPotts::adjustPerimeters()
+{
+
+	// shorter way to do this: see if any of the chunk sites need to be added to the perimeter
+	// run through all old perimeter sites and if they no longer need to be part of the perimeter, erase them from cellPerimeterList
+  cellPerimeterList.clear();
+  for (auto n : cellVolumeList)
   {
-    // set cells as loser or winner
-
-    int total_LW_boundary = 0;
-    int total_boundary = 0; // Track the total cell-cell boundary length
-    vector<Cell>::iterator c;
-    for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+    int celln = n.first;
+		// cellPerimeterList[celln].clear();
+    for( std::set< std::pair<int, int> >::const_iterator it = cellVolumeList[celln].begin(); it!= cellVolumeList[celln].end(); ++it)
     {
-      if (c->AliveP())
-      {
-        c->SetLooser();
-      }
-    }
-    // Iterate through the entire grid
-    for (int i = 0; i < sizex; i++) 
-    {
-      for (int j = 0; j < sizey; j++) 
-      {
-          int current_id = sigma[i][j];
-          
-          // Skip if the current pixel is empty medium (<= 0)
-          if (current_id <= 0 || (*cell)[current_id].AliveP()==false) continue; 
-          
-          // Get the type of the current cell (false = A, true = B)
-          bool current_type = (*cell)[current_id].CheckLooser();
+      int x = it->first;
+      int y = it->second;
+      // cout << i << '\t' << j << '\t' << celln << '\t' << sigma[i][j] << endl;
+      if(sigma[x][y] != celln )
+          printf("\nproblem, we have a cell site that thinks it's not in the cell: (%d, %d)", x, y);
 
-          // 1. Check the RIGHT neighbor
-          if (i + 1 < sizex) {
-              int right_id = sigma[i + 1][j];
-              
-              // Check if right pixel is a valid cell and is a different cell
-              if (right_id > 0 && current_id != right_id && (*cell)[right_id].AliveP()) 
-              {
-                  total_boundary++; // It's a cell-cell boundary
-                  
-                  bool right_type = (*cell)[right_id].CheckLooser();
-                  
-                  // If the types are different (one is A, one is B)
-                  if (current_type != right_type) 
-                  {
-                      total_LW_boundary++;
-                  }
-              }
+      for (int i=1;i<=n_nb_perim;i++) 
+      {
+        int xp2,yp2;
+        xp2=x+nx[i]; yp2=y+ny[i];
+        if (par.periodic_boundaries)
+        {
+          // since we are asynchronic, we cannot just copy the borders once 
+          // every MCS
+          
+          if (xp2<=0)
+            xp2=sizex-2+xp2;
+          if (yp2<=0)
+            yp2=sizey-2+yp2;
+          if (xp2>=sizex-1)
+            xp2=xp2-sizex+2;
+          if (yp2>=sizey-1)
+            yp2=yp2-sizey+2;
+        
+          // neighsite=sigma[xp2][yp2];
+          if (sigma[x][y]!=sigma[xp2][yp2])  
+          {
+            cellPerimeterList[celln].insert( std::make_pair(x, y) );
+            break;
           }
-
-          // 2. Check the BOTTOM neighbor
-          if (j + 1 < sizey) {
-              int bottom_id = sigma[i][j + 1];
-              
-              // Check if bottom pixel is a valid cell and is a different cell
-              if (bottom_id > 0 && current_id != bottom_id && (*cell)[bottom_id].AliveP()) {
-                  total_boundary++; // It's a cell-cell boundary
-                  
-                  bool bottom_type = (*cell)[bottom_id].CheckLooser();
-                  
-                  // If the types are different (one is A, one is B)
-                  if (current_type != bottom_type) {
-                      total_LW_boundary++;
-                  }
-              }
-          } 
-          
-      }
-    }
-
-    // Prevent division by zero if there are no cell boundaries at all
-    if (total_boundary == 0) {
-        return 0.0;
-    }
-
-    // Return the relative boundary length as a double between 0.0 and 1.0
-    return static_cast<double>(total_LW_boundary)/static_cast<double>(total_boundary);
-
-  }
-
-  double CellularPotts::Sox2Sox17BoundaryLength()
-  {
-    // set cells as loser or winner
-
-    int total_sox_boundary = 0;
-    int total_boundary = 0; // Track the total cell-cell boundary length
-    vector<Cell>::iterator c;
-    for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
-    {
-      if (c->AliveP())
-      {
-        c->SetLooser();
-      }
-    }
-    // Iterate through the entire grid
-    for (int i = 0; i < sizex; i++) 
-    {
-      for (int j = 0; j < sizey; j++) 
-      {
-          int current_id = sigma[i][j];
-          
-          // Skip if the current pixel is empty medium (<= 0)
-          if (current_id <= 0 || (*cell)[current_id].AliveP()==false) continue; 
-          
-          // Get the type of the current cell (false = A, true = B)
-          bool current_type = ((*cell)[current_id].sox2_internal_adhesion > 0.8) * !((*cell)[current_id].CheckLooser());
-
-          // 1. Check the RIGHT neighbor
-          if (i + 1 < sizex) {
-              int right_id = sigma[i + 1][j];
-              
-              // Check if right pixel is a valid cell and is a different cell
-              if (right_id > 0 && current_id != right_id && (*cell)[right_id].AliveP()) 
-              {
-                  total_boundary++; // It's a cell-cell boundary
-                  
-                  bool right_type = ((*cell)[right_id].sox2_internal_adhesion > 0.8) * !((*cell)[right_id].CheckLooser());
-                  
-                  // If the types are different (one is A, one is B)
-                  if (current_type != right_type) {
-                      total_sox_boundary++;
-                  }
-              }
+        }
+        else
+        {
+          if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+          {
+            // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+            continue;
           }
-
-          // 2. Check the BOTTOM neighbor
-          if (j + 1 < sizey) {
-              int bottom_id = sigma[i][j + 1];
-              
-              // Check if bottom pixel is a valid cell and is a different cell
-              if (bottom_id > 0 && current_id != bottom_id && (*cell)[bottom_id].AliveP()) 
-              {
-                  total_boundary++; // It's a cell-cell boundary
-                  
-                  bool bottom_type = ((*cell)[bottom_id].sox2_internal_adhesion > 0.8) * !((*cell)[bottom_id].CheckLooser());
-                  
-                  // If the types are different (one is A, one is B)
-                  if (current_type != bottom_type) {
-                      total_sox_boundary++;
-                  }
-              }
-          } 
+          else if (sigma[x][y]!=sigma[xp2][yp2])  
+          {
+            cellPerimeterList[celln].insert( std::make_pair(x, y) );
+            break;
+          }
+        } 
       }
     }
+	}
+}
 
-    // Prevent division by zero if there are no cell boundaries at all
-    if (total_boundary == 0) {
-        return 0.0;
+void CellularPotts::ShapeIndex()
+{
+  initVolume();
+  adjustPerimeters();
+
+  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
+  double correction=par.neigh_multiplier;
+
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++);c!=cell->end();c++)
+  {
+    if (c->AliveP())
+    {
+      int celln=c->Sigma();
+      int perim_length{};
+
+      for( std::set< std::pair<int, int> >::const_iterator it = cellPerimeterList[celln].begin(); it!= cellPerimeterList[celln].end(); ++it)
+      {
+        int x=it->first;
+        int y=it->second;
+
+        for (int i=1;i<=n_nb_perim;i++) 
+        {
+          int xp2,yp2;
+          xp2=x+nx[i]; yp2=y+ny[i];
+          if (par.periodic_boundaries)
+          {
+            // since we are asynchronic, we cannot just copy the borders once 
+            // every MCS
+            
+            if (xp2<=0)
+              xp2=sizex-2+xp2;
+            if (yp2<=0)
+              yp2=sizey-2+yp2;
+            if (xp2>=sizex-1)
+              xp2=xp2-sizex+2;
+            if (yp2>=sizey-1)
+              yp2=yp2-sizey+2;
+          
+            // neighsite=sigma[xp2][yp2];
+            if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          }
+          else
+          {
+            if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+            {
+              // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+              continue;
+            }
+            else if (sigma[x][y]!=sigma[xp2][yp2])  
+            {
+              ++perim_length;
+            }
+          } 
+        }
+      }
+      // cout << corrected_perim << '\t' << vlist[p] << endl;
+      double corrected_perim = perim_length / correction; 
+      double sindex = corrected_perim / sqrt(double(vlist[celln]));
+      cout << sindex << endl;
+      c->SetShapeIndex(sindex);
     }
+  }    
+}
 
-    // Return the relative boundary length as a double between 0.0 and 1.0
-    return static_cast<double>(total_sox_boundary)/static_cast<double>(total_boundary);
+
+vector<double> CellularPotts::sox2_values()
+{
+  vector<double> toreturn{};
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      toreturn.push_back(c->getSox2());
+    }
   }
+  return toreturn;
+}
+
+vector<double> CellularPotts::sox17_values()
+{
+  vector<double> toreturn{};
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      toreturn.push_back(c->getSox17());
+    }
+  }
+  return toreturn;
+}
+
+
+double CellularPotts::LoserWinnerBoundaryLength()
+{
+  // set cells as loser or winner
+
+  int total_LW_boundary = 0;
+  int total_boundary = 0; // Track the total cell-cell boundary length
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->SetLooser();
+    }
+  }
+  // Iterate through the entire grid
+  for (int i = 0; i < sizex; i++) 
+  {
+    for (int j = 0; j < sizey; j++) 
+    {
+        int current_id = sigma[i][j];
+        
+        // Skip if the current pixel is empty medium (<= 0)
+        if (current_id <= 0 || (*cell)[current_id].AliveP()==false) continue; 
+        
+        // Get the type of the current cell (false = A, true = B)
+        bool current_type = (*cell)[current_id].CheckLooser();
+
+        // 1. Check the RIGHT neighbor
+        if (i + 1 < sizex) {
+            int right_id = sigma[i + 1][j];
+            
+            // Check if right pixel is a valid cell and is a different cell
+            if (right_id > 0 && current_id != right_id && (*cell)[right_id].AliveP()) 
+            {
+                total_boundary++; // It's a cell-cell boundary
+                
+                bool right_type = (*cell)[right_id].CheckLooser();
+                
+                // If the types are different (one is A, one is B)
+                if (current_type != right_type) 
+                {
+                    total_LW_boundary++;
+                }
+            }
+        }
+
+        // 2. Check the BOTTOM neighbor
+        if (j + 1 < sizey) {
+            int bottom_id = sigma[i][j + 1];
+            
+            // Check if bottom pixel is a valid cell and is a different cell
+            if (bottom_id > 0 && current_id != bottom_id && (*cell)[bottom_id].AliveP()) {
+                total_boundary++; // It's a cell-cell boundary
+                
+                bool bottom_type = (*cell)[bottom_id].CheckLooser();
+                
+                // If the types are different (one is A, one is B)
+                if (current_type != bottom_type) {
+                    total_LW_boundary++;
+                }
+            }
+        } 
+        
+    }
+  }
+
+  // Prevent division by zero if there are no cell boundaries at all
+  if (total_boundary == 0) {
+      return 0.0;
+  }
+
+  // Return the relative boundary length as a double between 0.0 and 1.0
+  return static_cast<double>(total_LW_boundary)/static_cast<double>(total_boundary);
+
+}
+
+double CellularPotts::Sox2Sox17BoundaryLength()
+{
+  // set cells as loser or winner
+
+  int total_sox_boundary = 0;
+  int total_boundary = 0; // Track the total cell-cell boundary length
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->SetLooser();
+    }
+  }
+  // Iterate through the entire grid
+  for (int i = 0; i < sizex; i++) 
+  {
+    for (int j = 0; j < sizey; j++) 
+    {
+        int current_id = sigma[i][j];
+        
+        // Skip if the current pixel is empty medium (<= 0)
+        if (current_id <= 0 || (*cell)[current_id].AliveP()==false) continue; 
+        
+        // Get the type of the current cell (false = A, true = B)
+        bool current_type = ((*cell)[current_id].sox2_internal_adhesion > 0.8) * !((*cell)[current_id].CheckLooser());
+
+        // 1. Check the RIGHT neighbor
+        if (i + 1 < sizex) {
+            int right_id = sigma[i + 1][j];
+            
+            // Check if right pixel is a valid cell and is a different cell
+            if (right_id > 0 && current_id != right_id && (*cell)[right_id].AliveP()) 
+            {
+                total_boundary++; // It's a cell-cell boundary
+                
+                bool right_type = ((*cell)[right_id].sox2_internal_adhesion > 0.8) * !((*cell)[right_id].CheckLooser());
+                
+                // If the types are different (one is A, one is B)
+                if (current_type != right_type) {
+                    total_sox_boundary++;
+                }
+            }
+        }
+
+        // 2. Check the BOTTOM neighbor
+        if (j + 1 < sizey) {
+            int bottom_id = sigma[i][j + 1];
+            
+            // Check if bottom pixel is a valid cell and is a different cell
+            if (bottom_id > 0 && current_id != bottom_id && (*cell)[bottom_id].AliveP()) 
+            {
+                total_boundary++; // It's a cell-cell boundary
+                
+                bool bottom_type = ((*cell)[bottom_id].sox2_internal_adhesion > 0.8) * !((*cell)[bottom_id].CheckLooser());
+                
+                // If the types are different (one is A, one is B)
+                if (current_type != bottom_type) {
+                    total_sox_boundary++;
+                }
+            }
+        } 
+    }
+  }
+
+  // Prevent division by zero if there are no cell boundaries at all
+  if (total_boundary == 0) {
+      return 0.0;
+  }
+
+  // Return the relative boundary length as a double between 0.0 and 1.0
+  return static_cast<double>(total_sox_boundary)/static_cast<double>(total_boundary);
+} 
 
 
 
@@ -4970,3 +5123,4 @@ void CellularPotts::Vectorfield()
   }
 
 }
+

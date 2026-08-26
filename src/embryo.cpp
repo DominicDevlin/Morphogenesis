@@ -151,7 +151,7 @@ TIMESTEP {
     if (t>par.initialise_sox_time)
     {
       double tfrac = min(1., double(t-par.initialise_sox_time)/double(par.time_till_full_expression));
-      double multiplier = (par.sox2binding - par.loser_sox2_adhesion) * 0.5;
+      // double multiplier = (par.sox2binding - par.loser_sox2_adhesion) * 0.5;
       // dish->CPM->SetLoserPerimIncrease( multiplier * tfrac );
       if (t%100==0)
       {
@@ -161,6 +161,7 @@ TIMESTEP {
       {
         dish->CPM->CheckIfDivisionHit(t);
         dish->CPM->LoserActiveMotion(tfrac);
+        // dish->CPM->ShapeIndex();
         dish->CPM->SetPerims();
         dish->CPM->SetSoxColours(tfrac);
       }

@@ -1435,6 +1435,11 @@ inline double& GetDeathSignals()
   return accumulated_death_signals;
 }
 
+inline void SetShapeIndex(double sindex)
+{
+  shape_index=sindex;
+}
+
 // Which mechanism started killing this cell - lonely/blastocoel extrusion
 // (ToxictoLonelyCells) or neighbour-competition signalling
 // (NeighbourBasedApoptosis). Both shrink the cell identically, so this has
@@ -1472,8 +1477,7 @@ inline void UpdatePerimeterConstraint(double loser_perim_inc)
   double added_perim = loser_perim_inc * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
 
   // hypoblast cells must have higher perimeter (maybe make this dynamic eventually?)
-  double hypoblast_perim_increase=0.2;
-  added_perim += sox17_internal_adhesion * hypoblast_perim_increase * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area))));
+  added_perim += sox17_internal_adhesion * par.hypoblast_perim_increase * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area))));
 
 
   target_perimeter = static_cast<int>(round((par.ptarget_perimeter) *
@@ -1645,6 +1649,8 @@ protected:
   
   int medcount{};
   int notmedcount{};
+
+  double shape_index{};
 
   int perimeter;        // amount of cell's membrane
   int target_perimeter; // cell's target membrane length  

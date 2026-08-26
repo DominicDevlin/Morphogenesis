@@ -63,7 +63,7 @@
 /* Cellular Potts parameters */
     sizex = 150;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 150;
-    mcs = 50001;
+    mcs = 60001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
@@ -147,6 +147,8 @@
     starting_fraction_losers=0.;//0.33;
     target_sox2_prob=0.7;
     loser_perim_increase=0.;
+    hypoblast_perim_increase=0.1;
+
 /* adhesion params */
 
     // baseline J value for adhesion between cells and blastocoel
@@ -183,7 +185,7 @@
     init_cellcell=1.0;
 
     // end of adhesion params
-    adhesion_multiplier=1.5;
+    adhesion_multiplier=2.;
 
 
     J_cell_baseline=J_cell_baseline*adhesion_multiplier;

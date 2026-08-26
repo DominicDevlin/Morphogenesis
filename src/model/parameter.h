@@ -172,6 +172,8 @@ class Parameter {
 
   double starting_fraction_losers;
   double loser_perim_increase;
+  double hypoblast_perim_increase;
+
   double target_sox2_prob;
 
 
