@@ -3420,9 +3420,9 @@ void CellularPotts::DrawDivisionTimes()
     {
 
       double prob_1 = RANDOM(s_val);
-      int t_1 = round(prob_1 * 12000);
-      int t_2 = round(t_1 + 14000 + GetStandardNormal() * 1000);
-      int t_3 = round(t_1 + 14000 + GetStandardNormal() * 1000);
+      int t_1 = round(prob_1 * 20000);
+      int t_2 = round(t_1 + 22000 + GetStandardNormal() * 3000);
+      // int t_3 = round(t_1 + 14000 + GetStandardNormal() * 1000);
       // cout << t_1 << '\t' << t_2 << '\t' << t_3 << '\t' << GetStandardNormal() * 1000 << endl;
 
 
@@ -3448,7 +3448,7 @@ void CellularPotts::DrawDivisionTimes()
       //   t_2=par.mcs;
       // if (t_3<t_1)
       //   t_3=par.mcs;
-      vector<int> tt = {t_1, t_2, t_3};
+      vector<int> tt = {t_1, t_2};
       c->setDivisionTimes(tt);
 
     }
@@ -3799,7 +3799,32 @@ void CellularPotts::ToxictoLonelyCells()
 
 }
 
-// still working on this
+
+
+void CellularPotts::LoserActiveMotion(double tfrac)
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      double sox2ad = c->getSox2adhesion();
+      double sox17ad = c->getSox17adhesion();
+      double is_looser = max(sox2ad * sox17ad, (1. - sox2ad) * (1. - sox17ad));
+      if (is_looser > 0.5)
+      {
+        double mot_strength = tfrac * (par.motility_zero / sqrt(double(c->TargetArea())));
+        c->SetMotilityStrength(mot_strength);
+      }
+      else
+      {
+        c->SetMotilityStrength(0.);
+      }
+    }
+  }
+}
+
+// This is now going to go defunct (not necessary)
 void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
 {
   double LSX2min=-0.1;

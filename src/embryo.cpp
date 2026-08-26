@@ -85,7 +85,7 @@ INIT
       CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 40, 40, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -80, par.sizex/2, par.sizey/2, 40, 40, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -73, par.sizex/2, par.sizey/2, 40, 40, 2);
 
     CPM->DifferentiateZonaPellucida();
 
@@ -160,7 +160,7 @@ TIMESTEP {
       if (t%10==0)
       {
         dish->CPM->CheckIfDivisionHit(t);
-        dish->CPM->NeighbourBasedActiveMotion(tfrac);
+        dish->CPM->LoserActiveMotion(tfrac);
         dish->CPM->SetPerims();
         dish->CPM->SetSoxColours(tfrac);
       }

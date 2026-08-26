@@ -330,6 +330,8 @@ public:
 
   void NeighbourBasedActiveMotion(double tfrac);
 
+  void LoserActiveMotion(double tfrac);
+
   void InnerCellMassDivisions(int t);
 
   void DrawDivisionTimes();

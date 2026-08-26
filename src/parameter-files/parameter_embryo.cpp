@@ -61,9 +61,9 @@
     print_fitness = true; 
 
 /* Cellular Potts parameters */
-    sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 200;
-    mcs = 30001;
+    sizex = 150;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 150;
+    mcs = 50001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
