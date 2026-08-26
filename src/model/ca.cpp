@@ -13198,24 +13198,7 @@ vector<double> CellularPotts::ReturnDriftCorrectedMSD()
 
 
 
-void CellularPotts::initVolume()
-{
-  cellVolumeList.clear();
-  for (int x=0;x<sizex;++x)
-    for (int y=0;y<sizey;++y)
-    {
-      int n = sigma[x][y];
-      if (n>0)
-        cellVolumeList[n].insert(std::make_pair(x,y));
-    }
 
-  vlist.clear();
-  for (auto celln : cellVolumeList)
-  {
-    vlist[celln.first] = (int(celln.second.size()));
-  }
-
-}
 
 vector<double> CellularPotts::GetVolumes()
 {
@@ -13247,67 +13230,6 @@ void CellularPotts::addVolume(int i, int j, int celln)
 }
 
 
-// MUST BE DONE AFTER ADJUSTING VOLUMES and divisions
-void CellularPotts::adjustPerimeters()
-{
-
-	// shorter way to do this: see if any of the chunk sites need to be added to the perimeter
-	// run through all old perimeter sites and if they no longer need to be part of the perimeter, erase them from cellPerimeterList
-  cellPerimeterList.clear();
-  for (auto n : cellVolumeList)
-  {
-    int celln = n.first;
-		// cellPerimeterList[celln].clear();
-    for( std::set< std::pair<int, int> >::const_iterator it = cellVolumeList[celln].begin(); it!= cellVolumeList[celln].end(); ++it)
-    {
-      int x = it->first;
-      int y = it->second;
-      // cout << i << '\t' << j << '\t' << celln << '\t' << sigma[i][j] << endl;
-      if(sigma[x][y] != celln )
-          printf("\nproblem, we have a cell site that thinks it's not in the cell: (%d, %d)", x, y);
-
-      for (int i=1;i<=n_nb_perim;i++) 
-      {
-        int xp2,yp2;
-        xp2=x+nx[i]; yp2=y+ny[i];
-        if (par.periodic_boundaries)
-        {
-          // since we are asynchronic, we cannot just copy the borders once 
-          // every MCS
-          
-          if (xp2<=0)
-            xp2=sizex-2+xp2;
-          if (yp2<=0)
-            yp2=sizey-2+yp2;
-          if (xp2>=sizex-1)
-            xp2=xp2-sizex+2;
-          if (yp2>=sizey-1)
-            yp2=yp2-sizey+2;
-        
-          // neighsite=sigma[xp2][yp2];
-          if (sigma[x][y]!=sigma[xp2][yp2])  
-          {
-            cellPerimeterList[celln].insert( std::make_pair(x, y) );
-            break;
-          }
-        }
-        else
-        {
-          if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
-          {
-            // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
-            continue;
-          }
-          else if (sigma[x][y]!=sigma[xp2][yp2])  
-          {
-            cellPerimeterList[celln].insert( std::make_pair(x, y) );
-            break;
-          }
-        } 
-      }
-    }
-	}
-}
 
 
 map<int, double> CellularPotts::TruePerimetersMap()
@@ -13554,6 +13476,86 @@ void CellularPotts::ColourCellsByIndex()
 }
 
 
+void CellularPotts::initVolume()
+{
+  cellVolumeList.clear();
+  for (int x=0;x<sizex;++x)
+    for (int y=0;y<sizey;++y)
+    {
+      int n = sigma[x][y];
+      if (n>0)
+        cellVolumeList[n].insert(std::make_pair(x,y));
+    }
+
+  vlist.clear();
+  for (auto celln : cellVolumeList)
+  {
+    vlist[celln.first] = (int(celln.second.size()));
+  }
+
+}
+
+// MUST BE DONE AFTER ADJUSTING VOLUMES and divisions
+void CellularPotts::adjustPerimeters()
+{
+
+	// shorter way to do this: see if any of the chunk sites need to be added to the perimeter
+	// run through all old perimeter sites and if they no longer need to be part of the perimeter, erase them from cellPerimeterList
+  cellPerimeterList.clear();
+  for (auto n : cellVolumeList)
+  {
+    int celln = n.first;
+		// cellPerimeterList[celln].clear();
+    for( std::set< std::pair<int, int> >::const_iterator it = cellVolumeList[celln].begin(); it!= cellVolumeList[celln].end(); ++it)
+    {
+      int x = it->first;
+      int y = it->second;
+      // cout << i << '\t' << j << '\t' << celln << '\t' << sigma[i][j] << endl;
+      if(sigma[x][y] != celln )
+          printf("\nproblem, we have a cell site that thinks it's not in the cell: (%d, %d)", x, y);
+
+      for (int i=1;i<=n_nb_perim;i++) 
+      {
+        int xp2,yp2;
+        xp2=x+nx[i]; yp2=y+ny[i];
+        if (par.periodic_boundaries)
+        {
+          // since we are asynchronic, we cannot just copy the borders once 
+          // every MCS
+          
+          if (xp2<=0)
+            xp2=sizex-2+xp2;
+          if (yp2<=0)
+            yp2=sizey-2+yp2;
+          if (xp2>=sizex-1)
+            xp2=xp2-sizex+2;
+          if (yp2>=sizey-1)
+            yp2=yp2-sizey+2;
+        
+          // neighsite=sigma[xp2][yp2];
+          if (sigma[x][y]!=sigma[xp2][yp2])  
+          {
+            cellPerimeterList[celln].insert( std::make_pair(x, y) );
+            break;
+          }
+        }
+        else
+        {
+          if (xp2<=0 || yp2<=0 || xp2>=sizex-1 || yp2>=sizey-1)
+          {
+            // dont know what to do here!!!! (if using larger neighbourhood this becomes an issue!!)
+            continue;
+          }
+          else if (sigma[x][y]!=sigma[xp2][yp2])  
+          {
+            cellPerimeterList[celln].insert( std::make_pair(x, y) );
+            break;
+          }
+        } 
+      }
+    }
+	}
+}
 
 void CellularPotts::ShapeIndex()
 {
