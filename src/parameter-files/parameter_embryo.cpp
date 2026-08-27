@@ -102,7 +102,8 @@
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
 
-    initialise_sox_time=800;
+    initialise_sox_time=500;
+    expression_starts=30000;
     time_till_full_expression=12000;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
@@ -144,10 +145,13 @@
     conn_diss = 2000;
 
 
-    starting_fraction_losers=0.;//0.33;
+    starting_fraction_losers=.2;//0.33;
     target_sox2_prob=0.7;
-    loser_perim_increase=0.;
+    loser_perim_increase=0.5;
     hypoblast_perim_increase=0.1;
+
+    sox17bleb_slowdown_start=20000;
+    bleb_end=50000;
 
 /* adhesion params */
 

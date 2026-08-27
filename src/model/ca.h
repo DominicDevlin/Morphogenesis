@@ -412,6 +412,11 @@ public:
       global_loser_perim_increase=lp;
     }
 
+    inline void SetSox17PerimIncrease(double lp)
+    {
+      global_sox17_perim_increase=lp;
+    }
+
 
     // not currently used? In Critter implementation (see Hogeweg
     // 2000) this was used to have cells divide at double their original area.
@@ -688,6 +693,8 @@ private:
   map<int,int> transition_cooldown_list;
 
   double global_loser_perim_increase{0.};
+  double global_sox17_perim_increase{0.};
+
 
   //count grid hits for awkward gradients
   long griditcount;

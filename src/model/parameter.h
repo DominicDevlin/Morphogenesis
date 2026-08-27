@@ -136,8 +136,12 @@ class Parameter {
   double Jzona_loser;
 
   int initialise_sox_time;
+  int expression_starts;
   int time_till_full_expression;
   bool set_loser_colours;
+
+  double sox17bleb_slowdown_start;
+  double bleb_end;
 
   double switch_like;
 

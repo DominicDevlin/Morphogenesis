@@ -31,6 +31,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <map>
 #include <deque>
 #include <numeric>
+#include <algorithm>
 
 
 extern Parameter par;
@@ -434,10 +435,10 @@ al. 2000). The current version of TST does not include such functionality.
   }
   
   //! Sets the target area of the cell.
-  inline int SetTargetArea(const int new_area, double lpi)
+  inline int SetTargetArea(const int new_area, double lpi, double lsi)
   {
     target_area=new_area;
-    UpdatePerimeterConstraint(lpi);
+    UpdatePerimeterConstraint(lpi, lsi);
     return target_area;
   }
   
@@ -1362,10 +1363,10 @@ inline double getSox2()
   return Sox2_concentration;
 }
 
-inline void setSox2(double newsox, double perim_increase)
+inline void setSox2(double newsox, double perim_increase, double sox17perim_increase)
 {
   Sox2_concentration=newsox;
-  UpdatePerimeterConstraint(perim_increase);
+  UpdatePerimeterConstraint(perim_increase, sox17perim_increase);
 
   UpdateAdhesions();
 
@@ -1376,10 +1377,10 @@ inline double getSox17()
   return Sox17_concentration;
 }
 
-inline void setSox17(double newsox, double perim_increase)
+inline void setSox17(double newsox, double perim_increase, double sox17perim_increase)
 {
   Sox17_concentration=newsox;
-  UpdatePerimeterConstraint(perim_increase);
+  UpdatePerimeterConstraint(perim_increase, sox17perim_increase);
 
   UpdateAdhesions();
 
@@ -1394,29 +1395,32 @@ inline void OutputPerim()
 
 inline void SetSoxColour(double t)
 {
-    // weight is the Sox2/Sox17 dominance ratio: 0 = pure Sox17, 1 = pure Sox2.
-    double weight = 0.5f * (sox2_internal_adhesion - sox17_internal_adhesion + 1.0f);
-
-    // Map weight to an index offset from the starting color
-    // weight = 0.0 (Sox17) -> offset = -100
-    // weight = 1.0 (Sox2)  -> offset = +100
-    double target_offset = (weight - 0.5f) * 200.0f;
+    // 1. Fixed Sox2 / Sox17 baseline colour (Index 2 to 202)
+    double weight = 0.5 * (sox2_internal_adhesion - sox17_internal_adhesion + 1.0);
+    double target_offset = (weight - 0.5) * 200.0;
     
-    // Start at center index 102 (Blue). As t increases, move toward the target offset.
-    int index = 102 + static_cast<int>(std::round(t * target_offset));
-
-    // Clamp index to prevent array out-of-bounds just in case
-    if (index < 2) index = 2;
-    if (index > 202) index = 202;
+    int index = 102 + static_cast<int>(std::round(target_offset));
+    index = std::clamp(index, 2, 202);
 
     set_ctype(index);
+    
+    // 2. Dynamic loser cell colour through normalized time t in [0, 1]
     if (par.set_loser_colours)
     {
-      double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
-      if (is_looser > 0.9)
-      {
-        set_ctype(203);
-      }
+        double is_loser = std::max(sox2_internal_adhesion * sox17_internal_adhesion, 
+                                   (1.0 - sox2_internal_adhesion) * (1.0 - sox17_internal_adhesion));
+        if (is_loser > 0.9)
+        {
+            double t_clamped = std::clamp(t, 0.0, 1.0);
+            
+            // t = 0 -> index 203 (Blue)
+            // t = 0.5 -> index 253 (Yellow)
+            // t = 1 -> index 303 (Red)
+            int loser_index = 203 + static_cast<int>(std::round(t_clamped * 100.0));
+            loser_index = std::clamp(loser_index, 203, 303);
+
+            set_ctype(loser_index);
+        }
     }
 }
 
@@ -1471,13 +1475,13 @@ inline void ClearDeathCause()
 
 
 
-inline void UpdatePerimeterConstraint(double loser_perim_inc)
+inline void UpdatePerimeterConstraint(double loser_perim_inc, double sox17_perim_inc)
 {
   double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
   double added_perim = loser_perim_inc * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
 
   // hypoblast cells must have higher perimeter (maybe make this dynamic eventually?)
-  added_perim += sox17_internal_adhesion * par.hypoblast_perim_increase * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area))));
+  added_perim += sox17_internal_adhesion * sox17_perim_inc * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area))));
 
 
   target_perimeter = static_cast<int>(round((par.ptarget_perimeter) *

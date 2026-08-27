@@ -340,7 +340,7 @@ void CellularPotts::SetMediumArea()
       }
     }
   }
-  cell->at(0).SetTargetArea(totmed, global_loser_perim_increase);
+  cell->at(0).SetTargetArea(totmed, global_loser_perim_increase, global_sox17_perim_increase);
   cell->at(0).SetAreaToTarget();
 }
   
@@ -350,7 +350,7 @@ void CellularPotts::SetMediumArea()
 double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int* neighbor_spins, PDE *PDEfield)       
 {
 
-  double t = double(tsteps - par.initialise_sox_time) / double(par.time_till_full_expression);
+  double t = double(tsteps-par.expression_starts)/double(par.time_till_full_expression);
   double teq = 1 - t;
   double DH = 0;
   int i, sxy;
@@ -381,9 +381,13 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
       {
         Jen += cell_sxyp.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1) - cell_sxy.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1);
       }
+      else if (t < 0)
+      {
+        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 0) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 0);
+      }
       else if (t < 1)
       {
-        Jen += (cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t) + cell_sxyp.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, teq) )  - (cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t) + cell_sxy.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, teq));
+        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t); 
       }
       else
       {
@@ -1434,9 +1438,9 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
   {
     for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++) {
       if (par.init_area) {
-	c->SetTargetArea(par.init_area, global_loser_perim_increase);
+	c->SetTargetArea(par.init_area, global_loser_perim_increase, global_sox17_perim_increase);
       } else	 {
-	c->SetTargetArea(mean_area, global_loser_perim_increase);
+	c->SetTargetArea(mean_area, global_loser_perim_increase, global_sox17_perim_increase);
       }
     }
   }
@@ -1743,8 +1747,8 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
             motherp->SetTimeCreated(t);
             daughterp->ResetActiveMotion();
             motherp->ResetActiveMotion();
-            motherp->SetTargetArea(new_target, global_loser_perim_increase);
-            daughterp->SetTargetArea(new_target, global_loser_perim_increase);
+            motherp->SetTargetArea(new_target, global_loser_perim_increase, global_sox17_perim_increase);
+            daughterp->SetTargetArea(new_target, global_loser_perim_increase, global_sox17_perim_increase);
             vector<int> tt = motherp->getDivisionTimes();
             tt.erase(tt.begin());
             if (tt.size() <= 1)
@@ -1809,7 +1813,7 @@ void CellularPotts::DivideCells(vector<bool> which_cells, int t)
         double newmot = par.motility_zero / (c->TargetArea());
         c->SetMotilityStrength(newmot);
         c->SetLambdaByBulk();
-        c->UpdatePerimeterConstraint(global_loser_perim_increase);
+        c->UpdatePerimeterConstraint(global_loser_perim_increase, global_sox17_perim_increase);
         // c->OutputPerim();
       }
     }
@@ -2029,8 +2033,8 @@ void CellularPotts::InitialiseRandomSoxValues()
         }
       }
       
-      c->setSox2(sox2, global_loser_perim_increase);
-      c->setSox17(sox17, global_loser_perim_increase);
+      c->setSox2(sox2, global_loser_perim_increase, global_sox17_perim_increase);
+      c->setSox17(sox17, global_loser_perim_increase, global_sox17_perim_increase);
       c->SetSoxColour(0);
     }
   }
@@ -2358,7 +2362,7 @@ void CellularPotts::PopulateDenseCellsInZonaRadius(double density, double R, int
       else 
       {
         // Target area is now matched identically to the size the Voronoi algorithm generated.
-        c->SetTargetArea(c->area, global_loser_perim_increase); 
+        c->SetTargetArea(c->area, global_loser_perim_increase, global_sox17_perim_increase); 
         c->setSpheroid(false);
       }
     }
@@ -2545,7 +2549,7 @@ void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, in
       } 
       else 
       {
-        c->SetTargetArea(c->area, global_loser_perim_increase);
+        c->SetTargetArea(c->area, global_loser_perim_increase, global_sox17_perim_increase);
         c->setSpheroid(false);
       }
     }
@@ -2935,7 +2939,7 @@ void CellularPotts::GrowAndDivideCells(int growth_rate) {
     // only tumor cells grow and divide
     if (c->getTau()==2) {
      
-      c->SetTargetArea(c->TargetArea()+growth_rate, global_loser_perim_increase);
+      c->SetTargetArea(c->TargetArea()+growth_rate, global_loser_perim_increase, global_sox17_perim_increase);
     
       if (c->Area()>par.init_area) {
 	which_cells[c->Sigma()]=true;
@@ -3121,7 +3125,7 @@ void CellularPotts::CellGrowthAndDivision(int time)
       }
       else if (area < 3)
       {
-        c->SetTargetArea(0, global_loser_perim_increase);
+        c->SetTargetArea(0, global_loser_perim_increase, global_sox17_perim_increase);
         c->set_lambda(100);
       }
       // else if (area > (double)(par.div_threshold) * 1.1)
@@ -3293,7 +3297,7 @@ void CellularPotts::MakeZonaPellucida(double h, double k, double a, double b, do
       }
     }
   }
-  (*cell)[zona_sigma].SetTargetArea(total_area, global_loser_perim_increase);
+  (*cell)[zona_sigma].SetTargetArea(total_area, global_loser_perim_increase, global_sox17_perim_increase);
   (*cell)[zona_sigma].Apoptose();
 }
 
@@ -3306,7 +3310,7 @@ void CellularPotts::DifferentiateZonaPellucida()
   DivideCellsNoGrid(which_cells);
   zona_sigma_sticky = (*cell).back().Sigma();
   int total_area=0;
-  (*cell)[zona_sigma_sticky].set_ctype(203);
+  (*cell)[zona_sigma_sticky].set_ctype(304);
   // Store modifications to prevent a chain-reaction in a single pass
   vector<std::pair<int, int>> to_change;
   int R1 = 2;
@@ -3379,7 +3383,7 @@ void CellularPotts::DifferentiateZonaPellucida()
     sigma[pp.first][pp.second] = zona_sigma_sticky;
   }
 
-  (*cell)[zona_sigma_sticky].SetTargetArea(total_area, global_loser_perim_increase);
+  (*cell)[zona_sigma_sticky].SetTargetArea(total_area, global_loser_perim_increase, global_sox17_perim_increase);
   (*cell)[zona_sigma_sticky].Apoptose();
 }
 
@@ -3540,9 +3544,9 @@ void CellularPotts::InnerCellMassDivisions(int t)
     {
       if (which_cells[c->Sigma()] || which_cells[c->Sigma()] >= init_cells)
       {
-        c->SetTargetArea(target_areas[c->Sigma()], global_loser_perim_increase);
+        c->SetTargetArea(target_areas[c->Sigma()], global_loser_perim_increase, global_sox17_perim_increase);
         c->SetLambdaByBulk();
-        c->UpdatePerimeterConstraint(global_loser_perim_increase);
+        c->UpdatePerimeterConstraint(global_loser_perim_increase, global_sox17_perim_increase);
       }
 
     }
@@ -3628,7 +3632,7 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
         // cout << "cell dead from signal" << endl;
         cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_SIGNAL);
         // if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
-        cell->at(i).SetTargetArea(1, global_loser_perim_increase);
+        cell->at(i).SetTargetArea(1, global_loser_perim_increase, global_sox17_perim_increase);
         // else if (cell->at(i).TargetArea() > 1)
         // {
         //   int n=200;
@@ -3640,7 +3644,7 @@ void CellularPotts::NeighbourBasedApoptosis(int org_index)
         // }
 
         cell->at(i).SetLambdaByBulk();
-        cell->at(i).UpdatePerimeterConstraint(global_loser_perim_increase);
+        cell->at(i).UpdatePerimeterConstraint(global_loser_perim_increase, global_sox17_perim_increase);
       }
     }
   }
@@ -3770,7 +3774,7 @@ void CellularPotts::ToxictoLonelyCells()
         if (cell->at(i).Area() < 10 && cell->at(i).TargetArea() > 0)
         {
           // cout << "cell dead from lonely" << endl;
-          cell->at(i).SetTargetArea(1, global_loser_perim_increase);
+          cell->at(i).SetTargetArea(1, global_loser_perim_increase, global_sox17_perim_increase);
           cell->at(i).MarkDeathCause(Cell::DEATH_CAUSE_LONELY);
         }
         else if (cell->at(i).TargetArea() > 1)
@@ -3783,7 +3787,7 @@ void CellularPotts::ToxictoLonelyCells()
           }
         }
         cell->at(i).SetLambdaByBulk();
-        cell->at(i).UpdatePerimeterConstraint(global_loser_perim_increase);
+        cell->at(i).UpdatePerimeterConstraint(global_loser_perim_increase, global_sox17_perim_increase);
         // cout << "cell number: " << cell->at(i).Sigma() << "  area: " << cell->at(i).Area() << '\t' << "  target area: " << cell->at(i).TargetArea() << "  perimeter: " << cell->at(i).Perimeter() << "   target perimeter: " << cell->at(i).TargetPerimeter() << endl;
 
       }
@@ -4982,7 +4986,7 @@ void CellularPotts::MakeSpheroid(int centerx, int centery, int radius)
     } 
     else 
     {
-      c->SetTargetArea(c->area, global_loser_perim_increase);
+      c->SetTargetArea(c->area, global_loser_perim_increase, global_sox17_perim_increase);
       c->makeAlive();
       c->setSpheroid(true);
     }
@@ -5002,7 +5006,7 @@ void CellularPotts::SetAreas(int tarea)
   vector<Cell>::iterator i;
   for ( (i=cell->begin(),i++); i!=cell->end(); i++) 
   {
-    i->SetTargetArea(tarea, global_loser_perim_increase);
+    i->SetTargetArea(tarea, global_loser_perim_increase, global_sox17_perim_increase);
   }
 }
 
@@ -5015,7 +5019,7 @@ void CellularPotts::SetPerims(int tperim)
   (void)tperim;
   vector<Cell>::iterator i;
   for ( (i=cell->begin(),i++); i!=cell->end(); i++)
-    i->UpdatePerimeterConstraint(global_loser_perim_increase);
+    i->UpdatePerimeterConstraint(global_loser_perim_increase, global_sox17_perim_increase);
 }
 
 

@@ -85,7 +85,7 @@ INIT
       CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 40, 40, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -73, par.sizex/2, par.sizey/2, 40, 40, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -70, par.sizex/2, par.sizey/2, 40, 40, 2);
 
     CPM->DifferentiateZonaPellucida();
 
@@ -150,13 +150,22 @@ TIMESTEP {
     }
     if (t>par.initialise_sox_time)
     {
-      double tfrac = min(1., double(t-par.initialise_sox_time)/double(par.time_till_full_expression));
+      double tfrac = min(1., double(t-par.expression_starts)/double(par.time_till_full_expression));
       // double multiplier = (par.sox2binding - par.loser_sox2_adhesion) * 0.5;
-      // dish->CPM->SetLoserPerimIncrease( multiplier * tfrac );
-      if (t%100==0)
-      {
-        dish->CPM->ToxictoLonelyCells();
-      }
+      if (tfrac < 0)
+        tfrac=0;
+      dish->CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );
+      cout << par.loser_perim_increase * tfrac << endl;
+
+      double tfrac2 = min(1., double(t-par.sox17bleb_slowdown_start)/double(par.bleb_end));
+      if (tfrac2 < 0)
+        tfrac2=0;
+      tfrac2=1-tfrac2;
+      dish->CPM->SetSox17PerimIncrease(par.hypoblast_perim_increase * tfrac2);
+      // if (t%100==0)
+      // {
+      //   dish->CPM->ToxictoLonelyCells();
+      // }
       if (t%10==0)
       {
         dish->CPM->CheckIfDivisionHit(t);
