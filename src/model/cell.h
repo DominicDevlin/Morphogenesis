@@ -1404,23 +1404,22 @@ inline void SetSoxColour(double t)
 
     set_ctype(index);
     
-    // 2. Dynamic loser cell colour through normalized time t in [0, 1]
-    if (par.set_loser_colours)
-    {
-        double is_loser = std::max(sox2_internal_adhesion * sox17_internal_adhesion, 
-                                   (1.0 - sox2_internal_adhesion) * (1.0 - sox17_internal_adhesion));
-        if (is_loser > 0.9)
-        {
-            double t_clamped = std::clamp(t, 0.0, 1.0);
-            
-            // t = 0 -> index 203 (Blue)
-            // t = 0.5 -> index 253 (Yellow)
-            // t = 1 -> index 303 (Red)
-            int loser_index = 203 + static_cast<int>(std::round(t_clamped * 100.0));
-            loser_index = std::clamp(loser_index, 203, 303);
 
-            set_ctype(loser_index);
-        }
+    double is_loser = std::max(sox2_internal_adhesion * sox17_internal_adhesion, 
+                                (1.0 - sox2_internal_adhesion) * (1.0 - sox17_internal_adhesion));
+    if (is_loser > 0.9)
+    {
+        double t_clamped = std::clamp(t, 0.0, 1.0);
+        int start=203;
+        if (par.set_loser_colours)
+          start=280;        
+        // t = 0 -> index 203 (Blue)
+        // t = 0.5 -> index 253 (Yellow)
+        // t = 1 -> index 303 (Red)
+        int loser_index = start + static_cast<int>(std::round(t_clamped * 100.0));
+        loser_index = std::clamp(loser_index, 203, 303);
+
+        set_ctype(loser_index);
     }
 }
 
@@ -1478,16 +1477,20 @@ inline void ClearDeathCause()
 inline void UpdatePerimeterConstraint(double loser_perim_inc, double sox17_perim_inc)
 {
   double is_looser = max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
-  double added_perim = loser_perim_inc * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
+  double added_perim1 = loser_perim_inc * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area)))) * is_looser;
 
   // hypoblast cells must have higher perimeter (maybe make this dynamic eventually?)
-  added_perim += sox17_internal_adhesion * sox17_perim_inc * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area))));
+  double added_perim2 = sox17_internal_adhesion * sox17_perim_inc * static_cast<int>(round((par.ptarget_perimeter) * sqrt(double(target_area) / double(par.cell_target_area))));
 
 
   target_perimeter = static_cast<int>(round((par.ptarget_perimeter) *
-      sqrt(double(target_area) / double(par.cell_target_area)))) + added_perim - par.perim_offset;
+      sqrt(double(target_area) / double(par.cell_target_area)))) + added_perim1 + added_perim2 - par.perim_offset;
 
-
+  // if (sox17_perim_inc > 0.1 && sox17_internal_adhesion > 0.5)
+  //   cout << "sox17: " << added_perim2 << endl;
+  
+  // if (loser_perim_inc > 0.1 && is_looser > 0.2)
+  //   cout << "is looser: " << is_looser << '\t' << added_perim1 << endl;
 
   // cout << sqrt(double(target_area) / double(par.cell_target_area)) << endl;
   // out << target_perimeter << '\t' << target_area << endl;

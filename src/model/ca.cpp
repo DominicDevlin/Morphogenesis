@@ -351,7 +351,7 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
 {
 
   double t = double(tsteps-par.expression_starts)/double(par.time_till_full_expression);
-  double teq = 1 - t;
+
   double DH = 0;
   int i, sxy;
   int neighsite;
@@ -3423,10 +3423,11 @@ void CellularPotts::DrawDivisionTimes()
     if (c->AliveP()) 
     {
 
+
       double prob_1 = RANDOM(s_val);
-      int t_1 = round(prob_1 * 20000);
-      int t_2 = round(t_1 + 22000 + GetStandardNormal() * 3000);
-      int t_3 = round(t_1 + 22000 + GetStandardNormal() * 3000);
+      int t_1 = round(prob_1 * par.div_time);
+      int t_2 = round(t_1 + par.div_time + GetStandardNormal() * (par.div_time/5));
+      int t_3 = round(t_1 + par.div_time + GetStandardNormal() * (par.div_time/5));
       // cout << t_1 << '\t' << t_2 << '\t' << t_3 << '\t' << GetStandardNormal() * 1000 << endl;
 
 

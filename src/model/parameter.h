@@ -142,6 +142,7 @@ class Parameter {
 
   double sox17bleb_slowdown_start;
   double bleb_end;
+  int div_time;
 
   double switch_like;
 

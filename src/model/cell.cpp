@@ -329,7 +329,7 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, do
                                 + cell2_is_looser * t2 * par.sox2binding
                                 + is_looser * cell2_t17 * par.sox2vs17binding
                                 + cell2_is_looser * t17 * par.sox2vs17binding) * (1-t);
-      // cout << t << '\t' << t2 << '\t' << cell2_t2 << '\t' << is_looser << '\t' << cell2_is_looser << '\t' << to_return << endl;
+      //cout << t << '\t' << t2 << '\t' << cell2_t2 << '\t' << is_looser << '\t' << cell2_is_looser << '\t' << to_return << endl;
       return to_return;
     }
   }

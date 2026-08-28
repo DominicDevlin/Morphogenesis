@@ -63,7 +63,7 @@
 /* Cellular Potts parameters */
     sizex = 150;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
     sizey = 150;
-    mcs = 60001;
+    mcs = 100001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
@@ -97,19 +97,30 @@
     // active motion should depend on E/P/N cadherin
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
-    active_motion = false;
-    motility_strength = 0.25; // not that this term depends on the cell size (1/sqrt(area))
+    active_motion = true;
+    motility_strength = 0.3; // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
 
     initialise_sox_time=500;
-    expression_starts=30000;
-    time_till_full_expression=12000;
+    expression_starts=60000;
+    time_till_full_expression=20000;
+
+    sox17bleb_slowdown_start=35000;
+    bleb_end=75000;
+
+    div_time=40000;
+
+    loser_perim_increase=0.;
+    hypoblast_perim_increase=0.25;
+
+    starting_fraction_losers=0.17;//0.33;
+    target_sox2_prob=0.7;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
     switch_like=2000.;
 
-    set_loser_colours=false;
+    set_loser_colours=true;
 
     apop_signal_noise=1.; // was 1.5
     apop_noise_tau=0.1;  // was 0.1
@@ -118,7 +129,7 @@
 
     // the important params
     apop_threshold=20.;
-    loser_sox2_adhesion=0.0; //-0.1;
+    loser_sox2_adhesion=0.3; //-0.1;
 
     double LSX2min=-0.1;
     double LSX2max=0.7;
@@ -145,13 +156,7 @@
     conn_diss = 2000;
 
 
-    starting_fraction_losers=.2;//0.33;
-    target_sox2_prob=0.7;
-    loser_perim_increase=0.5;
-    hypoblast_perim_increase=0.1;
 
-    sox17bleb_slowdown_start=20000;
-    bleb_end=50000;
 
 /* adhesion params */
 
@@ -174,9 +179,9 @@
 
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
-    J_cell_zona = 1.15; //1.2
+    J_cell_zona = 1.12; //1.2
     Jzona_sox2 = 0.0;
-    Jzona_sox17 = 0.2;
+    Jzona_sox17 = 0.15;
     Jzona_loser=0;
     // added zona adhesion for sox2 sox17 for sticky part
     J_cell_zona_sticky=2.0; //2.0
