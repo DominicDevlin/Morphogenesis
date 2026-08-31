@@ -354,6 +354,7 @@ public:
   void ShapeIndex();
 
 
+  void PrintShapeIndexToFile(const std::string& filename, int timestep);
 
 
   /*! Plot the cells according to their cell identity, not their type.

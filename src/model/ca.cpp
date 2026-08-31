@@ -1901,14 +1901,16 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
 }
 
 
+#include <vector>
+#include <cmath>
+#include <algorithm> // For std::swap
 
 void CellularPotts::InitialiseRandomSoxValues()
 {
-  // --- NEW CONFIGURATION ---
+  // --- CONFIGURATION ---
   if (par.target_sox2_prob < 0.001) par.target_sox2_prob = 0.001;
   if (par.target_sox2_prob > 0.999) par.target_sox2_prob = 0.999;
   
-  // Note: target_sox2_prob is now the ratio of Sox2 vs Sox17 among WINNING cells.
   double target_sox17_prob = 1.0 - par.target_sox2_prob;
   double threshold = par.sox_threshold; 
   double loser_prob = par.starting_fraction_losers;
@@ -1917,120 +1919,84 @@ void CellularPotts::InitialiseRandomSoxValues()
   double p17 = std::log(threshold) / std::log(1.0 - target_sox17_prob);
   
   const double inv_sqrt2 = 0.7071067811865475;
-  double x = 1 - loser_prob; 
+  double x = 1.0 - loser_prob; 
   double rho = std::sin(M_PI * (0.5 - x)); 
-  // -------------------------
 
   // STEP 1: Count the total number of valid cells
   int total_valid_cells = 0;
-  std::vector<Cell>::iterator c;
-  for (c = cell->begin(), c++; c != cell->end(); c++) {
-    if (c->AliveP() && c->Sigma() != zona_sigma) {
-      total_valid_cells++;
-    }
+  for (auto c = cell->begin(); c != cell->end(); ++c) {
+    if (c->AliveP() && c->Sigma() != zona_sigma) total_valid_cells++;
   }
-
   if (total_valid_cells == 0) return;
 
-  // Helper lambda for generating standard normal (bell curve) variables
-  auto GetBellCurveRandom = [&]() {
-      double u1 = RANDOM(s_val);
-      double u2 = RANDOM(s_val);
-      if (u1 <= 0.0) u1 = 0.0000001;
-      return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * u2);
-  };
-
-  // STEP 2: Calculate target counts with TUNABLE VARIANCE
-  double variance_modifier = 0.1; // <-- TUNE THIS (0.0 = exact, 1.0 = high variance)
-
-  // A. First, determine the number of LOSERS
-  double mean_losers = total_valid_cells * loser_prob;
-  double std_dev_losers = std::sqrt(total_valid_cells * loser_prob * (1.0 - loser_prob)) * variance_modifier;
-  int target_loser_count = std::round(mean_losers + (GetBellCurveRandom() * std_dev_losers));
+  // STEP 2: Calculate EXACT target counts (ZERO VARIANCE)
+  // std::round guarantees we get the precise proportions closest to the probabilities.
+  int target_loser_count = std::round(total_valid_cells * loser_prob);
   
-  if (target_loser_count < 0) target_loser_count = 0;
-  if (target_loser_count > total_valid_cells) target_loser_count = total_valid_cells;
-
-  // B. Second, determine the Sox2/Sox17 split for the REMAINING cells
   int remaining_cells = total_valid_cells - target_loser_count;
-  double mean_sox2 = remaining_cells * par.target_sox2_prob;
-  double std_dev_sox2 = std::sqrt(remaining_cells * par.target_sox2_prob * target_sox17_prob) * variance_modifier;
-  
-  int target_sox2_count = std::round(mean_sox2 + (GetBellCurveRandom() * std_dev_sox2));
-  
-  if (target_sox2_count < 0) target_sox2_count = 0;
-  if (target_sox2_count > remaining_cells) target_sox2_count = remaining_cells;
+  int target_sox2_count = std::round(remaining_cells * par.target_sox2_prob);
+  int target_sox17_count = remaining_cells - target_sox2_count; // Guarantees exact total
 
-  int target_sox17_count = remaining_cells - target_sox2_count;
-
-  // STEP 3: Create an array representing exact fates (0=Loser, 1=Sox2, 2=Sox17)
+  // STEP 3: Create exact fate array
   std::vector<int> assigned_fates;
-  assigned_fates.insert(assigned_fates.end(), target_loser_count, 0);
-  assigned_fates.insert(assigned_fates.end(), target_sox2_count,  1);
-  assigned_fates.insert(assigned_fates.end(), target_sox17_count, 2);
+  assigned_fates.reserve(total_valid_cells);
+  assigned_fates.insert(assigned_fates.end(), target_loser_count, 0); // 0 = Loser
+  assigned_fates.insert(assigned_fates.end(), target_sox2_count,  1); // 1 = Sox2
+  assigned_fates.insert(assigned_fates.end(), target_sox17_count, 2); // 2 = Sox17
 
-  // Fisher-Yates shuffle
+  // STEP 4: Fisher-Yates shuffle using your existing thread-safe RANDOM()
+  // This destroys any spatial correlation between the cell index and its fate.
   for (int i = total_valid_cells - 1; i > 0; i--) {
     int j = (int)(RANDOM(s_val) * (i + 1));
     if (j > i) j = i; // Safety bound
     std::swap(assigned_fates[i], assigned_fates[j]);
   }
 
-  // STEP 4: Iterate through cells and enforce the 3 possible assigned fates
+  // Helper Lambda: Generates continuous Sox values based on your Copula math
+  auto GenerateSoxValues = [&]() -> std::pair<double, double> {
+      double u_a = RANDOM(s_val);
+      double u_b = RANDOM(s_val);
+      if (u_a <= 0.0) u_a = 0.0000001; 
+
+      double radius = std::sqrt(-2.0 * std::log(u_a));
+      double theta = 2.0 * M_PI * u_b;
+      double z1 = radius * std::cos(theta);
+      double z2 = radius * std::sin(theta);
+
+      double y1 = z1;
+      double y2 = rho * z1 + std::sqrt(1.0 - rho * rho) * z2;
+
+      double u1 = 0.5 * std::erfc(-y1 * inv_sqrt2);
+      double u2 = 0.5 * std::erfc(-y2 * inv_sqrt2);
+
+      return { std::pow(u1, p2), std::pow(u2, p17) };
+  };
+
+  // STEP 5: Iterate through cells and enforce assigned fates via Rejection Sampling
   int cell_index = 0;
-  for (c = cell->begin(), c++; c != cell->end(); c++)
+  for (auto c = cell->begin(); c != cell->end(); ++c)
   {
     if (c->AliveP() && c->Sigma() != zona_sigma)
     {
-      int desired_fate = assigned_fates[cell_index]; // 0, 1, or 2
-      cell_index++;
-
-      double sox2 = 0.0;
-      double sox17 = 0.0;
-      bool acceptable_values = false;
+      int desired_fate = assigned_fates[cell_index++];
+      
+      double sox2 = 0.0, sox17 = 0.0;
+      bool accepted = false;
       int safety_counter = 0; 
 
-      while (!acceptable_values && safety_counter < 1000)
+      while (!accepted && safety_counter++ < 1000)
       {
-        safety_counter++;
-
-        // Generate values using your original copula math
-        double u_a = RANDOM(s_val);
-        double u_b = RANDOM(s_val);
-        if (u_a <= 0.0) u_a = 0.0000001; 
-
-        double radius = std::sqrt(-2.0 * std::log(u_a));
-        double theta = 2.0 * M_PI * u_b;
-        double z1 = radius * std::cos(theta);
-        double z2 = radius * std::sin(theta);
-
-        double y1 = z1;
-        double y2 = rho * z1 + std::sqrt(1.0 - rho * rho) * z2;
-
-        double u1 = 0.5 * std::erfc(-y1 * inv_sqrt2);
-        double u2 = 0.5 * std::erfc(-y2 * inv_sqrt2);
-
-        sox2 = std::pow(u1, p2);
-        sox17 = std::pow(u2, p17);
+        auto vals = GenerateSoxValues();
+        sox2 = vals.first;
+        sox17 = vals.second;
         
         bool is_sox2_high = (sox2 > threshold);
         bool is_sox17_high = (sox17 > threshold);
 
-        // CHECK FATES:
-        if (desired_fate == 1) { // Wants to be Sox2
-            if (is_sox2_high && !is_sox17_high) acceptable_values = true;
-        } 
-        else if (desired_fate == 2) { // Wants to be Sox17
-            if (is_sox17_high && !is_sox2_high) acceptable_values = true;
-        } 
-        else if (desired_fate == 0) { // Wants to be a Loser
-            // A loser is someone who fails to differentiate cleanly.
-            // Usually, this means both values are below threshold (double negative).
-            if (!is_sox2_high && !is_sox17_high) acceptable_values = true;
-            
-            // NOTE: If you also want "double positives" to count as losers, use this instead:
-            // if (is_sox2_high == is_sox17_high) acceptable_values = true;
-        }
+        // Check if the generated continuous values match our assigned exact discrete fate
+        if      (desired_fate == 1 && is_sox2_high && !is_sox17_high) accepted = true;
+        else if (desired_fate == 2 && is_sox17_high && !is_sox2_high) accepted = true;
+        else if (desired_fate == 0 && !is_sox2_high && !is_sox17_high) accepted = true;
       }
       
       c->setSox2(sox2, global_loser_perim_increase, global_sox17_perim_increase);
@@ -2039,7 +2005,6 @@ void CellularPotts::InitialiseRandomSoxValues()
     }
   }
 }
-
 
 void CellularPotts::SetSoxColours(double tfrac)
 {
@@ -4058,10 +4023,57 @@ void CellularPotts::ShapeIndex()
       // cout << corrected_perim << '\t' << vlist[p] << endl;
       double corrected_perim = perim_length / correction; 
       double sindex = corrected_perim / sqrt(double(vlist[celln]));
-      cout << sindex << endl;
       c->SetShapeIndex(sindex);
     }
   }    
+}
+
+void CellularPotts::PrintShapeIndexToFile(const std::string& filename, int timestep)
+{
+    std::ifstream check_file(filename);
+    bool file_exists = check_file.good();
+    check_file.close();
+
+    std::ofstream outfile(filename, std::ios::app);
+    if (!outfile.is_open())
+    {
+        std::cerr << "Error: Could not open file " << filename << std::endl;
+        return;
+    }
+
+    // Write header if the file is new
+    if (!file_exists)
+    {
+        outfile << "Time\tCell_ID\tSox2_ShapeIndex\tSox17_ShapeIndex\tLoser_ShapeIndex\n";
+    }
+
+    // Iterate through every cell
+    std::vector<Cell>::iterator c;
+    for ((c = cell->begin(), c++); c != cell->end(); c++)
+    {
+        if (c->AliveP())
+        {
+            int cell_id = c->Sigma();
+            double sindex = c->GetShapeIndex(); // or your shape index variable
+
+            // Check classification
+            bool is_loser = (c->CheckLooserValue() > 0.5);
+            bool is_sox2  = (!is_loser && c->sox2_internal_adhesion > 0.5);
+            bool is_sox17 = (!is_loser && c->sox17_internal_adhesion > 0.5);
+
+            // Print one row for this specific cell
+            outfile << timestep << "\t" << cell_id << "\t";
+
+            if (is_sox2)
+                outfile << sindex << "\tNA\tNA\n";
+            else if (is_sox17)
+                outfile << "NA\t" << sindex << "\tNA\n";
+            else if (is_loser)
+                outfile << "NA\tNA\t" << sindex << "\n";
+        }
+    }
+
+    outfile.close();
 }
 
 

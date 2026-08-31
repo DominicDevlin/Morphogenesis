@@ -1443,6 +1443,11 @@ inline void SetShapeIndex(double sindex)
   shape_index=sindex;
 }
 
+inline double GetShapeIndex()
+{
+  return shape_index;
+}
+
 // Which mechanism started killing this cell - lonely/blastocoel extrusion
 // (ToxictoLonelyCells) or neighbour-competition signalling
 // (NeighbourBasedApoptosis). Both shrink the cell identically, so this has

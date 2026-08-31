@@ -84,11 +84,11 @@
     div_threshold = 150;
     synthetic_max_area=cell_target_area+2;
     synthetic_min_area=cell_target_area-2;
-   some weird bug in the shape index code...
+
     H_perim = true;
-    elastic_modulus = 5;
-    ptarget_perimeter = 80;
-    perim_offset = 0;
+    elastic_modulus = 1;
+    ptarget_perimeter = 114;
+    perim_offset = 16;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -97,7 +97,7 @@
     // active motion should depend on E/P/N cadherin
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
-    active_motion = false;
+    active_motion = true;
     motility_strength = 0.3; // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
@@ -111,10 +111,10 @@
 
     div_time=40000;
 
-    loser_perim_increase=0.26;
-    hypoblast_perim_increase=0.18;
+    loser_perim_increase=0.;
+    hypoblast_perim_increase=0.25;
 
-    starting_fraction_losers=0.18;//0.33;
+    starting_fraction_losers=0.17;//0.33;
     target_sox2_prob=0.7;
 
     // smaller this is the smoother the curve between losers and winners (this is important)

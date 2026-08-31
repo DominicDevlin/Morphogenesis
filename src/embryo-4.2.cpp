@@ -176,13 +176,7 @@ TIMESTEP {
         get results of the shape index for loser cells for different adhesion /target perim values.
         From that, we can then deduce what kinds of perimeter/adhesion are roughly correct?
         */
-        dish->CPM->ShapeIndex();
-        if (t%200==0)
-        {
-          string output_sindex_name = par.data_file + "/shape_index.dat";
-          dish->CPM->PrintShapeIndexToFile(output_sindex_name, t);
-        }
-
+        // dish->CPM->ShapeIndex();
         dish->CPM->SetPerims();
         dish->CPM->SetSoxColours(tfrac);
       }
