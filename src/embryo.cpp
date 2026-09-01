@@ -154,22 +154,23 @@ TIMESTEP {
       // double multiplier = (par.sox2binding - par.loser_sox2_adhesion) * 0.5;
       if (tfrac < 0)
         tfrac=0;
-      dish->CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );
+      tfrac=1;
+      // dish->CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );
       // cout << par.loser_perim_increase * tfrac << endl;
 
       double tfrac2 = min(1., double(t-par.sox17bleb_slowdown_start)/double(par.bleb_end));
-      if (tfrac2 < 0)
-        tfrac2=0;
-      tfrac2=1-tfrac2;
-      dish->CPM->SetSox17PerimIncrease(par.hypoblast_perim_increase * tfrac2 );
+      // if (tfrac2 < 0)
+      //   tfrac2=0;
+      // tfrac2=1-tfrac2;
+      // dish->CPM->SetSox17PerimIncrease(par.hypoblast_perim_increase * tfrac2 );
       // if (t%100==0)
       // {
       //   dish->CPM->ToxictoLonelyCells();
       // }
       if (t%10==0)
       {
-        dish->CPM->CheckIfDivisionHit(t);
-        dish->CPM->LoserActiveMotion(tfrac);
+        // dish->CPM->CheckIfDivisionHit(t);
+        // dish->CPM->LoserActiveMotion(tfrac);
         /*
         The thing is... I actually KNOW what the shape index should be 
         roughly for loser cells. Because of that, what i can do is
@@ -186,10 +187,10 @@ TIMESTEP {
         dish->CPM->SetPerims();
         dish->CPM->SetSoxColours(tfrac);
       }
-      if (t%250==0)
-      {
-        dish->CPM->NeighbourBasedApoptosis();
-      }
+      // if (t%250==0)
+      // {
+      //   dish->CPM->NeighbourBasedApoptosis();
+      // }
 
       // if (t%500==0)
       // {

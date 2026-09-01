@@ -267,10 +267,13 @@ double Cell::EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_stick
 }
 
 
-double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, double t)
+double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, double t, bool debug)
 {
+
   if (sigma==cell2.sigma)
+  {
     return 0;
+  }
   else
   {
     double t2 = sox2_internal_adhesion;
@@ -309,7 +312,7 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, do
       return (par.J_cell_zona_sticky - sox2_internal_adhesion * par.Jzona_sticky_sox2extra
                             - sox17_internal_adhesion * par.Jzona_sticky_sox17extra)
                           - (is_looser * par.Jzona_sticky_loser * t)  // Needs to have 1-t for sox2  
-                           - (is_looser * par.Jzona_sticky_sox2extra * (1-t))   ;
+                           - (is_looser * par.Jzona_sticky_sox2extra * (1-t));
     }
     else
     {      
@@ -330,6 +333,12 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, do
                                 + is_looser * cell2_t17 * par.sox2vs17binding
                                 + cell2_is_looser * t17 * par.sox2vs17binding) * (1-t);
       //cout << t << '\t' << t2 << '\t' << cell2_t2 << '\t' << is_looser << '\t' << cell2_is_looser << '\t' << to_return << endl;
+
+      if (debug)
+      {
+        cout << "printing J: "<<  to_return << endl;
+      }
+
       return to_return;
     }
   }

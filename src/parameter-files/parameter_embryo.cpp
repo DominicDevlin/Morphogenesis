@@ -79,16 +79,16 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     bulk_modulus = 5;
-    cell_target_area = 400;
+    cell_target_area = 100;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 150;
     synthetic_max_area=cell_target_area+2;
     synthetic_min_area=cell_target_area-2;
-   some weird bug in the shape index code...
+   // some weird bug in the shape index code...
     H_perim = true;
     elastic_modulus = 5;
-    ptarget_perimeter = 80;
-    perim_offset = 0;
+    ptarget_perimeter = 42;//84;
+    perim_offset = 4;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -97,7 +97,7 @@
     // active motion should depend on E/P/N cadherin
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
-    active_motion = false;
+    active_motion = true;
     motility_strength = 0.3; // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
@@ -109,12 +109,19 @@
     sox17bleb_slowdown_start=35000;
     bleb_end=75000;
 
-    div_time=40000;
+    div_time=111140000;
 
-    loser_perim_increase=0.26;
-    hypoblast_perim_increase=0.18;
+    int divider=4;
+    expression_starts=expression_starts/divider;
+    time_till_full_expression=time_till_full_expression/divider;
+    sox17bleb_slowdown_start=sox17bleb_slowdown_start/divider;
+    bleb_end=bleb_end/divider;
+    div_time=div_time/divider;
 
-    starting_fraction_losers=0.18;//0.33;
+    loser_perim_increase=0.;
+    hypoblast_perim_increase=0.12;
+
+    starting_fraction_losers=0.4;//0.18;//0.33;
     target_sox2_prob=0.7;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
@@ -129,7 +136,7 @@
 
     // the important params
     apop_threshold=20.;
-    loser_sox2_adhesion=0.3; //-0.1;
+    loser_sox2_adhesion=0.7; //-0.1;
 
     double LSX2min=-0.1;
     double LSX2max=0.7;

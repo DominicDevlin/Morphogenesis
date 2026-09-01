@@ -352,13 +352,14 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
 
   double t = double(tsteps-par.expression_starts)/double(par.time_till_full_expression);
 
+
   double DH = 0;
   int i, sxy;
   int neighsite;
 
   /* Compute energy difference *IF* the copying were to occur */
   sxy = sigma[x][y];
-
+  
   // Pre-fetch references to save standard vector lookups
   Cell& cell_sxy = (*cell)[sxy];
   Cell& cell_sxyp = (*cell)[sxyp];
@@ -394,6 +395,13 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
         Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1);
       }
 
+      // if (tsteps%1000==0 && cell_sxyp.sox2_internal_adhesion > 0.8 && (*cell)[neighsite].sox2_internal_adhesion > 0.8 && sxyp!=neighsite)
+      // {
+      //   double topr = cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t, true);
+      //   cout << "J: " << topr << endl;
+      //   cout << cell_sxy.sox2_internal_adhesion << '\t' << cell_sxyp.sox2_internal_adhesion << endl;
+      //   cout << "sigmas: " << neighsite << '\t' << sxyp << '\t' << zona_sigma << '\t' << zona_sigma_sticky << endl;
+      // }
     }
   }
   
@@ -4044,7 +4052,7 @@ void CellularPotts::PrintShapeIndexToFile(const std::string& filename, int times
     // Write header if the file is new
     if (!file_exists)
     {
-        outfile << "Time\tCell_ID\tSox2_ShapeIndex\tSox17_ShapeIndex\tLoser_ShapeIndex\n";
+        outfile << "Time\tCell_ID\tSox2_ShapeIndex\tSox17_ShapeIndex\tLoser_ShapeIndex\ttarget_perim\n";
     }
 
     // Iterate through every cell
@@ -4065,11 +4073,14 @@ void CellularPotts::PrintShapeIndexToFile(const std::string& filename, int times
             outfile << timestep << "\t" << cell_id << "\t";
 
             if (is_sox2)
-                outfile << sindex << "\tNA\tNA\n";
+                outfile << sindex << "\tNA\tNA\t";
             else if (is_sox17)
-                outfile << "NA\t" << sindex << "\tNA\n";
+                outfile << "NA\t" << sindex << "\tNA\t";
             else if (is_loser)
-                outfile << "NA\tNA\t" << sindex << "\n";
+                outfile << "NA\tNA\t" << sindex << "\t";
+            
+            outfile << c->TargetPerimeter() <<  "\n";
+            
         }
     }
 

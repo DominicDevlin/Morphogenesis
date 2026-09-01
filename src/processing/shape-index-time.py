@@ -5,74 +5,85 @@ import matplotlib.pyplot as plt
 # 1. Configuration Settings
 # ==========================================
 FILE_NAME = 'shape-index-data/shape_index.dat'  # Change to your actual file name
-WINDOW_SIZE = 50                      # Increase this number for MORE smoothing, decrease for LESS
-PLOT_RAW_DATA = True                  # Set to True to see the noisy data faintly in the background
+WINDOW_SIZE = 50                      # Rolling window size for smoothing
+PLOT_RAW_DATA = True                  # Set to True to see noisy raw data faintly in the background
 
 # ==========================================
 # 2. Load and Process the Data
 # ==========================================
 print("Loading data...")
-# Read the file. 
-# sep='\t' tells pandas the file is tab-separated.
-# na_values='NA' automatically converts the 'NA' strings into mathematical NaNs (Not a Number).
+# Read tab-separated file and treat 'NA' as NaN
 df = pd.read_csv(FILE_NAME, sep='\t', na_values='NA')
 
+print("Separating target_perim by cell type...")
+# Assign target_perim to the respective cell type where its ShapeIndex is not NaN
+df['Sox2_TargetPerim'] = df['target_perim'].where(df['Sox2_ShapeIndex'].notna())
+df['Sox17_TargetPerim'] = df['target_perim'].where(df['Sox17_ShapeIndex'].notna())
+df['Loser_TargetPerim'] = df['target_perim'].where(df['Loser_ShapeIndex'].notna())
+
+# Columns to analyze
+columns_to_average = [
+    'Sox2_ShapeIndex', 'Sox17_ShapeIndex', 'Loser_ShapeIndex',
+    'Sox2_TargetPerim', 'Sox17_TargetPerim', 'Loser_TargetPerim'
+]
+
 print("Calculating averages per time step...")
-# Group by 'Time' and calculate the mean for each column.
-# Pandas automatically ignores 'NaN' values when calculating the mean, 
-# which perfectly handles our staggered columns!
-df_avg = df.groupby('Time')[['Sox2_ShapeIndex', 'Sox17_ShapeIndex', 'Loser_ShapeIndex']].mean()
+# Group by 'Time' and compute the mean (NaN values are ignored automatically)
+df_avg = df.groupby('Time')[columns_to_average].mean()
 
 print(f"Applying smoothing (Window Size = {WINDOW_SIZE})...")
-# Apply a rolling moving average to massively smooth the data.
-# center=True prevents the smoothed line from "lagging" behind the real time.
-# min_periods=1 ensures we still get lines at the very beginning/end of the simulation.
+# Rolling moving average for smoothing
 df_smoothed = df_avg.rolling(window=WINDOW_SIZE, center=True, min_periods=1).mean()
 
 # ==========================================
 # 3. Plotting
 # ==========================================
-print("Generating plot...")
-plt.figure(figsize=(10, 6))
+print("Generating plots...")
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
 
-# Colors for the different cell types
-colors = {
-    'Sox2_ShapeIndex': 'dodgerblue',
-    'Sox17_ShapeIndex': 'forestgreen',
-    'Loser_ShapeIndex': 'crimson'
+# Styling configurations
+shape_config = {
+    'Sox2_ShapeIndex': {'label': 'Sox2 Cells', 'color': 'dodgerblue'},
+    'Sox17_ShapeIndex': {'label': 'Sox17 Cells', 'color': 'forestgreen'},
+    'Loser_ShapeIndex': {'label': 'Loser Cells', 'color': 'crimson'}
 }
 
-labels = {
-    'Sox2_ShapeIndex': 'Sox2 Cells',
-    'Sox17_ShapeIndex': 'Sox17 Cells',
-    'Loser_ShapeIndex': 'Loser Cells'
+perim_config = {
+    'Sox2_TargetPerim': {'label': 'Sox2 Target Perim', 'color': 'dodgerblue'},
+    'Sox17_TargetPerim': {'label': 'Sox17 Target Perim', 'color': 'forestgreen'},
+    'Loser_TargetPerim': {'label': 'Loser Target Perim', 'color': 'crimson'}
 }
 
-# Plot the lines
-for column in df_smoothed.columns:
-    # Optional: Plot the raw, noisy data in the background with low opacity
+# --- Top Subplot: Shape Index ---
+for col, style in shape_config.items():
     if PLOT_RAW_DATA:
-        plt.plot(df_avg.index, df_avg[column], color=colors[column], alpha=0.15)
-    
-    # Plot the smoothed data heavily
-    plt.plot(df_smoothed.index, df_smoothed[column], 
-             label=labels[column], color=colors[column], linewidth=2.5)
+        ax1.plot(df_avg.index, df_avg[col], color=style['color'], alpha=0.15)
+    ax1.plot(df_smoothed.index, df_smoothed[col], 
+             label=style['label'], color=style['color'], linewidth=2.5)
 
-# Formatting the plot
-plt.title('Average Cell Shape Index Over Time', fontsize=16, fontweight='bold')
-plt.xlabel('Time Step', fontsize=14)
-plt.ylabel('Shape Index (Average)', fontsize=14)
+ax1.axhline(y=3.81, color='black', linestyle='--', alpha=0.5, label='Solid-Fluid Transition (~3.81)')
+ax1.set_title('Average Cell Shape Index Over Time', fontsize=15, fontweight='bold')
+ax1.set_ylabel('Shape Index (Average)', fontsize=13)
+ax1.legend(fontsize=11, loc='best')
+ax1.grid(True, linestyle=':', alpha=0.7)
 
-# Add a reference line for standard solid/fluid transition (Shape Index ~ 3.81 in 2D tissue)
-# Feel free to remove this if it doesn't apply to your specific model
-plt.axhline(y=3.81, color='black', linestyle='--', alpha=0.5, label='Solid-Fluid Transition (~3.81)')
+# --- Bottom Subplot: Target Perimeter ---
+for col, style in perim_config.items():
+    if PLOT_RAW_DATA:
+        ax2.plot(df_avg.index, df_avg[col], color=style['color'], alpha=0.15)
+    ax2.plot(df_smoothed.index, df_smoothed[col], 
+             label=style['label'], color=style['color'], linewidth=2.5)
 
-plt.legend(fontsize=12, loc='best')
-plt.grid(True, linestyle=':', alpha=0.7)
+ax2.set_title('Average Target Perimeter Over Time', fontsize=15, fontweight='bold')
+ax2.set_xlabel('Time Step', fontsize=13)
+ax2.set_ylabel('Target Perimeter (Average)', fontsize=13)
+ax2.legend(fontsize=11, loc='best')
+ax2.grid(True, linestyle=':', alpha=0.7)
+
 plt.tight_layout()
 
 # Save and show the plot
-output_image = 'shape_index_plot.png'
+output_image = 'shape_index_and_perim_plot.png'
 plt.savefig(output_image, dpi=300)
 print(f"Plot saved successfully as '{output_image}'")
 
