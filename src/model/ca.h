@@ -325,6 +325,8 @@ public:
 
   void InitialiseRandomSoxValues();
 
+  void InitialiseSpatialSoxValues();
+
 
   void ToxictoLonelyCells();
 

@@ -305,7 +305,8 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, do
     else if (cell2.sigma==zona_sigma) // 1 is zona pellucida
     {
       // cout << "here" << endl;
-      return (par.J_cell_zona - sox17_internal_adhesion * par.Jzona_sox17);
+      return (par.J_cell_zona
+                              - is_looser * par.Jzona_loser * t);
     }
     else if (cell2.sigma==zona_sigma_sticky)
     {

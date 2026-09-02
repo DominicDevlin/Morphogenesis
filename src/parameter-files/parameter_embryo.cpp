@@ -78,17 +78,47 @@
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
+
+    loser_sorting_only=true;
+
+    div_time=40000;
+
+    if (loser_sorting_only)
+    {
+      initialise_sox_time=1000;
+      mcs = 50001;
+      expression_starts=1000;
+      time_till_full_expression=16000;
+      sox17bleb_slowdown_start=initialise_sox_time;
+      bleb_end=0;
+      // need like a number of divisions parameter
+      cell_target_area = 200;
+      ptarget_perimeter = 62;//84;
+      n_divisions=1;
+      maxsox17cells=4;
+    }
+    else
+    {
+      initialise_sox_time=1000;
+      mcs = 80001;
+      expression_starts=35000;
+      time_till_full_expression=16000;
+      sox17bleb_slowdown_start=20000;
+      bleb_end=40000;
+      cell_target_area = 400;
+      ptarget_perimeter = 86;
+      n_divisions=2;
+    }
+
+
     bulk_modulus = 5;
-    cell_target_area = 100;
     lambda = bulk_modulus / cell_target_area;// 130;
-    div_threshold = 150;
     synthetic_max_area=cell_target_area+2;
     synthetic_min_area=cell_target_area-2;
    // some weird bug in the shape index code...
     H_perim = true;
     elastic_modulus = 5;
-    ptarget_perimeter = 42;//84;
-    perim_offset = 4;
+    perim_offset = 6;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -98,34 +128,27 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.3; // not that this term depends on the cell size (1/sqrt(area))
+    motility_strength = 0.25; // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
 
-    initialise_sox_time=500;
-    expression_starts=60000;
-    time_till_full_expression=20000;
 
-    sox17bleb_slowdown_start=35000;
-    bleb_end=75000;
 
-    div_time=111140000;
+    // int divider=4;
+    // expression_starts=expression_starts/divider;
+    // time_till_full_expression=time_till_full_expression/divider;
+    // sox17bleb_slowdown_start=sox17bleb_slowdown_start/divider;
+    // bleb_end=bleb_end/divider;
+    // div_time=div_time/divider;
 
-    int divider=4;
-    expression_starts=expression_starts/divider;
-    time_till_full_expression=time_till_full_expression/divider;
-    sox17bleb_slowdown_start=sox17bleb_slowdown_start/divider;
-    bleb_end=bleb_end/divider;
-    div_time=div_time/divider;
+    loser_perim_increase=0.15;
+    hypoblast_perim_increase=0.15;
 
-    loser_perim_increase=0.;
-    hypoblast_perim_increase=0.12;
-
-    starting_fraction_losers=0.4;//0.18;//0.33;
+    starting_fraction_losers=0.15;//0.18;//0.33;
     target_sox2_prob=0.7;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
-    switch_like=2000.;
+    switch_like=10000.;
 
     set_loser_colours=true;
 
@@ -136,7 +159,7 @@
 
     // the important params
     apop_threshold=20.;
-    loser_sox2_adhesion=0.7; //-0.1;
+    loser_sox2_adhesion=0.4; //-0.1;
 
     double LSX2min=-0.1;
     double LSX2max=0.7;
@@ -156,6 +179,12 @@
     double ZLmax=1.4;
     to_add = (ZLmax-ZLmin) * frac;
     Jzona_sticky_loser=ZLmin+to_add;
+
+    double ZonaNormmin=-0.5;
+    double ZonaNormmax=0.;
+    to_add = (ZonaNormmax-ZonaNormmin) * frac;
+    Jzona_loser=ZonaNormmin + to_add;
+
 
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
@@ -178,18 +207,17 @@
     // baseline J value between cells
     J_cell_baseline=1.2; //1.2
     // binding of sox2 to sox2
-    sox2binding=0.7;
+    sox2binding=0.8;
     // binding of sox17 to sox17 =
-    sox17binding=0.5;
+    sox17binding=0.4;
     // binding between sox2 and sox17
     sox2vs17binding=0.6;
 
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
-    J_cell_zona = 1.12; //1.2
-    Jzona_sox2 = 0.0;
-    Jzona_sox17 = 0.15;
-    Jzona_loser=0;
+    J_cell_zona = 0.97; //1.2
+    Jzona_sox2 = 0.;
+    Jzona_sox17 = 0.;
     // added zona adhesion for sox2 sox17 for sticky part
     J_cell_zona_sticky=2.0; //2.0
     Jzona_sticky_sox2extra=1.4;

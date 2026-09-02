@@ -53,6 +53,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <algorithm>
 #include <queue>
 #include <map>
+#include <utility>
 
 using namespace std;
 
@@ -1909,110 +1910,138 @@ bool CellularPotts::SpawnCell(int x, int y, int cp_sigma, int time)
 }
 
 
-#include <vector>
-#include <cmath>
-#include <algorithm> // For std::swap
-
 void CellularPotts::InitialiseRandomSoxValues()
 {
-  // --- CONFIGURATION ---
-  if (par.target_sox2_prob < 0.001) par.target_sox2_prob = 0.001;
-  if (par.target_sox2_prob > 0.999) par.target_sox2_prob = 0.999;
-  
-  double target_sox17_prob = 1.0 - par.target_sox2_prob;
-  double threshold = par.sox_threshold; 
-  double loser_prob = par.starting_fraction_losers;
-
-  double p2  = std::log(threshold) / std::log(1.0 - par.target_sox2_prob);
-  double p17 = std::log(threshold) / std::log(1.0 - target_sox17_prob);
-  
-  const double inv_sqrt2 = 0.7071067811865475;
-  double x = 1.0 - loser_prob; 
-  double rho = std::sin(M_PI * (0.5 - x)); 
-
-  // STEP 1: Count the total number of valid cells
-  int total_valid_cells = 0;
+  // 1. Collect all valid cells
+  std::vector<Cell*> valid_cells;
   for (auto c = cell->begin(); c != cell->end(); ++c) {
-    if (c->AliveP() && c->Sigma() != zona_sigma) total_valid_cells++;
+    if (c->AliveP() && c->Sigma() != zona_sigma && c->Sigma()!=zona_sigma_sticky && c->Sigma() > 0) 
+    {
+      valid_cells.push_back(&*c);
+    }
   }
-  if (total_valid_cells == 0) return;
+  if (valid_cells.empty()) return;
 
-  // STEP 2: Calculate EXACT target counts (ZERO VARIANCE)
-  // std::round guarantees we get the precise proportions closest to the probabilities.
-  int target_loser_count = std::round(total_valid_cells * loser_prob);
-  
-  int remaining_cells = total_valid_cells - target_loser_count;
-  int target_sox2_count = std::round(remaining_cells * par.target_sox2_prob);
-  int target_sox17_count = remaining_cells - target_sox2_count; // Guarantees exact total
-
-  // STEP 3: Create exact fate array
-  std::vector<int> assigned_fates;
-  assigned_fates.reserve(total_valid_cells);
-  assigned_fates.insert(assigned_fates.end(), target_loser_count, 0); // 0 = Loser
-  assigned_fates.insert(assigned_fates.end(), target_sox2_count,  1); // 1 = Sox2
-  assigned_fates.insert(assigned_fates.end(), target_sox17_count, 2); // 2 = Sox17
-
-  // STEP 4: Fisher-Yates shuffle using your existing thread-safe RANDOM()
-  // This destroys any spatial correlation between the cell index and its fate.
-  for (int i = total_valid_cells - 1; i > 0; i--) {
-    int j = (int)(RANDOM(s_val) * (i + 1));
-    if (j > i) j = i; // Safety bound
-    std::swap(assigned_fates[i], assigned_fates[j]);
+  // 2. Shuffle cells to randomize spatial distribution
+  for (int i = valid_cells.size() - 1; i > 0; --i) {
+    int j = std::min((int)(RANDOM(s_val) * (i + 1)), i);
+    std::swap(valid_cells[i], valid_cells[j]);
   }
 
-  // Helper Lambda: Generates continuous Sox values based on your Copula math
-  auto GenerateSoxValues = [&]() -> std::pair<double, double> {
-      double u_a = RANDOM(s_val);
-      double u_b = RANDOM(s_val);
-      if (u_a <= 0.0) u_a = 0.0000001; 
+  // 3. Exact target counts (Guaranteed to sum to valid_cells.size())
+  int n_total  = valid_cells.size();
+  int n_losers = std::round(n_total * par.starting_fraction_losers);
+  int n_sox2   = std::round((n_total - n_losers) * par.target_sox2_prob);
+  int n_sox17  = n_total - n_losers - n_sox2;
 
-      double radius = std::sqrt(-2.0 * std::log(u_a));
-      double theta = 2.0 * M_PI * u_b;
-      double z1 = radius * std::cos(theta);
-      double z2 = radius * std::sin(theta);
+  // 4. Value helpers: Low (<= threshold) and High (> threshold)
+  double th = par.sox_threshold;
+  auto rand_low  = [&]() { return RANDOM(s_val) * th; };
+  auto rand_high = [&]() { return th + RANDOM(s_val) * (1.0 - th); };
 
-      double y1 = z1;
-      double y2 = rho * z1 + std::sqrt(1.0 - rho * rho) * z2;
+  // 5. Assign exact values across the shuffled cells
+  for (int i = 0; i < n_total; ++i) 
+  {
+    double sox2  = (i >= n_losers && i < n_losers + n_sox2) ? rand_high() : rand_low();
+    double sox17 = (i >= n_losers + n_sox2)                 ? rand_high() : rand_low();
 
-      double u1 = 0.5 * std::erfc(-y1 * inv_sqrt2);
-      double u2 = 0.5 * std::erfc(-y2 * inv_sqrt2);
+    valid_cells[i]->setSox2(sox2, global_loser_perim_increase, global_sox17_perim_increase);
+    valid_cells[i]->setSox17(sox17, global_loser_perim_increase, global_sox17_perim_increase);
+    valid_cells[i]->SetSoxColour(0);
+  }
+}
 
-      return { std::pow(u1, p2), std::pow(u2, p17) };
+void CellularPotts::InitialiseSpatialSoxValues()
+{
+  // 1. Detect cells in direct contact with the blastocoel (sigma == 0)
+  std::unordered_set<int> blastocoel_contact;
+  const int dx[8] = {-1,  1,  0,  0, -1, -1,  1,  1};
+  const int dy[8] = { 0,  0, -1,  1, -1,  1, -1,  1};
+
+  for (int x = 1; x < sizex - 1; ++x) {
+    for (int y = 1; y < sizey - 1; ++y) {
+      int id = sigma[x][y];
+      if (id > 0 && id != zona_sigma && blastocoel_contact.find(id) == blastocoel_contact.end()) {
+        for (int d = 0; d < 8; ++d) {
+          if (sigma[x + dx[d]][y + dy[d]] == 0) {
+            blastocoel_contact.insert(id);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Separate cells into Surface and Inner candidates (Excludes medium sigma == 0)
+  std::vector<Cell*> surface_cells;
+  std::vector<Cell*> inner_cells;
+
+  for (auto c = cell->begin(); c != cell->end(); ++c) {
+    if (c->AliveP() && c->Sigma() != 0 && c->Sigma() != zona_sigma) {
+      if (blastocoel_contact.count(c->Sigma())) {
+        surface_cells.push_back(&*c);
+      } else {
+        inner_cells.push_back(&*c);
+      }
+    }
+  }
+
+  int n_total = surface_cells.size() + inner_cells.size();
+  if (n_total == 0) return;
+
+  // 3. Shuffle surface cells to randomly choose which ones stay Sox17 if capped
+  for (int i = surface_cells.size() - 1; i > 0; --i) {
+    int j = std::min((int)(RANDOM(s_val) * (i + 1)), i);
+    std::swap(surface_cells[i], surface_cells[j]);
+  }
+
+  // 4. Enforce maxsox17cells cap: excess surface cells are demoted to Sox2 candidates
+  int max_sox17 = std::max(0, par.maxsox17cells);
+  int n_sox17   = std::min(static_cast<int>(surface_cells.size()), max_sox17);
+
+  for (size_t i = n_sox17; i < surface_cells.size(); ++i) {
+    inner_cells.push_back(surface_cells[i]); // Demote excess to Sox2 pool
+  }
+  surface_cells.resize(n_sox17);
+
+  // 5. Shuffle inner cells to distribute losers randomly among Sox2 cells
+  for (int i = inner_cells.size() - 1; i > 0; --i) {
+    int j = std::min((int)(RANDOM(s_val) * (i + 1)), i);
+    std::swap(inner_cells[i], inner_cells[j]);
+  }
+
+  // 6. Calculate loser count (fraction of total cells, capped at available inner/Sox2 cells)
+  int target_losers = std::round(n_total * par.starting_fraction_losers);
+  int n_losers      = std::min(target_losers, static_cast<int>(inner_cells.size()));
+
+  // 7. Value helpers (with epsilon safety margins)
+  double th  = par.sox_threshold;
+  double eps = 1e-4;
+
+  auto rand_low  = [&]() { return RANDOM(s_val) * (th - eps); };
+  auto rand_high = [&]() { return (th + eps) + RANDOM(s_val) * (1.0 - (th + eps)); };
+
+  auto apply_values = [&](Cell* c, double s2, double s17) {
+    c->setSox2(s2, global_loser_perim_increase, global_sox17_perim_increase);
+    c->setSox17(s17, global_loser_perim_increase, global_sox17_perim_increase);
+    c->SetSoxColour(0);
   };
 
-  // STEP 5: Iterate through cells and enforce assigned fates via Rejection Sampling
-  int cell_index = 0;
-  for (auto c = cell->begin(); c != cell->end(); ++c)
-  {
-    if (c->AliveP() && c->Sigma() != zona_sigma)
-    {
-      int desired_fate = assigned_fates[cell_index++];
-      
-      double sox2 = 0.0, sox17 = 0.0;
-      bool accepted = false;
-      int safety_counter = 0; 
+  // 8. Assign Surface cells (Guaranteed capped at par.maxsox17cells)
+  for (Cell* c : surface_cells) {
+    apply_values(c, rand_low(), rand_high());
+  }
 
-      while (!accepted && safety_counter++ < 1000)
-      {
-        auto vals = GenerateSoxValues();
-        sox2 = vals.first;
-        sox17 = vals.second;
-        
-        bool is_sox2_high = (sox2 > threshold);
-        bool is_sox17_high = (sox17 > threshold);
-
-        // Check if the generated continuous values match our assigned exact discrete fate
-        if      (desired_fate == 1 && is_sox2_high && !is_sox17_high) accepted = true;
-        else if (desired_fate == 2 && is_sox17_high && !is_sox2_high) accepted = true;
-        else if (desired_fate == 0 && !is_sox2_high && !is_sox17_high) accepted = true;
-      }
-      
-      c->setSox2(sox2, global_loser_perim_increase, global_sox17_perim_increase);
-      c->setSox17(sox17, global_loser_perim_increase, global_sox17_perim_increase);
-      c->SetSoxColour(0);
+  // 9. Assign Inner cells (Losers first, remainder Sox2)
+  for (size_t i = 0; i < inner_cells.size(); ++i) {
+    if (static_cast<int>(i) < n_losers) {
+      apply_values(inner_cells[i], rand_low(), rand_low());   // Loser
+    } else {
+      apply_values(inner_cells[i], rand_high(), rand_low());  // Sox2
     }
   }
 }
+
 
 void CellularPotts::SetSoxColours(double tfrac)
 {
@@ -3395,12 +3424,27 @@ void CellularPotts::DrawDivisionTimes()
   {
     if (c->AliveP()) 
     {
-
-
       double prob_1 = RANDOM(s_val);
       int t_1 = round(prob_1 * par.div_time);
       int t_2 = round(t_1 + par.div_time + GetStandardNormal() * (par.div_time/5));
       int t_3 = round(t_1 + par.div_time + GetStandardNormal() * (par.div_time/5));
+
+      if (par.n_divisions==1)
+      {
+        vector<int> tt = {t_1};
+        c->setDivisionTimes(tt);
+      }
+      else if (par.n_divisions==2)
+      {
+        vector<int> tt = {t_1, t_2, t_2};
+        c->setDivisionTimes(tt);
+      }
+      else
+      {
+        vector<int> tt {INT16_MAX};
+        c->setDivisionTimes(tt);
+      }
+
       // cout << t_1 << '\t' << t_2 << '\t' << t_3 << '\t' << GetStandardNormal() * 1000 << endl;
 
 
@@ -3426,8 +3470,7 @@ void CellularPotts::DrawDivisionTimes()
       //   t_2=par.mcs;
       // if (t_3<t_1)
       //   t_3=par.mcs;
-      vector<int> tt = {t_1, t_2, t_2};
-      c->setDivisionTimes(tt);
+
 
     }
   }

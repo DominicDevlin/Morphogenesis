@@ -144,6 +144,10 @@ class Parameter {
   double bleb_end;
   int div_time;
 
+  bool loser_sorting_only;
+  int n_divisions;
+  int maxsox17cells;
+
   double switch_like;
 
   double apop_signal_noise;
