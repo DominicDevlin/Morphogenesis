@@ -152,13 +152,11 @@ TIMESTEP {
       }
       dish->CPM->SetMotilityStrengths();
       dish->CPM->SetPerims(par.ptarget_perimeter);
-
-
     }
+
     if (t>par.initialise_sox_time)
     {
       double tfrac = min(1., double(t-par.expression_starts)/double(par.time_till_full_expression));
-      // double multiplier = (par.sox2binding - par.loser_sox2_adhesion) * 0.5;
       if (tfrac < 0)
         tfrac=0;
       dish->CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );
@@ -191,6 +189,14 @@ TIMESTEP {
 
         dish->CPM->SetPerims();
         dish->CPM->SetSoxColours(tfrac);
+      }
+      if (t >= par.mcs - par.final_steps)
+      {
+        dish->CPM->CheckLoserTouchingMedium();
+      }
+      if (t==par.mcs-1)
+      {
+        cout << "Did losers migrate: " << dish->CPM->TotalMediumTouchRatio(par.final_steps) << endl;
       }
       // if (t%250==0)
       // {

@@ -182,6 +182,8 @@ public:
     motility_strength=src.motility_strength;
 
     accumulated_death_signals = src.accumulated_death_signals;
+
+    medium_touch_count=src.medium_touch_count;
     
   }
   
@@ -296,6 +298,7 @@ public:
     f_opposing_P_cad = src.f_opposing_P_cad;
   
     accumulated_death_signals = src.accumulated_death_signals;
+    medium_touch_count=src.medium_touch_count;
 
 
     diffs = new double[par.n_diffusers];
@@ -483,6 +486,8 @@ al. 2000). The current version of TST does not include such functionality.
   //   return J[t2][t1]=J[t1][t2]=val;
   // }
   double EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, double t);
+
+
 
 
   // Deal with gradient measurements:
@@ -1563,6 +1568,16 @@ inline void SetLooser()
   }
 }
 
+inline void IncrementMediumTouchCount() 
+{
+    ++medium_touch_count;
+}
+
+inline int GetMediumTouchCount() const 
+{
+    return medium_touch_count;
+}
+
 inline double CheckLooserValue()
 {
   return max(sox2_internal_adhesion * sox17_internal_adhesion, (1. - sox2_internal_adhesion) * (1. - sox17_internal_adhesion));
@@ -1652,6 +1667,8 @@ protected:
   double Sox17_concentration;
   double sox17_internal_adhesion;
   bool lonely_cell;
+
+  int medium_touch_count{};
 
   //current state of the cell
   int phenotype;

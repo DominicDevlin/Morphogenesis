@@ -60,10 +60,10 @@ INIT
 
     if (par.make_zona_pellucida)
     {
-      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 55, 65, 2);
+      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 40, 40, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -83, par.sizex/2, par.sizey/2, 55, 65, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -70, par.sizex/2, par.sizey/2, 40, 40, 2);
 
     CPM->DifferentiateZonaPellucida();
 
@@ -131,6 +131,9 @@ void process_population()
   vector<vector<double>> sox2_start(par.n_orgs);
   vector<vector<double>> sox17_start(par.n_orgs);
 
+  vector<vector<double>> all_shape_indices(par.n_orgs);
+  vector<int> record_times;
+
   ostringstream makefll;
 
   // init_progress_bars(par.n_orgs, par.mcs);
@@ -154,8 +157,9 @@ void process_population()
     dishes[i].CPM->SetPerims(par.ptarget_perimeter);
     int initial_cell_count = dishes[i].CPM->CountCells();
     cout << "Number of cells: " << initial_cell_count << endl; // 1200
-    dishes[i].CPM->DrawDivisionTimes();
-    dishes[i].CPM->SetColours();
+    dishes[i].CPM->SetSoxColours(0);
+
+
 
     // No apoptosis mechanism runs before t==initialise_sox_time, so this is
     // also the population cell sorting starts from - lets downstream analysis
@@ -178,42 +182,55 @@ void process_population()
     sorting_file << "time" << "\tsox2sox17\tloserwinner" << endl;
 
     int t;
-
     for (t = 0; t < par.mcs; t++)
     {              
 
 
       if (t==par.initialise_sox_time)
       {
-        
-        dishes[i].CPM->InitialiseRandomSoxValues();
+        dishes[i].CPM->DrawDivisionTimes();
+        if (par.loser_sorting_only)
+        {
+          dishes[i].CPM->InitialiseSpatialSoxValues();
+        }
+        else
+        {
+          dishes[i].CPM->InitialiseRandomSoxValues();
+        }
         sox2_start[i] = dishes[i].CPM->sox2_values();
         sox17_start[i] = dishes[i].CPM->sox17_values();
         dishes[i].CPM->SetMotilityStrengths();
         dishes[i].CPM->SetPerims(par.ptarget_perimeter);
-
       }
+
       if (t>par.initialise_sox_time)
       {
-        double tfrac = min(1., double(t-par.initialise_sox_time)/double(par.time_till_full_expression));
-        double multiplier = par.sox2binding - par.loser_sox2_adhesion * 0.5;
-        // dishes[i].CPM->SetLoserPerimIncrease( multiplier * tfrac );
+        double tfrac = min(1., double(t-par.expression_starts)/double(par.time_till_full_expression));
+        if (tfrac < 0)
+          tfrac=0;
+        dishes[i].CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );
 
-        if (t%100==0)
-        {
-          dishes[i].CPM->ToxictoLonelyCells();
-        }
+        double tfrac2 = min(1., double(t-par.sox17bleb_slowdown_start)/double(par.bleb_end));
+        if (tfrac2 < 0)
+          tfrac2=0;
+        tfrac2=1-tfrac2;
+        dishes[i].CPM->SetSox17PerimIncrease(par.hypoblast_perim_increase * tfrac2 );
+
+        // if (t%100==0)
+        // {
+        //   dishes[i].CPM->ToxictoLonelyCells();
+        // }
         if (t%10==0)
         {
           dishes[i].CPM->CheckIfDivisionHit(t);
-          dishes[i].CPM->NeighbourBasedActiveMotion(tfrac);
+          dishes[i].CPM->LoserActiveMotion(tfrac);
           dishes[i].CPM->SetPerims();
           dishes[i].CPM->SetSoxColours(tfrac);
         }
-        if (t%250==0)
-        {
-          dishes[i].CPM->NeighbourBasedApoptosis(i + 1);
-        }
+        // if (t%250==0)
+        // {
+        //   dishes[i].CPM->NeighbourBasedApoptosis(i + 1);
+        // }
       }
       if (t%100==0)
       {
@@ -234,6 +251,17 @@ void process_population()
         double loser_boundary= dishes[i].CPM->LoserWinnerBoundaryLength();
         double sox_boundary = dishes[i].CPM->Sox2Sox17BoundaryLength();
         sorting_file << t << '\t' << loser_boundary << '\t' << sox_boundary << endl;
+
+      }
+      if (t%1000==0)
+      {
+        double avg_shape_index = dishes[i].CPM->AverageShapeIndex();
+        all_shape_indices[i].push_back(avg_shape_index);
+      }
+
+      if (t >= par.mcs - par.final_steps)
+      {
+        dishes[i].CPM->CheckLoserTouchingMedium();
       }
 
       dishes[i].CPM->AmoebaeMove(t);
@@ -262,6 +290,49 @@ void process_population()
   }
 
 
+  double migration_result{};
+  for (int i = 0; i < par.n_orgs; ++i)
+  {    
+    migration_result += dishes[i].CPM->TotalMediumTouchRatio(par.final_steps);
+  }
+  migration_result /= double(par.n_orgs);
+
+  string oname = par.data_file + "/migration_proportion.dat";
+  ofstream outfile;
+  outfile.open(oname);
+  outfile << migration_result << endl;
+  outfile.close();
+
+
+
+  string shape_fname = par.data_file + "/average_shape_indices.dat";
+  ofstream shape_file(shape_fname);
+
+  // 1. Header
+  shape_file << "time";
+  for (int i = 0; i < par.n_orgs; ++i)
+  {
+    shape_file << "\tsim_" << (i + 1);
+  }
+  shape_file << "\n";
+
+  // 2. Rows (Time in col 0, each simulation's value in subsequent cols)
+  if (par.n_orgs > 0 && !all_shape_indices[0].empty())
+  {
+    size_t num_records = all_shape_indices[0].size();
+    for (size_t step = 0; step < num_records; ++step)
+    {
+      int current_time = step * 1000; // matches the sampling interval
+      shape_file << current_time;
+
+      for (int i = 0; i < par.n_orgs; ++i)
+      {
+        shape_file << '\t' << all_shape_indices[i][step];
+      }
+      shape_file << "\n";
+    }
+  }
+  shape_file.close();
 
   // string oname = par.data_file + "/sox_start_values.dat";
   // ofstream outfile;
@@ -333,16 +404,16 @@ int main(int argc, char *argv[])
     // LL  min = -0.7, max=0.7
     // sx17 L min = 0. max = 0.6
     // and we do intervals of 9x9 matrix (or 8 dividers) so..
-    double LSX2min=-0.1;
-    double LSX2max=0.7;
+    double LSX2min=-0.3;
+    double LSX2max=0.8;
     double frac = (par.loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
 
-    double LLmin=-0.7;
-    double LLmax=0.7;
+    double LLmin=-0.8;
+    double LLmax=0.8;
     double to_add = (LLmax-LLmin)*frac;
     par.loser_loser_adhesion=LLmin+to_add;
     
-    double LSX17min=-0.1;
+    double LSX17min=0.0;
     double LSX17max=0.6;
     to_add = (LSX17max-LSX17min) * frac;
     par.loser_sox17_adhesion=LSX17min + to_add;
@@ -352,13 +423,18 @@ int main(int argc, char *argv[])
     to_add = (ZLmax-ZLmin) * frac;
     par.Jzona_sticky_loser=ZLmin+to_add;
 
-    cout << "Loser sox2 adhesion: " << par.loser_sox2_adhesion << "\nloser loser adhesion: " << par.loser_loser_adhesion << "\nloser sox17 adhesion: " << par.loser_sox17_adhesion << endl;
+    double ZonaNormmin=-0.3;
+    double ZonaNormmax=0.;
+    to_add = (ZonaNormmax-ZonaNormmin) * frac;
+    par.Jzona_loser=ZonaNormmin + to_add;
+
+    cout << "Loser sox2 adhesion: " << par.loser_sox2_adhesion << "\nloser loser adhesion: " << par.loser_loser_adhesion << "\nloser sox17 adhesion: " << par.loser_sox17_adhesion << "\nloser zona adhesion: " << par.Jzona_loser << endl;
 
     par.loser_sox2_adhesion=par.loser_sox2_adhesion*par.adhesion_multiplier;
     par.loser_loser_adhesion=par.loser_loser_adhesion*par.adhesion_multiplier;
     par.loser_sox17_adhesion=par.loser_sox17_adhesion*par.adhesion_multiplier;
     par.Jzona_sticky_loser=par.Jzona_sticky_loser*par.adhesion_multiplier;
-
+    par.Jzona_loser=par.Jzona_loser*par.adhesion_multiplier;
   }
 
 
@@ -372,7 +448,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 100;
+  par.n_orgs = 4;
   par.make_synthetic=true;
   par.phase_evolution = false;
 

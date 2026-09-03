@@ -61,9 +61,8 @@
     print_fitness = true; 
 
 /* Cellular Potts parameters */
-    sizex = 300;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 300;
-    mcs = 35001;
+    sizex = 150;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 150;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
@@ -78,17 +77,51 @@
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
+    /*KEY PARAMETERS!!*/
+    motility_strength = 0.2;
+    loser_perim_increase=0.1;
+    hypoblast_perim_increase=0.2;
+    loser_sox2_adhesion=0.4; //-0.1;
+
+    loser_sorting_only=true;
+    div_time=36000;
+    final_steps=3000;
+
+    if (loser_sorting_only)
+    {
+      initialise_sox_time=1000;
+      mcs = 45001;
+      expression_starts=1000;
+      time_till_full_expression=16000;
+      sox17bleb_slowdown_start=initialise_sox_time;
+      bleb_end=0;
+      // need like a number of divisions parameter
+      cell_target_area = 200;
+      ptarget_perimeter = 60;//84;
+      n_divisions=1;
+      maxsox17cells=4;
+    }
+    else
+    {
+      initialise_sox_time=1000;
+      mcs = 80001;
+      expression_starts=35000;
+      time_till_full_expression=16000;
+      sox17bleb_slowdown_start=20000;
+      bleb_end=40000;
+      cell_target_area = 400;
+      ptarget_perimeter = 82;
+      n_divisions=2;
+    }
+
     bulk_modulus = 5;
-    cell_target_area = 400;
     lambda = bulk_modulus / cell_target_area;// 130;
-    div_threshold = 150;
     synthetic_max_area=cell_target_area+2;
     synthetic_min_area=cell_target_area-2;
 
     H_perim = true;
-    elastic_modulus = 1;
-    ptarget_perimeter = 114;
-    perim_offset = 16;
+    elastic_modulus = 5;
+    perim_offset = 6;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -98,19 +131,27 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.25; // not that this term depends on the cell size (1/sqrt(area))
+     // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
 
+    starting_fraction_losers=0.15;//0.18;//0.33;
+    target_sox2_prob=0.7;
     initialise_sox_time=800;
     time_till_full_expression=12000;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
-    switch_like=2000.;
+    switch_like=20000.;
 
     set_loser_colours=false;
 
-    apop_signal_noise=1.;
+
+    // high value ensures cells are never broken apart by copy attempts.
+    // This value is only used in the slightly faster CPM implementation where 
+    // detailed balance is not ensured.
+    conn_diss = 2000;
+
+        apop_signal_noise=1.;
     apop_noise_tau=0.1;
     apop_dt=0.05;
     apop_threshold=15;
@@ -122,15 +163,6 @@
     loser_sox17_adhesion=-0.1;//-0.1;
     apop_threshold=24;
 
-    // high value ensures cells are never broken apart by copy attempts.
-    // This value is only used in the slightly faster CPM implementation where 
-    // detailed balance is not ensured.
-    conn_diss = 2000;
-
-
-    starting_fraction_losers=0.33;
-    target_sox2_prob=0.6;
-    loser_perim_increase=0.;
 /* adhesion params */
 
     // baseline J value for adhesion between cells and blastocoel
@@ -144,24 +176,22 @@
     // baseline J value between cells
     J_cell_baseline=1.2;
     // binding of sox2 to sox2
-    sox2binding=0.7;
+    sox2binding=0.8;
     // binding of sox17 to sox17 =
-    sox17binding=0.5;
+    sox17binding=0.4;
     // binding between sox2 and sox17
     sox2vs17binding=0.6;
 
 
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
-    J_cell_zona = 1.2;
+    J_cell_zona = 0.97;
     Jzona_sox2 = 0.0;
-    Jzona_sox17 = 0.2;
-    Jzona_loser=0;
+    Jzona_sox17 = 0.0;
     // added zona adhesion for sox2 sox17 for sticky part
     J_cell_zona_sticky=2.0;
     Jzona_sticky_sox2extra=1.4;
     Jzona_sticky_sox17extra=0.;
-    Jzona_sticky_loser=0;
 
     init_blasto=1.5;
     init_zona=3.0;
@@ -169,7 +199,7 @@
     init_cellcell=1.0;
 
     // end of adhesion params
-    adhesion_multiplier=1.5;
+    adhesion_multiplier=2.0;
 
 
     J_cell_baseline=J_cell_baseline*adhesion_multiplier;
@@ -184,13 +214,13 @@
     Jzona_sox17=Jzona_sox17*adhesion_multiplier;
     Jzona_loser=Jzona_loser*adhesion_multiplier;
     J_cell_zona_sticky=J_cell_zona_sticky*adhesion_multiplier;
-    Jzona_sticky_loser=Jzona_sticky_loser*adhesion_multiplier;
     Jzona_sticky_sox2extra=Jzona_sticky_sox2extra*adhesion_multiplier;
     Jzona_sticky_sox17extra=Jzona_sticky_sox17extra*adhesion_multiplier;
     Jblasto=Jblasto*adhesion_multiplier;
     sox17_blasto_adhesion=sox17_blasto_adhesion*adhesion_multiplier;
     sox2_blasto_adhesion=sox2_blasto_adhesion*adhesion_multiplier;
     loser_blasto_adhesion=loser_blasto_adhesion*adhesion_multiplier;
+    Jzona_sticky_loser=Jzona_sticky_loser*adhesion_multiplier;
 
 
 

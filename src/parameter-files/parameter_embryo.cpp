@@ -78,22 +78,27 @@
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
+    /*KEY PARAMETERS!!*/
+    motility_strength = 0.2;
+    loser_perim_increase=0.1;
+    hypoblast_perim_increase=0.2;
+    loser_sox2_adhesion=0.4; //-0.1;
 
     loser_sorting_only=true;
-
-    div_time=40000;
+    div_time=36000;
+    final_steps=3000;
 
     if (loser_sorting_only)
     {
       initialise_sox_time=1000;
-      mcs = 50001;
+      mcs = 45001;
       expression_starts=1000;
       time_till_full_expression=16000;
       sox17bleb_slowdown_start=initialise_sox_time;
       bleb_end=0;
       // need like a number of divisions parameter
       cell_target_area = 200;
-      ptarget_perimeter = 62;//84;
+      ptarget_perimeter = 60;//84;
       n_divisions=1;
       maxsox17cells=4;
     }
@@ -106,7 +111,7 @@
       sox17bleb_slowdown_start=20000;
       bleb_end=40000;
       cell_target_area = 400;
-      ptarget_perimeter = 86;
+      ptarget_perimeter = 82;
       n_divisions=2;
     }
 
@@ -115,7 +120,6 @@
     lambda = bulk_modulus / cell_target_area;// 130;
     synthetic_max_area=cell_target_area+2;
     synthetic_min_area=cell_target_area-2;
-   // some weird bug in the shape index code...
     H_perim = true;
     elastic_modulus = 5;
     perim_offset = 6;
@@ -128,7 +132,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 0.25; // not that this term depends on the cell size (1/sqrt(area))
+     // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
 
@@ -141,36 +145,25 @@
     // bleb_end=bleb_end/divider;
     // div_time=div_time/divider;
 
-    loser_perim_increase=0.15;
-    hypoblast_perim_increase=0.15;
 
     starting_fraction_losers=0.15;//0.18;//0.33;
     target_sox2_prob=0.7;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
-    switch_like=10000.;
+    switch_like=20000.;
 
-    set_loser_colours=true;
+    set_loser_colours=false;
 
-    apop_signal_noise=1.; // was 1.5
-    apop_noise_tau=0.1;  // was 0.1
-    apop_dt=0.05;
-    death_decay_rate=1.; // was 0.15
-
-    // the important params
-    apop_threshold=20.;
-    loser_sox2_adhesion=0.4; //-0.1;
-
-    double LSX2min=-0.1;
-    double LSX2max=0.7;
+    double LSX2min=-0.3;
+    double LSX2max=0.8;
     double frac = (loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
 
-    double LLmin=-0.7;
-    double LLmax=0.7;
+    double LLmin=-0.8;
+    double LLmax=0.8;
     double to_add = (LLmax-LLmin)*frac;
     loser_loser_adhesion=LLmin+to_add;
     
-    double LSX17min=-0.1;
+    double LSX17min=0.0;
     double LSX17max=0.6;
     to_add = (LSX17max-LSX17min) * frac;
     loser_sox17_adhesion=LSX17min + to_add;
@@ -180,18 +173,22 @@
     to_add = (ZLmax-ZLmin) * frac;
     Jzona_sticky_loser=ZLmin+to_add;
 
-    double ZonaNormmin=-0.5;
+    double ZonaNormmin=-0.3;
     double ZonaNormmax=0.;
     to_add = (ZonaNormmax-ZonaNormmin) * frac;
     Jzona_loser=ZonaNormmin + to_add;
-
-
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
     // detailed balance is not ensured.
     conn_diss = 2000;
 
+    apop_signal_noise=1.; // was 1.5
+    apop_noise_tau=0.1;  // was 0.1
+    apop_dt=0.05;
+    death_decay_rate=1.; // was 0.15
 
+    // the important params
+    apop_threshold=20.;
 
 
 /* adhesion params */
@@ -215,11 +212,11 @@
 
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
-    J_cell_zona = 0.97; //1.2
-    Jzona_sox2 = 0.;
-    Jzona_sox17 = 0.;
+    J_cell_zona = 0.97;
+    Jzona_sox2 = 0.0;
+    Jzona_sox17 = 0.0;
     // added zona adhesion for sox2 sox17 for sticky part
-    J_cell_zona_sticky=2.0; //2.0
+    J_cell_zona_sticky=2.0;
     Jzona_sticky_sox2extra=1.4;
     Jzona_sticky_sox17extra=0.;
 
@@ -229,7 +226,7 @@
     init_cellcell=1.0;
 
     // end of adhesion params
-    adhesion_multiplier=2.;
+    adhesion_multiplier=2.0;
 
 
     J_cell_baseline=J_cell_baseline*adhesion_multiplier;

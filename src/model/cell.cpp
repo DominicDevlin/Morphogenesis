@@ -143,6 +143,7 @@ void Cell::CellBirth(Cell &mother_cell) {
 
   cell_perim_constraint = mother_cell.cell_perim_constraint;
   div_times = mother_cell.div_times;
+  medium_touch_count=mother_cell.medium_touch_count;
 
   accumulated_death_signals = mother_cell.accumulated_death_signals;
 
@@ -289,8 +290,7 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, do
       // Undifferentiated (comparable Sox2/Sox17) cells get an extra pull
       // towards the medium, on top of the usual Sox17+ (hypoblast) one, so
       // that unsorted cells are gradually sorted out of the tissue.
-      return (par.Jblasto - cell2.sox2_internal_adhesion * par.sox2_blasto_adhesion
-                          - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion);
+      return (par.Jblasto);// - cell2.sox2_internal_adhesion * par.sox2_blasto_adhesion - cell2.sox17_internal_adhesion * par.sox17_blasto_adhesion);
                           // - (1-cell2.sox2_internal_adhesion) * (1-cell2.sox17_internal_adhesion) * par.loser_blasto_adhesion;
                           //- cell2.IsUndifferentiated() * par.undifferentiated_blasto_adhesion;
     }

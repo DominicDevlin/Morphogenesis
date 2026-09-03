@@ -3738,6 +3738,78 @@ void CellularPotts::CountMedNeighbours()
 }
 
 
+void CellularPotts::CheckLoserTouchingMedium()
+{
+
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->SetLooser();
+    }
+  }
+  int **ns = SearchNeighbours();
+  int n_size = (*cell).size();
+
+  for (int i = 1; i < n_size; ++i)
+  {
+    // Only process cells that are ALIVE and are LOSERS
+    if (cell->at(i).AliveP() && cell->at(i).CheckLooser())
+    {
+      bool touching_med = false;
+      int j = 0;
+
+      // Loop through all neighbors of cell i
+      while (ns[i][j] >= 0)
+      {
+        if (ns[i][j] == 0) // sigma = 0 indicates medium
+        {
+          touching_med = true;
+          break; // Found medium contact, no need to check remaining neighbors
+        }
+        ++j;
+      }
+
+      // If touching medium, increment the cell's internal counter
+      if (touching_med)
+      {
+        cell->at(i).IncrementMediumTouchCount();
+      }
+    }
+  }
+  // Free neighbor list memory as in your original implementation
+  free(ns[0]);
+  free(ns);
+}
+
+double CellularPotts::TotalMediumTouchRatio(int nst)
+{
+  int n_cells{};
+  int migrated_cells{};
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    c->SetLooser();
+    if (c->AliveP() && c->CheckLooser()==true)
+    {
+      ++n_cells;
+      int medcount = c->GetMediumTouchCount();
+      if (medcount==nst)
+      {
+        ++migrated_cells;
+      }
+    }
+  }
+  return double(migrated_cells)/double(n_cells);
+
+}
+
+
+
+
+
+
 
 void CellularPotts::ToxictoLonelyCells()
 {
@@ -4078,6 +4150,71 @@ void CellularPotts::ShapeIndex()
     }
   }    
 }
+
+double CellularPotts::AverageShapeIndex()
+{
+  initVolume();
+  adjustPerimeters();
+
+  int neigh_level = par.copy_neighbourhood;
+  double correction = par.neigh_multiplier;
+
+  double total_shape_index = 0.0;
+  int alive_cell_count = 0;
+
+  vector<Cell>::iterator c;
+  for ((c = cell->begin(), c++); c != cell->end(); ++c)
+  {
+    if (c->AliveP())
+    {
+      int celln = c->Sigma();
+      int perim_length = 0;
+
+      for (auto it = cellPerimeterList[celln].begin(); it != cellPerimeterList[celln].end(); ++it)
+      {
+        int x = it->first;
+        int y = it->second;
+
+        for (int i = 1; i <= n_nb_perim; i++) 
+        {
+          int xp2 = x + nx[i];
+          int yp2 = y + ny[i];
+
+          if (par.periodic_boundaries)
+          {
+            if (xp2 <= 0) xp2 = sizex - 2 + xp2;
+            if (yp2 <= 0) yp2 = sizey - 2 + yp2;
+            if (xp2 >= sizex - 1) xp2 = xp2 - sizex + 2;
+            if (yp2 >= sizey - 1) yp2 = yp2 - sizey + 2;
+
+            if (sigma[x][y] != sigma[xp2][yp2])  
+              ++perim_length;
+          }
+          else
+          {
+            if (xp2 <= 0 || yp2 <= 0 || xp2 >= sizex - 1 || yp2 >= sizey - 1)
+              continue;
+            else if (sigma[x][y] != sigma[xp2][yp2])  
+              ++perim_length;
+          } 
+        }
+      }
+
+      if (vlist[celln] > 0)
+      {
+        double corrected_perim = perim_length / correction; 
+        double sindex = corrected_perim / sqrt(double(vlist[celln]));
+        c->SetShapeIndex(sindex);
+        total_shape_index += sindex;
+        alive_cell_count++;
+      }
+    }
+  }
+
+  return (alive_cell_count > 0) ? (total_shape_index / alive_cell_count) : 0.0;
+}
+
+
 
 void CellularPotts::PrintShapeIndexToFile(const std::string& filename, int timestep)
 {

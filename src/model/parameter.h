@@ -183,6 +183,8 @@ class Parameter {
   double loser_perim_increase;
   double hypoblast_perim_increase;
 
+  double final_steps;
+
   double target_sox2_prob;
 
 

@@ -340,6 +340,10 @@ public:
 
   void CheckIfDivisionHit(int t);
 
+  void CheckLoserTouchingMedium();
+
+  double TotalMediumTouchRatio(int nst);
+
   //! org_index distinguishes death_total.dat's filename when several
   //! organisms share the same data_file directory (embryo_multi runs them
   //! in parallel); leave at 0 for a single-organism run.
@@ -354,6 +358,7 @@ public:
   void initVolume();
   void adjustPerimeters();
   void ShapeIndex();
+  double AverageShapeIndex();
 
 
   void PrintShapeIndexToFile(const std::string& filename, int timestep);
