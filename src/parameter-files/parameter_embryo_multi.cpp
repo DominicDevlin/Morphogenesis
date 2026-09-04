@@ -83,7 +83,7 @@
     hypoblast_perim_increase=0.2;
     loser_sox2_adhesion=0.4; //-0.1;
 
-    loser_sorting_only=true;
+    loser_sorting_only=false;
     div_time=36000;
     final_steps=3000;
 

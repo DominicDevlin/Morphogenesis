@@ -110,6 +110,12 @@ struct DeathCounts {
   }
 };
 
+struct CellTypeShapeIndices {
+  double sox2{std::numeric_limits<double>::quiet_NaN()};
+  double sox17{std::numeric_limits<double>::quiet_NaN()};
+  double loser{std::numeric_limits<double>::quiet_NaN()};
+};
+
 class CellularPotts {
 
   friend class Info;
@@ -359,6 +365,8 @@ public:
   void adjustPerimeters();
   void ShapeIndex();
   double AverageShapeIndex();
+
+  CellTypeShapeIndices AverageShapeIndicesByType();
 
 
   void PrintShapeIndexToFile(const std::string& filename, int timestep);

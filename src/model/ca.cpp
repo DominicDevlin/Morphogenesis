@@ -4268,6 +4268,94 @@ void CellularPotts::PrintShapeIndexToFile(const std::string& filename, int times
 }
 
 
+
+CellTypeShapeIndices CellularPotts::AverageShapeIndicesByType()
+{
+  initVolume();
+  adjustPerimeters();
+
+  double correction = par.neigh_multiplier;
+
+  double total_sox2 = 0.0, total_sox17 = 0.0, total_loser = 0.0;
+  int count_sox2 = 0, count_sox17 = 0, count_loser = 0;
+
+  vector<Cell>::iterator c;
+  for ((c = cell->begin(), c++); c != cell->end(); ++c)
+  {
+    if (c->AliveP())
+    {
+      int celln = c->Sigma();
+      int perim_length = 0;
+
+      for (auto it = cellPerimeterList[celln].begin(); it != cellPerimeterList[celln].end(); ++it)
+      {
+        int x = it->first;
+        int y = it->second;
+
+        for (int i = 1; i <= n_nb_perim; i++) 
+        {
+          int xp2 = x + nx[i];
+          int yp2 = y + ny[i];
+
+          if (par.periodic_boundaries)
+          {
+            if (xp2 <= 0) xp2 = sizex - 2 + xp2;
+            if (yp2 <= 0) yp2 = sizey - 2 + yp2;
+            if (xp2 >= sizex - 1) xp2 = xp2 - sizex + 2;
+            if (yp2 >= sizey - 1) yp2 = yp2 - sizey + 2;
+
+            if (sigma[x][y] != sigma[xp2][yp2])  
+              ++perim_length;
+          }
+          else
+          {
+            if (xp2 <= 0 || yp2 <= 0 || xp2 >= sizex - 1 || yp2 >= sizey - 1)
+              continue;
+            else if (sigma[x][y] != sigma[xp2][yp2])  
+              ++perim_length;
+          } 
+        }
+      }
+
+      if (vlist[celln] > 0)
+      {
+        double corrected_perim = perim_length / correction; 
+        double sindex = corrected_perim / sqrt(double(vlist[celln]));
+        c->SetShapeIndex(sindex);
+
+        // Classification matching PrintShapeIndexToFile
+        bool is_loser = (c->CheckLooserValue() > 0.5);
+        bool is_sox2  = (!is_loser && c->sox2_internal_adhesion > 0.5);
+        bool is_sox17 = (!is_loser && c->sox17_internal_adhesion > 0.5);
+
+        if (is_sox2)
+        {
+          total_sox2 += sindex;
+          count_sox2++;
+        }
+        else if (is_sox17)
+        {
+          total_sox17 += sindex;
+          count_sox17++;
+        }
+        else if (is_loser)
+        {
+          total_loser += sindex;
+          count_loser++;
+        }
+      }
+    }
+  }
+
+  CellTypeShapeIndices result;
+  if (count_sox2 > 0)  result.sox2  = total_sox2 / count_sox2;
+  if (count_sox17 > 0) result.sox17 = total_sox17 / count_sox17;
+  if (count_loser > 0) result.loser = total_loser / count_loser;
+
+  return result;
+}
+
+
 vector<double> CellularPotts::sox2_values()
 {
   vector<double> toreturn{};

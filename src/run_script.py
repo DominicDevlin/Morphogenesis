@@ -14,29 +14,29 @@ def main():
         sys.exit(1)
 
     # Define the parameter arrays
-    adhesion_values = [-0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
-    apop_values = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 30]
+    adhesion_values = [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.8]
+    perim_values = [0., 0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27]
 
     n_cols = len(adhesion_values)
-    num_combinations = len(adhesion_values) * len(apop_values)
+    num_combinations = len(adhesion_values) * len(perim_values)
 
     # Ensure the index is within the valid range of combinations
     if index < 0 or index >= num_combinations:
         print(f"Error: Index {index} is out of range. Must be between 0 and {num_combinations - 1}.")
         sys.exit(1)
 
-    # Determine J_L and J_S based on the index
-    row = index // n_cols  # Row index for J_S
-    col = index % n_cols   # Column index for J_L
+    row = index // n_cols  
+    col = index % n_cols  
 
     a_val = adhesion_values[col]
-    apop_val = apop_values[row]
+    perim_val = perim_values[row]
+    motility=0.
 
-    print(f"Index: {index} => Selected adhesino val: {a_val}, apop val: {apop_val}")
+    print(f"Index: {index} => Selected adhesion val: {a_val}, added perim proportion val: {perim_val}, loser motility: {motility}")
 
     # Build and run the command to execute the C++ file
     # Adjust "./phase-optimize" to match your actual executable if needed
-    command = f"./embryo_multi {apop_val} {a_val}"
+    command = f"./embryo_multi {a_val} {perim_val} {motility}"
     print(f"Running command: {command}")
     
     exit_status = os.system(command)

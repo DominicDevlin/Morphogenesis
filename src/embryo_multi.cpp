@@ -131,8 +131,9 @@ void process_population()
   vector<vector<double>> sox2_start(par.n_orgs);
   vector<vector<double>> sox17_start(par.n_orgs);
 
-  vector<vector<double>> all_shape_indices(par.n_orgs);
-  vector<int> record_times;
+  vector<vector<double>> shape_indices_sox2(par.n_orgs);
+  vector<vector<double>> shape_indices_sox17(par.n_orgs);
+  vector<vector<double>> shape_indices_loser(par.n_orgs);
 
   ostringstream makefll;
 
@@ -253,10 +254,12 @@ void process_population()
         sorting_file << t << '\t' << loser_boundary << '\t' << sox_boundary << endl;
 
       }
-      if (t%1000==0)
+      if (t % 1000 == 0)
       {
-        double avg_shape_index = dishes[i].CPM->AverageShapeIndex();
-        all_shape_indices[i].push_back(avg_shape_index);
+        CellTypeShapeIndices indices = dishes[i].CPM->AverageShapeIndicesByType();
+        shape_indices_sox2[i].push_back(indices.sox2);
+        shape_indices_sox17[i].push_back(indices.sox17);
+        shape_indices_loser[i].push_back(indices.loser);
       }
 
       if (t >= par.mcs - par.final_steps)
@@ -273,7 +276,7 @@ void process_population()
 
       if (t % 5000 == 0)
       {
-        // update_progress_bar(i, t, par.mcs, par.n_orgs);
+        update_progress_bar(i, t, par.mcs, par.n_orgs);
 
         if (par.pics_for_opt)
         {
@@ -293,7 +296,8 @@ void process_population()
   double migration_result{};
   for (int i = 0; i < par.n_orgs; ++i)
   {    
-    migration_result += dishes[i].CPM->TotalMediumTouchRatio(par.final_steps);
+    double one_org = dishes[i].CPM->TotalMediumTouchRatio(par.final_steps);
+    migration_result += one_org;
   }
   migration_result /= double(par.n_orgs);
 
@@ -304,35 +308,42 @@ void process_population()
   outfile.close();
 
 
-
-  string shape_fname = par.data_file + "/average_shape_indices.dat";
-  ofstream shape_file(shape_fname);
-
-  // 1. Header
-  shape_file << "time";
-  for (int i = 0; i < par.n_orgs; ++i)
-  {
-    shape_file << "\tsim_" << (i + 1);
-  }
-  shape_file << "\n";
-
-  // 2. Rows (Time in col 0, each simulation's value in subsequent cols)
-  if (par.n_orgs > 0 && !all_shape_indices[0].empty())
-  {
-    size_t num_records = all_shape_indices[0].size();
-    for (size_t step = 0; step < num_records; ++step)
+  // Helper to write each cell type's file with simulations as columns
+  auto write_shape_index_file = [&](const string& filepath, const vector<vector<double>>& data) {
+    ofstream file(filepath);
+    file << "time";
+    for (int i = 0; i < par.n_orgs; ++i)
     {
-      int current_time = step * 1000; // matches the sampling interval
-      shape_file << current_time;
-
-      for (int i = 0; i < par.n_orgs; ++i)
-      {
-        shape_file << '\t' << all_shape_indices[i][step];
-      }
-      shape_file << "\n";
+      file << "\tsim_" << (i + 1);
     }
-  }
-  shape_file.close();
+    file << "\n";
+
+    if (par.n_orgs > 0 && !data[0].empty())
+    {
+      size_t num_records = data[0].size();
+      for (size_t step = 0; step < num_records; ++step)
+      {
+        int current_time = step * 1000;
+        file << current_time;
+
+        for (int i = 0; i < par.n_orgs; ++i)
+        {
+          file << '\t';
+          if (std::isnan(data[i][step]))
+            file << "NA";
+          else
+            file << data[i][step];
+        }
+        file << "\n";
+      }
+    }
+    file.close();
+  };
+
+
+  write_shape_index_file(par.data_file + "/average_shape_indices_sox2.dat", shape_indices_sox2);
+  write_shape_index_file(par.data_file + "/average_shape_indices_sox17.dat", shape_indices_sox17);
+  write_shape_index_file(par.data_file + "/average_shape_indices_loser.dat", shape_indices_loser);
 
   // string oname = par.data_file + "/sox_start_values.dat";
   // ofstream outfile;
@@ -397,9 +408,11 @@ int main(int argc, char *argv[])
     }
     cout << endl;
 
-    par.data_file = par.data_file + "/" + argv[1] + "-" + argv[2];
-    par.apop_threshold=stod(argv[1]);
-    par.loser_sox2_adhesion=stod(argv[2]);
+    par.data_file = par.data_file + "/" + argv[1] + "-" + argv[2] + "-" + argv[3];
+    par.loser_sox2_adhesion=stod(argv[1]);
+    par.motility_strength=stod(argv[2]);
+    par.loser_perim_increase = stod(argv[3]);
+    par.motility_zero = par.motility_strength * sqrt(par.cell_target_area);
     // sx2 L min= -0.1, max=0.7
     // LL  min = -0.7, max=0.7
     // sx17 L min = 0. max = 0.6
@@ -448,7 +461,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 4;
+  par.n_orgs = 100;
   par.make_synthetic=true;
   par.phase_evolution = false;
 
