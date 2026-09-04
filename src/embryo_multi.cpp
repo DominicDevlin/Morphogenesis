@@ -410,8 +410,8 @@ int main(int argc, char *argv[])
 
     par.data_file = par.data_file + "/" + argv[1] + "-" + argv[2] + "-" + argv[3];
     par.loser_sox2_adhesion=stod(argv[1]);
-    par.motility_strength=stod(argv[2]);
-    par.loser_perim_increase = stod(argv[3]);
+    par.loser_perim_increase = stod(argv[2]);
+    par.motility_strength=stod(argv[3]);
     par.motility_zero = par.motility_strength * sqrt(par.cell_target_area);
     // sx2 L min= -0.1, max=0.7
     // LL  min = -0.7, max=0.7
