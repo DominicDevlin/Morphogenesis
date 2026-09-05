@@ -413,6 +413,7 @@ int main(int argc, char *argv[])
     par.loser_perim_increase = stod(argv[2]);
     par.motility_strength=stod(argv[3]);
     par.motility_zero = par.motility_strength * sqrt(par.cell_target_area);
+    cout << "motilities: " << par.motility_strength << '\t' << par.motility_zero << endl;
     // sx2 L min= -0.1, max=0.7
     // LL  min = -0.7, max=0.7
     // sx17 L min = 0. max = 0.6

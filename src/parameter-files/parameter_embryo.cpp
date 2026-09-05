@@ -79,10 +79,10 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     /*KEY PARAMETERS!!*/
-    motility_strength = 0.2;
-    loser_perim_increase=0.1;
+    motility_strength = 0.0;
+    loser_perim_increase=0.0;
     hypoblast_perim_increase=0.2;
-    loser_sox2_adhesion=0.4; //-0.1;
+    loser_sox2_adhesion=0.3; //-0.1;
 
     loser_sorting_only=true;
     div_time=36000;

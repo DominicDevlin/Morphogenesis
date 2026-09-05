@@ -16,6 +16,7 @@ def main():
     # Define the parameter arrays
     adhesion_values = [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.8]
     perim_values = [0., 0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27]
+    motility_values = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45]
 
     n_cols = len(adhesion_values)
     num_combinations = len(adhesion_values) * len(perim_values)
@@ -29,8 +30,10 @@ def main():
     col = index % n_cols  
 
     a_val = adhesion_values[col]
-    perim_val = perim_values[row]
-    motility=0.
+    # perim_val = perim_values[row]
+    perim_val = 0.15
+    # motility=0.2
+    motility = motility_values[row]
 
     print(f"Index: {index} => Selected adhesion val: {a_val}, added perim proportion val: {perim_val}, loser motility: {motility}")
 

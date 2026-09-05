@@ -6,8 +6,8 @@ import pandas as pd
 # 1. Configuration Settings
 # ==========================================
 # Set directory path (easy to change parameters here)
-PARAM_FOLDER = "0.5-0.1-0.0"
-DATA_DIR = os.path.join("org-data", PARAM_FOLDER)
+PARAM_FOLDER = "mot0.0/0.4-0.15-0.0"
+DATA_DIR = os.path.join("", PARAM_FOLDER)
 
 WINDOW_SIZE = 5  # Rolling window size for smoothing (adjust based on your total steps)
 PLOT_INDIVIDUAL_SIMS = (
@@ -106,6 +106,6 @@ plt.tight_layout()
 # Save output inside the same directory
 output_image = os.path.join(DATA_DIR, "shape_index_by_cell_type.png")
 # plt.savefig(output_image, dpi=300)
-print(f"Plot saved successfully as '{output_image}'")
+# print(f"Plot saved successfully as '{output_image}'")
 
 plt.show()

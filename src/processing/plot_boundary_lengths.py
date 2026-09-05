@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import glob
 import os
 
-def plot_average_total_cells(data_dir="newest-data/1-0.5"):
+def plot_average_total_cells(data_dir="mot0.0/0.3-0.12-0.0"):
     # 1. Find all relevant .dat files in the directory
     # Adjust the pattern if your files have a specific prefix (e.g., "celltypes-org-*.dat")
     file_pattern = os.path.join(data_dir, "boundary_lengths-org-*.dat")
