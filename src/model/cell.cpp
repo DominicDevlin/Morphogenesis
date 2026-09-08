@@ -174,6 +174,8 @@ void Cell::CellBirth(Cell &mother_cell) {
 
   centerx = mother_cell.centerx;
   centery=mother_cell.centery;
+  dir_x=mother_cell.dir_x;
+  dir_y=mother_cell.dir_y;
   
 }
 

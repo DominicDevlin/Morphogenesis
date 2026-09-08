@@ -131,14 +131,13 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
+    normalise_motility = false;
      // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
 
     starting_fraction_losers=0.15;//0.18;//0.33;
     target_sox2_prob=0.7;
-    initialise_sox_time=800;
-    time_till_full_expression=12000;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
     switch_like=20000.;

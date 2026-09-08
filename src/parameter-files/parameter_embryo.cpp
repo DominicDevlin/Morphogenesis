@@ -54,7 +54,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=0;//16045985250248971749;
+    pickseed=7561945674489142732;//16045985250248971749;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -80,11 +80,11 @@
 
     /*KEY PARAMETERS!!*/
     motility_strength = 0.0;
-    loser_perim_increase=0.0;
+    loser_perim_increase=0.18;
     hypoblast_perim_increase=0.2;
-    loser_sox2_adhesion=0.3; //-0.1;
+    loser_sox2_adhesion=0.6; //-0.1;
 
-    loser_sorting_only=true;
+    loser_sorting_only=false;
     div_time=36000;
     final_steps=3000;
 
@@ -132,6 +132,8 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
+    normalise_motility = false;
+
      // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;

@@ -4385,6 +4385,97 @@ vector<double> CellularPotts::sox17_values()
 }
 
 
+
+
+
+CellType CellularPotts::GetPixelCellType(int id) const
+{
+    // Empty medium or non-alive cell
+    if (id == 0) 
+    {
+        return TYPE_MEDIUM;
+    }
+    if (id == zona_sigma || id == zona_sigma_sticky)
+    {
+      return TYPE_ZONA;
+    }
+    if ((*cell)[id].sox2_internal_adhesion > 0.5) {
+        return TYPE_SOX2;
+    }
+    if ((*cell)[id].sox17_internal_adhesion > 0.5) {
+        return TYPE_SOX17;
+    }
+
+    return TYPE_LOSER;
+}
+
+
+
+
+BoundaryLengths CellularPotts::ComputeAllBoundaryLengths()
+{
+    BoundaryLengths b;
+
+    // Use a nxn matrix for fast indexing between types
+    long long counts[NUM_CELL_TYPES][NUM_CELL_TYPES] = {0};
+
+    for (int i = 0; i < sizex; i++) 
+    {
+        for (int j = 0; j < sizey; j++) 
+        {
+            int current_id = sigma[i][j];
+            CellType current_type = GetPixelCellType(current_id);
+
+            // Lambda to inspect and register a neighbor pixel
+            auto check_neighbor = [&](int neighbor_id) {
+                // If it's the exact same cell index, no boundary exists
+                if (current_id == neighbor_id) return;
+
+                CellType neighbor_type = GetPixelCellType(neighbor_id);
+
+                // Skip medium-medium boundaries
+                if (current_type == TYPE_MEDIUM && neighbor_type == TYPE_MEDIUM) return;
+
+                if ((current_type == TYPE_MEDIUM && neighbor_type == TYPE_ZONA) || current_type == TYPE_ZONA && neighbor_type == TYPE_MEDIUM) return;
+
+                // Tally the total boundary interfaces
+                b.total_boundary++;
+
+                // Symmetric tally: enforce ordered pair (min, max) to avoid duplicates
+                int t1 = std::min(current_type, neighbor_type);
+                int t2 = std::max(current_type, neighbor_type);
+                counts[t1][t2]++;
+            };
+
+            // 1. Right neighbor
+            if (i + 1 < sizex) {
+                check_neighbor(sigma[i + 1][j]);
+            }
+
+            // 2. Bottom neighbor
+            if (j + 1 < sizey) {
+                check_neighbor(sigma[i][j + 1]);
+            }
+        }
+    }
+
+    // Populate the struct with the 6 unique pairs
+    b.sox2_medium   = counts[TYPE_MEDIUM][TYPE_SOX2];
+    b.sox17_medium  = counts[TYPE_MEDIUM][TYPE_SOX17];
+    b.loser_medium  = counts[TYPE_MEDIUM][TYPE_LOSER];
+
+    b.sox2_sox17    = counts[TYPE_SOX2][TYPE_SOX17];
+    b.sox2_loser    = counts[TYPE_SOX2][TYPE_LOSER];
+    b.loser_sox17   = counts[TYPE_SOX17][TYPE_LOSER];
+
+    b.sox2_zona = counts[TYPE_SOX2][TYPE_ZONA];
+    b.sox17_zona = counts[TYPE_SOX17][TYPE_ZONA];
+    b.loser_zona = counts[TYPE_LOSER][TYPE_ZONA];
+
+    return b;
+}
+
+
 double CellularPotts::LoserWinnerBoundaryLength()
 {
   // set cells as loser or winner

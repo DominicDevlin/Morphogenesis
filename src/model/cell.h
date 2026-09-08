@@ -107,6 +107,9 @@ public:
     xcens = src.xcens;
     ycens = src.ycens;
 
+    dir_x=src.dir_x;
+    dir_y=src.dir_y;
+
     time_created = src.time_created;
 
 
@@ -241,6 +244,9 @@ public:
     ycen = src.ycen;
     xcens = src.xcens;
     ycens = src.ycens;
+  
+    dir_x=src.dir_x;
+    dir_y=src.dir_y;
 
     div_times = src.div_times;
 
@@ -927,6 +933,23 @@ private:
 
     prev_com_x = com_x;
     prev_com_y = com_y;
+
+
+    if (par.normalise_motility)
+    {
+      double speed = std::hypot(avg_vx, avg_vy);
+      if (speed > 1e-8)
+      {
+        dir_x = avg_vx / speed;
+        dir_y = avg_vy / speed;
+      }
+      else
+      {
+        dir_x=0;
+        dir_y=0;
+      }
+
+    }
   }
 
   inline double cell_velx()
@@ -967,7 +990,15 @@ private:
     com_shifty = dy / (double)(area + 1);
 
     // Energy contribution: area * (dCOM . Velocity)
-    return (double)area * (com_shiftx * avg_vx + com_shifty * avg_vy);
+    if (par.normalise_motility)
+    {
+    // Energy contribution: area * (dCOM . Unit_Direction)
+      return (double)area * (com_shiftx * dir_x + com_shifty * dir_y);
+    }
+    else
+    {
+      return (double)area * (com_shiftx * avg_vx + com_shifty * avg_vy);
+    }
 
 
     // double dirx = double(sum_x+x)/double(area+1) - double(sum_x)/double(area);
@@ -1801,6 +1832,8 @@ protected:
   double prev_com_y = 0;
   double avg_vx=0;
   double avg_vy=0;
+  double dir_x=0;
+  double dir_y=0;
   bool velocity_initialised=false;
   
   // N.B: N is area!

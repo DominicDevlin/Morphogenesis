@@ -169,18 +169,19 @@ void process_population()
     ofstream celltype_file(celltype_fname);
     celltype_file << "time\tsox2_high\tsox17_high\tundifferentiated\ttotal\tinitial_count" << endl;
 
-    string death_cause_fname = par.data_file + "/death_causes-org-" + to_string(i + 1) + ".dat";
-    ofstream death_cause_file(death_cause_fname);
-    death_cause_file << "time"
-                      << "\tsox2_high_lonely\tsox2_high_signal"
-                      << "\tsox17_high_lonely\tsox17_high_signal"
-                      << "\tundifferentiated_lonely\tundifferentiated_signal"
-                      << "\ttotal_lonely\ttotal_signal" << endl;
-    DeathCounts cumulative_deaths;
+    // string death_cause_fname = par.data_file + "/death_causes-org-" + to_string(i + 1) + ".dat";
+    // ofstream death_cause_file(death_cause_fname);
+    // death_cause_file << "time"
+    //                   << "\tsox2_high_lonely\tsox2_high_signal"
+    //                   << "\tsox17_high_lonely\tsox17_high_signal"
+    //                   << "\tundifferentiated_lonely\tundifferentiated_signal"
+    //                   << "\ttotal_lonely\ttotal_signal" << endl;
+    // DeathCounts cumulative_deaths;
 
     string sorting_fname = par.data_file + "/boundary_lengths-org-" + to_string(i + 1) + ".dat";
     ofstream sorting_file(sorting_fname);
-    sorting_file << "time" << "\tsox2sox17\tloserwinner" << endl;
+    //sorting_file << "time" << "\tsox2sox17\tloserwinner" << endl;
+    sorting_file << "time\tsox2_sox17\tsox2_med\tsox2_loser\tsox17_med\tloser_med\tloser_sox17\tsox2_zona\tsox17_zona\tloser_zona\ttotal" << endl;
 
     int t;
     for (t = 0; t < par.mcs; t++)
@@ -241,18 +242,31 @@ void process_population()
                       << type_counts.undifferentiated << '\t' << type_counts.total()
                       << '\t' << initial_cell_count << endl;
 
-        DeathCounts death_counts = dishes[i].CPM->CountAndClearDeathEvents();
-        cumulative_deaths.Accumulate(death_counts);
-        death_cause_file << t
-                          << '\t' << cumulative_deaths.sox2_high.lonely << '\t' << cumulative_deaths.sox2_high.signal
-                          << '\t' << cumulative_deaths.sox17_high.lonely << '\t' << cumulative_deaths.sox17_high.signal
-                          << '\t' << cumulative_deaths.undifferentiated.lonely << '\t' << cumulative_deaths.undifferentiated.signal
-                          << '\t' << cumulative_deaths.total_lonely() << '\t' << cumulative_deaths.total_signal() << endl;
+        // DeathCounts death_counts = dishes[i].CPM->CountAndClearDeathEvents();
+        // cumulative_deaths.Accumulate(death_counts);
+        // death_cause_file << t
+        //                   << '\t' << cumulative_deaths.sox2_high.lonely << '\t' << cumulative_deaths.sox2_high.signal
+        //                   << '\t' << cumulative_deaths.sox17_high.lonely << '\t' << cumulative_deaths.sox17_high.signal
+        //                   << '\t' << cumulative_deaths.undifferentiated.lonely << '\t' << cumulative_deaths.undifferentiated.signal
+        //                   << '\t' << cumulative_deaths.total_lonely() << '\t' << cumulative_deaths.total_signal() << endl;
         
-        double loser_boundary= dishes[i].CPM->LoserWinnerBoundaryLength();
-        double sox_boundary = dishes[i].CPM->Sox2Sox17BoundaryLength();
-        sorting_file << t << '\t' << loser_boundary << '\t' << sox_boundary << endl;
+        // double loser_boundary= dishes[i].CPM->LoserWinnerBoundaryLength();
+        // double sox_boundary = dishes[i].CPM->Sox2Sox17BoundaryLength();
+        // sorting_file << t << '\t' << loser_boundary << '\t' << sox_boundary << endl;
+        BoundaryLengths b = dishes[i].CPM->ComputeAllBoundaryLengths();
 
+        // Writing raw boundary lengths:
+        sorting_file << t << '\t'
+                    << b.sox2_sox17    << '\t'
+                    << b.sox2_medium   << '\t'
+                    << b.sox2_loser    << '\t'
+                    << b.sox17_medium  << '\t'
+                    << b.loser_medium  << '\t'
+                    << b.loser_sox17   << '\t'
+                    << b.sox2_zona     << '\t'
+                    << b.sox17_zona    << '\t'
+                    << b.loser_zona    << '\t'
+                    << b.total_boundary << '\n';
       }
       if (t % 1000 == 0)
       {
@@ -462,7 +476,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 100;
+  par.n_orgs = 240; // lets do 250 now
   par.make_synthetic=true;
   par.phase_evolution = false;
 

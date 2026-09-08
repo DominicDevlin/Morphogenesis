@@ -151,41 +151,47 @@ void QtGraphics::DrawLegend(void) {
   const int bar_h = 14;
   const int bar_y = legend_y + 18;
 
+  // Draw background box
   picture->setPen(QPen(Qt::black));
   picture->setBrush(QBrush(Qt::white));
   picture->drawRect(legend_x, legend_y, legend_w, legend_h);
   picture->setBrush(Qt::NoBrush);
 
+  // Title
   QFont font = picture->font();
   font.setPointSize(8);
   picture->setFont(font);
   picture->drawText(QRect(bar_x, legend_y + 2, bar_w, 14), Qt::AlignLeft,
-      "Cell identity (Sox2 vs Sox17)");
+      "Cell identity");
 
-  // Continuous colour gradient, matching the new ctype indices (2..202).
-  // 2 = Green (Hypoblast), 102 = Blue (Undifferentiated), 202 = Pink (Epiblast).
-  for (int i = 0; i < bar_w; ++i) {
-    // Map the loop variable 'i' across the 200 steps of our new color array
-    int index = 2 + (i * 200) / (bar_w - 1);
-    
-    // Safety clamp to ensure we never query out-of-bounds array indices
-    if (index > 202) index = 202; 
-    if (index < 2) index = 2;
+  // Continuous colour gradient:
+  // 0.0 (Left)   = Yellow  (Loser cells)
+  // 0.5 (Middle) = Magenta (Epiblast)
+  // 1.0 (Right)  = Green   (Hypoblast / Green cell state)
+  QLinearGradient gradient(bar_x, 0, bar_x + bar_w, 0);
+  gradient.setColorAt(0.0, Qt::yellow);               // Yellow
+  gradient.setColorAt(0.5, QColor(255, 0, 255));      // Magenta
+  gradient.setColorAt(1.0, QColor(0, 200, 0));        // Green (or Qt::green)
 
-    picture->setPen(pens[index]);
-    picture->drawLine(bar_x + i, bar_y, bar_x + i, bar_y + bar_h);
-  }
-  picture->setPen(QPen(Qt::black));
+  // Draw the gradient bar
+  picture->setPen(Qt::NoPen);
+  picture->setBrush(gradient);
   picture->drawRect(bar_x, bar_y, bar_w, bar_h);
 
-  // The labels map perfectly to the new gradient:
-  // Left: Sox17 (Green) -> Hypoblast
-  // Center: Equal weight (Blue) -> Undifferentiated
-  // Right: Sox2 (Pink) -> Epiblast
+  // Draw black border around the gradient bar
+  picture->setPen(QPen(Qt::black));
+  picture->setBrush(Qt::NoBrush);
+  picture->drawRect(bar_x, bar_y, bar_w, bar_h);
+
+  // Labels:
   QRect label_rect(bar_x, bar_y + bar_h + 2, bar_w, 14);
-  picture->drawText(label_rect, Qt::AlignLeft, "Hypoblast");
-  picture->drawText(label_rect, Qt::AlignHCenter, "Undiff.");
-  picture->drawText(label_rect, Qt::AlignRight, "Epiblast");
+  picture->drawText(label_rect, Qt::AlignLeft, "Loser cells");
+  picture->drawText(label_rect, Qt::AlignHCenter, "Epiblast");
+  
+  // Note: If the right side represents Hypoblast (which was originally green), 
+  // use "Hypoblast". If you intended both middle and right to be types of Epiblast, 
+  // you can change this to "Epiblast" or "Winner cells".
+  picture->drawText(label_rect, Qt::AlignRight, "Hypoblast");
 }
 
 void QtGraphics::ReadColorTable(QPen *pens)

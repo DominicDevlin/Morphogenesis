@@ -488,6 +488,7 @@ class Parameter {
 
   //active terms
   bool active_motion;
+  bool normalise_motility;
   double motility_strength;
   double motility_zero;
   double Ecadherin_bound_motility_loss;

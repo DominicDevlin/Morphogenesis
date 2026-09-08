@@ -70,6 +70,33 @@ struct CellTypeCounts {
   }
 };
 
+
+enum CellType {
+    TYPE_MEDIUM = 0,
+    TYPE_SOX2   = 1,
+    TYPE_SOX17  = 2,
+    TYPE_LOSER  = 3,
+    TYPE_ZONA = 4,
+    NUM_CELL_TYPES = 5
+
+};
+
+struct BoundaryLengths {
+    // Total raw boundary pixel counts
+    long long sox2_sox17 = 0;
+    long long sox2_medium = 0;
+    long long sox2_loser = 0;
+    long long sox17_medium = 0;
+    long long loser_medium = 0;
+    long long loser_sox17 = 0;
+    long long sox2_zona = 0;
+    long long sox17_zona = 0;
+    long long loser_zona = 0;
+
+    long long total_boundary = 0; // Total interface count between any different identities
+};
+
+
 //! Cells that started apoptosing via one of the two mechanisms tracked by
 //! CountAndClearDeathEvents.
 struct DeathCauseCounts {
@@ -159,6 +186,9 @@ public:
 
   void set_datafile(string file);
 
+  CellType GetPixelCellType(int id) const;
+
+  BoundaryLengths ComputeAllBoundaryLengths();
 
   void update_cell_velocities_MCS();
 

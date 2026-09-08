@@ -6,7 +6,7 @@ import pandas as pd
 # 1. Configuration Settings
 # ==========================================
 # Set directory path (easy to change parameters here)
-PARAM_FOLDER = "mot0.0/0.4-0.15-0.0"
+PARAM_FOLDER = "mot0/0.4-0.15-0.0"
 DATA_DIR = os.path.join("", PARAM_FOLDER)
 
 WINDOW_SIZE = 5  # Rolling window size for smoothing (adjust based on your total steps)

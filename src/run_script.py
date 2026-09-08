@@ -31,8 +31,8 @@ def main():
 
     a_val = adhesion_values[col]
     # perim_val = perim_values[row]
-    perim_val = 0.15
-    # motility=0.2
+    perim_val = 0.06
+    # motility=0.0
     motility = motility_values[row]
 
     print(f"Index: {index} => Selected adhesion val: {a_val}, added perim proportion val: {perim_val}, loser motility: {motility}")

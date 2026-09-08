@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot_phase_diagram(base_dir='mot0.2', output_file='phase_diagram.png'):
+def plot_phase_diagram(base_dir='mot0', output_file='phase_diagram.png'):
     phase_data = []
 
     # Regex to match folder names like "0.4-0.0-0.2" or "-0.5--0.1-0.2"
@@ -29,7 +29,9 @@ def plot_phase_diagram(base_dir='mot0.2', output_file='phase_diagram.png'):
 
         # Extract the first two varying parameters
         param1 = float(match.group(1))
+        #param2 = float(match.group(1))
         param2 = float(match.group(2))
+        print(match.group(3))
 
         # Check for the data file (includes fallback for typo in "migration")
         file_path = os.path.join(folder_path, "migartion_proportion.dat")
@@ -91,7 +93,7 @@ def plot_phase_diagram(base_dir='mot0.2', output_file='phase_diagram.png'):
     plt.yticks(rotation=0)
 
     plt.tight_layout()
-    plt.savefig(output_file, dpi=300)
+    # plt.savefig(output_file, dpi=300)
     print(f"Plot saved successfully as '{output_file}'")
     plt.show()
 
