@@ -27,11 +27,16 @@ def plot_phase_diagram(base_dir='mot0', output_file='phase_diagram.png'):
         if not match:
             continue
 
-        # Extract the first two varying parameters
-        param1 = float(match.group(1))
-        #param2 = float(match.group(1))
+        # Extract parameters
+        x = float(match.group(1))
         param2 = float(match.group(2))
-        print(match.group(3))
+
+        # --- TRANSFORMATION FOR PARAMETER 1 ---
+        k = (x + 0.3) / 1.1
+        y = 2*(1.2 - x - ((1.2 + 0.8 - (k * 1.6) + 0.4) / 2.0))
+        
+        # Round to avoid floating point artifacts in heatmap tick labels
+        param1_transformed = round(y, 2)
 
         # Check for the data file (includes fallback for typo in "migration")
         file_path = os.path.join(folder_path, "migartion_proportion.dat")
@@ -45,7 +50,7 @@ def plot_phase_diagram(base_dir='mot0', output_file='phase_diagram.png'):
                     if content:
                         value = float(content)
                         phase_data.append({
-                            'Param1': param1,
+                            'Param1': param1_transformed,  # Using transformed value
                             'Param2': param2,
                             'Proportion': value
                         })
@@ -66,15 +71,13 @@ def plot_phase_diagram(base_dir='mot0', output_file='phase_diagram.png'):
 
     # Sort Y descending so larger values are at the top (standard graph coordinates)
     pivot_table = pivot_table.sort_index(ascending=False)
+    # Sort X ascending (from smallest to largest transformed value)
     pivot_table = pivot_table.reindex(sorted(pivot_table.columns), axis=1)
 
     # --- PLOTTING ---
     print("Generating Phase Diagram...")
     plt.figure(figsize=(9, 7))
 
-    # Heatmap setup:
-    # vmin=0.0 and vmax=1.0 assume the proportion ranges from 0 to 1.
-    # Remove vmin/vmax if your numbers exceed this range.
     ax = sns.heatmap(
         pivot_table,
         cmap='viridis',
@@ -86,7 +89,7 @@ def plot_phase_diagram(base_dir='mot0', output_file='phase_diagram.png'):
 
     # Customize titles and labels as appropriate
     plt.title('Phase Diagram (mot0.0)', pad=20, fontsize=14)
-    plt.xlabel('Parameter 1', fontsize=12)
+    plt.xlabel('Transformed Parameter 1', fontsize=12)
     plt.ylabel('Parameter 2', fontsize=12)
 
     plt.xticks(rotation=45)
@@ -98,6 +101,4 @@ def plot_phase_diagram(base_dir='mot0', output_file='phase_diagram.png'):
     plt.show()
 
 if __name__ == "__main__":
-    # Ensure this script is in the directory containing 'mot0.0'
-    # Or pass the absolute path: plot_phase_diagram('/path/to/mot0.0')
     plot_phase_diagram()

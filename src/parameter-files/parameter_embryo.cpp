@@ -54,7 +54,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=7561945674489142732;//16045985250248971749;
+    pickseed=7561945674489142732 ;//16045985250248971749;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
