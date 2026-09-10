@@ -79,7 +79,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=18439375632449336403;//4626157915171642161;  //18439375632449336403 fat with 4
+    pickseed=0;//4626157915171642161;  //18439375632449336403 fat with 4
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -91,7 +91,7 @@
 
 /* Cellular Potts parameters */
     sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 300;
+    sizey = 400;
     mcs = 70001;
     T = 3;
     // currently multiplied by sqrt of area to get actual target length
@@ -137,8 +137,8 @@
     linear_increase=true;
     if (linear_increase)
       diff_coeff[0] = 8e-7;
-    increase_start_secr = 0.00225;// 0.00275;
-    increase_secr_mod = 0.00000006;
+    increase_start_secr = 0.002;// 0.00225;// 0.00275;
+    increase_secr_mod = 0.00000005;
     morphogen_sweep = false;
     // might make this a optimizable parameter as well
     gthresh = 2; // tau used by Paulien. Want growth to be by squeezing and not temperature fluctuations. 
@@ -148,7 +148,7 @@
 
     // testing
     epithelial_colour = 5;
-    MakeEpithelia=true;
+    MakeEpithelia=false;
     epiJ=2;
     epiJelse=J_med;
     epiM=1;
@@ -199,7 +199,7 @@
     dewet_cell_depth=3;
     double tmp_length = (sizex - 100 - 2 * sqrt((1240 * dewet_cell_depth ) / M_PI)) / 2.;
     dewet_length=floor(tmp_length);
-    ball_radius=54; // I used 48 and 30 for the equilibria test
+    ball_radius=76; // I used 48 and 30 for the equilibria test
     add_to_topping=0;
     wetabove=true;
     
