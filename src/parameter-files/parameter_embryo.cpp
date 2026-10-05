@@ -54,7 +54,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=7561945674489142732 ;//16045985250248971749;
+    pickseed=0 ;//16045985250248971749;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -82,7 +82,7 @@
     motility_strength = 0.0;
     loser_perim_increase=0.18;
     hypoblast_perim_increase=0.2;
-    loser_sox2_adhesion=0.6; //-0.1;
+    loser_sox2_adhesion=0.2; //-0.1;
 
     loser_sorting_only=false;
     div_time=36000;
@@ -154,9 +154,9 @@
     // smaller this is the smoother the curve between losers and winners (this is important)
     switch_like=20000.;
 
-    set_loser_colours=false;
+    set_loser_colours=true;
 
-    double LSX2min=-0.3;
+    double LSX2min=-0.2;
     double LSX2max=0.8;
     double frac = (loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
 
@@ -170,13 +170,13 @@
     to_add = (LSX17max-LSX17min) * frac;
     loser_sox17_adhesion=LSX17min + to_add;
 
-    double ZLmin=0;
-    double ZLmax=1.4;
+    double ZLmin=-0.8;
+    double ZLmax=0.6;
     to_add = (ZLmax-ZLmin) * frac;
     Jzona_sticky_loser=ZLmin+to_add;
 
-    double ZonaNormmin=-0.3;
-    double ZonaNormmax=0.;
+    double ZonaNormmin=-0.22;
+    double ZonaNormmax=0.03;
     to_add = (ZonaNormmax-ZonaNormmin) * frac;
     Jzona_loser=ZonaNormmin + to_add;
     // high value ensures cells are never broken apart by copy attempts.
@@ -196,12 +196,12 @@
 /* adhesion params */
 
     // baseline J value for adhesion between cells and blastocoel
-    Jblasto=0.5; //0.5
+    Jblasto=0.48; //0.5
     // modulation of sox17 expressing cell to medium
-    sox17_blasto_adhesion=0.;
-    // modulation of sox2 expressing cell to medium
-    sox2_blasto_adhesion=-0.;
-    loser_blasto_adhesion=-0.;
+    // sox17_blasto_adhesion=-0.;
+    // // modulation of sox2 expressing cell to medium
+    // sox2_blasto_adhesion=-0.;
+    // loser_blasto_adhesion=-0.;
 
     // baseline J value between cells
     J_cell_baseline=1.2; //1.2
@@ -214,13 +214,13 @@
 
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
-    J_cell_zona = 0.97;
-    Jzona_sox2 = 0.0;
-    Jzona_sox17 = 0.0;
+    // J_cell_zona = 0.97;
+    Jzona_sox2 = 0.03;
+    Jzona_sox17 = 0.03;
     // added zona adhesion for sox2 sox17 for sticky part
-    J_cell_zona_sticky=2.0;
-    Jzona_sticky_sox2extra=1.4;
-    Jzona_sticky_sox17extra=0.;
+    // J_cell_zona_sticky=2.0;
+    Jzona_sticky_sox2extra=0.6;
+    Jzona_sticky_sox17extra=0.1;
 
     init_blasto=1.5;
     init_zona=3.0;
@@ -238,11 +238,11 @@
     loser_loser_adhesion=loser_loser_adhesion*adhesion_multiplier;
     loser_sox2_adhesion=loser_sox2_adhesion*adhesion_multiplier;
     loser_sox17_adhesion=loser_sox17_adhesion*adhesion_multiplier;
-    J_cell_zona=J_cell_zona*adhesion_multiplier;
+    // J_cell_zona=J_cell_zona*adhesion_multiplier;
     Jzona_sox2=Jzona_sox2*adhesion_multiplier;
     Jzona_sox17=Jzona_sox17*adhesion_multiplier;
     Jzona_loser=Jzona_loser*adhesion_multiplier;
-    J_cell_zona_sticky=J_cell_zona_sticky*adhesion_multiplier;
+    // J_cell_zona_sticky=J_cell_zona_sticky*adhesion_multiplier;
     Jzona_sticky_sox2extra=Jzona_sticky_sox2extra*adhesion_multiplier;
     Jzona_sticky_sox17extra=Jzona_sticky_sox17extra*adhesion_multiplier;
     Jblasto=Jblasto*adhesion_multiplier;

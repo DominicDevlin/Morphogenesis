@@ -1963,7 +1963,8 @@ void CellularPotts::InitialiseSpatialSoxValues()
       int id = sigma[x][y];
       if (id > 0 && id != zona_sigma && blastocoel_contact.find(id) == blastocoel_contact.end()) {
         for (int d = 0; d < 8; ++d) {
-          if (sigma[x + dx[d]][y + dy[d]] == 0) {
+          if (sigma[x + dx[d]][y + dy[d]] == 0) 
+          {
             blastocoel_contact.insert(id);
             break;
           }
@@ -1977,7 +1978,8 @@ void CellularPotts::InitialiseSpatialSoxValues()
   std::vector<Cell*> inner_cells;
 
   for (auto c = cell->begin(); c != cell->end(); ++c) {
-    if (c->AliveP() && c->Sigma() != 0 && c->Sigma() != zona_sigma) {
+    if (c->AliveP() && c->Sigma() != 0 && c->Sigma() != zona_sigma) 
+    {
       if (blastocoel_contact.count(c->Sigma())) {
         surface_cells.push_back(&*c);
       } else {
@@ -3389,6 +3391,247 @@ void CellularPotts::DifferentiateZonaPellucida()
   (*cell)[zona_sigma_sticky].Apoptose();
 }
 
+
+
+
+void CellularPotts::ConvertVacatedPixel(int x, int y, int kp)
+{
+    int old_cell = sigma[x][y];
+    if (old_cell == kp) return;
+
+    // 1. Build neighbor_spins array using nx and ny (Level 1 + Level 2: 8 neighbors)
+    // nx[0] is self, so neighbors are at indices 1 through 8
+    int neighbor_spins[8];
+    for (int i = 0; i < 8; ++i)
+    {
+        int nx_coord = x + nx[i + 1];
+        int ny_coord = y + ny[i + 1];
+
+        if (nx_coord >= 1 && nx_coord <= sizex - 1 && ny_coord >= 1 && ny_coord <= sizey - 1)
+        {
+            neighbor_spins[i] = sigma[nx_coord][ny_coord];
+        }
+        else
+        {
+            neighbor_spins[i] = 0; // Boundary default to Medium
+        }
+    }
+
+    // 2. If old pixel was an internal embryo cell (not zona, not medium), update it
+    if (old_cell > 0 && old_cell != zona_sigma && old_cell != zona_sigma_sticky)
+    {
+        (*cell)[old_cell].DecrementArea();
+        (*cell)[old_cell].RemoveSiteFromMoments(x, y);
+        (*cell)[old_cell].SetPerimeter(
+            GetNewPerimeterIfXYWereRemoved(old_cell, x, y, neighbor_spins));
+
+        if (!(*cell)[old_cell].Area())
+        {
+            (*cell)[old_cell].Apoptose();
+        }
+    }
+
+    // 3. If new pixel is an internal embryo cell (not zona, not medium), update it
+    if (kp > 0 && kp != zona_sigma && kp != zona_sigma_sticky)
+    {
+        (*cell)[kp].IncrementArea();
+        (*cell)[kp].AddSiteToMoments(x, y);
+        (*cell)[kp].SetPerimeter(
+            GetNewPerimeterIfXYWereAdded(kp, x, y, neighbor_spins));
+    }
+
+    // 4. Update the lattice
+    sigma[x][y] = kp;
+}
+
+
+
+void CellularPotts::GrowZonaPellucida(double h, double k, double a, double b, double n, int fixed_polar_area, bool top_is_low_y)
+{
+    // Step 0: Determine target polar area to preserve
+    int target_polar_area = fixed_polar_area;
+    if (target_polar_area <= 0)
+    {
+        target_polar_area = 0;
+        for (int x = 1; x <= sizex - 1; ++x)
+        {
+            for (int y = 1; y <= sizey - 1; ++y)
+            {
+                if (sigma[x][y] == zona_sigma_sticky) target_polar_area++;
+            }
+        }
+    }
+
+    const double top_angle = top_is_low_y ? (-M_PI / 2.0) : (M_PI / 2.0);
+    const double a2 = a * a;
+    const double b2 = b * b;
+
+    // Step 1: Identify all pixels belonging to the NEW ellipse ring
+    std::vector<std::pair<double, std::pair<int, int>>> new_ring_pixels;
+    std::vector<std::vector<bool>> in_new_ring(sizex, std::vector<bool>(sizey, false));
+
+    for (int x = 1; x <= sizex - 1; ++x)
+    {
+        for (int y = 1; y <= sizey - 1; ++y)
+        {
+            double dx = x - h;
+            double dy = y - k;
+
+            // Ellipse equation f(x, y) and gradient magnitude
+            double f = (dx * dx) / a2 + (dy * dy) / b2 - 1.0;
+            double grad_x = (2.0 * dx) / a2;
+            double grad_y = (2.0 * dy) / b2;
+            double grad_mag = std::sqrt(grad_x * grad_x + grad_y * grad_y);
+
+            double distance = (grad_mag == 0.0) ? std::min(a, b) : (std::abs(f) / grad_mag);
+
+            if (distance <= n)
+            {
+                in_new_ring[x][y] = true;
+
+                // Angular proximity to top apex
+                double angle = std::atan2(dy, dx);
+                double diff = std::abs(angle - top_angle);
+                if (diff > M_PI) diff = 2.0 * M_PI - diff;
+
+                new_ring_pixels.push_back({diff, {x, y}});
+            }
+        }
+    }
+
+    // Sort by proximity to top
+    std::sort(new_ring_pixels.begin(), new_ring_pixels.end(),
+              [](const auto& p1, const auto& p2) {
+                  return p1.first < p2.first;
+              });
+
+    // Step 2: Find all pixels vacated by the old ring
+    struct PixelChange {
+        int x, y, new_val;
+    };
+    std::vector<PixelChange> vacated_changes;
+
+    for (int x = 1; x <= sizex - 1; ++x)
+    {
+        for (int y = 1; y <= sizey - 1; ++y)
+        {
+            if ((sigma[x][y] == zona_sigma || sigma[x][y] == zona_sigma_sticky) && !in_new_ring[x][y])
+            {
+                std::unordered_map<int, int> counts;
+                int max_count = 0;
+                int best_val = 0;
+
+                // Level 1 to 4 (indices 1 to 20)
+                for (int i = 1; i <= 20; ++i)
+                {
+                    int nx_coord = x + nx[i];
+                    int ny_coord = y + ny[i];
+                    if (nx_coord >= 1 && nx_coord <= sizex - 1 && ny_coord >= 1 && ny_coord <= sizey - 1)
+                    {
+                        int s = sigma[nx_coord][ny_coord];
+                        if (s != zona_sigma && s != zona_sigma_sticky)
+                        {
+                            counts[s]++;
+                            if (counts[s] > max_count)
+                            {
+                                max_count = counts[s];
+                                best_val = s;
+                            }
+                        }
+                    }
+                }
+
+                // Expand to Level 7 (indices 21 to 36) if needed
+                if (max_count == 0)
+                {
+                    for (int i = 21; i <= 36; ++i)
+                    {
+                        int nx_coord = x + nx[i];
+                        int ny_coord = y + ny[i];
+                        if (nx_coord >= 1 && nx_coord <= sizex - 1 && ny_coord >= 1 && ny_coord <= sizey - 1)
+                        {
+                            int s = sigma[nx_coord][ny_coord];
+                            if (s != zona_sigma && s != zona_sigma_sticky)
+                            {
+                                counts[s]++;
+                                if (counts[s] > max_count)
+                                {
+                                    max_count = counts[s];
+                                    best_val = s;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                vacated_changes.push_back({x, y, best_val});
+            }
+        }
+    }
+
+    // Step 3: Convert vacated pixels using ConvertVacatedPixel
+    for (const auto& change : vacated_changes)
+    {
+        ConvertVacatedPixel(change.x, change.y, change.new_val);
+    }
+
+    // Step 4: Write new ring pixels
+    int actual_sticky_area = 0;
+    int actual_mural_area = 0;
+    int num_sticky = std::min(target_polar_area, static_cast<int>(new_ring_pixels.size()));
+
+    for (size_t i = 0; i < new_ring_pixels.size(); ++i)
+    {
+        int px = new_ring_pixels[i].second.first;
+        int py = new_ring_pixels[i].second.second;
+
+        int old_val = sigma[px][py];
+        if (old_val > 0 && old_val != zona_sigma && old_val != zona_sigma_sticky)
+        {
+            ConvertVacatedPixel(px, py, 0);
+        }
+
+        if (static_cast<int>(i) < num_sticky)
+        {
+            sigma[px][py] = zona_sigma_sticky;
+            actual_sticky_area++;
+        }
+        else
+        {
+            sigma[px][py] = zona_sigma;
+            actual_mural_area++;
+        }
+    }
+
+    // Step 5: Update inside_elipse
+    for (int x = 1; x <= sizex - 1; ++x)
+    {
+        for (int y = 1; y <= sizey - 1; ++y)
+        {
+            if (sigma[x][y] != zona_sigma && sigma[x][y] != zona_sigma_sticky)
+            {
+                double dx = x - h;
+                double dy = y - k;
+                double f = (dx * dx) / a2 + (dy * dy) / b2 - 1.0;
+                inside_elipse[x][y] = (f < 0.0) ? 1 : 0;
+            }
+            else
+            {
+                inside_elipse[x][y] = 0;
+            }
+        }
+    }
+
+    // Step 6: Update target areas for zona
+    (*cell)[zona_sigma].SetTargetArea(actual_mural_area, global_loser_perim_increase, global_sox17_perim_increase);
+    (*cell)[zona_sigma].Apoptose();
+
+    (*cell)[zona_sigma_sticky].SetTargetArea(actual_sticky_area, global_loser_perim_increase, global_sox17_perim_increase);
+    (*cell)[zona_sigma_sticky].Apoptose();
+
+    // Step 7: Recalculate perimeters globally
+    MeasureCellPerimeters();
+}
 
 
 

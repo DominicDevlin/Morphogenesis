@@ -82,10 +82,10 @@ INIT
 
     if (par.make_zona_pellucida)
     {
-      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 40, 40, 2);
+      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 38, 38, 2);
     }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -70, par.sizex/2, par.sizey/2, 40, 40, 2);
+    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -62, par.sizex/2, par.sizey/2, 38, 38, 2);
 
     CPM->DifferentiateZonaPellucida();
 
@@ -122,7 +122,13 @@ TIMESTEP {
  
   try {
     static int t=0;
- 
+    static double current_zona_radius=40;
+    const double radius_increment = 0.5;   // pixels to grow every 1000 MCS
+    const double zona_thickness = 2.0;     // thickness n=2 from your Init
+    static double current_a = 38.0;
+    static double current_b = 38.0;
+    const double delta_a = 0.04; 
+    const double delta_b = 0.8; 
     static Dish *dish=new Dish();
     if (t < 1)
     { 
@@ -197,6 +203,13 @@ TIMESTEP {
       if (t==par.mcs-1)
       {
         cout << "Did losers migrate: " << dish->CPM->TotalMediumTouchRatio(par.final_steps) << endl;
+      }
+
+      if (t > 0 && t % 5000 == 0)
+      {
+        current_a += delta_a;
+        current_b += delta_b;        
+        dish->CPM->GrowZonaPellucida(par.sizex / 2.0, par.sizey / 2.0, current_a, current_b, zona_thickness);      
       }
       // if (t%250==0)
       // {

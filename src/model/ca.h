@@ -292,6 +292,8 @@ public:
 
   void DifferentiateZonaPellucida();
 
+  void GrowZonaPellucida(double h, double k, double a, double b, double n, int fixed_polar_area = -1, bool top_is_low_y = true);
+  
   void SetMotilityStrengths();
 
   void Vectorfield();
@@ -581,6 +583,7 @@ private:
   bool Probability(int DH);
   void ConvertSpin(int x,int y,int kp);
   void ConvertSpinPerim(int x, int y, int kp, const int* neighbor_spins);
+  void ConvertVacatedPixel(int x, int y, int kp);
   void GetNeighborsSafe(int x, int y, int* nbs); 
   void SprayMedium(void);
   int CopyvProb(double DH,  double stiff);

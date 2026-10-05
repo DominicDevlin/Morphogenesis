@@ -130,7 +130,6 @@ class Parameter {
   double Pcad_elastic_change;
 
   bool make_zona_pellucida;
-  double J_cell_zona;
   double Jzona_sox2;
   double Jzona_sox17;
   double Jzona_loser;
@@ -163,7 +162,6 @@ class Parameter {
   double sox17binding;
   double sox2vs17binding;
   double Jblasto;
-  double J_cell_zona_sticky;
   double Jzona_sticky_loser;
   double Jzona_sticky_sox2extra;
   double Jzona_sticky_sox17extra;
