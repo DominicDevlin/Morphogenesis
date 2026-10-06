@@ -82,7 +82,7 @@
     motility_strength = 0.0;
     loser_perim_increase=0.18;
     hypoblast_perim_increase=0.25;
-    loser_sox2_adhesion=0.0; //-0.1;
+    loser_sox2_adhesion=0.2; //-0.1;
 
     loser_sorting_only=false;
     div_time=36000;
@@ -148,25 +148,25 @@
     // div_time=div_time/divider;
 
 
-    starting_fraction_losers=0.15;//0.18;//0.33;
-    target_sox2_prob=0.7;
+    starting_fraction_losers=0.0;//0.18;//0.33;
+    target_sox2_prob=0.0;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
     switch_like=20000.;
 
     set_loser_colours=true;
 
-    double LSX2min=-0.6;
-    double LSX2max=0.4;
+    double LSX2min=-0.2;
+    double LSX2max=0.8;
     double frac = (loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
 
-    double LLmin=-1.6;
-    double LLmax=0.4;
+    double LLmin=-1.2;
+    double LLmax=0.8;
     double to_add = (LLmax-LLmin)*frac;
     loser_loser_adhesion=LLmin+to_add;
     
-    double LSX17min=-0.2;
-    double LSX17max=0.2;
+    double LSX17min=0.0;
+    double LSX17max=0.4;
     to_add = (LSX17max-LSX17min) * frac;
     loser_sox17_adhesion=LSX17min + to_add;
 
@@ -175,8 +175,8 @@
     to_add = (ZLmax-ZLmin) * frac;
     Jzona_sticky_loser=ZLmin+to_add;
 
-    double ZonaNormmin=-0.35;
-    double ZonaNormmax=-0.1;
+    double ZonaNormmin=-0.1;
+    double ZonaNormmax=0.15;
     to_add = (ZonaNormmax-ZonaNormmin) * frac;
     Jzona_loser=ZonaNormmin + to_add;
     // high value ensures cells are never broken apart by copy attempts.
@@ -206,17 +206,17 @@
     // baseline J value between cells
     J_cell_baseline=1.2; //1.2
     // binding of sox2 to sox2
-    sox2binding=0.4;
+    sox2binding=0.2;
     // binding of sox17 to sox17 =
-    sox17binding=0.2;
+    sox17binding=0.1;
     // binding between sox2 and sox17
-    sox2vs17binding=0.3;
+    sox2vs17binding=0.4;
 
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     // J_cell_zona = 0.97;
-    Jzona_sox2 = -0.1;
-    Jzona_sox17 = -0.1;
+    Jzona_sox2 = 0.15;
+    Jzona_sox17 = 0.15;
     // added zona adhesion for sox2 sox17 for sticky part
     // J_cell_zona_sticky=2.0;
     Jzona_sticky_sox2extra=0.6;

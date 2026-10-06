@@ -2172,6 +2172,9 @@ void CellularPotts::ClearGrid()
   }
 }
 
+
+
+
 void CellularPotts::PopulateDenseCellsInZonaRadius(double density, double R, int shiftx, int shifty, double h, double k, double a, double b, double n)
 {
   int current_cells = CountCells();

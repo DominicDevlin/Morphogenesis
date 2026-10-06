@@ -80,14 +80,9 @@ INIT
     
     CPM->ClearGrid();
 
-    if (par.make_zona_pellucida)
-    {
-      CPM->MakeZonaPellucida(par.sizex/2, par.sizey/2, 40, 40, 2);
-    }
 
-    CPM->PopulateDenseCellsInZonaRadius(par.start_density, par.start_radius, 0, -70, par.sizex/2, par.sizey/2, 40, 40, 2);
+    CPM->PopulateSparseCells(1, 16, 0, 0);
 
-    CPM->DifferentiateZonaPellucida();
 
 
     // Assign a random type to each of the cells
@@ -122,13 +117,6 @@ TIMESTEP {
  
   try {
     static int t=0;
-    static double current_zona_radius=40;
-    const double radius_increment = 1.0;   // pixels to grow every 1000 MCS
-    const double zona_thickness = 2.0;     // thickness n=2 from your Init
-    static double current_a = 40.0;
-    static double current_b = 40.0;
-    const double delta_a = 0.04; 
-    const double delta_b = 0.8; 
     static Dish *dish=new Dish();
     if (t < 1)
     { 
@@ -147,7 +135,6 @@ TIMESTEP {
 
     if (t==par.initialise_sox_time)
     {
-      dish->CPM->DrawDivisionTimes();
       if (par.loser_sorting_only)
       {
         dish->CPM->InitialiseSpatialSoxValues();
@@ -178,14 +165,6 @@ TIMESTEP {
       // }
       if (t%10==0)
       {
-        dish->CPM->CheckIfDivisionHit(t);
-        dish->CPM->LoserActiveMotion(tfrac);
-        /*
-        The thing is... I actually KNOW what the shape index should be 
-        roughly for loser cells. Because of that, what i can do is
-        get results of the shape index for loser cells for different adhesion /target perim values.
-        From that, we can then deduce what kinds of perimeter/adhesion are roughly correct?
-        */
         dish->CPM->ShapeIndex();
         if (t%200==0)
         {
@@ -196,38 +175,8 @@ TIMESTEP {
         dish->CPM->SetPerims();
         dish->CPM->SetSoxColours(tfrac);
       }
-      if (t >= par.mcs - par.final_steps)
-      {
-        dish->CPM->CheckLoserTouchingMedium();
-      }
-      if (t==par.mcs-1)
-      {
-        cout << "Did losers migrate: " << dish->CPM->TotalMediumTouchRatio(par.final_steps) << endl;
-      }
 
-      if (t > 0 && t % 5000 == 0)
-      {
-        current_a += delta_a;
-        current_b += delta_b;        
-        dish->CPM->GrowZonaPellucida(par.sizex / 2.0, par.sizey / 2.0, current_a, current_b, zona_thickness);      
-      }
-      // if (t%250==0)
-      // {
-      //   dish->CPM->NeighbourBasedApoptosis();
-      // }
-
-      // if (t%500==0)
-      // {
-      //   cout << "loser boundary: " << dish->CPM->LoserWinnerBoundaryLength() << endl;
-      //   cout << "sox boundary: " << dish->CPM->Sox2Sox17BoundaryLength() << endl;
-      // }
     }
-
-    // if (t==1000)
-    // {
-    //   dish->CPM->MeanCellArea();
-    //   dish->CPM->MeanCellPerimeter();
-    // }
 
     static Info *info=new Info(*dish, *this);
   
