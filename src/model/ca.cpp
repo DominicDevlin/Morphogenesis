@@ -2383,6 +2383,114 @@ void CellularPotts::PopulateDenseCellsInZonaRadius(double density, double R, int
 }
 
 
+
+void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turnonphase)
+{
+
+
+  // double total = sizex*sizey;
+  // int ncells = round(total / 75.);
+  // cout << ncells << endl;
+  double A = double(par.cell_target_area);
+  double distance = sqrt((A)/(2*sqrt(3)));
+  double leftover = fmod(xlen-2, distance);
+  int dividor = int(floor(double(xlen-2)/distance));
+  // cout << "LEFTOVERS: " << leftover << '\t' << dividor << endl;
+  distance += leftover/dividor;
+
+
+  int ncells = HexaCounter(xlen-2,ylen-2,distance);
+  // make lots of cells
+  FractureSheet(ncells);
+  // cout << ncells << endl;
+  // first need to clear the grid:
+  for (int x = 1; x < sizex-1; ++x) 
+  {
+    for (int y = 1; y < sizey-1; ++y) 
+    {
+      sigma[x][y]=0;
+    }
+  }
+
+
+  int periodic_length_x = xlen - 2;
+  int periodic_length_y = ylen - 2;
+
+  vector<VPoint> centers = HexaCenters(periodic_length_x, periodic_length_y, distance);
+  for (auto& center : centers) 
+  {
+    center.x += sizex - xlen - xshift;
+    center.y += sizey - ylen - shift;
+    // std::cout << "Center at (" << center.x << ", " << center.y << ")\n";
+  }
+
+
+  for (int x = 1 + sizex - xlen - xshift; x < sizex - xshift - 1; ++x) {
+      for (int y = 1 + sizey - ylen - shift; y < sizey - shift - 1; ++y) 
+      {
+        double minDistance = std::numeric_limits<double>::max();
+        int closestCenter = -1;
+        
+        // Find the closest center to (i, j)
+        for (const auto& center : centers) 
+        {
+          double dist = euclideanDistance(x, y, center.x, center.y, sizex, sizey);
+          if (dist < minDistance) {
+              minDistance = dist;
+              closestCenter = center.id;
+          }
+        }
+          
+        // Assign the closest center id to the grid cell
+        sigma[x][y] = closestCenter;
+      }
+  }
+
+  vector<Cell>::iterator c;
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      c->area = 0;
+    }
+  }
+
+  for (int x=1; x<sizex; ++x)
+    for (int y=1; y<sizey; ++y)
+    {
+      if (sigma[x][y] > 0)
+      {
+        (*cell)[sigma[x][y]].area +=1;
+      }
+    }   
+  
+  int deadcells{};
+  for ((c=cell->begin(), c++); c!=cell->end(); c++)
+  {
+    if (c->AliveP())
+    {
+      if (!c->area)
+      {
+        c->Apoptose();
+        ++deadcells;
+      }
+      else
+      {
+        c->SetTargetArea(c->area);
+        c->makeAlive();
+        // cout << c->area << endl;
+      }
+    }
+  }
+  MeasureCellSizes();
+
+  cout << "Total cells killed: " << deadcells << endl;
+}
+
+
+
+
+
 // Added 'double R' to the function parameters
 void CellularPotts::PopulateSparseCells(double density, double R, int shiftx, int shifty)
 {
