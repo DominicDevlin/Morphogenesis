@@ -81,8 +81,8 @@
     /*KEY PARAMETERS!!*/
     motility_strength = 0.0;
     loser_perim_increase=0.18;
-    hypoblast_perim_increase=0.25;
-    loser_sox2_adhesion=0.0; //-0.1;
+    hypoblast_perim_increase=0.18;
+    loser_sox2_adhesion=0.2; //-0.1;
 
     loser_sorting_only=false;
     div_time=36000;
@@ -111,18 +111,18 @@
       sox17bleb_slowdown_start=20000;
       bleb_end=40000;
       cell_target_area = 400;
-      ptarget_perimeter = 82;
+      ptarget_perimeter = 81;
       n_divisions=2;
     }
 
 
-    bulk_modulus = 5;
+    bulk_modulus = 15;
     lambda = bulk_modulus / cell_target_area;// 130;
     synthetic_max_area=cell_target_area+2;
     synthetic_min_area=cell_target_area-2;
     H_perim = true;
-    elastic_modulus = 5;
-    perim_offset = 6;
+    elastic_modulus = 15;
+    perim_offset = 0;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -156,27 +156,30 @@
 
     set_loser_colours=true;
 
-    double LSX2min=-0.6;
-    double LSX2max=0.4;
+    double LSX2min=-0.2;
+    double LSX2max=0.8;
     double frac = (loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
 
-    double LLmin=-1.6;
-    double LLmax=0.4;
+    double LLmin=-1.2;
+    double LLmax=0.8;
     double to_add = (LLmax-LLmin)*frac;
     loser_loser_adhesion=LLmin+to_add;
     
-    double LSX17min=-0.2;
-    double LSX17max=0.2;
+    double LSX17min=0.0;
+    double LSX17max=0.4;
     to_add = (LSX17max-LSX17min) * frac;
     loser_sox17_adhesion=LSX17min + to_add;
 
-    double ZLmin=-0.8;
+    double ZLmin=-0.6;
     double ZLmax=0.6;
     to_add = (ZLmax-ZLmin) * frac;
     Jzona_sticky_loser=ZLmin+to_add;
 
-    double ZonaNormmin=-0.35;
-    double ZonaNormmax=-0.1;
+    // double Lmedmin=-0.2;
+    // double Lmedmax=-0.0;
+
+    double ZonaNormmin=-0.3;
+    double ZonaNormmax=-0.05;
     to_add = (ZonaNormmax-ZonaNormmin) * frac;
     Jzona_loser=ZonaNormmin + to_add;
     // high value ensures cells are never broken apart by copy attempts.
@@ -198,25 +201,25 @@
     // baseline J value for adhesion between cells and blastocoel
     Jblasto=0.55; //0.5
     // modulation of sox17 expressing cell to medium
-    // sox17_blasto_adhesion=-0.;
+    sox17_blasto_adhesion=0.0;
     // // modulation of sox2 expressing cell to medium
-    // sox2_blasto_adhesion=-0.;
+    // sox2_blasto_adhesion=0.15;
     // loser_blasto_adhesion=-0.;
 
     // baseline J value between cells
     J_cell_baseline=1.2; //1.2
     // binding of sox2 to sox2
-    sox2binding=0.4;
+    sox2binding=0.8;
     // binding of sox17 to sox17 =
-    sox17binding=0.2;
+    sox17binding=0.4;
     // binding between sox2 and sox17
-    sox2vs17binding=0.3;
+    sox2vs17binding=0.6;
 
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     // J_cell_zona = 0.97;
-    Jzona_sox2 = -0.1;
-    Jzona_sox17 = -0.1;
+    Jzona_sox2 = -0.05;
+    Jzona_sox17 = 0.15;
     // added zona adhesion for sox2 sox17 for sticky part
     // J_cell_zona_sticky=2.0;
     Jzona_sticky_sox2extra=0.6;

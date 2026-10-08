@@ -123,11 +123,11 @@ TIMESTEP {
   try {
     static int t=0;
     static double current_zona_radius=40;
-    const double radius_increment = 1.0;   // pixels to grow every 1000 MCS
+    const double radius_increment = 1.2;   // pixels to grow every 1000 MCS
     const double zona_thickness = 2.0;     // thickness n=2 from your Init
     static double current_a = 40.0;
     static double current_b = 40.0;
-    const double delta_a = 0.04; 
+    const double delta_a = 0.3; 
     const double delta_b = 0.8; 
     static Dish *dish=new Dish();
     if (t < 1)

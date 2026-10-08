@@ -289,10 +289,14 @@ double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, do
 
   double J=par.J_cell_baseline;
 
-  if (sigma==0 || cell2.sigma==0)
+  if (sigma==0)
   {
-    J -= par.Jblasto;
+    J -= par.Jblasto + cell2_t17*par.sox17_blasto_adhesion;
   }  
+  else if (cell2.sigma==0)
+  {
+    J -= par.Jblasto+ t17 * par.sox17_blasto_adhesion;
+  }
   else if (cell2.sigma == zona_sigma)
   {
       J -= (t2        * par.Jzona_sox2

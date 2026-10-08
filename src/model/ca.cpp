@@ -3320,8 +3320,8 @@ void CellularPotts::DifferentiateZonaPellucida()
   (*cell)[zona_sigma_sticky].set_ctype(304);
   // Store modifications to prevent a chain-reaction in a single pass
   vector<std::pair<int, int>> to_change;
-  int R1 = 2;
-  int R2 = 20;
+  int R1 = 20;
+  int R2 = 4;
   // Step 2: Iterate through the grid
   for (int x = 1; x <= sizex-1; ++x) 
   {
@@ -3671,10 +3671,10 @@ void CellularPotts::DrawDivisionTimes()
     if (c->AliveP()) 
     {
       double prob_1 = RANDOM(s_val);
-      int t_1 = round(prob_1 * par.div_time);
-      int t_2 = round(t_1 + par.div_time + GetStandardNormal() * (par.div_time/5));
-      int t_3 = round(t_1 + par.div_time + GetStandardNormal() * (par.div_time/5));
-
+      int t_1 = round(prob_1 * (par.div_time/2.) + 9000);
+      int t_2 = round(t_1 + par.div_time + GetStandardNormal() * (par.div_time/12));
+      int t_3 = round(t_1 + par.div_time + GetStandardNormal() * (par.div_time/12));
+      cout << t_1 << '\t' << t_2 << '\t' << t_3 << endl;
       if (par.n_divisions==1)
       {
         vector<int> tt = {t_1};
