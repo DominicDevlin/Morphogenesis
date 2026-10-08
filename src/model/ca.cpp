@@ -2384,7 +2384,40 @@ void CellularPotts::PopulateDenseCellsInZonaRadius(double density, double R, int
 
 
 
-void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift, bool turnonphase)
+int HexaCounter(int m, int n, double r)
+{
+  // int num_rows = static_cast<int>(std::floor(m / (sqrt(3) * r)));
+  // int num_cols = static_cast<int>(std::floor(n / (2 * r)));  
+
+  int num_cols = static_cast<int>(std::floor(m / (2 * r)));  
+  int num_rows = static_cast<int>(std::floor(n / (sqrt(3) * r)));
+
+
+  int center_count = 0;
+    // Generate centers
+    for (int row = 0; row < num_rows; ++row) 
+    {
+      for (int col = 0; col < num_cols; ++col) 
+      {
+          double x = col * 2 * r;
+          double y = row * sqrt(3) * r;
+          
+          // Stagger odd rows
+          if (row % 2 == 1) {
+              x += r;  // Shift odd rows horizontally by r
+          }
+          
+          // Ensure the center is within the grid bounds
+          if (x < m && y < n) {
+              center_count++;
+          }
+        }
+    }
+    return center_count;
+}
+
+
+void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift)
 {
 
 
