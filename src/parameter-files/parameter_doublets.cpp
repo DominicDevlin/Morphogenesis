@@ -61,14 +61,14 @@
     print_fitness = true; 
 
 /* Cellular Potts parameters */
-    sizex = 150;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
-    sizey = 150;
+    sizex = 200;// was using 300 x 200 for wetting, 200x300 for elongation. Testing 512x200 with dewet length of 36
+    sizey = 200;
     mcs = 100001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
     T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
 
-    periodic_boundaries = false;
+    periodic_boundaries = true;
     // copy neighbourhood 2 used in old simulations.
     // NOTE - FOR DETAILED BALANCE WE NEED COPY NEIGHBOURHOOD = 1 (see Durand 2016)
     // NOTE - ADHESION AND PERIM NEIGHBOURHOOD MUST BE EQUAL (unless one energy is non-existent)
@@ -81,7 +81,7 @@
     /*KEY PARAMETERS!!*/
     motility_strength = 0.0;
     loser_perim_increase=0.18;
-    hypoblast_perim_increase=0.25;
+    hypoblast_perim_increase=0.15;
     loser_sox2_adhesion=0.2; //-0.1;
 
     loser_sorting_only=false;
@@ -116,13 +116,13 @@
     }
 
 
-    bulk_modulus = 5;
+    bulk_modulus = 15;
     lambda = bulk_modulus / cell_target_area;// 130;
     synthetic_max_area=cell_target_area+2;
     synthetic_min_area=cell_target_area-2;
     H_perim = true;
-    elastic_modulus = 5;
-    perim_offset = 6;
+    elastic_modulus = 15;
+    perim_offset = 0;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -170,13 +170,13 @@
     to_add = (LSX17max-LSX17min) * frac;
     loser_sox17_adhesion=LSX17min + to_add;
 
-    double ZLmin=-0.8;
+    double ZLmin=-0.6;
     double ZLmax=0.6;
     to_add = (ZLmax-ZLmin) * frac;
     Jzona_sticky_loser=ZLmin+to_add;
 
-    double ZonaNormmin=-0.1;
-    double ZonaNormmax=0.15;
+    double ZonaNormmin=-0.3;
+    double ZonaNormmax=0.05;
     to_add = (ZonaNormmax-ZonaNormmin) * frac;
     Jzona_loser=ZonaNormmin + to_add;
     // high value ensures cells are never broken apart by copy attempts.
@@ -206,16 +206,16 @@
     // baseline J value between cells
     J_cell_baseline=1.2; //1.2
     // binding of sox2 to sox2
-    sox2binding=0.2;
+    sox2binding=0.8;
     // binding of sox17 to sox17 =
-    sox17binding=0.1;
+    sox17binding=0.4;
     // binding between sox2 and sox17
-    sox2vs17binding=0.4;
+    sox2vs17binding=0.6;
 
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     // J_cell_zona = 0.97;
-    Jzona_sox2 = 0.15;
+    Jzona_sox2 = -0.05;
     Jzona_sox17 = 0.15;
     // added zona adhesion for sox2 sox17 for sticky part
     // J_cell_zona_sticky=2.0;

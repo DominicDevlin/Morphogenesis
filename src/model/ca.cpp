@@ -2417,6 +2417,44 @@ int HexaCounter(int m, int n, double r)
 }
 
 
+struct VPoint 
+{
+    double x, y;
+    int id;
+     // Corresponding Voronoi seed
+};
+
+vector<VPoint> HexaCenters(int m, int n, double r)
+{
+  vector<VPoint> centers;
+  int num_cols = static_cast<int>(std::floor(m / (2 * r)));  
+  int num_rows = static_cast<int>(std::floor(n / (sqrt(3) * r)));
+  int center_count = 1;
+
+    // Generate centers
+    for (int row = 0; row < num_rows; ++row) 
+    {
+      for (int col = 0; col < num_cols; ++col) 
+      {
+          double x = col * 2 * r;
+          double y = row * sqrt(3) * r;
+          
+          // Stagger odd rows
+          if (row % 2 == 1) {
+              x += r;  // Shift odd rows horizontally by r
+          }
+          
+          // Ensure the center is within the grid bounds
+          if (x < m+2 && y < n+2) {
+              centers.push_back({x+2+(r/2), y+2+(r/2), center_count});
+              center_count++;
+          }
+        }
+    }
+    // cout << "CENTRE COUNT IS: " << center_count << endl;
+    return centers;
+}
+
 void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift)
 {
 
@@ -2509,7 +2547,7 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift)
       }
       else
       {
-        c->SetTargetArea(c->area,);
+        c->SetTargetArea(c->area, global_loser_perim_increase, global_sox17_perim_increase);        
         c->makeAlive();
         // cout << c->area << endl;
       }
@@ -2775,12 +2813,7 @@ void CellularPotts::FractureSheet(int n_cells)
 
 
 
-struct VPoint 
-{
-    double x, y;
-    int id;
-     // Corresponding Voronoi seed
-};
+
 
 vector<VPoint> HexaCircleCenters(double circle_radius, double dist, int centerx, int centery, int starting_value)
 {

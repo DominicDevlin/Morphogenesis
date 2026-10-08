@@ -81,7 +81,7 @@
     /*KEY PARAMETERS!!*/
     motility_strength = 0.0;
     loser_perim_increase=0.18;
-    hypoblast_perim_increase=0.18;
+    hypoblast_perim_increase=0.15;
     loser_sox2_adhesion=0.2; //-0.1;
 
     loser_sorting_only=false;
@@ -111,7 +111,7 @@
       sox17bleb_slowdown_start=20000;
       bleb_end=40000;
       cell_target_area = 400;
-      ptarget_perimeter = 81;
+      ptarget_perimeter = 82;
       n_divisions=2;
     }
 
@@ -201,7 +201,7 @@
     // baseline J value for adhesion between cells and blastocoel
     Jblasto=0.55; //0.5
     // modulation of sox17 expressing cell to medium
-    sox17_blasto_adhesion=0.0;
+    // sox17_blasto_adhesion=0.0;
     // // modulation of sox2 expressing cell to medium
     // sox2_blasto_adhesion=0.15;
     // loser_blasto_adhesion=-0.;
@@ -219,7 +219,7 @@
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     // J_cell_zona = 0.97;
     Jzona_sox2 = -0.05;
-    Jzona_sox17 = 0.15;
+    Jzona_sox17 = 0.2;
     // added zona adhesion for sox2 sox17 for sticky part
     // J_cell_zona_sticky=2.0;
     Jzona_sticky_sox2extra=0.6;

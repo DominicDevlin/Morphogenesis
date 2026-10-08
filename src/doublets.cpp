@@ -81,7 +81,8 @@ INIT
     CPM->ClearGrid();
 
 
-    CPM->PopulateSparseCells(1, 16, 0, 0);
+    //CPM->PopulateSparseCells(1, 16, 0, 0);
+    CPM->Voronoi(par.sizex, par.sizey, 0,0);
 
 
 
@@ -294,7 +295,7 @@ int main(int argc, char *argv[]) {
     bool read = false;
     if (read)
       par.Read(argv[1]);
-    par.periodic_boundaries=false;
+    par.periodic_boundaries=true;
     // Seed(par.rseed);
     
     //QMainWindow mainwindow w;
