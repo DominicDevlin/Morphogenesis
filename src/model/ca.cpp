@@ -2509,7 +2509,7 @@ void CellularPotts::Voronoi(int xlen, int ylen, int shift, int xshift)
       }
       else
       {
-        c->SetTargetArea(c->area);
+        c->SetTargetArea(c->area,);
         c->makeAlive();
         // cout << c->area << endl;
       }
