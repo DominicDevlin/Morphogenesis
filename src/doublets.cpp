@@ -150,7 +150,7 @@ TIMESTEP {
 
     if (t>par.initialise_sox_time)
     {
-      double tfrac = min(1., double(t-par.expression_starts)/double(par.time_till_full_expression));
+      double tfrac = min(1., double(t-par.loser_expression_starts)/double(par.loser_time_till_full_expression));
       if (tfrac < 0)
         tfrac=0;
       dish->CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );

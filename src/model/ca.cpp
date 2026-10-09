@@ -351,8 +351,17 @@ void CellularPotts::SetMediumArea()
 double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int* neighbor_spins, PDE *PDEfield)       
 {
 
-  double t = double(tsteps-par.expression_starts)/double(par.time_till_full_expression);
+  double t_loser = (par.loser_time_till_full_expression > 0)
+    ? double(tsteps - par.loser_expression_starts) / double(par.loser_time_till_full_expression)
+    : (tsteps >= par.loser_expression_starts ? 1.0 : 0.0);
+  if (t_loser < 0.0) t_loser = 0.0;
+  else if (t_loser > 1.0) t_loser = 1.0;
 
+  double f_sox = (par.sox_time_till_full_expression > 0)
+    ? double(tsteps - par.sox_expression_starts) / double(par.sox_time_till_full_expression)
+    : (tsteps >= par.sox_expression_starts ? 1.0 : 0.0);
+  if (f_sox < 0.0) f_sox = 0.0;
+  else if (f_sox > 1.0) f_sox = 1.0;
 
   double DH = 0;
   int i, sxy;
@@ -379,26 +388,24 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
     } 
     else 
     {
-      if (tsteps < par.initialise_sox_time)
+      if (f_sox <= 0.0)
       {
         Jen += cell_sxyp.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1) - cell_sxy.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1);
       }
-      else if (t < 0)
+      else if (f_sox >= 1.0)
       {
-        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 0) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 0);
-      }
-      else if (t < 1)
-      {
-        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t); 
+        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_loser) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_loser);
       }
       else
       {
-        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1);
+        double dJ_equil = cell_sxyp.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1) - cell_sxy.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1);
+        double dJ_embryo = cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_loser) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_loser);
+        Jen += (1.0 - f_sox) * dJ_equil + f_sox * dJ_embryo;
       }
 
       // if (tsteps%1000==0 && cell_sxyp.sox2_internal_adhesion > 0.8 && (*cell)[neighsite].sox2_internal_adhesion > 0.8 && sxyp!=neighsite)
       // {
-      //   double topr = cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t, true);
+      //   double topr = cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_loser, true);
       //   cout << "J: " << topr << endl;
       //   cout << cell_sxy.sox2_internal_adhesion << '\t' << cell_sxyp.sox2_internal_adhesion << endl;
       //   cout << "sigmas: " << neighsite << '\t' << sxyp << '\t' << zona_sigma << '\t' << zona_sigma_sticky << endl;
@@ -1947,7 +1954,7 @@ void CellularPotts::InitialiseRandomSoxValues()
 
     valid_cells[i]->setSox2(sox2, global_loser_perim_increase, global_sox17_perim_increase);
     valid_cells[i]->setSox17(sox17, global_loser_perim_increase, global_sox17_perim_increase);
-    valid_cells[i]->SetSoxColour(0);
+    valid_cells[i]->SetSoxColour(0, 0.0);
   }
 }
 
@@ -2026,7 +2033,7 @@ void CellularPotts::InitialiseSpatialSoxValues()
   auto apply_values = [&](Cell* c, double s2, double s17) {
     c->setSox2(s2, global_loser_perim_increase, global_sox17_perim_increase);
     c->setSox17(s17, global_loser_perim_increase, global_sox17_perim_increase);
-    c->SetSoxColour(0);
+    c->SetSoxColour(0, 0.0);
   };
 
   // 8. Assign Surface cells (Guaranteed capped at par.maxsox17cells)
@@ -2045,14 +2052,23 @@ void CellularPotts::InitialiseSpatialSoxValues()
 }
 
 
-void CellularPotts::SetSoxColours(double tfrac)
+void CellularPotts::SetSoxColours(double tfrac, double f_sox)
 {
+  if (f_sox < 0.0)
+  {
+    f_sox = (par.sox_time_till_full_expression > 0)
+      ? double(thetime - par.sox_expression_starts) / double(par.sox_time_till_full_expression)
+      : (thetime >= par.sox_expression_starts ? 1.0 : 0.0);
+    if (f_sox < 0.0) f_sox = 0.0;
+    else if (f_sox > 1.0) f_sox = 1.0;
+  }
+
   std::vector<Cell>::iterator c;
   for (c = cell->begin(), c++; c != cell->end(); c++)
   {
     if (c->AliveP())
     {
-      c->SetSoxColour(tfrac);
+      c->SetSoxColour(tfrac, f_sox);
     }
   }
 }
@@ -3495,7 +3511,7 @@ void CellularPotts::DifferentiateZonaPellucida()
   // Store modifications to prevent a chain-reaction in a single pass
   vector<std::pair<int, int>> to_change;
   int R1 = 20;
-  int R2 = 4;
+  int R2 = 10;
   // Step 2: Iterate through the grid
   for (int x = 1; x <= sizex-1; ++x) 
   {

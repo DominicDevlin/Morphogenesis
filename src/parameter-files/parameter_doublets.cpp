@@ -92,8 +92,10 @@
     {
       initialise_sox_time=1000;
       mcs = 45001;
-      expression_starts=1000;
-      time_till_full_expression=16000;
+      sox_expression_starts=1000;
+      sox_time_till_full_expression=5000;
+      loser_expression_starts=1000;
+      loser_time_till_full_expression=16000;
       sox17bleb_slowdown_start=initialise_sox_time;
       bleb_end=0;
       // need like a number of divisions parameter
@@ -106,8 +108,10 @@
     {
       initialise_sox_time=1000;
       mcs = 80001;
-      expression_starts=35000;
-      time_till_full_expression=16000;
+      sox_expression_starts=1000;
+      sox_time_till_full_expression=5000;
+      loser_expression_starts=35000;
+      loser_time_till_full_expression=16000;
       sox17bleb_slowdown_start=20000;
       bleb_end=40000;
       cell_target_area = 400;
@@ -141,8 +145,8 @@
 
 
     // int divider=4;
-    // expression_starts=expression_starts/divider;
-    // time_till_full_expression=time_till_full_expression/divider;
+    // loser_expression_starts=loser_expression_starts/divider;
+    // loser_time_till_full_expression=loser_time_till_full_expression/divider;
     // sox17bleb_slowdown_start=sox17bleb_slowdown_start/divider;
     // bleb_end=bleb_end/divider;
     // div_time=div_time/divider;

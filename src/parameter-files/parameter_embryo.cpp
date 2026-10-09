@@ -92,8 +92,10 @@
     {
       initialise_sox_time=1000;
       mcs = 45001;
-      expression_starts=1000;
-      time_till_full_expression=16000;
+      sox_expression_starts=1000;
+      sox_time_till_full_expression=16000;
+      loser_expression_starts=1000;
+      loser_time_till_full_expression=16000;
       sox17bleb_slowdown_start=initialise_sox_time;
       bleb_end=0;
       // need like a number of divisions parameter
@@ -106,12 +108,14 @@
     {
       initialise_sox_time=1000;
       mcs = 80001;
-      expression_starts=35000;
-      time_till_full_expression=16000;
+      sox_expression_starts=1000;
+      sox_time_till_full_expression=16000;
+      loser_expression_starts=35000;
+      loser_time_till_full_expression=16000;
       sox17bleb_slowdown_start=20000;
       bleb_end=40000;
       cell_target_area = 400;
-      ptarget_perimeter = 82;
+      ptarget_perimeter = 84;
       n_divisions=2;
     }
 
@@ -122,7 +126,7 @@
     synthetic_min_area=cell_target_area-2;
     H_perim = true;
     elastic_modulus = 15;
-    perim_offset = 0;
+    perim_offset = 2;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     perim_offset = perim_offset * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
@@ -141,8 +145,8 @@
 
 
     // int divider=4;
-    // expression_starts=expression_starts/divider;
-    // time_till_full_expression=time_till_full_expression/divider;
+    // loser_expression_starts=loser_expression_starts/divider;
+    // loser_time_till_full_expression=loser_time_till_full_expression/divider;
     // sox17bleb_slowdown_start=sox17bleb_slowdown_start/divider;
     // bleb_end=bleb_end/divider;
     // div_time=div_time/divider;
@@ -178,8 +182,8 @@
     // double Lmedmin=-0.2;
     // double Lmedmax=-0.0;
 
-    double ZonaNormmin=-0.3;
-    double ZonaNormmax=-0.05;
+    double ZonaNormmin=-0.05;
+    double ZonaNormmax=0.25;
     to_add = (ZonaNormmax-ZonaNormmin) * frac;
     Jzona_loser=ZonaNormmin + to_add;
     // high value ensures cells are never broken apart by copy attempts.
@@ -199,15 +203,15 @@
 /* adhesion params */
 
     // baseline J value for adhesion between cells and blastocoel
-    Jblasto=0.55; //0.5
+    Jblasto=0.55;
     // modulation of sox17 expressing cell to medium
-    // sox17_blasto_adhesion=0.0;
+    // sox17_blasto_adhesion=0.;
     // // modulation of sox2 expressing cell to medium
-    // sox2_blasto_adhesion=0.15;
+    // sox2_blasto_adhesion=0.;
     // loser_blasto_adhesion=-0.;
 
     // baseline J value between cells
-    J_cell_baseline=1.2; //1.2
+    J_cell_baseline=1.2;
     // binding of sox2 to sox2
     sox2binding=0.8;
     // binding of sox17 to sox17 =
@@ -218,8 +222,8 @@
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     // J_cell_zona = 0.97;
-    Jzona_sox2 = -0.05;
-    Jzona_sox17 = 0.2;
+    Jzona_sox2 = 0.25;
+    Jzona_sox17 = 0.25;
     // added zona adhesion for sox2 sox17 for sticky part
     // J_cell_zona_sticky=2.0;
     Jzona_sticky_sox2extra=0.6;

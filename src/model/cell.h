@@ -1429,30 +1429,37 @@ inline void OutputPerim()
   cout << "here: " << sigma << '\t' << perimeter << '\t' << target_perimeter << '\t' << cell_perim_constraint << '\t' << area << '\t' << target_area << '\t' << lambda << endl;
 }
 
-inline void SetSoxColour(double t)
+inline void SetSoxColour(double t, double f_sox = 1.0)
 {
+    double f_clamped = std::clamp(f_sox, 0.0, 1.0);
+
     // 1. Fixed Sox2 / Sox17 baseline colour (Index 2 to 202)
+    // When f_sox == 0: index is 102 (Blue).
+    // When f_sox == 1: index is between 2 (Green) and 202 (Magenta).
     double weight = 0.5 * (sox2_internal_adhesion - sox17_internal_adhesion + 1.0);
     double target_offset = (weight - 0.5) * 200.0;
     
-    int index = 102 + static_cast<int>(std::round(target_offset));
+    int index = 102 + static_cast<int>(std::round(target_offset * f_clamped));
     index = std::clamp(index, 2, 202);
 
     set_ctype(index);
     
 
+    // 2. Loser cells (Index 203 to 303: Blue to Yellow in default.ctb)
     double is_loser = std::max(sox2_internal_adhesion * sox17_internal_adhesion, 
                                 (1.0 - sox2_internal_adhesion) * (1.0 - sox17_internal_adhesion));
     if (is_loser > 0.9)
     {
         double t_clamped = std::clamp(t, 0.0, 1.0);
-        int start=203;
+        int start = 203;
         if (par.set_loser_colours)
-          start=280;        
-        // t = 0 -> index 203 (Blue)
-        // t = 0.5 -> index 253 (Yellow)
-        // t = 1 -> index 303 (Red)
-        int loser_index = start + static_cast<int>(std::round(t_clamped * 100.0));
+          start = 303;        
+        // Target index at f_sox = 1
+        int target_loser_index = start + static_cast<int>(std::round(t_clamped * 100.0));
+        target_loser_index = std::clamp(target_loser_index, 203, 303);
+
+        // Gradually transition from 203 (Blue) to target_loser_index based on f_sox
+        int loser_index = 203 + static_cast<int>(std::round((target_loser_index - 203) * f_clamped));
         loser_index = std::clamp(loser_index, 203, 303);
 
         set_ctype(loser_index);

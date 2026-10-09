@@ -160,7 +160,12 @@ void process_population()
     cout << "Number of cells: " << initial_cell_count << endl; // 1200
     dishes[i].CPM->SetSoxColours(0);
 
-
+    double radius_increment = 1.2;   // pixels to grow every 1000 MCS
+    double zona_thickness = 2.0;     // thickness n=2 from your Init
+    double current_a = 40.0;
+    double current_b = 40.0;
+    double delta_a = 0.4; 
+    double delta_b = 0.8; 
 
     // No apoptosis mechanism runs before t==initialise_sox_time, so this is
     // also the population cell sorting starts from - lets downstream analysis
@@ -207,7 +212,7 @@ void process_population()
 
       if (t>par.initialise_sox_time)
       {
-        double tfrac = min(1., double(t-par.expression_starts)/double(par.time_till_full_expression));
+        double tfrac = min(1., double(t-par.loser_expression_starts)/double(par.loser_time_till_full_expression));
         if (tfrac < 0)
           tfrac=0;
         dishes[i].CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );
@@ -286,6 +291,12 @@ void process_population()
       if (par.active_motion)
       {
         dishes[i].CPM->update_cell_velocities_MCS();
+      }
+      if (t > 0 && t % 5000 == 0)
+      {
+        current_a += delta_a;
+        current_b += delta_b;        
+        dishes[i].CPM->GrowZonaPellucida(par.sizex / 2.0, par.sizey / 2.0, current_a, current_b, zona_thickness);      
       }
 
       if (t % 5000 == 0)
@@ -432,27 +443,27 @@ int main(int argc, char *argv[])
     // LL  min = -0.7, max=0.7
     // sx17 L min = 0. max = 0.6
     // and we do intervals of 9x9 matrix (or 8 dividers) so..
-    double LSX2min=-0.3;
+    double LSX2min=-0.2;
     double LSX2max=0.8;
     double frac = (par.loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
 
-    double LLmin=-0.8;
+    double LLmin=-1.2;
     double LLmax=0.8;
     double to_add = (LLmax-LLmin)*frac;
     par.loser_loser_adhesion=LLmin+to_add;
     
     double LSX17min=0.0;
-    double LSX17max=0.6;
+    double LSX17max=0.4;
     to_add = (LSX17max-LSX17min) * frac;
     par.loser_sox17_adhesion=LSX17min + to_add;
 
-    double ZLmin=0;
-    double ZLmax=1.4;
+    double ZLmin=-0.6;
+    double ZLmax=0.6;
     to_add = (ZLmax-ZLmin) * frac;
     par.Jzona_sticky_loser=ZLmin+to_add;
 
-    double ZonaNormmin=-0.3;
-    double ZonaNormmax=0.;
+    double ZonaNormmin=-0.15;
+    double ZonaNormmax=0.15;
     to_add = (ZonaNormmax-ZonaNormmin) * frac;
     par.Jzona_loser=ZonaNormmin + to_add;
 
@@ -476,7 +487,7 @@ int main(int argc, char *argv[])
 
 
   par.end_program=0;
-  par.n_orgs = 240; // lets do 250 now
+  par.n_orgs = 400; // lets do 250 now
   par.make_synthetic=true;
   par.phase_evolution = false;
 

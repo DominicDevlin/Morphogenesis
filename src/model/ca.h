@@ -217,7 +217,7 @@ public:
 
   void SetPerims(int tperim=0);
 
-  void SetSoxColours(double tfrac);
+  void SetSoxColours(double tfrac, double f_sox = -1.0);
 
   void ApoptoseDeadCells();
 

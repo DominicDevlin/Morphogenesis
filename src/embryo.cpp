@@ -122,12 +122,11 @@ TIMESTEP {
  
   try {
     static int t=0;
-    static double current_zona_radius=40;
     const double radius_increment = 1.2;   // pixels to grow every 1000 MCS
     const double zona_thickness = 2.0;     // thickness n=2 from your Init
     static double current_a = 40.0;
     static double current_b = 40.0;
-    const double delta_a = 0.3; 
+    const double delta_a = 0.4; 
     const double delta_b = 0.8; 
     static Dish *dish=new Dish();
     if (t < 1)
@@ -162,7 +161,7 @@ TIMESTEP {
 
     if (t>par.initialise_sox_time)
     {
-      double tfrac = min(1., double(t-par.expression_starts)/double(par.time_till_full_expression));
+      double tfrac = min(1., double(t-par.loser_expression_starts)/double(par.loser_time_till_full_expression));
       if (tfrac < 0)
         tfrac=0;
       dish->CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );
