@@ -3,7 +3,7 @@ import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def plot_average_boundary_lengths(data_dir="motchange/0.3-0.06-0.72"):
+def plot_average_boundary_lengths(data_dir="mot0/0.5-0.24-0.0"):
     # 1. Find all relevant .dat files in the directory
     file_pattern = os.path.join(data_dir, "boundary_lengths-org-*.dat")
     files = glob.glob(file_pattern)
@@ -17,12 +17,12 @@ def plot_average_boundary_lengths(data_dir="motchange/0.3-0.06-0.72"):
     # Expected column names based on the C++ header
     columns = [
         'time', 
-        # 'sox2_sox17', 
+        #'sox2_sox17', 
         'sox2_med', 
         'sox2_loser', 
-        'sox17_med', 
+        # 'sox17_med', 
         'loser_med', 
-        'loser_sox17', 
+        # 'loser_sox17', 
         'total'
     ]
 
@@ -51,12 +51,12 @@ def plot_average_boundary_lengths(data_dir="motchange/0.3-0.06-0.72"):
     
     # Boundary pairs to plot with descriptive labels and distinct colors
     boundaries_to_plot = [
-        # ('sox2_sox17',   'Sox2 / Sox17',   '#e41a1c'),  # Red
+        #('sox2_sox17',   'Sox2 / Sox17',   '#e41a1c'),  # Red
         ('sox2_med',     'Sox2 / Medium',  '#377eb8'),  # Blue
         ('sox2_loser',   'Sox2 / Loser',   '#4daf4a'),  # Green
-        ('sox17_med',    'Sox17 / Medium', '#984ea3'),  # Purple
+        # ('sox17_med',    'Sox17 / Medium', '#984ea3'),  # Purple
         ('loser_med',    'Loser / Medium', '#ff7f00'),  # Orange
-        ('loser_sox17',  'Loser / Sox17',  '#a65628')   # Brown
+        # ('loser_sox17',  'Loser / Sox17',  '#a65628')   # Brown
     ]
 
     for col, label, color in boundaries_to_plot:

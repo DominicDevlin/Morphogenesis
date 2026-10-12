@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def plot_migration_multiline(
-    base_dir='mot0',
-    x_param=2,               # Parameter on the X-axis (1, 2, or 3)
-    line_param=1,            # Parameter representing each line (1, 2, or 3)
+    base_dir='mot0big',
+    x_param=1,               # Parameter on the X-axis (1, 2, or 3)
+    line_param=2,            # Parameter representing each line (1, 2, or 3)
     fixed_value=0.0,         # Constant value for the 3rd remaining parameter
     line_values=None,        # Optional list: specific line values to plot (e.g., [0.0, 0.2, 0.4]). None = plot all
     tolerance=1e-4,          # Float matching tolerance
