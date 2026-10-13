@@ -24,12 +24,12 @@ def read_boundary_file(filepath, default_columns):
 
 
 def plot_boundary_vs_param(
-    base_dir='motchange',
+    base_dir='mot0big',
     target_col='sox2_loser',    # Column to plot ('sox2_med', 'sox2_loser', 'loser_med', 'total', etc.)
     last_n_steps=100,           # Number of final time steps to average over
     x_param=1,                  # Parameter on the X-axis (1, 2, or 3)
-    line_param=3,               # Parameter representing each line (1, 2, or 3)
-    fixed_value=0.09,            # Constant value for the remaining 3rd parameter
+    line_param=2,               # Parameter representing each line (1, 2, or 3)
+    fixed_value=0.0,            # Constant value for the remaining 3rd parameter
     line_values=None,           # Optional list: specific line values to plot (e.g., [0.1, 0.2]). None = plot all
     tolerance=1e-4,             # Float matching tolerance
     file_pattern="boundary_lengths-org-*.dat",
@@ -80,10 +80,18 @@ def plot_boundary_vs_param(
         if not match:
             continue
 
+        x = float(match.group(1))
+        p2 = float(match.group(2))
+        p3 = float(match.group(3))
+
+        k = (x + 0.3) / 1.1
+        y = 2 * (1.2 - x - ((1.2 + 0.8 - (k * 1.6) + 0.4) / 2.0))
+        p1 = round(y, 2)
+
         p_vals = {
-            1: float(match.group(1)),
-            2: float(match.group(2)),
-            3: float(match.group(3))
+            1: p1,
+            2: p2,
+            3: p3
         }
         available_fixed_values.add(p_vals[fixed_param])
 

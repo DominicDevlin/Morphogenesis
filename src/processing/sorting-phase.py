@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def plot_phase_diagram(
-    base_dir='motchange',
+    base_dir='motchangebig',
     y_param=3,                 # 2 for (Param1 vs Param2), 3 for (Param1 vs Param3)
     fixed_value=None,          # Optional: target value for the remaining fixed parameter
     tolerance=1e-4,            # Float comparison tolerance

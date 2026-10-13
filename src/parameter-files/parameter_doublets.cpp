@@ -84,40 +84,25 @@
     hypoblast_perim_increase=0.15;
     loser_sox2_adhesion=0.2; //-0.1;
 
+    starting_fraction_losers=0.;//0.18;//0.33;
+    target_sox2_prob=1.0;
+
     loser_sorting_only=false;
     div_time=36000;
     final_steps=3000;
 
-    if (loser_sorting_only)
-    {
-      initialise_sox_time=1000;
-      mcs = 45001;
-      sox_expression_starts=1000;
-      sox_time_till_full_expression=5000;
-      loser_expression_starts=1000;
-      loser_time_till_full_expression=16000;
-      sox17bleb_slowdown_start=initialise_sox_time;
-      bleb_end=0;
-      // need like a number of divisions parameter
-      cell_target_area = 200;
-      ptarget_perimeter = 60;//84;
-      n_divisions=1;
-      maxsox17cells=4;
-    }
-    else
-    {
-      initialise_sox_time=1000;
-      mcs = 80001;
-      sox_expression_starts=1000;
-      sox_time_till_full_expression=5000;
-      loser_expression_starts=35000;
-      loser_time_till_full_expression=16000;
-      sox17bleb_slowdown_start=20000;
-      bleb_end=40000;
-      cell_target_area = 400;
-      ptarget_perimeter = 82;
-      n_divisions=2;
-    }
+
+    initialise_sox_time=1;
+    mcs = 80001;
+    sox_expression_starts=1;
+    sox_time_till_full_expression=2;
+    loser_expression_starts=35000;
+    loser_time_till_full_expression=16000;
+    sox17bleb_slowdown_start=20000;
+    bleb_end=40000;
+    cell_target_area = 400;
+    ptarget_perimeter = 82;
+    n_divisions=2;
 
 
     bulk_modulus = 15;
@@ -150,10 +135,6 @@
     // sox17bleb_slowdown_start=sox17bleb_slowdown_start/divider;
     // bleb_end=bleb_end/divider;
     // div_time=div_time/divider;
-
-
-    starting_fraction_losers=0.0;//0.18;//0.33;
-    target_sox2_prob=0.0;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
     switch_like=20000.;

@@ -4524,7 +4524,7 @@ void CellularPotts::ShapeIndex()
   initVolume();
   adjustPerimeters();
 
-  int neigh_level=par.copy_neighbourhood; // (using n_nb because 2)
+  int neigh_level=par.adhesion_neighbourhood; // (using n_nb because 2)
   double correction=par.neigh_multiplier;
 
 

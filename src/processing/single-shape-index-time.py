@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # ==========================================
 # 1. Configuration Settings
 # ==========================================
-FILE_NAME = 'shape-index-data/shape_index.dat'  # Change to your actual file name
+FILE_NAME = 'shape-index-data/shape_index-pre.dat'  # Change to your actual file name
 WINDOW_SIZE = 50                      # Rolling window size for smoothing
 PLOT_RAW_DATA = True                  # Set to True to see noisy raw data faintly in the background
 

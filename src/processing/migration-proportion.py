@@ -43,9 +43,13 @@ def plot_migration_multiline(
         if not match:
             continue
 
-        p1 = float(match.group(1))
+        x = float(match.group(1))
         p2 = float(match.group(2))
         p3 = float(match.group(3))
+
+        k = (x + 0.3) / 1.1
+        y = 2 * (1.2 - x - ((1.2 + 0.8 - (k * 1.6) + 0.4) / 2.0))
+        p1 = round(y, 2)
 
         # Check for data file (including typo fallback)
         file_path = os.path.join(folder_path, "migration_proportion.dat")
@@ -65,6 +69,8 @@ def plot_migration_multiline(
                         })
             except Exception as e:
                 print(f"Error reading {file_path}: {e}")
+        else:
+            print(file_path)
 
     if not all_data:
         print("No valid data found in directory.")
