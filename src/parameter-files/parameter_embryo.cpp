@@ -79,10 +79,10 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     /*KEY PARAMETERS!!*/
-    motility_strength = 1.0;
-    loser_perim_increase=0.0;
+    motility_strength = 0.0;
+    loser_perim_increase=0.15;
     hypoblast_perim_increase=0.15;
-    loser_sox2_adhesion=0.8; //-0.1;
+    loser_sox2_adhesion=0.2; //-0.1;
 
     loser_sorting_only=false;
     div_time=36000;
@@ -109,13 +109,13 @@
       initialise_sox_time=1000;
       mcs = 80001;
       sox_expression_starts=1000;
-      sox_time_till_full_expression=16000;
+      sox_time_till_full_expression=10000;
       loser_expression_starts=35000;
       loser_time_till_full_expression=16000;
       sox17bleb_slowdown_start=20000;
       bleb_end=40000;
       cell_target_area = 400;
-      ptarget_perimeter = 84;
+      ptarget_perimeter = 82;
       n_divisions=2;
     }
 
@@ -169,12 +169,12 @@
     double to_add = (LLmax-LLmin)*frac;
     loser_loser_adhesion=LLmin+to_add;
     
-    double LSX17min=0.0;
+    double LSX17min=-0.0;
     double LSX17max=0.4;
     to_add = (LSX17max-LSX17min) * frac;
     loser_sox17_adhesion=LSX17min + to_add;
 
-    double ZLmin=-0.6;
+    double ZLmin=-0.8;
     double ZLmax=0.6;
     to_add = (ZLmax-ZLmin) * frac;
     Jzona_sticky_loser=ZLmin+to_add;
@@ -182,7 +182,7 @@
     // double Lmedmin=-0.2;
     // double Lmedmax=-0.0;
 
-    double ZonaNormmin=-0.05;
+    double ZonaNormmin=-0.2;
     double ZonaNormmax=0.25;
     to_add = (ZonaNormmax-ZonaNormmin) * frac;
     Jzona_loser=ZonaNormmin + to_add;

@@ -112,6 +112,9 @@ public:
 
     time_created = src.time_created;
 
+    is_kicking=src.is_kicking;
+    kicking_time=src.kicking_time;
+
 
     perimeter = src.perimeter;
     target_perimeter = src.target_perimeter;
@@ -187,7 +190,9 @@ public:
     accumulated_death_signals = src.accumulated_death_signals;
 
     medium_touch_count=src.medium_touch_count;
-    
+
+    is_kicking=src.is_kicking;
+    kicking_time=src.kicking_time;
   }
   
   /*! \brief Add a new cell to the dish.
@@ -1424,14 +1429,45 @@ inline void setSox17(double newsox, double perim_increase, double sox17perim_inc
   
 }
 
+inline bool getkicking()
+{
+  return is_kicking;
+}
+
+inline void setkicking(bool k)
+{
+  is_kicking=k;
+}
+
+inline void KickUpdateStep()
+{
+  kicking_time+=1;
+  double adj_t = kicking_time/200;
+  if (adj_t > 1.)
+  {
+    kicking_time=0;
+    is_kicking=false;
+    
+  }
+  else
+  {
+    double Apar = 5;
+    double Tpar = 1;
+    double perim_increase = Apar * adj_t * pow((Tpar-kicking_time), 3);
+  }
+}
+
 inline void OutputPerim()
 {
   cout << "here: " << sigma << '\t' << perimeter << '\t' << target_perimeter << '\t' << cell_perim_constraint << '\t' << area << '\t' << target_area << '\t' << lambda << endl;
 }
 
-inline void SetSoxColour(double t, double f_sox = 1.0)
+inline void SetSoxColour(double t1, double t2, double fsox)
 {
-    double f_clamped = std::clamp(f_sox, 0.0, 1.0);
+    t1 = std::clamp(t1, 0.0, 1.0);
+    t2 = std::clamp(t2, 0.0, 1.0);
+    fsox = std::clamp(fsox, 0.0, 1.0);
+    // cout << t1 << '\t' << t2 << '\t' << fsox << endl;
 
     // 1. Fixed Sox2 / Sox17 baseline colour (Index 2 to 202)
     // When f_sox == 0: index is 102 (Blue).
@@ -1439,30 +1475,49 @@ inline void SetSoxColour(double t, double f_sox = 1.0)
     double weight = 0.5 * (sox2_internal_adhesion - sox17_internal_adhesion + 1.0);
     double target_offset = (weight - 0.5) * 200.0;
     
-    int index = 102 + static_cast<int>(std::round(target_offset * f_clamped));
+    int index = 102 + static_cast<int>(std::round(target_offset * fsox));
     index = std::clamp(index, 2, 202);
 
     set_ctype(index);
-    
+    // cout << t1 << '\t' << t2 << endl;
 
     // 2. Loser cells (Index 203 to 303: Blue to Yellow in default.ctb)
     double is_loser = std::max(sox2_internal_adhesion * sox17_internal_adhesion, 
                                 (1.0 - sox2_internal_adhesion) * (1.0 - sox17_internal_adhesion));
+    
     if (is_loser > 0.9)
     {
-        double t_clamped = std::clamp(t, 0.0, 1.0);
+      if (fsox < 0.999)
+      {
         int start = 203;
         if (par.set_loser_colours)
-          start = 303;        
+          start = 253;        
         // Target index at f_sox = 1
-        int target_loser_index = start + static_cast<int>(std::round(t_clamped * 100.0));
-        target_loser_index = std::clamp(target_loser_index, 203, 303);
+        int target_loser_index = start + static_cast<int>(std::round(fsox * 100.0));
+        target_loser_index = std::clamp(target_loser_index, 203, 253);
 
         // Gradually transition from 203 (Blue) to target_loser_index based on f_sox
-        int loser_index = 203 + static_cast<int>(std::round((target_loser_index - 203) * f_clamped));
-        loser_index = std::clamp(loser_index, 203, 303);
+        int loser_index = 203 + static_cast<int>(std::round((target_loser_index - 203) * fsox));
+        loser_index = std::clamp(loser_index, 203, 253);
+
 
         set_ctype(loser_index);
+      }
+      else
+      {
+        int start = 253;
+       
+        // Target index at f_sox = 1
+        int target_loser_index = start + static_cast<int>(std::round(t1 * 100.0));
+        target_loser_index = std::clamp(target_loser_index, 253, 303);
+
+        // Gradually transition from 253 (grey) to target_loser_index based on f_sox
+        int loser_index = 203 + static_cast<int>(std::round((target_loser_index - 253) * t2));
+        loser_index = std::clamp(loser_index, 253, 303);
+        // cout << t1 << '\t' << t2 << '\t' << loser_index << endl;
+
+        set_ctype(target_loser_index);
+      }
     }
 }
 
@@ -1719,6 +1774,9 @@ protected:
   int notmedcount{};
 
   double shape_index{};
+
+  int is_kicking{};
+  int kicking_time{};
 
   int perimeter;        // amount of cell's membrane
   int target_perimeter; // cell's target membrane length  

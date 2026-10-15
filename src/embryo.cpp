@@ -141,7 +141,7 @@ TIMESTEP {
       dish->CPM->SetPerims(par.ptarget_perimeter);
       cout << "Number of cells: " << dish->CPM->CountCells() << endl; // 1200
       
-      dish->CPM->SetSoxColours(0);
+      dish->CPM->SetSoxColours(0,0, 0);
     }
 
     if (t==par.initialise_sox_time)
@@ -161,6 +161,13 @@ TIMESTEP {
 
     if (t>par.initialise_sox_time)
     {
+
+      double f_sox = (par.sox_time_till_full_expression > 0)
+        ? double(t - par.sox_expression_starts) / double(par.sox_time_till_full_expression)
+        : (t >= par.sox_expression_starts ? 1.0 : 0.0);
+      if (f_sox < 0.0) f_sox = 0.0;
+      else if (f_sox > 1.0) f_sox = 1.0;
+  
       double tfrac = min(1., double(t-par.loser_expression_starts)/double(par.loser_time_till_full_expression));
       if (tfrac < 0)
         tfrac=0;
@@ -170,6 +177,7 @@ TIMESTEP {
       if (tfrac2 < 0)
         tfrac2=0;
       tfrac2=1-tfrac2;
+      
       dish->CPM->SetSox17PerimIncrease(par.hypoblast_perim_increase * tfrac2 );
       // if (t%100==0)
       // {
@@ -193,7 +201,7 @@ TIMESTEP {
         }
 
         dish->CPM->SetPerims();
-        dish->CPM->SetSoxColours(tfrac);
+        dish->CPM->SetSoxColours(tfrac, tfrac2, f_sox);
       }
       if (t >= par.mcs - par.final_steps)
       {

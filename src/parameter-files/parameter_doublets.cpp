@@ -85,7 +85,7 @@
     loser_sox2_adhesion=0.2; //-0.1;
 
     starting_fraction_losers=0.;//0.18;//0.33;
-    target_sox2_prob=1.0;
+    target_sox2_prob=0.0;
 
     loser_sorting_only=false;
     div_time=36000;

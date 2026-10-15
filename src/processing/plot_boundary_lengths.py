@@ -3,7 +3,7 @@ import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def plot_average_boundary_lengths(data_dir="mot0/0.5-0.24-0.0"):
+def plot_average_boundary_lengths(data_dir="mot0big/0.2-0.24-0.0"):
     # 1. Find all relevant .dat files in the directory
     file_pattern = os.path.join(data_dir, "boundary_lengths-org-*.dat")
     files = glob.glob(file_pattern)

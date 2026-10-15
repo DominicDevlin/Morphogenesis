@@ -140,6 +140,9 @@ void Cell::CellBirth(Cell &mother_cell) {
   lonely_cell = mother_cell.lonely_cell;
   apop_noise_state=mother_cell.apop_noise_state;
 
+  is_kicking=mother_cell.is_kicking;
+  kicking_time=mother_cell.kicking_time;
+
 
   cell_perim_constraint = mother_cell.cell_perim_constraint;
   div_times = mother_cell.div_times;

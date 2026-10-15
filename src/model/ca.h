@@ -217,7 +217,7 @@ public:
 
   void SetPerims(int tperim=0);
 
-  void SetSoxColours(double tfrac, double f_sox = -1.0);
+  void SetSoxColours(double tfrac, double tfrac2, double fsox);
 
   void ApoptoseDeadCells();
 
@@ -300,6 +300,8 @@ public:
 
 
   void Voronoi(int xlen, int ylen, int shift, int xshift);
+
+  void Sox17Kick();
 
 
 

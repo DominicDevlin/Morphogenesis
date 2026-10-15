@@ -1954,7 +1954,7 @@ void CellularPotts::InitialiseRandomSoxValues()
 
     valid_cells[i]->setSox2(sox2, global_loser_perim_increase, global_sox17_perim_increase);
     valid_cells[i]->setSox17(sox17, global_loser_perim_increase, global_sox17_perim_increase);
-    valid_cells[i]->SetSoxColour(0, 0.0);
+    valid_cells[i]->SetSoxColour(0, 0.0, 0.);
   }
 }
 
@@ -2033,7 +2033,7 @@ void CellularPotts::InitialiseSpatialSoxValues()
   auto apply_values = [&](Cell* c, double s2, double s17) {
     c->setSox2(s2, global_loser_perim_increase, global_sox17_perim_increase);
     c->setSox17(s17, global_loser_perim_increase, global_sox17_perim_increase);
-    c->SetSoxColour(0, 0.0);
+    c->SetSoxColour(0, 0.0, 0.);
   };
 
   // 8. Assign Surface cells (Guaranteed capped at par.maxsox17cells)
@@ -2052,23 +2052,16 @@ void CellularPotts::InitialiseSpatialSoxValues()
 }
 
 
-void CellularPotts::SetSoxColours(double tfrac, double f_sox)
+void CellularPotts::SetSoxColours(double tfrac, double tfrac2, double fsox)
 {
-  if (f_sox < 0.0)
-  {
-    f_sox = (par.sox_time_till_full_expression > 0)
-      ? double(thetime - par.sox_expression_starts) / double(par.sox_time_till_full_expression)
-      : (thetime >= par.sox_expression_starts ? 1.0 : 0.0);
-    if (f_sox < 0.0) f_sox = 0.0;
-    else if (f_sox > 1.0) f_sox = 1.0;
-  }
+
 
   std::vector<Cell>::iterator c;
   for (c = cell->begin(), c++; c != cell->end(); c++)
   {
     if (c->AliveP())
     {
-      c->SetSoxColour(tfrac, f_sox);
+      c->SetSoxColour(tfrac, tfrac2, fsox);
     }
   }
 }
@@ -5061,6 +5054,23 @@ double CellularPotts::Sox2Sox17BoundaryLength()
   // Return the relative boundary length as a double between 0.0 and 1.0
   return static_cast<double>(total_sox_boundary)/static_cast<double>(total_boundary);
 } 
+
+
+void CellularPotts::Sox17Kick()
+{
+  vector<Cell>::iterator c;
+  for ( (c=cell->begin(), c++); c!=cell->end(); c++) 
+  {
+    if (c->AliveP())
+    {
+      c->SetLooser();
+
+      bool sox17cell = (c->sox17_internal_adhesion > 0.8);
+      
+
+    }
+  }
+}
 
 
 
