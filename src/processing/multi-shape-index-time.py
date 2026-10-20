@@ -6,10 +6,10 @@ import pandas as pd
 # 1. Configuration Settings
 # ==========================================
 # Set directory path (easy to change parameters here)
-PARAM_FOLDER = "mot0/0.4-0.15-0.0"
+PARAM_FOLDER = "mot0big/0.2-0.15-0.0"
 DATA_DIR = os.path.join("", PARAM_FOLDER)
 
-WINDOW_SIZE = 5  # Rolling window size for smoothing (adjust based on your total steps)
+WINDOW_SIZE = 1  # Rolling window size for smoothing (adjust based on your total steps)
 PLOT_INDIVIDUAL_SIMS = (
     True  # Set to True to see faded lines for each individual simulation
 )
@@ -26,11 +26,11 @@ DATA_CONFIG = {
         "color": "forestgreen",
         "label": "Sox17 Cells",
     },
-    "Loser": {
-        "file": "average_shape_indices_loser.dat",
-        "color": "crimson",  # Red line
-        "label": "Loser Cells",
-    },
+    # "Loser": {
+    #     "file": "average_shape_indices_loser.dat",
+    #     "color": "crimson",  # Red line
+    #     "label": "Loser Cells",
+    # },
 }
 
 # ==========================================
@@ -52,16 +52,20 @@ for cell_type, config in DATA_CONFIG.items():
     sim_cols = [col for col in df.columns if col.startswith("sim_")]
 
     # 1. Plot individual simulations (faded in the background)
+    skip=0
+    print(skip)
     if PLOT_INDIVIDUAL_SIMS:
         for col in sim_cols:
-            plt.plot(
-                time,
-                df[col],
-                color=config["color"],
-                alpha=0.15,
-                linewidth=1,
-                zorder=1,
-            )
+            if skip % 20 == 0:
+                plt.plot(
+                    time,
+                    df[col],
+                    color=config["color"],
+                    alpha=0.15,
+                    linewidth=1,
+                    zorder=1,
+                )
+            skip+=1
 
     # 2. Calculate average across simulations per time step
     mean_across_sims = df[sim_cols].mean(axis=1)
@@ -102,7 +106,8 @@ plt.ylabel("Average Shape Index ($P / \\sqrt{A}$)", fontsize=12)
 plt.grid(True, linestyle=":", alpha=0.6)
 plt.legend(fontsize=11, loc="best")
 plt.tight_layout()
-
+plt.xlim(2000,80000)
+plt.ylim(3.9)
 # Save output inside the same directory
 output_image = os.path.join(DATA_DIR, "shape_index_by_cell_type.png")
 # plt.savefig(output_image, dpi=300)

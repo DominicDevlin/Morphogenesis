@@ -3,7 +3,7 @@ import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def plot_average_boundary_lengths(data_dir="mot0big/0.2-0.24-0.0"):
+def plot_average_boundary_lengths(data_dir="mot0big/-0.1-0.0-0.0"):
     # 1. Find all relevant .dat files in the directory
     file_pattern = os.path.join(data_dir, "boundary_lengths-org-*.dat")
     files = glob.glob(file_pattern)
@@ -82,8 +82,8 @@ def plot_average_boundary_lengths(data_dir="mot0big/0.2-0.24-0.0"):
     # plt.grid(True, linestyle='--', alpha=0.5)
 
     # Time boundaries (starts at 0, goes up to 800 or autoscale)
-    plt.xlim(left=800)#, right=800)
-    plt.ylim(bottom=0)
+    plt.xlim(left=1000)#, right=800)
+    plt.ylim(0, 160)
 
     # Legend outside to prevent overlapping lines
     plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1), frameon=True)

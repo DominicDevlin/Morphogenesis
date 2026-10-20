@@ -278,9 +278,9 @@ TIMESTEP {
       // Plot the dish.
       dish->Plot(this);
 
-#ifdef QTGRAPHICS
-      DrawLegend();
-#endif
+// #ifdef QTGRAPHICS
+//       DrawLegend();
+// #endif
 
       char title[400];
 
@@ -308,9 +308,9 @@ TIMESTEP {
       ClearImage();
       dish->Plot(this);
 
-#ifdef QTGRAPHICS
-      DrawLegend();
-#endif
+// #ifdef QTGRAPHICS
+//       DrawLegend();
+// #endif
 
       EndScene();
 

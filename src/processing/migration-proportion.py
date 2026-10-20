@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def plot_migration_multiline(
-    base_dir='mot0big',
+    base_dir='motchangebig',
     x_param=1,               # Parameter on the X-axis (1, 2, or 3)
-    line_param=2,            # Parameter representing each line (1, 2, or 3)
-    fixed_value=0.0,         # Constant value for the 3rd remaining parameter
+    line_param=3,            # Parameter representing each line (1, 2, or 3)
+    fixed_value=0.09,         # Constant value for the 3rd remaining parameter
     line_values=None,        # Optional list: specific line values to plot (e.g., [0.0, 0.2, 0.4]). None = plot all
     tolerance=1e-4,          # Float matching tolerance
     output_file='migration_multiline.png'
@@ -127,7 +127,7 @@ def plot_migration_multiline(
     plt.ylabel('Migration Proportion', fontsize=12)
     
     plt.ylim(-0.05, 1.05)
-    plt.grid(True, linestyle='--', alpha=0.5)
+    # plt.grid(True, linestyle='--', alpha=0.5)
     
     # Legend formatting
     plt.legend(title=f'Parameter {line_param}', bbox_to_anchor=(1.04, 1), loc="upper left")
@@ -136,6 +136,7 @@ def plot_migration_multiline(
     # if output_file:
     #     plt.savefig(output_file, dpi=300, bbox_inches='tight')
     #     print(f"Plot saved successfully as '{output_file}'")
+    plt.ylim(0,1)
 
     plt.show()
 
