@@ -54,7 +54,7 @@
     store = true;
 
     // Start from specific seed. USE 0 for random seed. (Should be 0 unless need specific seed.)
-    pickseed=2751528125988203731;//15328596481862975002 ;//16045985250248971749;
+    pickseed=0;//15328596481862975002 ;//16045985250248971749;
     rseed = -1;
 
     // KEEP THIS TO FALSE FOR EVOLUTION
@@ -79,7 +79,7 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     /*KEY PARAMETERS!!*/
-    motility_strength = 0.0;
+    motility_strength = 2.0;
     loser_perim_increase=0.0;
     hypoblast_perim_increase=0.15;
     loser_sox2_adhesion=-0.1; //-0.1;
