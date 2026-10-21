@@ -38,7 +38,7 @@
     // show on screen
     graphics = true;
     // show morphogen gradients
-    contours = true;
+    contours = false;
     // draw cell displacement paths
     draw_paths = false;
 
@@ -194,7 +194,7 @@
     // NOTE - EFFECT WILL BE ENHANCED WITH CADHERINS BUT NOT LIMITED To
     // Note - i changed this to simply change lambdaP
 
-    proportion_celltype2 =0.; // i used 0.7 for 3 layer and 0.47? for asymmetric
+    proportion_celltype2 =0.7; // i used 0.7 for 3 layer and 0.47? for asymmetric
     start_radius=110;
     start_density=0.2;
     
@@ -243,8 +243,8 @@
     // for spheroid stuff
     c1_const={0,0,0,0,0,0,0};
     c2_const={0,0,0,0,0,0,0};
-    c1_GFP_induced={0,0,0,0,0,0,1};
-    c2_GFP_induced={0,0,0,0,0,0,1};
+    c1_GFP_induced={1,0,0,0,0,0,1};
+    c2_GFP_induced={1,0,0,0,0,0,1};
     c1_mCherry_induced={0,0,0,0,0,0,0};
     c2_mCherry_induced={0,0,0,0,0,0,0};
     c1_CD19_induced={0,0,0,0,0,0,0};
