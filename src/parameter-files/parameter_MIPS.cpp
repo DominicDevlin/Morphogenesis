@@ -65,7 +65,7 @@
     sizey = 350;
     mcs = 180001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
-    T = 1;
+    T = 0;
     // NOTE: lambda must be divided by A_0 to maintain constant force
 
     periodic_boundaries = true;
@@ -95,7 +95,7 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 3.6; // not that this term depends on the cell size (1/sqrt(area))
+    motility_strength = 20.6; // not that this term depends on the cell size (1/sqrt(area))
     persistence_time = 40.;
 
     // smaller this is the smoother the curve between losers and winners (this is important)

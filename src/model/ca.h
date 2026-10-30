@@ -205,6 +205,7 @@ public:
 
   bool SoloCheck();
 
+  void UpdateTheta();
 
   double get_enzyme_conc(int n, int x, int y);
 

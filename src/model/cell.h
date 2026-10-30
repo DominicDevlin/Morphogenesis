@@ -929,41 +929,46 @@ private:
     return (double)area * (com_shiftx * avg_vx + com_shifty * avg_vy);
 }  
 
-  double Gravity()
-  {
-    // x^2 gravity, we typically use coeffiecnt of..
-    double newcom_x = com_x + com_shiftx;
-    double newcom_y = com_y + com_shifty;
-    double delta_x = com_x - centerx;
-    double delta_y = com_y - centery;
-    double delta_xnew = newcom_x - centerx;
-    double delta_ynew = newcom_y - centery;
-    // cout << centerx << '\t' << newcom_x << '\t' << com_x << endl;
-    double old_energy = par.lambda_gravity * (delta_x * delta_x + delta_y * delta_y);
-    double new_energy = par.lambda_gravity * (delta_xnew * delta_xnew + delta_ynew * delta_ynew);
-    return new_energy - old_energy;
 
-    // x^4 gravity, coefficient of approx 0.00000008;
-      // 1. Calculate the squared distance from the center for the current position
-    // double delta_x = com_x - centerx;
-    // double delta_y = com_y - centery;
-    // double dist_sq_old = delta_x * delta_x + delta_y * delta_y;
 
-    // // 2. Calculate the squared distance for the proposed new position
-    // double newcom_x = com_x + com_shiftx;
-    // double newcom_y = com_y + com_shifty;
-    // double delta_xnew = newcom_x - centerx;
-    // double delta_ynew = newcom_y - centery;
-    // double dist_sq_new = delta_xnew * delta_xnew + delta_ynew * delta_ynew;
-    // // cout << centerx << '\t' << newcom_x << '\t' << com_x << endl;
 
-    // // 3. Compute quartic energy: E = lambda * (r^2)^2 = lambda * r^4
-    // // This creates a flat bottom and steep walls.
-    // double old_energy = par.lambda_gravity * (dist_sq_old * dist_sq_old);
-    // double new_energy = par.lambda_gravity * (dist_sq_new * dist_sq_new);
 
-    // return new_energy - old_energy;
-  }
+
+inline double Gravity()
+{
+  // x^2 gravity, we typically use coeffiecnt of..
+  double newcom_x = com_x + com_shiftx;
+  double newcom_y = com_y + com_shifty;
+  double delta_x = com_x - centerx;
+  double delta_y = com_y - centery;
+  double delta_xnew = newcom_x - centerx;
+  double delta_ynew = newcom_y - centery;
+  // cout << centerx << '\t' << newcom_x << '\t' << com_x << endl;
+  double old_energy = par.lambda_gravity * (delta_x * delta_x + delta_y * delta_y);
+  double new_energy = par.lambda_gravity * (delta_xnew * delta_xnew + delta_ynew * delta_ynew);
+  return new_energy - old_energy;
+
+  // x^4 gravity, coefficient of approx 0.00000008;
+    // 1. Calculate the squared distance from the center for the current position
+  // double delta_x = com_x - centerx;
+  // double delta_y = com_y - centery;
+  // double dist_sq_old = delta_x * delta_x + delta_y * delta_y;
+
+  // // 2. Calculate the squared distance for the proposed new position
+  // double newcom_x = com_x + com_shiftx;
+  // double newcom_y = com_y + com_shifty;
+  // double delta_xnew = newcom_x - centerx;
+  // double delta_ynew = newcom_y - centery;
+  // double dist_sq_new = delta_xnew * delta_xnew + delta_ynew * delta_ynew;
+  // // cout << centerx << '\t' << newcom_x << '\t' << com_x << endl;
+
+  // // 3. Compute quartic energy: E = lambda * (r^2)^2 = lambda * r^4
+  // // This creates a flat bottom and steep walls.
+  // double old_energy = par.lambda_gravity * (dist_sq_old * dist_sq_old);
+  // double new_energy = par.lambda_gravity * (dist_sq_new * dist_sq_new);
+
+  // return new_energy - old_energy;
+}
 
 
 private:
@@ -1098,6 +1103,7 @@ protected:
   // are locally adjusted, so axes are easily
   // and quickly calculated!
 
+  double theta{};
 
   // active motion terms
   deque<double> velocity_histories_x;

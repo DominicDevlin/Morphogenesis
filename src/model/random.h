@@ -37,6 +37,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 // int Randomize(void);
 
 double RANDOM(uint64_t s[4]);
+double RandomNormal(uint64_t s[4]);
 uint64_t Seed(int org_num);
 long RandomNumber(long max, uint64_t s[4]);
 void jump(uint64_t s[4]); 
