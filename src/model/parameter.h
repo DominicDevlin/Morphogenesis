@@ -174,6 +174,8 @@ class Parameter {
   double loser_sox2_adhesion;
   double loser_sox17_adhesion;
 
+  double Dr;
+
   double init_blasto;
   double init_zona;
   double init_zona_sticky;

@@ -214,6 +214,8 @@ public:
 
   void MeasureSinglePerimeter(int targetsigma);
 
+  void UpdateTheta();
+
 
   void SetPerims(int tperim=0);
 

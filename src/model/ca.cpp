@@ -552,6 +552,17 @@ void CellularPotts::update_cell_velocities_MCS()
   }
 }
 
+void CellularPotts::UpdateTheta()
+{
+  for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++)
+  {
+    double xi = RandomNormal(s_val);
+    double noise = sqrt(2 * par.Dr) * xi;
+    c->add_to_theta(noise);
+  } 
+
+}
+
 void CellularPotts::MeasureSinglePerimeter(int targetsigma)
 {
   cell->at(targetsigma).SetPerimeter(0);

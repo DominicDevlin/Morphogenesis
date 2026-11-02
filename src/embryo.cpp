@@ -242,7 +242,8 @@ TIMESTEP {
     dish->CPM->AmoebaeMove(t);
     if (par.active_motion)
     {
-      dish->CPM->update_cell_velocities_MCS();
+      dish->CPM->UpdateTheta();
+      //dish->CPM->update_cell_velocities_MCS();
     }
 
 

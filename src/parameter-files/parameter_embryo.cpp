@@ -141,6 +141,7 @@
      // not that this term depends on the cell size (1/sqrt(area))
     motility_zero = motility_strength * sqrt(cell_target_area);
     persistence_time = 40.;
+    Dr=0.02;
 
 
 

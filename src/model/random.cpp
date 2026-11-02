@@ -80,6 +80,18 @@ uint64_t next(uint64_t s[4])
 }
 
 
+double RandomNormal(uint64_t s[4]) 
+{
+    constexpr double TWO_PI = 6.28318530717958647692;
+
+    // Using (1.0 - RANDOM(s)) guarantees u1 is strictly in (0, 1],
+    // completely preventing undefined log(0.0) errors.
+    double u1 = 1.0 - RANDOM(s);
+    double u2 = RANDOM(s);
+
+    return std::sqrt(-2.0 * std::log(u1)) * std::cos(TWO_PI * u2);
+}
+
 void jump(uint64_t s[4]) 
 {
 	static const uint64_t JUMP[] = { 0x180ec6d33cfd0aba, 0xd5a61266f0c9392c, 0xa9582618e03fc9aa, 0x39abdc4529b1661c };

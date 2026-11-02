@@ -120,6 +120,7 @@ public:
     target_perimeter = src.target_perimeter;
 
     apop_noise_state=src.apop_noise_state;
+    theta = src.theta;
 
     diffs = new double[par.n_diffusers];
 
@@ -267,6 +268,7 @@ public:
     Sox17_concentration = src.Sox17_concentration;
     sox17_internal_adhesion = src.sox17_internal_adhesion;
     lonely_cell = src.lonely_cell;
+    theta = src.theta;
 
     epithelial = src.epithelial;
     synNotch_bound = src.synNotch_bound;
@@ -965,7 +967,13 @@ private:
   {
     return avg_vy;
   }
-
+  
+  inline void add_to_theta(double added)
+  {
+    theta += added;
+    avg_vx = cos(theta);
+    avg_vy = sin(theta);
+  }  
   inline double ActiveDotProduct_added(int x, int y)
   {
     double Lx = par.sizex - 2;
@@ -1888,6 +1896,8 @@ protected:
   // and center of mass
   // are locally adjusted, so axes are easily
   // and quickly calculated!
+
+  double theta{};
 
 
   // active motion terms
