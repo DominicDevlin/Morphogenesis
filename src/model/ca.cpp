@@ -4430,11 +4430,12 @@ vector<double>& CellularPotts::ReturnHexaticOrder()
 
 void CellularPotts::UpdateTheta()
 {
-  double Dr=1.;
   normal_distribution<double> ndist(0.0,1.0);
   for (vector<Cell>::iterator c=cell->begin();c!=cell->end();c++)
   {
     double xi = RandomNormal(s_val);
+    double noise = sqrt(2 * par.Dr) * xi;
+    c->add_to_theta(noise);
   } 
 
 }

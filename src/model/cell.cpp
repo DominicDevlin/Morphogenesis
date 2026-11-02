@@ -93,6 +93,7 @@ void Cell::CellBirth(Cell &mother_cell) {
   xcen = mother_cell.xcen;
   ycen = mother_cell.ycen;
 
+  theta = mother_cell.theta;
 
 
   phase_protein_conc = mother_cell.phase_protein_conc;

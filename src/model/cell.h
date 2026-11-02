@@ -108,7 +108,7 @@ public:
     medium_protein_conc = src.medium_protein_conc;
     medium_state = src.medium_state;
 
-
+    theta = src.theta;
   
 
     epithelial = src.epithelial;
@@ -187,6 +187,8 @@ public:
 
     epithelial = src.epithelial;
     
+    theta = src.theta;
+
     return *this;
 
     centerx = src.centerx;
@@ -792,8 +794,6 @@ private:
   {
     // calculate velocity here
 
-
-
     double com_x = double(sum_x) / double(area);
     double com_y = double(sum_y) / double(area);
 
@@ -849,6 +849,13 @@ private:
   inline double cell_vely()
   {
     return avg_vy;
+  }
+
+  inline void add_to_theta(double added)
+  {
+    theta += added;
+    avg_vx = cos(theta);
+    avg_vy = sin(theta);
   }
 
   inline double ActiveDotProduct_added(int x, int y)

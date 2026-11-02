@@ -73,7 +73,7 @@ INIT
 
     CPM->ClearGrid();
 
-    CPM->PopulateSparseCells(1., 300, 0, 0);
+    CPM->PopulateSparseCells(0.85, 300, 0, 0);
 
 
     
@@ -141,7 +141,10 @@ TIMESTEP {
       dish->CPM->AmoebaeMove(t);
     if (par.active_motion)
     {
-      dish->CPM->update_cell_velocities_MCS();
+      // if (t == 0)
+      //   dish->C
+      // dish->CPM->update_cell_velocities_MCS();
+      dish->CPM->UpdateTheta();
     }
 
     // we will use this later

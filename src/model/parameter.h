@@ -131,6 +131,7 @@ class Parameter {
   double decay_E_cadherin_unbound;
   double decay_E_cadherin_bound;
 
+  double Dr;
   double production_rate_synNotch;
   double binding_rate_CD19_synNotch;
 

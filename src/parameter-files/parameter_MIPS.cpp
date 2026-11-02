@@ -65,7 +65,7 @@
     sizey = 350;
     mcs = 180001;
     // NOTE - TEMPERATURE CURRENTLY DEFUNCT SINCE IT IS SET TO 1!
-    T = 0;
+    T = 1;
     // NOTE: lambda must be divided by A_0 to maintain constant force
 
     periodic_boundaries = true;
@@ -78,15 +78,15 @@
     neigh_multipliers={1, 3, 5, 11, 15, 18, 26};
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
-    bulk_modulus = 5;
+    bulk_modulus = 30;
     cell_target_area = 100;
     lambda = bulk_modulus / cell_target_area;// 130;
     div_threshold = 150;
 
 
     H_perim = true;
-    elastic_modulus = 1;
-    ptarget_perimeter = 21;
+    elastic_modulus = 30;
+    ptarget_perimeter = 32;
     ptarget_perimeter = ptarget_perimeter * (neigh_multipliers[perimeter_neighbourhood-1]);
     // Note - value must be divided by P_0 to maintain constant force if P_0 is to change.
     lambda_perimeter = elastic_modulus / ptarget_perimeter;// 8;
@@ -95,8 +95,9 @@
     // P/N cadherin binding shoudlnt change active motion. 
     // E cadherin should decrease with E cadherin binding
     active_motion = true;
-    motility_strength = 20.6; // not that this term depends on the cell size (1/sqrt(area))
+    motility_strength = 0.7; // not that this term depends on the cell size (1/sqrt(area))
     persistence_time = 40.;
+    Dr = 0.001;
 
     // smaller this is the smoother the curve between losers and winners (this is important)
 
