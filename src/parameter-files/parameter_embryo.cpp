@@ -79,10 +79,10 @@
     neigh_multiplier=double(neigh_multipliers[adhesion_neighbourhood-1]);
 
     /*KEY PARAMETERS!!*/
-    motility_strength = 2.0;
-    loser_perim_increase=0.0;
+    motility_strength = 0.; // note that this depends on what method of active motion i am using.
+    loser_perim_increase=0.15;
     hypoblast_perim_increase=0.15;
-    loser_sox2_adhesion=-0.1; //-0.1;
+    loser_sox2_end=-0.1; //-0.1;
 
     loser_sorting_only=false;
     div_time=36000;
@@ -94,8 +94,8 @@
       mcs = 45001;
       sox_expression_starts=1000;
       sox_time_till_full_expression=16000;
-      loser_expression_starts=1000;
-      loser_time_till_full_expression=16000;
+      epiblast_cadherin_starts=1000;
+      epiblast_time_till_full_expression=16000;
       sox17bleb_slowdown_start=initialise_sox_time;
       bleb_end=0;
       // need like a number of divisions parameter
@@ -110,8 +110,8 @@
       mcs = 80001;
       sox_expression_starts=1000;
       sox_time_till_full_expression=10000;
-      loser_expression_starts=35000;
-      loser_time_till_full_expression=16000;
+      epiblast_cadherin_starts=35000;
+      epiblast_time_till_full_expression=16000;
       sox17bleb_slowdown_start=20000;
       bleb_end=40000;
       cell_target_area = 400;
@@ -146,8 +146,8 @@
 
 
     // int divider=4;
-    // loser_expression_starts=loser_expression_starts/divider;
-    // loser_time_till_full_expression=loser_time_till_full_expression/divider;
+    // epiblast_cadherin_starts=epiblast_cadherin_starts/divider;
+    // epiblast_time_till_full_expression=epiblast_time_till_full_expression/divider;
     // sox17bleb_slowdown_start=sox17bleb_slowdown_start/divider;
     // bleb_end=bleb_end/divider;
     // div_time=div_time/divider;
@@ -161,32 +161,29 @@
 
     set_loser_colours=true;
 
-    double LSX2min=-0.2;
-    double LSX2max=0.8;
-    double frac = (loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
+    // double LSX2min=-0.2;
+    // double LSX2max=0.8;
+    // double frac = (loser_sox2_end - LSX2min) / ( LSX2max - LSX2min);
 
-    double LLmin=-1.2;
-    double LLmax=0.8;
-    double to_add = (LLmax-LLmin)*frac;
-    loser_loser_adhesion=LLmin+to_add;
+    // double LLmin=-1.2;
+    // double LLmax=0.8;
+    // double to_add = (LLmax-LLmin)*frac;
     
-    double LSX17min=-0.0;
-    double LSX17max=0.4;
-    to_add = (LSX17max-LSX17min) * frac;
-    loser_sox17_adhesion=LSX17min + to_add;
+    // double LSX17min=-0.0;
+    // double LSX17max=0.4;
+    // to_add = (LSX17max-LSX17min) * frac;
 
-    double ZLmin=-0.8;
-    double ZLmax=0.6;
-    to_add = (ZLmax-ZLmin) * frac;
-    Jzona_sticky_loser=ZLmin+to_add;
+    // double ZLmin=-0.8;
+    // double ZLmax=0.6;
+    // to_add = (ZLmax-ZLmin) * frac;
 
     // double Lmedmin=-0.2;
     // double Lmedmax=-0.0;
 
-    double ZonaNormmin=-0.2;
-    double ZonaNormmax=0.25;
-    to_add = (ZonaNormmax-ZonaNormmin) * frac;
-    Jzona_loser=ZonaNormmin + to_add;
+    // double ZonaNormmin=-0.2;
+    // double ZonaNormmax=0.25;
+    // to_add = (ZonaNormmax-ZonaNormmin) * frac;
+
     // high value ensures cells are never broken apart by copy attempts.
     // This value is only used in the slightly faster CPM implementation where 
     // detailed balance is not ensured.
@@ -214,21 +211,35 @@
     // baseline J value between cells
     J_cell_baseline=1.2;
     // binding of sox2 to sox2
-    sox2binding=0.8;
+    sox2_sox2_start=0.8;
+    sox2_sox2_end=1.4;
     // binding of sox17 to sox17 =
-    sox17binding=0.4;
+    sox17_sox17_start=0.4;
+    sox17_sox17_end=0.8;
     // binding between sox2 and sox17
-    sox2vs17binding=0.6;
+    sox2_sox17_start=0.6;
+    sox2_sox17_end=1.1;
 
+    loser_loser_start=0.8;
+    loser_loser_end=0.;
+
+    loser_sox2_start=0.8;
+    loser_sox2_end=0.8;
+    loser_sox17_start=0.6;
+    loser_sox17_end=0.6;
+    Jzona_loser=0.25;
 
     // J cell zona is the same for all zona. Sticky part has different form non sticky just for specific adhesions.
     // J_cell_zona = 0.97;
-    Jzona_sox2 = 0.25;
-    Jzona_sox17 = 0.25;
-    // added zona adhesion for sox2 sox17 for sticky part
+    Jzona_sox2_start=0.25;
+    Jzona_sox2_end=0.25;
+    Jzona_sox17_start=0.25;
+    Jzona_sox17_end=0.25;    // added zona adhesion for sox2 sox17 for sticky part
     // J_cell_zona_sticky=2.0;
-    Jzona_sticky_sox2extra=0.6;
-    Jzona_sticky_sox17extra=-0.2;
+    Jzona_sticky_sox2_start=0.6;
+    Jzona_sticky_sox2_end=0.6;
+    Jzona_sticky_sox17_start=-0.2;
+    Jzona_sticky_sox17_end=-0.2;
 
     init_blasto=1.5;
     init_zona=3.0;
@@ -239,25 +250,34 @@
     adhesion_multiplier=2.;
 
 
-    J_cell_baseline=J_cell_baseline*adhesion_multiplier;
-    sox2binding=sox2binding*adhesion_multiplier;
-    sox17binding=sox17binding*adhesion_multiplier;
-    sox2vs17binding=sox2vs17binding*adhesion_multiplier;
-    loser_loser_adhesion=loser_loser_adhesion*adhesion_multiplier;
-    loser_sox2_adhesion=loser_sox2_adhesion*adhesion_multiplier;
-    loser_sox17_adhesion=loser_sox17_adhesion*adhesion_multiplier;
-    // J_cell_zona=J_cell_zona*adhesion_multiplier;
-    Jzona_sox2=Jzona_sox2*adhesion_multiplier;
-    Jzona_sox17=Jzona_sox17*adhesion_multiplier;
-    Jzona_loser=Jzona_loser*adhesion_multiplier;
-    // J_cell_zona_sticky=J_cell_zona_sticky*adhesion_multiplier;
-    Jzona_sticky_sox2extra=Jzona_sticky_sox2extra*adhesion_multiplier;
-    Jzona_sticky_sox17extra=Jzona_sticky_sox17extra*adhesion_multiplier;
-    Jblasto=Jblasto*adhesion_multiplier;
-    sox17_blasto_adhesion=sox17_blasto_adhesion*adhesion_multiplier;
-    sox2_blasto_adhesion=sox2_blasto_adhesion*adhesion_multiplier;
-    loser_blasto_adhesion=loser_blasto_adhesion*adhesion_multiplier;
-    Jzona_sticky_loser=Jzona_sticky_loser*adhesion_multiplier;
+// --- Baselines ---
+    J_cell_baseline = J_cell_baseline * adhesion_multiplier;
+    Jblasto = Jblasto * adhesion_multiplier;
+    sox2_sox2_start = sox2_sox2_start * adhesion_multiplier;
+    sox2_sox2_end = sox2_sox2_end * adhesion_multiplier;
+    sox17_sox17_start = sox17_sox17_start * adhesion_multiplier;
+    sox17_sox17_end = sox17_sox17_end * adhesion_multiplier;
+    sox2_sox17_start = sox2_sox17_start * adhesion_multiplier;
+    sox2_sox17_end = sox2_sox17_end * adhesion_multiplier;
+    loser_loser_start = loser_loser_start * adhesion_multiplier;
+    loser_loser_end = loser_loser_end * adhesion_multiplier;
+
+    loser_sox2_start = loser_sox2_start * adhesion_multiplier;
+    loser_sox2_end = loser_sox2_end * adhesion_multiplier;
+    loser_sox17_start = loser_sox17_start * adhesion_multiplier;
+    loser_sox17_end = loser_sox17_end * adhesion_multiplier;
+    sox17_blasto_start = sox17_blasto_start * adhesion_multiplier;
+    sox17_blasto_end = sox17_blasto_end * adhesion_multiplier;
+    Jzona_sox2_start = Jzona_sox2_start * adhesion_multiplier;
+    Jzona_sox2_end = Jzona_sox2_end * adhesion_multiplier;
+    Jzona_sox17_start = Jzona_sox17_start * adhesion_multiplier;
+    Jzona_sox17_end = Jzona_sox17_end * adhesion_multiplier;
+    Jzona_loser = Jzona_loser * adhesion_multiplier;
+    Jzona_sticky_sox2_start = Jzona_sticky_sox2_start * adhesion_multiplier;
+    Jzona_sticky_sox2_end = Jzona_sticky_sox2_end * adhesion_multiplier;
+    Jzona_sticky_sox17_start = Jzona_sticky_sox17_start * adhesion_multiplier;
+    Jzona_sticky_sox17_end = Jzona_sticky_sox17_end * adhesion_multiplier;
+    Jzona_sticky_loser = Jzona_sticky_loser * adhesion_multiplier;
 
 
 

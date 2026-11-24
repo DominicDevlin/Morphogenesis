@@ -130,15 +130,14 @@ class Parameter {
   double Pcad_elastic_change;
 
   bool make_zona_pellucida;
-  double Jzona_sox2;
-  double Jzona_sox17;
-  double Jzona_loser;
 
   int initialise_sox_time;
   int sox_expression_starts;
   int sox_time_till_full_expression;
-  int loser_expression_starts;
-  int loser_time_till_full_expression;
+  int epiblast_cadherin_starts;
+  int epiblast_time_till_full_expression;
+  int PrE_adhesion_starts;
+  int PrE_time_till_full_expression;
   bool set_loser_colours;
 
   double sox17bleb_slowdown_start;
@@ -157,22 +156,61 @@ class Parameter {
   double apop_noise_tau;
   double death_decay_rate;
 
-  double sox17_blasto_adhesion;
-  double sox2_blasto_adhesion;
-  double loser_blasto_adhesion;
-  double sox2binding;
-  double sox17binding;
-  double sox2vs17binding;
-  double Jblasto;
-  double Jzona_sticky_loser;
-  double Jzona_sticky_sox2extra;
-  double Jzona_sticky_sox17extra;
-  double J_cell_baseline;
   double adhesion_multiplier;
 
-  double loser_loser_adhesion;
-  double loser_sox2_adhesion;
-  double loser_sox17_adhesion;
+
+
+
+  // --- Baselines ---
+  double J_cell_baseline;
+  double Jblasto;
+
+  // --- Cell-Cell Homotypic & Heterotypic Adhesions ---
+  double sox2_sox2_start;        // Replaces fixed par.sox2binding
+  double sox2_sox2_end;
+
+  double sox17_sox17_start;      // Replaces fixed par.sox17binding
+  double sox17_sox17_end;
+
+  double sox2_sox17_start;       // Replaces fixed par.sox2vs17binding
+  double sox2_sox17_end;
+
+  // --- Cell-Cell Interactions with Losers ---
+  double loser_loser_start;   // 
+  double loser_loser_end;   // 
+
+  double loser_sox2_start;       // Sox2 changing its adhesion to Losers over t_sox2
+  double loser_sox2_end;
+
+  double loser_sox17_start;      // Sox17 changing its adhesion to Losers over t_sox17
+  double loser_sox17_end;
+
+  // --- Blastocoel Interaction ---
+  double sox17_blasto_start;     // Replaces fixed par.sox17_blasto_adhesion
+  double sox17_blasto_end;
+
+  // --- Zona Pellucida Adhesions ---
+  double Jzona_sox2_start;
+  double Jzona_sox2_end;
+
+  double Jzona_sox17_start;
+  double Jzona_sox17_end;
+
+  double Jzona_loser;            // CONSTANT: Loser adhesion to zona
+
+  // --- Sticky Zona Pellucida Adhesions ---
+  double Jzona_sticky_sox2_start;
+  double Jzona_sticky_sox2_end;
+
+  double Jzona_sticky_sox17_start;
+  double Jzona_sticky_sox17_end;
+
+  double Jzona_sticky_loser;     // CONSTANT: Loser adhesion to sticky zona
+
+
+
+
+
 
   double Dr;
 

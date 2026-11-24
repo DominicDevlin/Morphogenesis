@@ -351,11 +351,20 @@ void CellularPotts::SetMediumArea()
 double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int* neighbor_spins, PDE *PDEfield)       
 {
 
-  double t_loser = (par.loser_time_till_full_expression > 0)
-    ? double(tsteps - par.loser_expression_starts) / double(par.loser_time_till_full_expression)
-    : (tsteps >= par.loser_expression_starts ? 1.0 : 0.0);
-  if (t_loser < 0.0) t_loser = 0.0;
-  else if (t_loser > 1.0) t_loser = 1.0;
+  double t_sox2 = (par.epiblast_time_till_full_expression > 0)
+    ? double(tsteps - par.epiblast_cadherin_starts) / double(par.epiblast_time_till_full_expression)
+    : (tsteps >= par.epiblast_cadherin_starts ? 1.0 : 0.0);
+  if (t_sox2 < 0.0) t_sox2 = 0.0;
+  else if (t_sox2 > 1.0) t_sox2 = 1.0;
+
+  double t_sox17=(par.bleb_end > 0)
+    ? double (tsteps - par.sox17bleb_slowdown_start) / double (par.bleb_end)
+    : (tsteps >= par.sox17bleb_slowdown_start ? 1.0 : 0.0);
+  if (t_sox17 < 0.0) t_sox17=0.;
+  else if (t_sox17 > 1.0) t_sox17=1.;
+
+
+
 
   double f_sox = (par.sox_time_till_full_expression > 0)
     ? double(tsteps - par.sox_expression_starts) / double(par.sox_time_till_full_expression)
@@ -394,12 +403,12 @@ double CellularPotts::DeltaH(int x, int y, int sxyp, const int tsteps, const int
       }
       else if (f_sox >= 1.0)
       {
-        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_loser) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_loser);
+        Jen += cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_sox2, t_sox17) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky,t_sox2, t_sox17);
       }
       else
       {
         double dJ_equil = cell_sxyp.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1) - cell_sxy.EquilibrateEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, 1);
-        double dJ_embryo = cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_loser) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_loser);
+        double dJ_embryo = cell_sxyp.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_sox2, t_sox17) - cell_sxy.EmbryoEnergy((*cell)[neighsite], zona_sigma, zona_sigma_sticky, t_sox2, t_sox17);
         Jen += (1.0 - f_sox) * dJ_equil + f_sox * dJ_embryo;
       }
 
@@ -4366,7 +4375,7 @@ void CellularPotts::NeighbourBasedActiveMotion(double tfrac)
 {
   double LSX2min=-0.1;
   double LSX2max=0.7;
-  double frac = (par.loser_sox2_adhesion - LSX2min) / ( LSX2max - LSX2min);
+  double frac = (par.loser_sox2_start - LSX2min) / ( LSX2max - LSX2min);
   int **ns = SearchNeighbours();
   int n_size = (*cell).size();
   vector<double> neighbour_sox2_vals(n_size,0);

@@ -168,7 +168,8 @@ TIMESTEP {
       if (f_sox < 0.0) f_sox = 0.0;
       else if (f_sox > 1.0) f_sox = 1.0;
   
-      double tfrac = min(1., double(t-par.loser_expression_starts)/double(par.loser_time_till_full_expression));
+      // this stays.
+      double tfrac = min(1., double(t-par.epiblast_cadherin_starts)/double(par.epiblast_time_till_full_expression));
       if (tfrac < 0)
         tfrac=0;
       dish->CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );

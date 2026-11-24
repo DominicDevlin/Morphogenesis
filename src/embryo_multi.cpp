@@ -212,7 +212,7 @@ void process_population()
 
       if (t>par.initialise_sox_time)
       {
-        double tfrac = min(1., double(t-par.loser_expression_starts)/double(par.loser_time_till_full_expression));
+        double tfrac = min(1., double(t-par.epiblast_cadherin_starts)/double(par.epiblast_time_till_full_expression));
         if (tfrac < 0)
           tfrac=0;
         dishes[i].CPM->SetLoserPerimIncrease( par.loser_perim_increase * tfrac );

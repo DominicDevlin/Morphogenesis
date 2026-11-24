@@ -273,71 +273,89 @@ double Cell::EquilibrateEnergy(Cell &cell2, int zona_sigma, int zona_sigma_stick
 }
 
 
-double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, double t, bool debug)
+double Cell::EmbryoEnergy(Cell &cell2, int zona_sigma, int zona_sigma_sticky, double t_sox2, double t_sox17, bool debug)
 {
-
-  if (sigma==cell2.sigma)
+  if (sigma == cell2.sigma)
   {
     return 0;
   }
 
+  // Expression levels / lineage identities
   double t2 = sox2_internal_adhesion;
   double t17 = sox17_internal_adhesion;
-  // "Looser" = undifferentiated: t2 and t17 are comparable (both big or
-  // both small), so neither lineage clearly dominates; 0.5 if intermediate.
-  double is_looser = max(t2 * t17, (1. - t2) * (1. - t17));
+  double is_loser = max(t2 * t17, (1.0 - t2) * (1.0 - t17));
+
   double cell2_t2 = cell2.sox2_internal_adhesion;
   double cell2_t17 = cell2.sox17_internal_adhesion;
-  double cell2_is_looser = max(cell2_t2 * cell2_t17, (1. - cell2_t2) * (1. - cell2_t17));
+  double cell2_is_loser = max(cell2_t2 * cell2_t17, (1.0 - cell2_t2) * (1.0 - cell2_t17));
 
-  double J=par.J_cell_baseline;
+  double J = par.J_cell_baseline;
 
-  if (sigma==0)
+  // 1. Blastocoel / Medium Boundary (sigma == 0)
+  if (sigma == 0)
   {
-    J -= par.Jblasto + cell2_t17*par.sox17_blasto_adhesion;
+    double sox17_blasto = (1.0 - t_sox17) * par.sox17_blasto_start + t_sox17 * par.sox17_blasto_end;
+    J -= par.Jblasto + cell2_t17 * sox17_blasto;
   }  
-  else if (cell2.sigma==0)
+  else if (cell2.sigma == 0)
   {
-    J -= par.Jblasto+ t17 * par.sox17_blasto_adhesion;
+    double sox17_blasto = (1.0 - t_sox17) * par.sox17_blasto_start + t_sox17 * par.sox17_blasto_end;
+    J -= par.Jblasto + t17 * sox17_blasto;
   }
+  // 2. Zona Pellucida Boundary
   else if (cell2.sigma == zona_sigma)
   {
-      J -= (t2        * par.Jzona_sox2
-          + t17       * par.Jzona_sox17
-          + is_looser * par.Jzona_sox2 * (1.0 - t)
-          + is_looser * par.Jzona_loser * t);
+    double Jzona_sox2  = (1.0 - t_sox2)  * par.Jzona_sox2_start  + t_sox2  * par.Jzona_sox2_end;
+    double Jzona_sox17 = (1.0 - t_sox17) * par.Jzona_sox17_start + t_sox17 * par.Jzona_sox17_end;
+
+    // Loser adhesion to zona is now constant
+    J -= (t2       * Jzona_sox2
+        + t17      * Jzona_sox17
+        + is_loser * par.Jzona_loser);
   }
+  // 3. Sticky Zona Boundary
   else if (cell2.sigma == zona_sigma_sticky)
   {
-      J -= (t2        * par.Jzona_sticky_sox2extra
-          + t17       * par.Jzona_sticky_sox17extra
-          + is_looser * par.Jzona_sticky_loser * t
-          + is_looser * par.Jzona_sticky_sox2extra * (1.0 - t));
+    double Jzona_sticky_sox2  = (1.0 - t_sox2)  * par.Jzona_sticky_sox2_start  + t_sox2  * par.Jzona_sticky_sox2_end;
+    double Jzona_sticky_sox17 = (1.0 - t_sox17) * par.Jzona_sticky_sox17_start + t_sox17 * par.Jzona_sticky_sox17_end;
+
+    // Loser adhesion to sticky zona is now constant
+    J -= (t2       * Jzona_sticky_sox2
+        + t17      * Jzona_sticky_sox17
+        + is_loser * par.Jzona_sticky_loser);
   }
+  // 4. Cell - Cell Interactions
   else
   {      
-    J -= (t2 * cell2_t2 * par.sox2binding
-        + t17 * cell2_t17 * par.sox17binding
-        + t17 * cell2_t2 * par.sox2vs17binding
-        + t2 * cell2_t17 * par.sox2vs17binding
+    // Sox2 & Sox17 homotypic bindings change over their respective fractional times
+    double J_sox2_sox2   = (1.0 - t_sox2)  * par.sox2_sox2_start   + t_sox2  * par.sox2_sox2_end;
+    double J_sox17_sox17 = (1.0 - t_sox17) * par.sox17_sox17_start + t_sox17 * par.sox17_sox17_end;
 
-        + (is_looser * cell2_is_looser * par.loser_loser_adhesion
-        + is_looser * cell2_t2 * par.loser_sox2_adhesion
-        + cell2_is_looser * t2 * par.loser_sox2_adhesion
-        + is_looser * cell2_t17 * par.loser_sox17_adhesion
-        + cell2_is_looser * t17 * par.loser_sox17_adhesion) * t
+    // Sox2-Sox17 heterotypic binding advances with both clocks
+    double t_cross       = 0.5 * (t_sox2 + t_sox17);
+    double J_sox2_sox17  = (1.0 - t_cross) * par.sox2_sox17_start  + t_cross * par.sox2_sox17_end;
 
-        + (is_looser * cell2_is_looser * par.sox2binding
-        + is_looser * cell2_t2 * par.sox2binding
-        + cell2_is_looser * t2 * par.sox2binding
-        + is_looser * cell2_t17 * par.sox2vs17binding
-        + cell2_is_looser * t17 * par.sox2vs17binding) * (1.0 - t));
-    //cout << t << '\t' << t2 << '\t' << cell2_t2 << '\t' << is_looser << '\t' << cell2_is_looser << '\t' << to_return << endl;
-    // if (debug)
-    // {
-    //   cout << "printing J: "<<  to_return << endl;
-    // }
+    // Loser-Sox2 changes only because Sox2 is maturing over t_sox2
+    double J_loser_sox2  = (1.0 - t_sox2)  * par.loser_sox2_start  + t_sox2  * par.loser_sox2_end;
+
+    // Loser-Sox17 changes only because Sox17 is maturing over t_sox17
+    double J_loser_sox17 = (1.0 - t_sox17) * par.loser_sox17_start + t_sox17 * par.loser_sox17_end;
+
+    // Loser-Loser adhesion is completely constant
+    double J_loser_loser = (1.0 - t_sox2) * par.loser_loser_start + t_sox2 * par.loser_loser_end;
+
+    J -= (t2 * cell2_t2 * J_sox2_sox2
+        + t17 * cell2_t17 * J_sox17_sox17
+        + (t17 * cell2_t2 + t2 * cell2_t17) * J_sox2_sox17
+        + (is_loser * cell2_t2 + cell2_is_loser * t2) * J_loser_sox2
+        + (is_loser * cell2_t17 + cell2_is_loser * t17) * J_loser_sox17
+        + (is_loser * cell2_is_loser) * J_loser_loser);
+
+    if (debug)
+    {
+      cout << "t_sox2: " << t_sox2 << " t_sox17: " << t_sox17 << " J: " << J << endl;
+    }
   }
-  return J;
 
+  return J;
 }

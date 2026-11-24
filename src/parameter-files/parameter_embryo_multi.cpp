@@ -93,8 +93,8 @@
       mcs = 45001;
       sox_expression_starts=1000;
       sox_time_till_full_expression=16000;
-      loser_expression_starts=1000;
-      loser_time_till_full_expression=16000;
+      epiblast_cadherin_starts=1000;
+      epiblast_time_till_full_expression=16000;
       sox17bleb_slowdown_start=initialise_sox_time;
       bleb_end=0;
       // need like a number of divisions parameter
@@ -109,8 +109,8 @@
       mcs = 80001;
       sox_expression_starts=1000;
       sox_time_till_full_expression=16000;
-      loser_expression_starts=35000;
-      loser_time_till_full_expression=16000;
+      epiblast_cadherin_starts=35000;
+      epiblast_time_till_full_expression=16000;
       sox17bleb_slowdown_start=20000;
       bleb_end=40000;
       cell_target_area = 400;

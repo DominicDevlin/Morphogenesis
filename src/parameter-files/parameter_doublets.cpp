@@ -96,8 +96,8 @@
     mcs = 80001;
     sox_expression_starts=1;
     sox_time_till_full_expression=2;
-    loser_expression_starts=35000;
-    loser_time_till_full_expression=16000;
+    epiblast_cadherin_starts=35000;
+    epiblast_time_till_full_expression=16000;
     sox17bleb_slowdown_start=20000;
     bleb_end=40000;
     cell_target_area = 400;
@@ -130,8 +130,8 @@
 
 
     // int divider=4;
-    // loser_expression_starts=loser_expression_starts/divider;
-    // loser_time_till_full_expression=loser_time_till_full_expression/divider;
+    // epiblast_cadherin_starts=epiblast_cadherin_starts/divider;
+    // epiblast_time_till_full_expression=epiblast_time_till_full_expression/divider;
     // sox17bleb_slowdown_start=sox17bleb_slowdown_start/divider;
     // bleb_end=bleb_end/divider;
     // div_time=div_time/divider;
